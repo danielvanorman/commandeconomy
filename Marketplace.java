@@ -1330,7 +1330,7 @@ public class Marketplace {
     * @param maxUnitPrice stop buying if unit price is above this amount
     * @param accountID    key used to retrieve account information
     */
-   protected static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
                              String wareID, int quantity, float maxUnitPrice, String accountID) {
       if (Float.isNaN(maxUnitPrice) || // if something's wrong with the unit price, stop
          quantity <= 0              || // if nothing should be bought, stop
@@ -1506,7 +1506,7 @@ public class Marketplace {
     * @param minUnitPrice stop selling if unit price is below this amount
     * @param accountID   key used to retrieve account information
     */
-   protected static void sell(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public static void sell(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID, int quantity,
       float minUnitPrice, String accountID) {
       if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
@@ -1619,7 +1619,7 @@ public class Marketplace {
     * @param inventory   wares to be sold and their information
     * @param accountID   key used to retrieve account information
     */
-   protected static void sellAll(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public static void sellAll(UUID playerID, InterfaceCommand.Coordinates coordinates,
       LinkedList<Stock> inventory, String accountID) {
       if ((coordinates == null &&                            // if the given inventory is empty and no coordinates are given,
           (inventory   == null || inventory.size() == 0)) || // there is nothing to sell
@@ -1851,10 +1851,10 @@ public class Marketplace {
          if (alias != null &&
              !alias.isEmpty()) {
             Config.commandInterface.printToUser(playerID, alias + " (" + wareID
-               + "): " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false)));
+               + "): " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true)));
          } else {
             Config.commandInterface.printToUser(playerID, wareID
-               + ": " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false)));
+               + ": " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true)));
          }
          return;
       }

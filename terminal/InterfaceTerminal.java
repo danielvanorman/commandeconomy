@@ -732,8 +732,8 @@ public class InterfaceTerminal implements InterfaceCommand
     * Purchases a ware.
     * <p>
     * Expected Formats:<br>
-    * &#60;ware_id&#62; &#60;quantity&#62; [max_unit_price] [account_id] [&amp;craft]<br>
-    * &#60;player_name&#62; &#60;inventory_direction&#62; &#60;ware_id&#62; &#60;quantity&#62; [max_unit_price] [account_id] [&amp;craft]<br>
+    * &#60;ware_id&#62; &#60;quantity&#62; [max_unit_price] [account_id]<br>
+    * &#60;player_name&#62; &#60;inventory_direction&#62; &#60;ware_id&#62; &#60;quantity&#62; [max_unit_price] [account_id]<br>
     * &#60;inventory_direction&#62; is none, east, west, south, up, or down
     *
     * @param args arguments given in the expected format
@@ -939,8 +939,8 @@ public class InterfaceTerminal implements InterfaceCommand
     * Sells a ware.
     * <p>
     * Expected Formats:<br>
-    * (&#60;ware_id&#62; | held) [quantity] [min_unit_price] [account_id]<br>
-    * &#60;player_name&#62; &#60;inventory_direction&#62; (&#60;ware_id&#62; | held) [quantity] [min_unit_price] [account_id]<br>
+    * (&#60;ware_id&#62; | held) [&#60;quantity&#62; [min_unit_price] [account_id]]<br>
+    * &#60;player_name&#62; &#60;inventory_direction&#62; (&#60;ware_id&#62; | held) [&#60;quantity&#62; [min_unit_price] [account_id]]<br>
     * &#60;inventory_direction&#62; == none, east, west, south, up, or down
     *
     * @param args arguments given in the expected format
