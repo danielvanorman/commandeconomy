@@ -164,7 +164,7 @@ public class CommandEconomy {
    /** title case name for presentation */
    public static final String NAME    = "Command Economy";
    /** version of this mod */
-   public static final String VERSION = "0.6";
+   public static final String VERSION = "0.6.1";
 
    /** used to format currency before displaying */
    public static final DecimalFormat PRICE_FORMAT = new DecimalFormat("$###,##0.00");

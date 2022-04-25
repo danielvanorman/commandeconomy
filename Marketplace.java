@@ -1916,6 +1916,11 @@ public class Marketplace {
    /**
     * Displays ware price and quantity of a damageable ware for a player.
     * <p>
+    * Since checking damaged wares' prices is a rare occasion,
+    * the functionality was implemented using this small, overloaded function
+    * to avoid adding a rarely-used parameter and extra branch
+    * to the commonly-used price checking function.
+    * <p>
     * Complexity: O(n^2)
     * @param playerID     user responsible for the trading
     * @param wareID       key used to retrieve ware information
@@ -1943,5 +1948,38 @@ public class Marketplace {
             + " of held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, ware.getWareID(), quantity, false) * percentWorth));
       }
       return;
+   }
+
+   /**
+    * Spawns and handles threads for features.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void startOrReconfigPeriodicEvents() {
+      // if necessary, start, reload, or stop AI
+      AIHandler.startOrReconfigAI();
+   }
+
+   /**
+    * Closes threads for features.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void endPeriodicEvents() {
+      // if necessary, stop AI
+      AIHandler.endAI();
+   }
+
+   /**
+    * Returns a ware's price when supply and demand are equal.
+    * <p>
+    * Complexity: O(1)
+    * @param ware       ware to find equilibrium price of
+    * @param isPurchase <code>true</code> if the price should reflect buying the ware
+    *                   <code>false</code> if the price should reflect selling the ware
+    * @return ware's unit price without supply and demand
+    */
+   public static float getEquilibriumPrice(Ware ware, boolean isPurchase) {
+      return 0.0f;
    }
 }

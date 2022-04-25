@@ -364,6 +364,14 @@ public class TestSuite
          failedTests += "   /changeStock\n";
       }
 
+      // test AI functionality
+      if (testAI())
+         System.err.println("test passed - testAI()\n");
+      else {
+         System.err.println("test failed - testAI()\n");
+         failedTests += "   AI\n";
+      }
+
       // teardown testing environment
       // restore file names
       Config.filenameWares     = "config" + File.separator + "CommandEconomy" + File.separator + "wares.txt";
@@ -11215,6 +11223,177 @@ public class TestSuite
       }
       catch (Exception e) {
          System.err.println("changeStock() - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
+
+      return !errorFound;
+   }
+
+   /**
+    * Tests AI's trading, configuration, and handling.
+    *
+    * @return whether AI passed all test cases
+    */
+   private static boolean testAI() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+      Config.filenameAIProfessions = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
+      File fileAIProfessions       = new File(Config.filenameAIProfessions);
+      FileWriter fileWriter;
+
+      // set up test AI
+      AI testAI1;
+      AI testAI2;
+      AI testAI3;
+
+      // prepare to grab internal variables
+      Field     fTimer;           // used to check whether feature is running
+      Timer     timerAITrades;
+      Field     fTimerTask;
+      AIHandler aiHandler;
+      Field     fProfessions;     // used to check loaded AI professions
+      Object[]  professions;
+      Field     fActiveAI;        // used to check AI currently running
+      Object[]  activeAI;
+      Field     fPurchasablesIDs; // used to check loading wares from file
+      Object[]  purchasablesIDs;  // IDs for wares the AI may buy
+      Field     fPurchasables;    // wares the AI may buy
+      Object[]  purchasables;
+
+      // track changes to variables
+      AI   ai;               // current test case's AI
+      Ware ware1;            // current test case's first ware
+      Ware ware2;            // current test case's second ware
+      int  quantityToTrade1; // how much AI should trade for the first ware
+      int  quantityToTrade2; // how much AI should trade for the second ware
+      int  quantityWare1;    // first ware's quantity available for sale
+      int  quantityWare2;    // second ware's quantity available for sale
+
+      // ensure professions file doesn't affect next test run
+      if (fileAIProfessions.exists())
+         fileAIProfessions.delete();
+
+      try {
+         // set up test AI
+         // testAI1: simple as possible
+         // buys testWare1
+         testAI1 = null;
+
+         // testAI2: simple  + buys and sells
+         // buys testWare2
+         // sells testWareC1
+
+         // testAI3: has preferences
+         // buys testWare1, testWare3
+         // sells testWareC2
+         // prefers testWare3 by +10%
+
+         // grab references to attributes
+
+         System.err.println("AI - missing file");
+         // initialize AI
+
+         // check loaded AI professions
+
+         System.err.println("AI - empty file");
+         // create test AI professions file
+         try {
+            // open the config file for AI professions, create it if it doesn't exist
+            fileWriter = new FileWriter(Config.filenameAIProfessions);
+
+            // write test events file
+            fileWriter.write(
+               ""
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            System.err.println("   unable to create test AI professions file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+
+         // check loaded AI professions
+
+         System.err.println("AI - loading valid and invalid professions");
+         // create test AI professions file
+         try {
+            // open the config file for AI professions, create it if it doesn't exist
+            fileWriter = new FileWriter(Config.filenameAIProfessions);
+
+            // write test professions file
+            fileWriter.write(
+               ""
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            System.err.println("   unable to create test AI professions file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+
+         // check loaded AI professions
+
+         System.err.println("AI - loading professions with invalid wares");
+         // create test AI professions file
+         try {
+            // open the config file for AI professions, create it if it doesn't exist
+            fileWriter = new FileWriter(Config.filenameAIProfessions);
+
+            // write test professions file
+            fileWriter.write(
+               ""
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            System.err.println("   unable to create test AI professions file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+
+         // check loaded AI professions
+
+         System.err.println("AI - sales, volume");
+         ai               = testAI1;
+         ware1            = testWare1;
+         quantityToTrade1 = 0;
+         quantityWare1    = Config.quanMid[ware1.getLevel()];
+         ware1.setQuantity(quantityWare1);
+
+         //ai.trade();
+
+         if (ware1.getQuantity() != quantityWare1 + quantityToTrade1) {
+            System.err.println("   unexpected quantity: " + ware1.getQuantity() + ", should be " + (quantityWare1 + quantityToTrade1));
+            errorFound = true;
+         }
+
+         System.err.println("AI - sales, profession");
+         System.err.println("AI - purchases, volume");
+         System.err.println("AI - purchases, profession");
+         System.err.println("AI - trade decisions, supply and demand");
+         System.err.println("AI - trade decisions, preferences");
+         System.err.println("AI - reloading professions");
+         System.err.println("AI - reloading trading frequency");
+         System.err.println("AI - reloading trading quantity");
+         System.err.println("AI - toggling feature by reloading configuration");
+      }
+      catch (Exception e) {
+         System.err.println("AI - fatal error: " + e);
          e.printStackTrace();
          return false;
       }

@@ -42,11 +42,13 @@ public class Config
 
    // files
    /** contains wares to be tradeable within the marketplace */
-   public  static String  filenameNoPathWares     = "wares.txt";
+   public    static String filenameNoPathWares         = "wares.txt";
    /** save file containing tradeable wares within the marketplace */
-   private static String  filenameNoPathWaresSave = "waresSaved.txt";
+   private   static String filenameNoPathWaresSave     = "waresSaved.txt";
    /** contains accounts usable within the marketplace */
-   private static String  filenameNoPathAccounts  = "accounts.txt";
+   private   static String filenameNoPathAccounts      = "accounts.txt";
+   /** contains wares to be tradeable within the marketplace */
+   protected static String filenameNoPathAIProfessions = "aiProfessions.json";
 
    /** contains settings for customizing the marketplace */
    public static String  filenameConfig        = "CommandEconomy" + File.separator + "config.txt";
@@ -58,6 +60,8 @@ public class Config
    public static String  filenameAccounts      = "CommandEconomy" + File.separator + "accounts.txt";
    /** output file for printing wares within the marketplace */
    public static String  filenameMarket        = "config" + File.separator + "CommandEconomy" + File.separator + "market.txt";
+   /** save file containing tradeable wares within the marketplace */
+   public static String  filenameAIProfessions = "CommandEconomy" + File.separator + "aiProfessions.json";
    /** if true, load global save files instead of local */
    public static boolean crossWorldMarketplace = false;
 
@@ -117,6 +121,18 @@ public class Config
    protected static float priceFloorAdjusted   = 1.0f - priceFloor;
    /** adjusted multiplier for price ceiling */
    protected static float priceCeilingAdjusted = 1.0f - priceCeiling;
+
+   // AI
+   /** whether AI should be used */
+   public static boolean enableAI = false;
+   /** whether AI should be used */
+   public static String[] activeAI = null;
+   /** how often AI should trade, in minutes */
+   public static int aiTradeFrequency = 10;
+   /** how many units AI should buy or sell per trade, in percentage of equilibrium stock */
+   public static float aiTradeQuantityPercent = 0.05f;
+   /** how randomized AI trade decisions should be */
+   public static float aiRandomness = 0.15f;
 
    /**
     * Sets a config option to a given value or prints an error.
@@ -434,6 +450,8 @@ public class Config
          Marketplace.reloadAllComponents();
      }
 
+      // change or close any threads needed for features based on configuration settings
+      Marketplace.startOrReconfigPeriodicEvents();
       return;
   }
 
