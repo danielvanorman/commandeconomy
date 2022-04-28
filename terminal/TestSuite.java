@@ -11264,6 +11264,8 @@ public class TestSuite
       Timer     timerAITrades;
       Field     fTimerTask;
       AIHandler aiHandler;
+      Field     fTradeFrequency;  // how often AI make trading decisions
+      long      tradeFrequency;
       Field     fProfessions;     // used to check loaded AI professions
       HashMap<String, AI> professions;
       Field     fActiveAI;        // used to check AI currently running
@@ -11292,6 +11294,7 @@ public class TestSuite
          // buys testWare1
          purchasablesIDs = new String[]{"test:material1"};
          testAI1         = new AI(purchasablesIDs, null, null);
+         testAI1.incrementDecisionsPerTradeEvent();
 
          // testAI2: simple + buys and sells
          // buys testWare2
@@ -11299,6 +11302,7 @@ public class TestSuite
          purchasablesIDs = new String[]{"test:material2"};
          sellablesIDs    = new String[]{"test:crafted1"};
          testAI2         = new AI(purchasablesIDs, sellablesIDs, null);
+         testAI2.incrementDecisionsPerTradeEvent();
 
          // testAI3: has preferences
          // buys testWare1, testWare3
@@ -11309,18 +11313,21 @@ public class TestSuite
          preferences     = new HashMap<String, Float>(1, 1.0f);
          preferences.put("test:crafted2", 1.10f);
          testAI3         = new AI(purchasablesIDs, sellablesIDs, preferences);
+         testAI3.incrementDecisionsPerTradeEvent();
 
          // grab references to AI handler attributes
-         fProfessions  = AIHandler.class.getDeclaredField("professions");
-         fActiveAI     = AIHandler.class.getDeclaredField("activeAI");
-         fTimer        = AIHandler.class.getDeclaredField("timerAITrades");
-         fTimerTask    = AIHandler.class.getDeclaredField("timerTaskAITrades");
+         fProfessions    = AIHandler.class.getDeclaredField("professions");
+         fActiveAI       = AIHandler.class.getDeclaredField("activeAI");
+         fTimer          = AIHandler.class.getDeclaredField("timerAITrades");
+         fTimerTask      = AIHandler.class.getDeclaredField("timerTaskAITrades");
+         fTradeFrequency = AIHandler.class.getDeclaredField("oldFrequency");
          fProfessions.setAccessible(true);
          fActiveAI.setAccessible(true);
          fTimer.setAccessible(true);
          fTimerTask.setAccessible(true);
-         timerAITrades = (Timer) fTimer.get(null);
-         aiHandler     = (AIHandler) fTimerTask.get(null);
+         fTradeFrequency.setAccessible(true);
+         timerAITrades   = (Timer) fTimer.get(null);
+         aiHandler       = (AIHandler) fTimerTask.get(null);
 
          // grab references to AI attributes
          fPurchasablesIDs = AI.class.getDeclaredField("purchasablesIDs");
@@ -11425,12 +11432,12 @@ public class TestSuite
                "\"validAIProfession\": {\n" +
                "\"purchasablesIDs\": [\"test:material1\",\"test:crafted1\"],\n" +
                "\"sellablesIDs\": [\"test:material1\"],\n" +
-               "\"preferences\": { \"test:crafted1\": { 0.15 } }\n" +
+               "\"preferences\": { \"test:crafted1\": 0.15 }\n" +
                "},\n" +
                "\"invalidAIProfession\": {\n" +
                "\"purchasablesIDs\": [\"test:material1\",\"test:crafted1\"],\n" +
                "\"sellablesIDs\": [\"test:material1\"],\n" +
-               "\"preferences\": { \"test:crafted2\": { 0.15 } }\n" +
+               "\"preferences\": { \"test:crafted2\": 0.15 }\n" +
                "}\n" +
                "}\n"
             );
@@ -11476,11 +11483,11 @@ public class TestSuite
                "\"hasPreferences\": {\n" +
                "\"purchasablesIDs\": [\"test:material1\",\"invalidWareAlias\"],\n" +
                "\"sellablesIDs\": [\"test:material1\"],\n" +
-               "\"preferences\": { \"invalidWareAlias\": { 0.15 } }\n" +
+               "\"preferences\": { \"invalidWareAlias\": 0.15 }\n" +
                "},\n" +
                "\"hasNoPreferences\": {\n" +
                "\"purchasablesIDs\": [\"test:material1\",\"test:invalidWareID\"],\n" +
-               "\"sellablesIDs\": [\"test:material1\"],\n" +
+               "\"sellablesIDs\": [\"test:material1\"]\n" +
                "}\n" +
                "}\n"
             );
@@ -11638,7 +11645,7 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI2.trade();
+         testAI3.trade();
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11702,7 +11709,7 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI2.trade();
+         testAI3.trade();
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11728,7 +11735,7 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI2.trade();
+         testAI3.trade();
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11755,7 +11762,7 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI2.trade();
+         testAI3.trade();
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #3): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11767,6 +11774,108 @@ public class TestSuite
          }
          if (testWareC2.getQuantity() != quantityWare3 + quantityToTrade3) {
             System.err.println("   unexpected quantity for testWareC2 (test #3): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
+            errorFound = true;
+         }
+
+         System.err.println("AI - trade decisions, multiple, one ware");
+         quantityToTrade1 = ((int) (Config.quanMid[testWare1.getLevel()] * Config.aiTradeQuantityPercent)) * 5;
+         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         testWare1.setQuantity(quantityWare1);
+
+         testAI1.resetDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.trade();
+
+         if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
+            System.err.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            errorFound = true;
+         }
+
+
+         quantityToTrade1 = ((int) (Config.quanMid[testWare1.getLevel()] * Config.aiTradeQuantityPercent)) * 16;
+         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         testWare1.setQuantity(quantityWare1);
+
+         testAI1.resetDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.incrementDecisionsPerTradeEvent();
+         testAI1.trade();
+
+         if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
+            System.err.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            errorFound = true;
+         }
+
+         System.err.println("AI - trade decisions, multiple, multiple wares");
+         // testAI2 buys testWare2 and sells testWareC1
+         // Since both are at equilibrium and testAI2 should make three trade decisions,
+         // testAI2 should buy twice and sell once.
+         quantityToTrade1 = ((int) (Config.quanMid[testWare2.getLevel()] * Config.aiTradeQuantityPercent)) * 2;
+         quantityToTrade2 = (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = Config.quanMid[testWare2.getLevel()];
+         quantityWare2    = Config.quanMid[testWareC1.getLevel()];
+         testWare2.setQuantity(quantityWare1);
+         testWareC1.setQuantity(quantityWare2);
+
+         testAI2.resetDecisionsPerTradeEvent();
+         testAI2.incrementDecisionsPerTradeEvent();
+         testAI2.incrementDecisionsPerTradeEvent();
+         testAI2.incrementDecisionsPerTradeEvent();
+         testAI2.trade();
+
+         if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
+            System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
+            System.err.println("   unexpected quantity for testWareC1 (test #1): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
+            errorFound = true;
+         }
+
+         // when making two trade decisions, choose the two best deals
+         quantityToTrade1 = 0;
+         quantityToTrade2 = (int) (Config.quanMid[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityToTrade3 = (int) (Config.quanMid[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         quantityWare2    = Config.quanMid[testWare3.getLevel()] + quantityToTrade2 + quantityToTrade2;
+         quantityWare3    = Config.quanMid[testWareC2.getLevel()] - quantityToTrade3 - quantityToTrade3 - quantityToTrade3;
+         testWare1.setQuantity(quantityWare1);
+         testWare3.setQuantity(quantityWare2);
+         testWareC2.setQuantity(quantityWare3);
+
+         testAI3.resetDecisionsPerTradeEvent();
+         testAI3.incrementDecisionsPerTradeEvent();
+         testAI3.incrementDecisionsPerTradeEvent();
+         testAI3.trade();
+
+         if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
+            System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            errorFound = true;
+         }
+         if (testWare3.getQuantity() != quantityWare2 - quantityToTrade2) {
+            System.err.println("   unexpected quantity for testWare3 (test #2): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
+            errorFound = true;
+         }
+         if (testWareC2.getQuantity() != quantityWare3 + quantityToTrade3) {
+            System.err.println("   unexpected quantity for testWareC2 (test #2): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
             errorFound = true;
          }
 
@@ -11782,7 +11891,7 @@ public class TestSuite
                "{\n" +
                "\"possibleAI\": {\n" +
                "\"purchasablesIDs\": [\"test:material1\"],\n" +
-               "\"sellablesIDs\": [\"test:material2\"],\n" +
+               "\"sellablesIDs\": [\"test:material2\"]\n" +
                "}\n" +
                "}\n"
             );
@@ -11872,7 +11981,7 @@ public class TestSuite
                "{\n" +
                "\"possibleAI\": {\n" +
                "\"purchasablesIDs\": [\"test:processed1\", \"material4\"],\n" +
-               "\"sellablesIDs\": [\"test:crafted3\", \"test:material1\", \"test:processed1\"],\n" +
+               "\"sellablesIDs\": [\"test:crafted3\", \"test:material1\", \"test:processed1\"]\n" +
                "}\n" +
                "}\n"
             );
@@ -11963,7 +12072,64 @@ public class TestSuite
          }
 
          System.err.println("AI - reloading trading frequency");
-         System.err.println("   WARNING: This test case is not implemented!");
+         // set up config file to known value
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "aiTradeFrequency       = 100\n" +
+            "enableAI               = true\n" +
+            "aiRandomness           = 0.0\n" +
+            "disableAutoSaving      = true\n" +
+            "crossWorldMarketplace  = true\n"
+         );
+         fileWriter.close();
+
+         // try to reload configuration
+         try {
+            InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            aiHandler.run();
+         }
+         catch (Exception e) {
+            System.err.println("   load() should not throw any exception, but it did");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // check trade frequency
+         tradeFrequency = (long) fTradeFrequency.get(null);
+         if (tradeFrequency != 6000000L) { // 60000 ms per min.
+            System.err.println("   unexpected frequency (test #1): " + tradeFrequency + ", should be 6000000");
+            errorFound = true;
+         }
+
+         // set up config file to new value
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "aiTradeFrequency       = 123456\n" +
+            "enableAI               = true\n" +
+            "aiRandomness           = 0.0\n" +
+            "disableAutoSaving      = true\n" +
+            "crossWorldMarketplace  = true\n"
+         );
+         fileWriter.close();
+
+         // try to reload configuration
+         try {
+            InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            aiHandler.run();
+         }
+         catch (Exception e) {
+            System.err.println("   load() should not throw any exception, but it did");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // check trade frequency
+         if (tradeFrequency != 7407360000L) { // 60000 ms per min.
+            System.err.println("   unexpected frequency (test #2): " + tradeFrequency + ", should be 7407360000");
+            errorFound = true;
+         }
 
          System.err.println("AI - reloading trading quantity");
          // predict trade quantity with new setting
@@ -11972,7 +12138,7 @@ public class TestSuite
          testWare1.setQuantity(quantityWare1);
 
          // set up config file
-         fileWriter = new FileWriter(Config.filenameAIProfessions);
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "aiTradeQuantityPercent = 0.5\n" +
@@ -12009,7 +12175,7 @@ public class TestSuite
          testWare1.setQuantity(quantityWare1);
 
          // set up config file
-         fileWriter = new FileWriter(Config.filenameAIProfessions);
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "aiTradeQuantityPercent = 0.25\n" +
