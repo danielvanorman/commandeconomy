@@ -1980,6 +1980,12 @@ public class Marketplace {
     * @return ware's unit price without supply and demand
     */
    public static float getEquilibriumPrice(Ware ware, boolean isPurchase) {
+      // if something's wrong with the ware, don't do anything
+      if (ware == null || Float.isNaN(ware.getBasePrice()))
+         return 0.0f;
+
+      // Implementation plan: copy-paste from getPrice() and make minor adjustments
+
       return 0.0f;
    }
 }

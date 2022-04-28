@@ -215,6 +215,16 @@ public class CommandEconomy {
       main(null);
    }*/
 
+   /**
+    * When the world is closing, cancel any running threads.
+    *
+    * @param event information concerning Minecraft's current state
+    */
+   /*@Mod.EventHandler
+   public void serverStopped(FMLServerStoppedEvent event) {
+      // end any threads needed by features
+      Marketplace.endPeriodicEvents();
+   }*/
 
    /**
     * Truncates a given number to a standardized decimal place.
@@ -423,6 +433,13 @@ public class CommandEconomy {
    public final static String ERROR_CONFIG_OPTION_LOAD    = "error - could not load option ";
    public final static String ERROR_CONFIG_OPTION_PARSING = ", failed to parse ";
    public final static String ERROR_CONFIG_OPTION_ARRAY   = ", should hold 6 values, instead holds ";
+
+   // AI
+   public final static String ERROR_AI_MISFORMAT  = "error - AI professions JSON file is improperly formatted: ";
+   public final static String ERROR_AI_PARSING    = "error - could not parse AI professions JSON file: ";
+   public final static String ERROR_AI_MISSING    = "error - AI profession not found: ";
+   public final static String WARN_AI_NONE_LOADED = "warning - no AI professions were loaded";
+   public final static String WARN_AI_INVALID     = "warning - no AI professions were valid";
 
    // Terminal interface
    public final static String CMD_OP                = "op";

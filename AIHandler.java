@@ -11,6 +11,7 @@ import java.util.TimerTask;                     // for disabling AI mid-executio
 import java.util.concurrent.ArrayBlockingQueue; // for communication between the main thread and the thread handling AI
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing trade frequency and decisions
 import java.util.HashMap;                       // for storing AI professions
+import java.util.Map;                           // for iterating through hashmaps
 
 /**
  * Creating an instance of this class initializes
@@ -38,6 +39,8 @@ public class AIHandler extends TimerTask {
    static Timer timerAITrades = null;
    /** handles AI trading */
    static AIHandler timerTaskAITrades = null;
+   /** used to monitor a timer interval for configuration changes */
+   static long oldFrequency = (long) 0.0;
    /** used to signal what should be reloaded or recalculated */
    enum QueueCommands {
       LOAD,
@@ -110,9 +113,17 @@ public class AIHandler extends TimerTask {
     * Complexity: O(1)
     */
    public static void startOrReconfigAI() {
+      // calculate frequency using configuration settings
+      long newFrequency = (long) (Config.aiTradeFrequency);
+      // enforce a positive floor
+      if (newFrequency <= 0.0)
+         newFrequency = (long) 60000.0; // 60000 ms per min.
+
       // if necessary, start, reload, or stop AI
       if (Config.enableAI && Config.aiTradeFrequency > 0) {
          // set up AI if they haven't been already
+            // set up queue
+            // leave requests to set up AI
 
          // start AI
 
@@ -120,6 +131,9 @@ public class AIHandler extends TimerTask {
       }
 
       // stop AI
+
+      // record timer interval to monitor for changes
+      oldFrequency = newFrequency;
    }
 
    /**
@@ -137,8 +151,8 @@ public class AIHandler extends TimerTask {
     * Complexity: O(n), where n is the number of AI professions to load
     */
    private static void loadPrivate() {
-      // try to load the events file
-      File fileAIProfessions = new File(Config.filenameAIProfessions);
+      // try to load the professions file
+      File fileAIProfessions = new File(Config.filenameAIProfessions);  // contains AI objects
       // if the local file isn't found, use the global file
       if (!Config.crossWorldMarketplace && !fileAIProfessions.isFile()) {
          fileAIProfessions = new File("config" + File.separator + "CommandEconomy" + File.separator + Config.filenameNoPathAIProfessions);
@@ -147,7 +161,7 @@ public class AIHandler extends TimerTask {
       // check file existence
       if (!fileAIProfessions.isFile()) {
          // don't throw an exception, print a warning to advise user to reload AI
-         Config.commandInterface.printToConsole("warning - file not found: " + Config.filenameAIProfessions +
+         Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAIProfessions +
             "\nTo use AI, replace " + Config.filenameAIProfessions +
             ",\nthen use the command \"reload config\"."
          );
@@ -155,16 +169,50 @@ public class AIHandler extends TimerTask {
       }
 
       // prepare to read the JSON file
+      Gson gson = new Gson();
+      FileReader fileReader = null; // use a handle to ensure the file gets closed
 
       // attempt to read file
 
       // check whether any AI professions were loaded
 
       // validate AI professions
+      String professionName;
+      AI     professionAI;
+      for (Map.Entry<String, AI> entry : professions.entrySet()) {
+         professionName = entry.getKey();
+         professionAI   = entry.getValue();
+
+         // for paranoia's sake
+         if (professionAI == null)
+            continue;
+
+         // if the AI fails to load,
+         // remove the entry
+         if (professionAI.load())
+            continue; // To-Do: Code goes here
+            // an error message has already been printed
+      }
 
       // check whether any AI professions are valid
+      if (professions.size() <= 0) {
+         professions = null; // disable random events
+         Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID);
+         return;
+      }
 
       // activate AI
+      for (String aiProfession : Config.activeAI) {
+         // try to grab the AI profession
+         // if the AI profession exists,
+         // add it to active AI and increment its trade decisions
+            // ai.incrementDecisionsPerTradeEvent();
+
+         // if the AI profession doesn't exist,
+         // warn the server
+      }
+
+      // create active AI array
    }
 
    /**
