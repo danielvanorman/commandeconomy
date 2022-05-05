@@ -196,6 +196,9 @@ public class Marketplace {
       catch (FileNotFoundException e) {
          Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSED + Config.filenameWares);
          e.printStackTrace();
+         doNotAdjustWares = false;
+         // signal threads to reload their wares when possible
+         AIHandler.reloadWares();
          return;
       }
 
@@ -378,6 +381,9 @@ public class Marketplace {
 
       // allow other threads to adjust wares' properties
       doNotAdjustWares = false;
+
+      // signal threads to reload their wares when possible
+      AIHandler.reloadWares();
 
       return;
    }
@@ -1984,8 +1990,25 @@ public class Marketplace {
       if (ware == null || Float.isNaN(ware.getBasePrice()))
          return 0.0f;
 
-      // Implementation plan: copy-paste from getPrice() and make minor adjustments
+      // initialize variables
+      float priceBase        = ware.getBasePrice();
+      float spreadAdjustment = 0.0f; // spread's effect on price
+      float priceNoQuantityEffect;   // ware's price without considering supply and demand
 
-      return 0.0f;
+      // if spread is normal or price base is 0, make no adjustment
+      if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
+         // spreadAdjustment = distance from average * distance multiplier
+         spreadAdjustment = (priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
+      }
+
+      // check if purchasing upcharge should be applied
+      if (isPurchase && Config.priceBuyUpchargeMult != 1.0f)
+         // calculate price with upcharge multiplier
+         priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult * Config.priceBuyUpchargeMult;
+      else
+         // calculate price without upcharge multiplier
+         priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult;
+
+      return priceNoQuantityEffect;
    }
 }

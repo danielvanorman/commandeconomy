@@ -435,11 +435,17 @@ public class CommandEconomy {
    public final static String ERROR_CONFIG_OPTION_ARRAY   = ", should hold 6 values, instead holds ";
 
    // AI
-   public final static String ERROR_AI_MISFORMAT  = "error - AI professions JSON file is improperly formatted: ";
-   public final static String ERROR_AI_PARSING    = "error - could not parse AI professions JSON file: ";
-   public final static String ERROR_AI_MISSING    = "error - AI profession not found: ";
-   public final static String WARN_AI_NONE_LOADED = "warning - no AI professions were loaded";
-   public final static String WARN_AI_INVALID     = "warning - no AI professions were valid";
+   public final static String ERROR_AI_MISFORMAT          = "error - AI professions JSON file is improperly formatted: ";
+   public final static String ERROR_AI_PARSING            = "error - could not parse AI professions JSON file: ";
+   public final static String ERROR_AI_MISSING            = "error - AI profession not found: ";
+   public final static String ERROR_AI_PREFS_MISMATCH_PRO = "error - AI profession failed to load due to mismatching preferences; AI profession: ";
+   public final static String ERROR_AI_PREFS_MISMATCH_IDS = "\n   mismatching ware IDs: ";
+   public final static String WARN_AI_NONE_LOADED         = "warning - no AI professions were loaded";
+   public final static String WARN_AI_INVALID             = "warning - no AI professions were valid";
+   public final static String WARN_AI_INVALID_WARE_PRO    = "warning - invalid ware ID for AI profession ";
+   public final static String WARN_AI_INVALID_WARE_IDS    = ": ";
+   public final static String WARN_AI_INVALID_PREF_PRO    = "warning - invalid preference for AI profession ";
+   public final static String WARN_AI_INVALID_PREF_IDS    = ": ";
 
    // Terminal interface
    public final static String CMD_OP                = "op";

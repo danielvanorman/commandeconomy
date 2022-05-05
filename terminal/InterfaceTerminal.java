@@ -487,6 +487,9 @@ public class InterfaceTerminal implements InterfaceCommand
          timerAutosaver.scheduleAtFixedRate(timertaskAutosaver, (long) 0, (long) 300000); // 60000 milliseconds per minute, 300000 ms per 5 min
       }
 
+      // start any threads needed by features
+      Marketplace.startOrReconfigPeriodicEvents();
+
       // welcome the player
       System.out.println("\nWelcome to Command Economy!\nTo see available commands, use /help.\nTo see tradeable wares, it is recommended to use \"/printMarket\"\nand look in \"config\\CommandEconomy\\market.txt\". \n\nWaiting for commands....");
 
@@ -585,6 +588,9 @@ public class InterfaceTerminal implements InterfaceCommand
                   timerAutosaver.cancel();
                   timerAutosaver = null;
                }
+
+               // end any threads needed by features
+               Marketplace.endPeriodicEvents();
                return;
 
             case CommandEconomy.CMD_RELOAD:

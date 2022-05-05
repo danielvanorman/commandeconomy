@@ -133,6 +133,8 @@ public class Config
    public static float aiTradeQuantityPercent = 0.05f;
    /** how randomized AI trade decisions should be */
    public static float aiRandomness = 0.15f;
+   /** whether to print warnings for ware IDs or aliases not found within the marketplace */
+   public static boolean aiReportInvalidWares = false;
 
    /**
     * Sets a config option to a given value or prints an error.
@@ -185,6 +187,16 @@ public class Config
             maxCraftingDepth = (int) value;
             break;
 
+         case "aiTradeFrequency":
+            aiTradeFrequency = (int) value;
+            break;
+         case "aiTradeQuantityPercent":
+            aiTradeQuantityPercent = value;
+            break;
+         case "aiRandomness":
+            aiRandomness = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -213,6 +225,7 @@ public class Config
          case "quanMid":
             quanMid = values;
             break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
       }
@@ -241,6 +254,13 @@ public class Config
             crossWorldMarketplace = value;
             break;
 
+         case "enableAI":
+            enableAI = value;
+            break;
+         case "aiReportInvalidWares":
+            aiReportInvalidWares = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
       }
@@ -267,6 +287,10 @@ public class Config
             break;
          case "filenameMarket":
             filenameMarket          = "config" + File.separator + "CommandEconomy" + File.separator + value;
+            break;
+
+         case "filenameAIProfessions":
+            filenameNoPathAIProfessions = value;
             break;
 
          default:
@@ -310,6 +334,11 @@ public class Config
       String  oldFilenameNoPathWares     = filenameNoPathWares;
       String  oldFilenameNoPathWaresSave = filenameNoPathWaresSave;
       String  oldFilenameNoPathAccounts  = filenameNoPathAccounts;
+
+      // track changes to equilibrium quantities
+      // for features depending on equilibriums
+      int[] oldQuanMid = new int[quanMid.length];
+      System.arraycopy(quanMid, 0, oldQuanMid, 0, oldQuanMid.length);
 
      // save ware price multipliers to the side
      // to track whether ware prices need to be recalculated
@@ -387,7 +416,12 @@ public class Config
 
               // grab and set the corresponding config option
               setConfig(data[0], inputQuantities);
-           }
+            }
+            // for AI professions
+            else if (data[0].equals("activeAI")) {
+              // split the array in separate values and set the corresponding config option
+              activeAI = data[1].split(",", 0);
+            }
            // for individual values
            else {
               // if the value is not a float, it's probably meant to be a boolean or a string
@@ -436,6 +470,23 @@ public class Config
             filenameAccounts  = path + filenameNoPathAccounts;
       }
 
+      // check for changes to equilibrium quantities
+      boolean equilibriumChanged = false;
+      for (int i = 0; i < 6; i++) {
+         if (oldQuanMid[i] != quanMid[i]) {
+            equilibriumChanged = true;
+            i = 6; // exit loop
+         }
+      }
+
+      // if equilibrium quantities have changes,
+      // let features depending on them know
+      if (equilibriumChanged) {
+         // if AI is enabled,
+         // calculate trade amounts
+         AIHandler.calcTradeQuantities();
+      }
+
       // if the price floor is higher than the price ceiling, swap them
       if (priceFloor > priceCeiling) {
          priceCeilingAdjusted = priceFloor;
@@ -453,7 +504,7 @@ public class Config
       // change or close any threads needed for features based on configuration settings
       Marketplace.startOrReconfigPeriodicEvents();
       return;
-  }
+   }
 
    /**
     * Sets configuration to default values.
@@ -493,6 +544,14 @@ public class Config
       disableAutoSaving = false;
       allowOreDictionarySubstitution = true;
       maxCraftingDepth  = 10;
+
+      // AI
+      enableAI               = false;
+      activeAI               = null;
+      aiTradeFrequency       = 10;
+      aiTradeQuantityPercent = 0.05f;
+      aiRandomness           = 0.15f;
+      aiReportInvalidWares   = false;
    }
 
    /**

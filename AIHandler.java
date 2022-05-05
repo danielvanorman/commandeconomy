@@ -1,8 +1,10 @@
 package commandeconomy;
 
-import com.google.gson.Gson;                    // for saving and loading
+import com.google.gson.Gson;                    // for loading
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.lang.reflect.Type;
+import com.google.gson.reflect.TypeToken;
 import java.io.File;                            // for handling files
 import java.io.FileReader;
 import com.google.gson.JsonSyntaxException;     // for more specific error messages when parsing files
@@ -12,6 +14,7 @@ import java.util.concurrent.ArrayBlockingQueue; // for communication between the
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing trade frequency and decisions
 import java.util.HashMap;                       // for storing AI professions
 import java.util.Map;                           // for iterating through hashmaps
+import java.util.HashSet;                      // for storing AI before their activation
 
 /**
  * Creating an instance of this class initializes
@@ -40,7 +43,9 @@ public class AIHandler extends TimerTask {
    /** handles AI trading */
    static AIHandler timerTaskAITrades = null;
    /** used to monitor a timer interval for configuration changes */
-   static long oldFrequency = (long) 0.0;
+   static long oldFrequency = 0L;
+   /** used to monitor changes in a trade quantity percentage for configuration changes */
+   static float oldTradeQuantityPercent = 0.0f;
    /** used to signal what should be reloaded or recalculated */
    enum QueueCommands {
       LOAD,
@@ -114,23 +119,68 @@ public class AIHandler extends TimerTask {
     */
    public static void startOrReconfigAI() {
       // calculate frequency using configuration settings
-      long newFrequency = (long) (Config.aiTradeFrequency);
+      long newFrequency = ((long) Config.aiTradeFrequency) * 60000L; // 60000 ms per min.
       // enforce a positive floor
       if (newFrequency <= 0.0)
-         newFrequency = (long) 60000.0; // 60000 ms per min.
+         newFrequency = 60000L; // 60000 ms per min.
 
       // if necessary, start, reload, or stop AI
       if (Config.enableAI && Config.aiTradeFrequency > 0) {
          // set up AI if they haven't been already
+         if (queue == null) {
             // set up queue
+            queue = new ArrayBlockingQueue<QueueCommands>(15);
+
             // leave requests to set up AI
+            queue.add(QueueCommands.LOAD);
+            queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
+
+            // exit to delay setting up until the marketplace is set up
+            return;
+         }
+
+         // if necessary, recalculate trade quantities
+         if (oldTradeQuantityPercent != Config.aiTradeQuantityPercent)
+            queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
 
          // start AI
+         if (timerAITrades == null ) {
+            // initialize timer objects
+            timerAITrades     = new Timer(true);
+            timerTaskAITrades = new AIHandler();
+
+            // initialize AI
+            timerAITrades.scheduleAtFixedRate(timerTaskAITrades, (long) 0, newFrequency);
+         }
 
          // reload AI trading frequency
+         else {
+            // reload AI professions file
+            queue.add(QueueCommands.LOAD);
+
+            if (oldFrequency != newFrequency) {
+               // There's no way to change a task's period.
+               // Therefore, it is necessary to stop the current task
+               // and schedule a new one.
+               timerTaskAITrades.stop = true;
+               timerTaskAITrades.cancel();
+
+               // initialize timertask object
+               timerTaskAITrades = new AIHandler();
+
+               // initialize AI
+               timerAITrades.scheduleAtFixedRate(timerTaskAITrades, newFrequency, newFrequency);
+            }
+         }
       }
 
       // stop AI
+      else if (timerAITrades != null && (!Config.enableAI || Config.aiTradeFrequency <= 0)) {
+         timerTaskAITrades.stop = true;
+         timerTaskAITrades = null;
+         timerAITrades.cancel();
+         timerAITrades = null;
+      }
 
       // record timer interval to monitor for changes
       oldFrequency = newFrequency;
@@ -143,6 +193,12 @@ public class AIHandler extends TimerTask {
     */
    public static void endAI() {
       // if necessary, stop AI thread
+      if (timerAITrades != null) {
+         timerTaskAITrades.stop = true;
+         timerTaskAITrades = null;
+         timerAITrades.cancel();
+         timerAITrades = null;
+      }
    }
 
    /**
@@ -173,8 +229,35 @@ public class AIHandler extends TimerTask {
       FileReader fileReader = null; // use a handle to ensure the file gets closed
 
       // attempt to read file
+      try {
+         fileReader = new FileReader(fileAIProfessions);
+         Type typeProfessions = new TypeToken<HashMap<String, AI>>(){}.getType(); // use TypeToken since the profession object may not have been initialized yet
+         professions = gson.fromJson(fileReader, typeProfessions);
+         fileReader.close();
+      }
+      catch (JsonSyntaxException e) {
+         professions = null; // disable AI
+         Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_MISFORMAT + Config.filenameAIProfessions);
+      }
+      catch (Exception e) {
+         professions = null; // disable AI
+         Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_PARSING + Config.filenameAIProfessions);
+         e.printStackTrace();
+      }
 
       // check whether any AI professions were loaded
+      if (professions == null || professions.size() <= 0) {
+         professions = null; // disable AI
+
+         // ensure the file is closed
+         try {
+            if (fileReader != null)
+               fileReader.close();
+         } catch (Exception e) { }
+
+         Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
+         return;
+      }
 
       // validate AI professions
       String professionName;
@@ -187,32 +270,63 @@ public class AIHandler extends TimerTask {
          if (professionAI == null)
             continue;
 
-         // if the AI fails to load,
-         // remove the entry
-         if (professionAI.load())
-            continue; // To-Do: Code goes here
-            // an error message has already been printed
+         // try to load the AI profession
+         professionAI.load(professionName); // if loading fails, an error message has already been printed
       }
 
       // check whether any AI professions are valid
       if (professions.size() <= 0) {
-         professions = null; // disable random events
+         professions = null; // disable AI
          Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID);
          return;
       }
 
       // activate AI
-      for (String aiProfession : Config.activeAI) {
-         // try to grab the AI profession
-         // if the AI profession exists,
-         // add it to active AI and increment its trade decisions
-            // ai.incrementDecisionsPerTradeEvent();
+      HashSet<AI> aiToActivate = null;
+      if (Config.activeAI != null) {
+         aiToActivate = new HashSet<AI>(); // store AI to be activated to handle repeats
+         AI ai; // AI currently being processed
 
-         // if the AI profession doesn't exist,
-         // warn the server
+         for (String aiProfession : Config.activeAI) {
+            // try to grab the AI profession
+            ai = professions.get(aiProfession);
+
+            // if the AI profession exists,
+            // add it to active AI or increment its trade decisions
+            if (ai != null) {
+               // if the AI is a repeat, increment its trade decisions
+               if (aiToActivate.contains(aiProfession))
+                  ai.incrementDecisionsPerTradeEvent();
+               // otherwise, set it to be activated
+               else
+                  aiToActivate.add(ai);
+            }
+
+            // if the AI profession doesn't exist,
+            // warn the server
+            else
+               Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_MISSING);
+         }
+
+         // if no AI were found
+         if (aiToActivate.size() == 0) {
+            Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
+            endAI();
+         }
+
+         // create active AI array
+         else {
+            // initialize array
+            activeAI = new AI[aiToActivate.size()];
+
+            // fill array
+            aiToActivate.toArray(activeAI);
+         }
       }
 
-      // create active AI array
+      // if no AI should be run
+      else
+         endAI();
    }
 
    /**
@@ -228,6 +342,19 @@ public class AIHandler extends TimerTask {
          return;
 
       // reload wares for each AI
+      String professionName;
+      AI     professionAI;
+      for (Map.Entry<String, AI> entry : professions.entrySet()) {
+         professionName = entry.getKey();
+         professionAI   = entry.getValue();
+
+         // for paranoia's sake
+         if (professionAI == null)
+            continue;
+
+         // tell the AI to relink its wares
+         professionAI.reload(professionName);
+      }
    }
 
    // INSTANCE METHODS
@@ -238,7 +365,7 @@ public class AIHandler extends TimerTask {
 
    /**
     * Calls on the appropriate function for
-    * periodically saving the marketplace.
+    * handling AI trade events.
     */
    public void run() {
       // don't allow more than one singleton
@@ -266,7 +393,10 @@ public class AIHandler extends TimerTask {
 
             // recalc quantities
             case CALC_TRADE_QUANTITIES:
-               AI.calcTradeQuantities();
+               if (oldTradeQuantityPercent != Config.aiTradeQuantityPercent) {
+                  oldTradeQuantityPercent = Config.aiTradeQuantityPercent; // record to monitor for changes
+                  AI.calcTradeQuantities();
+               }
                break;
 
             // reload wares
@@ -285,5 +415,6 @@ public class AIHandler extends TimerTask {
          return;
 
       // initiate AI trades
+      activeAI[ThreadLocalRandom.current().nextInt(activeAI.length)].trade();
    }
 };

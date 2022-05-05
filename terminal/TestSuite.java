@@ -11269,7 +11269,7 @@ public class TestSuite
       Field     fProfessions;     // used to check loaded AI professions
       HashMap<String, AI> professions;
       Field     fActiveAI;        // used to check AI currently running
-      Object[]  activeAI;
+      AI[]      activeAI;
       Field     fPurchasablesIDs; // used to check loading wares from file
       Field     fSellablesIDs;    // used to check loading wares from file
       Field     fPurchasables;    // wares the AI may buy
@@ -11293,7 +11293,7 @@ public class TestSuite
          // testAI1: simple as possible
          // buys testWare1
          purchasablesIDs = new String[]{"test:material1"};
-         testAI1         = new AI(purchasablesIDs, null, null);
+         testAI1         = new AI("testAI1", purchasablesIDs, null, null);
          testAI1.incrementDecisionsPerTradeEvent();
 
          // testAI2: simple + buys and sells
@@ -11301,7 +11301,7 @@ public class TestSuite
          // sells testWareC1
          purchasablesIDs = new String[]{"test:material2"};
          sellablesIDs    = new String[]{"test:crafted1"};
-         testAI2         = new AI(purchasablesIDs, sellablesIDs, null);
+         testAI2         = new AI("testAI2", purchasablesIDs, sellablesIDs, null);
          testAI2.incrementDecisionsPerTradeEvent();
 
          // testAI3: has preferences
@@ -11312,7 +11312,7 @@ public class TestSuite
          sellablesIDs    = new String[]{"test:crafted2"};
          preferences     = new HashMap<String, Float>(1, 1.0f);
          preferences.put("test:crafted2", 1.10f);
-         testAI3         = new AI(purchasablesIDs, sellablesIDs, preferences);
+         testAI3         = new AI("testAI3", purchasablesIDs, sellablesIDs, preferences);
          testAI3.incrementDecisionsPerTradeEvent();
 
          // grab references to AI handler attributes
@@ -11326,8 +11326,6 @@ public class TestSuite
          fTimer.setAccessible(true);
          fTimerTask.setAccessible(true);
          fTradeFrequency.setAccessible(true);
-         timerAITrades   = (Timer) fTimer.get(null);
-         aiHandler       = (AIHandler) fTimerTask.get(null);
 
          // grab references to AI attributes
          fPurchasablesIDs = AI.class.getDeclaredField("purchasablesIDs");
@@ -11349,10 +11347,16 @@ public class TestSuite
          );
          fileWriter.close();
 
+         // set up AI thread
+         AIHandler.startOrReconfigAI();                // first call performs preliminary set up
+         AIHandler.startOrReconfigAI();                // create thread
+         timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
+         aiHandler     = (AIHandler) fTimerTask.get(null);
+
          System.err.println("AI - missing file");
          // initialize AI
          try {
-            AIHandler.startOrReconfigAI();
+            aiHandler.run(); // process command to load
          }
          catch (Exception e) {
             System.err.println("   startOrReconfigAI() should not throw any exception, but it did while loading missing AI professions file");
@@ -11367,7 +11371,7 @@ public class TestSuite
             professions = null;
             errorFound = true;
          }
-         activeAI = (Object[]) fActiveAI.get(null);
+         activeAI = (AI[]) fActiveAI.get(null);
          if (activeAI != null) {
             System.err.println("   activeAI were loaded when they shouldn't have been");
             activeAI = null;
@@ -11412,7 +11416,7 @@ public class TestSuite
             professions = null;
             errorFound = true;
          }
-         activeAI = (Object[]) fActiveAI.get(null);
+         activeAI = (AI[]) fActiveAI.get(null);
          if (activeAI != null) {
             System.err.println("   activeAI were loaded when they shouldn't have been");
             activeAI = null;
@@ -11450,6 +11454,12 @@ public class TestSuite
             return false;
          }
 
+         // prepare to check for printed error messages
+         PrintStream originalStream = System.err;
+         PrintStream testStream     = new PrintStream(testBAOS);
+         System.setErr(testStream);
+         testBAOS.reset();
+
          // try to load the test file
          try {
             AIHandler.load();
@@ -11461,13 +11471,24 @@ public class TestSuite
             errorFound = true;
          }
 
+         // stop checking for printed error messages
+         System.err.flush();
+         System.setErr(originalStream);
+
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions == null) {
             System.err.println("   AI professions should have loaded, but professions is null");
             errorFound = true;
-         } else if (professions.size() != 1) {
-            System.err.println("   AI professions loaded: " + professions.size() + ", should be 1");
+         } else if (professions.size() != 2) {
+            System.err.println("   AI professions loaded: " + professions.size() + ", should be 2");
+            errorFound = true;
+         }
+
+         // check error messages
+         if (!testBAOS.toString().startsWith(CommandEconomy.ERROR_AI_PREFS_MISMATCH_PRO) ||
+            !testBAOS.toString().contains("test:crafted2")) {
+            System.err.println("   unexpected error output: " + testBAOS.toString());
             errorFound = true;
          }
 
@@ -11572,13 +11593,10 @@ public class TestSuite
                      }
                   }
                   else {
-                     System.err.println("   AI profession with preferences - purchasables length is 0, should be 1");
+                     System.err.println("   AI profession with preferences - purchasables length is " + purchasables.length + ", should be 1");
                      errorFound = true;
                   }
                }
-            } else {
-               System.err.println("   AI profession with preferences was not loaded when it should have been");
-               errorFound = true;
             }
          }
 
@@ -11619,7 +11637,7 @@ public class TestSuite
          System.err.println("AI - sales");
          quantityToTrade1 = 0;
          quantityToTrade2 = (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = 0; // nothing to buy means don't buy anything
+         quantityWare1    = 0; // overstock to avoid selling anything
          quantityWare2    = Config.quanMid[testWareC1.getLevel()];
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
@@ -11671,7 +11689,7 @@ public class TestSuite
          testAI2.trade();
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 + quantityToTrade1));
+            System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
@@ -11681,15 +11699,15 @@ public class TestSuite
 
          quantityToTrade1 = (int) (Config.quanMid[testWare2.getLevel()] * Config.aiTradeQuantityPercent);
          quantityToTrade2 = 0;
-         quantityWare1    = Config.quanMid[testWare2.getLevel()] + quantityToTrade2 + quantityToTrade2; // raise supply to increase demand
-         quantityWare2    = Config.quanMid[testWareC1.getLevel()] - (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent); // lower supply, but not enough to encourage selling
+         quantityWare1    = Config.quanMid[testWare2.getLevel()] + (quantityToTrade1 * 5); // raise supply to increase demand
+         quantityWare2    = Config.quanMid[testWareC1.getLevel()] - (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent); // lower supply, but not enough to encourage selling; comparatively, scarity raises prices more than surplus lowers them
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
          testAI2.trade();
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 + quantityToTrade1));
+            System.err.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
@@ -11700,8 +11718,8 @@ public class TestSuite
          System.err.println("AI - trade decisions, preferences");
          // when everything is at equilibrium, choose the most preferred ware
          quantityToTrade1 = 0;
-         quantityToTrade2 = (int) (Config.quanMid[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityToTrade3 = 0;
+         quantityToTrade2 = 0;
+         quantityToTrade3 = (int) (Config.quanMid[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
          quantityWare1    = Config.quanMid[testWare1.getLevel()];
          quantityWare2    = Config.quanMid[testWare3.getLevel()];
          quantityWare3    = Config.quanMid[testWareC2.getLevel()];
@@ -11726,8 +11744,8 @@ public class TestSuite
 
          // despite prices being better by 5%, choose the ware preferred more by 10%
          quantityToTrade1 = 0;
-         quantityToTrade2 = (int) (Config.quanMid[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityToTrade3 = 0;
+         quantityToTrade2 = 0;
+         quantityToTrade3 = (int) (Config.quanMid[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
          quantityWare1    = (int) (Config.quanMid[testWare1.getLevel()] * 1.05f);
          quantityWare2    = Config.quanMid[testWare3.getLevel()];
          quantityWare3    = (int) (Config.quanMid[testWareC2.getLevel()] * 0.95f);
@@ -11899,7 +11917,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to create test AI professions file");
+            System.err.println("   (initial setup) unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -11907,10 +11925,17 @@ public class TestSuite
          // try to load the test file
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+            // grab new references to threads in case it closed during earlier testing
+            timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
+            aiHandler     = (AIHandler) fTimerTask.get(null);
+
+            Config.activeAI = new String[]{"possibleAI"}; // ensure there are AI to be run so thread doesn't close
+
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did while loading test professions file");
+            System.err.println("   (initial setup) load() should not throw any exception, but it did while loading test professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -11918,7 +11943,7 @@ public class TestSuite
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions == null) {
-            System.err.println("   AI profession should have loaded, but professions is null");
+            System.err.println("   (initial setup) AI profession should have loaded, but professions is null");
             errorFound = true;
          } else {
             // check AI profession's wares
@@ -11930,41 +11955,41 @@ public class TestSuite
 
                // check saved ware IDs for buying
                if (purchasablesIDs == null) {
-                  System.err.println("   purchasablesIDs were not loaded");
+                  System.err.println("   (initial setup) purchasablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (purchasablesIDs.length == 1) {
                      if (!purchasablesIDs[0].equals("test:material1")) {
-                        System.err.println("   unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:material1");
+                        System.err.println("   (initial setup) unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:material1");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   purchasablesIDs length is " + purchasablesIDs.length + ", should be 1");
+                     System.err.println("   (initial setup) purchasablesIDs length is " + purchasablesIDs.length + ", should be 1");
                      errorFound = true;
                   }
                }
 
                // check saved ware IDs for selling
                if (sellablesIDs == null) {
-                  System.err.println("   sellablesIDs were not loaded");
+                  System.err.println("   (initial setup) sellablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (sellablesIDs.length == 1) {
                      if (!sellablesIDs[0].equals("test:material2")) {
-                        System.err.println("   unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:material2");
+                        System.err.println("   (initial setup) unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:material2");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   sellablesIDs length is " + sellablesIDs.length + ", should be 1");
+                     System.err.println("   (initial setup) sellablesIDs length is " + sellablesIDs.length + ", should be 1");
                      errorFound = true;
                   }
                }
             } else {
-               System.err.println("   AI profession was not loaded when it should have been");
+               System.err.println("   (initial setup) AI profession was not loaded when it should have been");
                errorFound = true;
             }
          }
@@ -11989,7 +12014,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to create test AI professions file");
+            System.err.println("   (changed values) unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -11997,10 +12022,17 @@ public class TestSuite
          // try to load the test file
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+            // grab new references to threads in case it closed during earlier testing
+            timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
+            aiHandler     = (AIHandler) fTimerTask.get(null);
+
+            Config.activeAI = new String[]{"possibleAI"}; // ensure there are AI to be run so thread doesn't close
+
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did while loading test professions file");
+            System.err.println("   (changed values) load() should not throw any exception, but it did while loading test professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12008,7 +12040,7 @@ public class TestSuite
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions == null) {
-            System.err.println("   AI profession should have loaded, but professions is null");
+            System.err.println("   (changed values) AI profession should have loaded, but professions is null");
             errorFound = true;
          } else {
             // check AI profession's wares
@@ -12020,53 +12052,53 @@ public class TestSuite
 
                // check saved ware IDs for buying
                if (purchasablesIDs == null) {
-                  System.err.println("   purchasablesIDs were not loaded");
+                  System.err.println("   (changed values) purchasablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (purchasablesIDs.length == 2) {
                      if (!purchasablesIDs[0].equals("test:processed1")) {
-                        System.err.println("   unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:processed1");
+                        System.err.println("   (changed values) unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:processed1");
                         errorFound = true;
                      }
                      if (!purchasablesIDs[1].equals("material4")) {
-                        System.err.println("   unexpected purchasablesIDs[1]: " + purchasablesIDs[1] + ", should be material4");
+                        System.err.println("   (changed values) unexpected purchasablesIDs[1]: " + purchasablesIDs[1] + ", should be material4");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   purchasablesIDs length is " + purchasablesIDs.length + ", should be 2");
+                     System.err.println("   (changed values) purchasablesIDs length is " + purchasablesIDs.length + ", should be 2");
                      errorFound = true;
                   }
                }
 
                // check saved ware IDs for selling
                if (sellablesIDs == null) {
-                  System.err.println("   sellablesIDs were not loaded");
+                  System.err.println("   (changed values) sellablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (sellablesIDs.length == 3) {
                      if (!sellablesIDs[0].equals("test:crafted3")) {
-                        System.err.println("   unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:crafted3");
+                        System.err.println("   (changed values) unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:crafted3");
                         errorFound = true;
                      }
-                     if (!sellablesIDs[1].equals("test:crafted3")) {
-                        System.err.println("   unexpected sellablesIDs[1]: " + sellablesIDs[1] + ", should be test:material1");
+                     if (!sellablesIDs[1].equals("test:material1")) {
+                        System.err.println("   (changed values) unexpected sellablesIDs[1]: " + sellablesIDs[1] + ", should be test:material1");
                         errorFound = true;
                      }
-                     if (!sellablesIDs[2].equals("test:crafted3")) {
-                        System.err.println("   unexpected sellablesIDs[2]: " + sellablesIDs[2] + ", should be test:processed1");
+                     if (!sellablesIDs[2].equals("test:processed1")) {
+                        System.err.println("   (changed values) unexpected sellablesIDs[2]: " + sellablesIDs[2] + ", should be test:processed1");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   sellablesIDs length is " + sellablesIDs.length + ", should be 3");
+                     System.err.println("   (changed values) sellablesIDs length is " + sellablesIDs.length + ", should be 3");
                      errorFound = true;
                   }
                }
             } else {
-               System.err.println("   AI profession was not loaded when it should have been");
+               System.err.println("   (changed values) AI profession was not loaded when it should have been");
                errorFound = true;
             }
          }
@@ -12087,7 +12119,6 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
-            aiHandler.run();
          }
          catch (Exception e) {
             System.err.println("   load() should not throw any exception, but it did");
@@ -12117,8 +12148,7 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
-            aiHandler.run();
-         }
+         } 
          catch (Exception e) {
             System.err.println("   load() should not throw any exception, but it did");
             e.printStackTrace();
@@ -12126,12 +12156,40 @@ public class TestSuite
          }
 
          // check trade frequency
+         tradeFrequency = (long) fTradeFrequency.get(null);
          if (tradeFrequency != 7407360000L) { // 60000 ms per min.
             System.err.println("   unexpected frequency (test #2): " + tradeFrequency + ", should be 7407360000");
             errorFound = true;
          }
 
          System.err.println("AI - reloading trading quantity");
+         // create a dummy AI so the thread does not shut down due to a lack of active AI
+         try {
+            // open the config file for AI professions, create it if it doesn't exist
+            fileWriter = new FileWriter(Config.filenameAIProfessions);
+
+            // write test professions file
+            fileWriter.write(
+               "{\n" +
+               "\"possibleAI\": {\n" +
+               "\"purchasablesIDs\": [\"test:processed1\", \"material4\"],\n" +
+               "\"sellablesIDs\": [\"test:crafted3\", \"test:processed1\"]\n" +
+               "}\n" +
+               "}\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            System.err.println("   (changed values) unable to create test AI professions file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // ensure trade decisions are set to 1
+         testAI1.resetDecisionsPerTradeEvent(); // set trade decisions to 1
+         testAI1.incrementDecisionsPerTradeEvent();
+
          // predict trade quantity with new setting
          quantityToTrade1 = (int) (Config.quanMid[testWare1.getLevel()] * 0.5f);
          quantityWare1    = Config.quanMid[testWare1.getLevel()];
@@ -12142,6 +12200,7 @@ public class TestSuite
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "aiTradeQuantityPercent = 0.5\n" +
+            "activeAI               = possibleAI\n" +
             "enableAI               = true\n" +
             "aiTradeFrequency       = 999999999\n" +
             "aiRandomness           = 0.0\n" +
@@ -12153,7 +12212,13 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
-            aiHandler.run();
+
+            // grab new reference to thread since reloading frequency (the previous test case) should have restarted it
+            aiHandler = (AIHandler) fTimerTask.get(null);
+
+            aiHandler.run(); // preliminary setup from previous test case
+            aiHandler.run(); // preliminary setup from current test case
+            aiHandler.run(); // recalculation
          }
          catch (Exception e) {
             System.err.println("   load() should not throw any exception, but it did");
@@ -12179,6 +12244,75 @@ public class TestSuite
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "aiTradeQuantityPercent = 0.25\n" +
+            "activeAI               = possibleAI\n" +
+            "enableAI               = true\n" +
+            "aiTradeFrequency       = 999999999\n" +
+            "aiRandomness           = 0.0\n" +
+            "disableAutoSaving      = true\n" +
+            "crossWorldMarketplace  = true\n"
+         );
+         fileWriter.close();
+
+         // try to reload configuration
+         try {
+            InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+            // grab new references to thread in case it was closed for whatever reason
+            timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
+            aiHandler     = (AIHandler) fTimerTask.get(null);
+
+            aiHandler.run(); // preliminary setup
+            aiHandler.run(); // recalculation
+         }
+         catch (Exception e) {
+            System.err.println("   load() should not throw any exception, but it did");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // run the test
+         testAI1.trade();
+
+         if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
+            System.err.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            errorFound = true;
+         }
+
+         System.err.println("AI - reloading active AI");
+         // create several different professions to choose from
+         try {
+            // open the config file for AI professions, create it if it doesn't exist
+            fileWriter = new FileWriter(Config.filenameAIProfessions);
+
+            // write test professions file
+            fileWriter.write(
+               "{\n" +
+               "\"possibleAI1\": {\n" +
+               "\"purchasablesIDs\": [\"test:processed1\", \"material4\"],\n" +
+               "\"sellablesIDs\": [\"test:crafted3\", \"test:processed1\"]\n" +
+               "},\n" +
+               "\"possibleAI2\": {\n" +
+               "\"purchasablesIDs\": [\"test:processed1\", \"material4\"]\n" +
+               "},\n" +
+               "\"possibleAI3\": {\n" +
+               "\"sellablesIDs\": [\"test:crafted3\", \"test:processed1\"]\n" +
+               "}\n" +
+               "}\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            System.err.println("   (changed values) unable to create test AI professions file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // set up config file
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "activeAI               = possibleAI1,possibleAI1,possibleAI2\n" +
             "enableAI               = true\n" +
             "aiTradeFrequency       = 999999999\n" +
             "aiRandomness           = 0.0\n" +
@@ -12193,17 +12327,77 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did");
+            System.err.println("   run() should not throw any exception, but it did");
             e.printStackTrace();
             errorFound = true;
          }
 
-         // run the test
-         testAI1.trade();
-
-         if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+         // grab and check active AI
+         activeAI = (AI[]) fActiveAI.get(null);
+         professions = (HashMap<String, AI>) fProfessions.get(null);
+         if (activeAI == null) {
+            System.err.println("   AI should have been activated, but activeAI is null");
             errorFound = true;
+         } else if (activeAI.length != 2) {
+            System.err.println("   AI activated loaded: " + activeAI.length + ", should be 2");
+            errorFound = true;
+         } else {
+            // check whether first AI is active
+            ai = professions.get("possibleAI1"); // grab AI reference to compare against
+            if (activeAI[0] != ai && activeAI[1] != ai) {
+               System.err.println("   possibleAI1 is not active when it should be");
+               errorFound = true;
+            }
+
+            // check whether second AI is active
+            ai = professions.get("possibleAI2"); // grab AI reference to compare against
+            if (activeAI[0] != ai && activeAI[1] != ai) {
+               System.err.println("   possibleAI2 is not active when it should be");
+               errorFound = true;
+            }
+         }
+
+         // change to using only the third AI profession to test changing active AI mid-game
+         // set up config file
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "activeAI               = possibleAI3\n" +
+            "enableAI               = true\n" +
+            "aiTradeFrequency       = 999999999\n" +
+            "aiRandomness           = 0.0\n" +
+            "disableAutoSaving      = true\n" +
+            "crossWorldMarketplace  = true\n"
+         );
+         fileWriter.close();
+
+         // try to reload configuration
+         try {
+            InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            aiHandler.run();
+         }
+         catch (Exception e) {
+            System.err.println("   run() should not throw any exception, but it did");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // grab and check active AI
+         activeAI = (AI[]) fActiveAI.get(null);
+         professions = (HashMap<String, AI>) fProfessions.get(null);
+         if (activeAI == null) {
+            System.err.println("   AI should have been activated, but activeAI is null");
+            errorFound = true;
+         } else if (activeAI.length != 1) {
+            System.err.println("   AI activated loaded: " + activeAI.length + ", should be 1");
+            errorFound = true;
+         } else {
+            // check whether first AI is active
+            ai = professions.get("possibleAI3"); // grab AI reference to compare against
+            if (activeAI[0] != ai) {
+               System.err.println("   possibleAI3 is not active when it should be");
+               errorFound = true;
+            }
          }
 
          System.err.println("AI - toggling feature by reloading configuration");
