@@ -318,6 +318,14 @@ public class TestSuite
             System.err.println("test failed - sellAll()\n");
             failedTests += "   sellAll()\n";
          }
+
+         // test spending to increase wares' supply and demand
+         if (testInvest())
+            System.err.println("test passed - /invest\n");
+         else {
+            System.err.println("test failed - /invest\n");
+            failedTests += "   /invest\n";
+         }
       }
       else {
          System.err.println("test suite canceled execution for check(), buy(), sell(), and sellAll() - getPrice() failed testing\n");
@@ -649,6 +657,9 @@ public class TestSuite
       Config.priceFloorAdjusted   = 1.0f;
       Config.priceCeiling         = 2.0f;
       Config.priceCeilingAdjusted = -1.0f;
+
+      Config.investmentCostPerHierarchyLevel = 3500.0f;
+      Config.investmentCostIsAMultOfAvgPrice = false;
 
       // wares
       // raw materials
@@ -12447,6 +12458,376 @@ public class TestSuite
       }
       catch (Exception e) {
          System.err.println("AI - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
+
+      return !errorFound;
+   }
+
+   /**
+    * Tests /invest.
+    *
+    * @return whether /invest passed all test cases
+    */
+   private static boolean testInvest() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+
+      // track changes to variables
+      byte  wareLevel;
+      int   wareQuantity;
+      float price;
+      float money;
+
+      try {
+         // /invest <ware_id> [max_unit_price] [account_id] - spends to increase a ware's supply and demand
+
+         // investmentCostIsAMultOfAvgPrice == false; cost per hierarchy level = current market price * hierarchy level * Config.investmentCostPerHierarchyLevel
+
+         System.err.println("invest() - when disabled");
+         Config.investmentCostPerHierarchyLevel = 0.0f;
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
+         if (!testBAOS.toString().equals("error - invalid command\n   entering \"help\" will list valid commands" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+         resetTestEnvironment();
+
+         System.err.println("invest() - null input");
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(null);
+         if (!testBAOS.toString().equals("/invest <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+
+         System.err.println("invest() - empty input");
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{});
+         if (!testBAOS.toString().equals("/invest <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+
+         System.err.println("invest() - blank input");
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"", ""});
+         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+
+         System.err.println("invest() - too many args");
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material1", "excessArgument", "excessArgument", "excessArgument"});
+         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+            resetTestEnvironment();
+         }
+
+         System.err.println("invest() - invalid ware ID");
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"invalidWareID"});
+         if (!testBAOS.toString().equals("error - ware not found: invalidWareID" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+            resetTestEnvironment();
+         }
+
+         System.err.println("invest() - insufficient funds");
+         wareLevel    = testWare2.getLevel();
+         wareQuantity = testWare2.getQuantity();
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1.0f;
+         playerAccount.setMoney(money);
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (!testBAOS.toString().equals("test:material2 investment price is " + CommandEconomy.truncatePrice(price) + "; use /invest yes [max_price_acceptable] [account_id] to accept" + System.lineSeparator() + "You do not have enough money" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+         if (testWareFields(testWare2, WareMaterial.class, "", wareLevel, 27.6f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+         resetTestEnvironment();
+
+         System.err.println("invest() - ware at lowest level");
+         wareLevel    = testWare1.getLevel();
+         wareQuantity = testWare1.getQuantity();
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material1"});
+
+         if (!testBAOS.toString().equals("test:material1 is already as plentiful as possible" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+         if (testWareFields(testWare1, WareMaterial.class, "", wareLevel, 1.0f, wareQuantity)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - equilibrium: raw material");
+         wareLevel    = testWare2.getLevel();
+         wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWare2, WareMaterial.class, "", (byte) (wareLevel - 1), 27.6f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - equilibrium: processed ware");
+         wareLevel    = testWareP1.getLevel();
+         wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:processed1"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - understocked");
+         wareLevel    = testWare3.getLevel();
+         wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
+         testWare3.setQuantity(1); // set stock to be low
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material3", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material3"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) (wareLevel - 1), 4.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - overstocked");
+         wareLevel    = testWare4.getLevel();
+         wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1] + 10;
+         testWare4.setQuantity(wareQuantity); // set stock to be high
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         resetTestEnvironment();
+
+         System.err.println("invest() - excessively overstocked");
+         wareLevel    = testWare4.getLevel();
+         wareQuantity = 999999999;
+         testWare4.setQuantity(wareQuantity); // set stock to be excessively high
+         money        = playerAccount.getMoney();
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
+
+         if (!testBAOS.toString().equals("material4 is already plentiful" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+         if (testWareFields(testWare4, WareMaterial.class, "material4", wareLevel, 8.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - maximum price acceptable: insufficient");
+         wareLevel    = testWareP1.getLevel();
+         wareQuantity = Config.startQuanBase[testWareP1.getLevel()];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:processed1", String.valueOf(price - 100.0f)});
+
+         if (!testBAOS.toString().equals("test:processed1 investment price is " + CommandEconomy.truncatePrice(price) + "; use /invest yes [max_price_acceptable] [account_id] to accept" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+         if (testWareFields(testWareP1, WareProcessed.class, "", (byte) wareLevel, 1.1f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         resetTestEnvironment();
+
+         System.err.println("invest() - maximum price acceptable: sufficient");
+         wareLevel    = testWareP1.getLevel();
+         wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:processed1", String.valueOf(price + 100.0f)});
+
+         if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (!testBAOS.toString().equals("You don't have any pending investment offers" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+
+         resetTestEnvironment();
+
+         System.err.println("invest() - charging according to market's current average price");
+         Config.investmentCostIsAMultOfAvgPrice = true;
+         Config.investmentCostPerHierarchyLevel = 2.0f;
+         wareLevel    = testWare4.getLevel();
+         wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel * Marketplace.getCurrentPriceAverage();
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - accepting offer after price lowered");
+         wareLevel    = testWare4.getLevel();
+         wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1];
+         testWare4.setQuantity(Config.quanLow[testWare4.getLevel()]); // ensure ware's stock is low so price is high
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
+
+         if (!testBAOS.toString().startsWith("material4 investment price is ")) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+
+         testWare4.setQuantity(wareQuantity - 1);
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price              = CommandEconomy.truncatePrice(price);
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (!testBAOS.toString().equals("material4's supply and demand has increased" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+         if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         resetTestEnvironment();
+
+         System.err.println("invest() - accepting offer after price rose slightly");
+         wareLevel    = testWare4.getLevel();
+         wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1];
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
+
+         testWare4.setQuantity((int) (testWare4.getQuantity() * 1.04));
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price              = CommandEconomy.truncatePrice(price);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         resetTestEnvironment();
+
+         System.err.println("invest() - accepting offer after price rose greatly");
+         wareLevel    = testWare4.getLevel();
+         wareQuantity = Config.quanLow[testWare4.getLevel()];
+         testWare4.setQuantity(Config.startQuanBase[testWare4.getLevel()]); // ensure ware's stock is normal so price is normal
+         money        = 1000000.0f;
+         playerAccount.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
+
+         testWare4.setQuantity(wareQuantity);
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price              = CommandEconomy.truncatePrice(price);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWare4, WareMaterial.class, "material4", wareLevel, 8.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(playerAccount, money, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+      }
+      catch (Exception e) {
+         System.err.println("invest() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
