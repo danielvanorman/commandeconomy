@@ -164,7 +164,7 @@ public class CommandEconomy {
    /** title case name for presentation */
    public static final String NAME    = "Command Economy";
    /** version of this mod */
-   public static final String VERSION = "0.6.1";
+   public static final String VERSION = "0.6.2";
 
    /** used to format currency before displaying */
    public static final DecimalFormat PRICE_FORMAT = new DecimalFormat("$###,##0.00");
@@ -265,6 +265,7 @@ public class CommandEconomy {
    public final static String CMD_RELOAD                    = "reload";
    public final static String CMD_PRINT_MARKET              = "printMarket";
    public final static String CMD_PRINT_MARKET_LOWER        = "printmarket";
+   public final static String CMD_INVEST                    = "invest";
 
    // command keywords
    public final static String ACCOUNT_ADMIN             = "$admin$";
@@ -286,6 +287,7 @@ public class CommandEconomy {
    public final static String INVENTORY_EAST            = "east";
    public final static String INVENTORY_WEST            = "west";
    public final static String INVENTORY_SOUTH           = "south";
+   public final static String YES                       = "yes";
 
    // command usages
    public final static String CMD_USAGE_BUY                 = "/" + CMD_BUY + " <ware_id> <quantity> [max_unit_price] [account_id]";
@@ -306,6 +308,8 @@ public class CommandEconomy {
    public final static String CMD_USAGE_SET_DEFAULT_ACCOUNT = "/" + CMD_SET_DEFAULT_ACCOUNT + " <account_id>";
    public final static String CMD_USAGE_RELOAD              = "/" + MODID + " " + CMD_RELOAD + " (" + RELOAD_CONFIG + " | " + RELOAD_WARES + " | " + RELOAD_ACCOUNTS + " | " + ALL + ")";
    public final static String CMD_USAGE_PRINT_MARKET        = "/" + CMD_PRINT_MARKET;
+   public final static String CMD_USAGE_INVEST              = "/" + CMD_INVEST + " <ware_id> [max_price_acceptable] [account_id]";
+   public final static String MSG_INVEST_USAGE_YES          = "; use /" + CMD_INVEST + " " + YES + " [max_price_acceptable] [account_id] to accept";
 
    // command block
    public final static String CMD_USAGE_BLOCK_BUY     = "/" + CMD_BUY + " <player_name> <inventory_direction> <ware_id> <quantity> [max_unit_price] [account_id]";
@@ -446,6 +450,13 @@ public class CommandEconomy {
    public final static String WARN_AI_INVALID_WARE_IDS    = ": ";
    public final static String WARN_AI_INVALID_PREF_PRO    = "warning - invalid preference for AI profession ";
    public final static String WARN_AI_INVALID_PREF_IDS    = ": ";
+
+   // investments
+   public final static String MSG_INVEST_LOWEST_LEVEL = " is already as plentiful as possible";
+   public final static String MSG_INVEST_LINKED       = " is unsuitable for investment in that form";
+   public final static String MSG_INVEST_QUAN_HIGH    = " is already plentiful";
+   public final static String MSG_INVEST_FAILED       = " cannot be invested in";
+   public final static String MSG_INVEST_SUCCESS      = "'s supply and demand has increased";
 
    // Terminal interface
    public final static String CMD_OP                = "op";

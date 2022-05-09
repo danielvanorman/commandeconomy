@@ -2011,4 +2011,14 @@ public class Marketplace {
 
       return priceNoQuantityEffect;
    }
+
+   /**
+    * Averages current prices of all wares available within the marketplace.
+    * <p>
+    * Complexity: O(n), where n is the number of wares in the market
+    * @return average price of all wares for sale on the market
+    */
+   public static float getCurrentPriceAverage() {
+      return 0.0f;
+   }
 }

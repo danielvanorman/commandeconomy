@@ -136,6 +136,12 @@ public class Config
    /** whether to print warnings for ware IDs or aliases not found within the marketplace */
    public static boolean aiReportInvalidWares = false;
 
+   // investment
+   /** decreasing a ware's hierarchy level by 1 costs this much, depending on the ware's level */
+   public static float investmentCostPerHierarchyLevel = 185.0f;
+   /** if true, the cost of investing in a ware is a multiplier applied to the market's current price average */
+   public static boolean investmentCostIsAMultOfAvgPrice = true;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>

@@ -566,6 +566,10 @@ public class InterfaceTerminal implements InterfaceCommand
                serviceRequestRevokeAccess(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
+            case CommandEconomy.CMD_INVEST:
+               serviceRequestInvest(Arrays.copyOfRange(userInput, 1, userInput.length));
+               break;
+
             case CommandEconomy.CMD_VERSION:
                serviceRequestVersion(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
@@ -1768,6 +1772,19 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // call corresponding functions
       Marketplace.printMarket();
+      return;
+   }
+
+   /**
+    * Spends to increase a ware's supply and demand.
+    * <p>
+    * Expected Formats:<br>
+    * &#60;ware_id&#62; [max_unit_price] [account_id]<br>
+    * yes<br>
+    *
+    * @param args arguments given in the expected format
+    */
+   protected static void serviceRequestInvest(String[] args) {
       return;
    }
 
