@@ -1785,6 +1785,13 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestInvest(String[] args) {
+      // check if the investment command is enabled
+      if (Config.investmentCostPerHierarchyLevel == 0.0f) {
+         System.out.println(CommandEconomy.ERROR_INVALID_CMD);
+         return;
+      }
+
+      CommandProcessor.invest(getPlayerIDStatic(playername), args);
       return;
    }
 

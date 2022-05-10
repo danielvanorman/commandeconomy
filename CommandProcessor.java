@@ -1,6 +1,7 @@
 package commandeconomy;
 
 import java.util.UUID;                // for more securely tracking users internally
+import java.util.HashMap;             // for storing investment offers
 
 /**
  * Processes user input for commands whose execution is highly similar between interfaces.
@@ -20,6 +21,45 @@ import java.util.UUID;                // for more securely tracking users intern
  */
 public class CommandProcessor
 {
+   // GLOBAL VARIABLES
+   /** for /invest, holds the latest offer for each player */
+   private static HashMap<UUID, InvestmentOffer> investmentOffers = null;
+
+   // STRUCTS
+   /**
+    * For /invest, holds values for paying to increase a ware's supply and demand.
+    *
+    * @author  Daniel Van Orman
+    * @version %I%, %G%
+    * @since   2022-05-10
+    */
+   private static class InvestmentOffer
+   {
+      /** reference to the ware able to be invested in */
+      public Ware ware;
+      /** ID referring to the ware able to be invested in */
+      public String wareID;
+      /** ID referring to the account to be charged */
+      public String accountID;
+      /** last calculated price */
+      public float price;
+
+      /**
+       * Investment Offer Constructor: Fills fields for an offer for increasing a ware's supply and demand.
+       *
+       * @param pWare      reference to the ware able to be invested in
+       * @param pWareID    ID referring to the ware able to be invested in
+       * @param pAccountID ID referring to the account to be charged
+       * @param pPrice     last calculated price
+       */
+      public InvestmentOffer (Ware pWare, String pWareID, String pAccountID, float pPrice) {
+         ware      = pWare;
+         wareID    = pWareID;
+         accountID = pAccountID;
+         price     = pPrice;
+      }
+   }
+
    // FUNCTIONS
    /**
     * Opens a new account with the specified id.<br>
@@ -169,6 +209,97 @@ public class CommandProcessor
 
       // call corresponding function
       account.revokeAccess(playerID, Config.commandInterface.getPlayerID(args[0]), args[1]);
+      return;
+   }
+
+   /**
+    * Spends to increase a ware's supply and demand.
+    * <p>
+    * Expected Formats:<br>
+    * &#60;ware_id&#62; [max_price_acceptable] [account_id]<br>
+    * yes<br>
+    *
+    * @param playerID player executing the command
+    * @param args     arguments given in the expected format
+    */
+   public static void invest(UUID playerID, String[] args) {
+      // request should not be null
+      if (args == null || args.length == 0) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_INVEST);
+         return;
+      }
+
+      // check for zero-length args
+      if (args[0] == null || args[0].length() == 0 ||
+          (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
+          (args.length >= 3 && (args[2] == null || args[2].length() == 0))) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_INVEST);
+         return;
+      }
+
+      // command must have the right number of args
+      if (args.length > 3) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_INVEST);
+         return;
+      }
+
+      // set up variables
+      InvestmentOffer investmentOffer = null;
+      float   priceAcceptable = 0.0f;
+      String  accountID       = null;
+
+      // if two arguments are given,
+      // the second must either be a price or an account ID
+      if (args.length == 2) {
+      }
+
+      // if three arguments are given,
+      // they must be a price and an account ID
+      else if (args.length == 3) {
+      }
+
+      // check if player is accepting an offer
+      if (args[0].equalsIgnoreCase(CommandEconomy.YES)) {
+         // grab the old investment offer
+         // InvestmentOffer oldOffer = investmentOffers.get(playerID);
+
+         // if there is no offer, tell the player
+
+         // if no account ID is specified, use the old offer's account ID
+
+         // generate a current investment offer
+
+         // compare current offer to old offer
+         // If the current offer's price is higher than 5% of the old price
+         // and no max price acceptable is specified,
+         // or if the current offer's price is higher than the specified max price acceptable,
+         // present the new offer instead of processing it.
+      }
+      else { // if an investment offer isn't being accepted
+         // create an offer
+
+         // Don't store/save the current offer here.
+         // The offer might be processed,
+         // so it might be better not to store it at all.
+
+         // If the max price acceptable is too little, tell the player.
+         // If the max price acceptable is unset and investment price is $0,
+         // don't assume the player wants to invest - they may just be watching the price or curious.
+      }
+
+      // grab the account to be used
+
+      // process the investment offer
+      // lower the ware's hierarchy level
+
+      // if the ware's supply is not higher than its new level's starting level, reset its stock
+
+      // take the money
+
+      // print results
+
+      // remove any old offer
+      // investmentOffers.remove(playerID);
       return;
    }
 
@@ -487,5 +618,35 @@ public class CommandProcessor
       // if it didn't work, an error has already been printed
 
       return;
+   }
+
+   /**
+    * Finds whether a ware's supply and demand may be increased and, if so, the price of doing so.
+    * <p>
+    * Complexity: O(1)
+    * @param playerID  player executing the command
+    * @param wareID    unique identifier of ware to be used
+    * @param accountID account to be charged when the offer is processed
+    * @return complete offer and associated information for an investment
+    */
+   private static InvestmentOffer generateInvestmentOffer(UUID playerID, String wareID, String accountID) {
+      // grab the ware to be used
+      Ware ware = Marketplace.translateAndGrab(wareID);
+      // if ware is not in the market, stop
+      if (ware == null) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
+         return null;
+      }
+      wareID = ware.getWareID();
+
+      // verify that the ware is suitable for investment
+
+      // find investment cost
+      float priceInvestment = 0.0f;
+
+      // if investment price is 0, the ware cannot be invested in
+
+      // generate struct
+      return new InvestmentOffer(ware, wareID, accountID, priceInvestment);
    }
  };

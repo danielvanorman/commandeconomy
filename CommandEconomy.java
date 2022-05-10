@@ -452,6 +452,7 @@ public class CommandEconomy {
    public final static String WARN_AI_INVALID_PREF_IDS    = ": ";
 
    // investments
+   public final static String MSG_INVEST_NO_OFFERS    = "You don't have any pending investment offers";
    public final static String MSG_INVEST_LOWEST_LEVEL = " is already as plentiful as possible";
    public final static String MSG_INVEST_LINKED       = " is unsuitable for investment in that form";
    public final static String MSG_INVEST_QUAN_HIGH    = " is already plentiful";

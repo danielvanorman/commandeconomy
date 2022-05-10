@@ -2019,6 +2019,15 @@ public class Marketplace {
     * @return average price of all wares for sale on the market
     */
    public static float getCurrentPriceAverage() {
+      // copy relevant price variables from getPrice()
+
+      // loop through all wares to get their prices
+         // if the ware is untradeable or simply a grouping of other wares, skip it
+
+         // find the ware's current price
+         // copy relevant parts of getPrice()
+
+      // average the prices
       return 0.0f;
    }
 }
