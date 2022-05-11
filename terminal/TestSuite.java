@@ -12675,6 +12675,87 @@ public class TestSuite
             errorFound = true;
          }
 
+         System.err.println("invest() - non-personal account: generating offer");
+         wareLevel    = testWareP1.getLevel();
+         wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         testAccount1.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:processed1", "testAccount1"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - non-personal account: accepting offer");
+         wareLevel    = testWare3.getLevel();
+         wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material3", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         testAccount1.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material3"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes", "testAccount1"});
+
+         if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) (wareLevel - 1), 4.0f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         System.err.println("invest() - non-personal account: generating and accepting offer");
+         wareLevel    = testWare2.getLevel();
+         wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = CommandEconomy.truncatePrice(price);
+         money        = 1000000.0f;
+         testAccount1.setMoney(money);
+         testAccount2.setMoney(money);
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2", "testAccount1"});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes", "testAccount2"});
+
+         if (testWareFields(testWare2, WareMaterial.class, "", (byte) (wareLevel - 1), 27.6f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(testAccount1, money, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+         if (testAccountFields(testAccount2, money - price, InterfaceTerminal.playername)) {
+            errorFound = true;
+         }
+
+         resetTestEnvironment();
+
+         System.err.println("invest() - non-personal account: inaccessible");
+         money        = 1000000.0f;
+         testAccount4.setMoney(money);
+         wareLevel    = testWare2.getLevel();
+         wareQuantity = testWare2.getQuantity();
+
+         InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2", "testAccount4"});
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (!testBAOS.toString().equals("You don't have access to testAccount4" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+         if (testWareFields(testWare2, WareMaterial.class, "", (byte) wareLevel, 27.6f, wareQuantity)) {
+            errorFound = true;
+         }
+         if (testAccountFields(testAccount4, money, null)) {
+            errorFound = true;
+         }
+
          System.err.println("invest() - maximum price acceptable: insufficient");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel()];
@@ -12745,6 +12826,18 @@ public class TestSuite
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
             errorFound = true;
          }
+
+         System.err.println("invest() - accepting nonexistent offer");
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         if (!testBAOS.toString().equals("You don't have any pending investment offers" + System.lineSeparator())) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            errorFound = true;
+         }
+
+         resetTestEnvironment();
 
          System.err.println("invest() - accepting offer after price lowered");
          wareLevel    = testWare4.getLevel();
