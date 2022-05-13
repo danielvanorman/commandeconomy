@@ -243,6 +243,10 @@ public class CommandProcessor
          return;
       }
 
+      // don't allocate memory for holding investment offers unless /invest is used
+      if (investmentOffers == null)
+         investmentOffers = new HashMap<UUID, InvestmentOffer>();
+
       // set up variables
       InvestmentOffer investmentOffer = null;
       float   priceAcceptable = 0.0f;
@@ -251,55 +255,121 @@ public class CommandProcessor
       // if two arguments are given,
       // the second must either be a price or an account ID
       if (args.length == 2) {
+         try {
+            // assume the second argument is a price
+            priceAcceptable = Float.parseFloat(args[1]);
+         } catch (NumberFormatException e) {
+            // if the fifth argument is not a price,
+            // it must be an account ID
+            accountID = args[1];
+         }
       }
 
       // if three arguments are given,
       // they must be a price and an account ID
       else if (args.length == 3) {
+         try {
+            priceAcceptable = Float.parseFloat(args[1]);
+         } catch (NumberFormatException e) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_INVEST);
+            return;
+         }
+         accountID = args[2];
       }
 
       // check if player is accepting an offer
       if (args[0].equalsIgnoreCase(CommandEconomy.YES)) {
          // grab the old investment offer
-         // InvestmentOffer oldOffer = investmentOffers.get(playerID);
+         InvestmentOffer oldOffer = investmentOffers.get(playerID);
 
          // if there is no offer, tell the player
+         if (oldOffer == null) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVEST_NO_OFFERS);
+            return;
+         }
 
          // if no account ID is specified, use the old offer's account ID
+         if (accountID == null || accountID.isEmpty())
+            accountID = oldOffer.accountID;
 
          // generate a current investment offer
+         investmentOffer = generateInvestmentOffer(playerID, oldOffer.wareID, accountID);
+
+         // This shouldn't happen, but if there is a problem regenerating an offer, just exit.
+         if (investmentOffer == null)
+            return;
 
          // compare current offer to old offer
          // If the current offer's price is higher than 5% of the old price
          // and no max price acceptable is specified,
          // or if the current offer's price is higher than the specified max price acceptable,
          // present the new offer instead of processing it.
-      }
+         if ((priceAcceptable == 0.0f && investmentOffer.price > (oldOffer.price * 1.05f)) ||
+             (priceAcceptable != 0.0f && investmentOffer.price > priceAcceptable)) {
+            if (investmentOffer.ware.getAlias() != null && !investmentOffer.ware.getAlias().isEmpty())
+               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+            else
+               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+
+            investmentOffers.put(playerID, investmentOffer);
+            return;
+         }
+         // The current investment offer is processed later on.
+      }      // end of investment offer acceptance if statement
       else { // if an investment offer isn't being accepted
          // create an offer
+         // translates the ware ID, grabs the ware, and calculates the price
+         investmentOffer = generateInvestmentOffer(playerID, args[0], accountID);
+
+         // If there was a problem, a message would have already been printed.
+         if (investmentOffer == null)
+            return;
 
          // Don't store/save the current offer here.
          // The offer might be processed,
          // so it might be better not to store it at all.
 
          // If the max price acceptable is too little, tell the player.
+         // Do not worry about printing messages - there is no autoinvesting.
          // If the max price acceptable is unset and investment price is $0,
          // don't assume the player wants to invest - they may just be watching the price or curious.
+         if (priceAcceptable == 0.0f || investmentOffer.price > priceAcceptable) {
+            if (investmentOffer.ware.getAlias() != null && !investmentOffer.ware.getAlias().isEmpty())
+               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+            else
+               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+
+            investmentOffers.put(playerID, investmentOffer);
+            return;
+         }
       }
 
       // grab the account to be used
+      Account account = Account.grabAndCheckAccount(accountID, playerID, investmentOffer.price);
+
+      // if something's wrong with the account, stop
+      if (account == null)
+         return; // an error message has already been sent to the player
 
       // process the investment offer
       // lower the ware's hierarchy level
+      investmentOffer.ware.addLevel((byte) -1);
 
       // if the ware's supply is not higher than its new level's starting level, reset its stock
+      if (investmentOffer.ware.getQuantity() < Config.startQuanBase[investmentOffer.ware.getLevel()])
+         investmentOffer.ware.setQuantity(Config.startQuanBase[investmentOffer.ware.getLevel()]);
 
       // take the money
+      account.subtractMoney(investmentOffer.price);
 
       // print results
+      if (investmentOffer.ware.getAlias() != null)
+         Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + CommandEconomy.MSG_INVEST_SUCCESS);
+      else
+         Config.commandInterface.printToUser(playerID, investmentOffer.wareID + CommandEconomy.MSG_INVEST_SUCCESS);
 
       // remove any old offer
-      // investmentOffers.remove(playerID);
+      investmentOffers.remove(playerID);
       return;
    }
 
@@ -639,14 +709,64 @@ public class CommandProcessor
       }
       wareID = ware.getWareID();
 
+      final boolean HAS_ALIAS = (ware.getAlias() != null && !ware.getAlias().isEmpty());
+
       // verify that the ware is suitable for investment
+      if (ware.getLevel() == 0) {
+         if (HAS_ALIAS)
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_LOWEST_LEVEL);
+         else
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_LOWEST_LEVEL);
+
+         return null;
+      }
+
+      if (ware instanceof WareUntradeable) {
+         if (HAS_ALIAS)
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_BUY_UNTRADEABLE);
+         else
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_BUY_UNTRADEABLE);
+
+         return null;
+      }
+
+      if (ware instanceof WareLinked) {
+         if (HAS_ALIAS)
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_LINKED);
+         else
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_LINKED);
+
+         return null;
+      }
+
+      if (ware.getQuantity() >= Config.quanHigh[ware.getLevel()]) {
+         if (HAS_ALIAS)
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_QUAN_HIGH);
+         else
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_QUAN_HIGH);
+
+         return null;
+      }
 
       // find investment cost
-      float priceInvestment = 0.0f;
+      float priceInvestment = Marketplace.getPrice(playerID, wareID, 0, false) * ware.getLevel() * Config.investmentCostPerHierarchyLevel;
+      if (Config.investmentCostIsAMultOfAvgPrice)
+         priceInvestment *= Marketplace.getCurrentPriceAverage();
+
+      // truncate the price to avoid rounding and multiplication errors
+      priceInvestment = CommandEconomy.truncatePrice(priceInvestment);
 
       // if investment price is 0, the ware cannot be invested in
+      if (priceInvestment == 0.0f) {
+         if (HAS_ALIAS)
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_FAILED);
+         else
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_FAILED);
+
+         return null;
+      }
 
       // generate struct
       return new InvestmentOffer(ware, wareID, accountID, priceInvestment);
    }
- };
+};

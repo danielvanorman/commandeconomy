@@ -12492,7 +12492,7 @@ public class TestSuite
          Config.investmentCostPerHierarchyLevel = 0.0f;
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
-         if (!testBAOS.toString().equals("error - invalid command\n   entering \"help\" will list valid commands" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("error - invalid command\n   entering \"/commandeconomy help\" will list valid commands" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }
@@ -12745,7 +12745,7 @@ public class TestSuite
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
 
-         if (!testBAOS.toString().equals("You don't have access to testAccount4" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("You don't have permission to access testAccount4" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }

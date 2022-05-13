@@ -77,6 +77,13 @@ public class CommandGeneral extends CommandBase {
             InterfaceMinecraft.commandRevokeAccess.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
+         case CommandEconomy.CMD_INVEST:
+            if (Config.investmentCostPerHierarchyLevel != 0.0f)
+               CommandProcessor.invest(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
+            else
+               serviceRequestHelp(sender, args);
+            break;
+
          case CommandEconomy.CMD_SAVE:
          case CommandEconomy.CMD_SAVECE:
             serviceRequestSave(sender, args);

@@ -2019,15 +2019,95 @@ public class Marketplace {
     * @return average price of all wares for sale on the market
     */
    public static float getCurrentPriceAverage() {
-      // copy relevant price variables from getPrice()
+      // initialize variables
+      float currentPriceAverage = 0.0f;
+
+      float spreadAdjustment = 0.0f; // spread's effect on price
+      float priceCurrent     = 0.0f; // ware's price at this moment
+      float priceBase        = 0.0f; // ware's price at equilibrium
+
+      int   quanCeiling      = 0;
+      int   quanFloor        = 0;
+      int   quanEquilibrium  = 0;
+      int   quanOnMarket     = 0;
+      float quanFloorFromEquilibrium   = 0.0f; // how much quantity is between the price floor stock and equilibrium stock
+      float quanCeilingFromEquilibrium = 0.0f; // cast as a float now since it will only be used as a float
+
+      float priceMinimum; // price floor to be enforced
+
+      // precalculate repeatedly used information
+      float spreadMult       = 1.0f - Config.priceSpread;
+      boolean usePriceSpread = Config.priceSpread != 1.0f;
+      boolean usePriceBuyUpchargeMult = Config.priceBuyUpchargeMult != 1.0f;
 
       // loop through all wares to get their prices
+      for (Ware ware : wares.values()) {
+         // prevents a null pointer exception if wares are being reloaded
+         if (ware == null)
+            continue;
+
          // if the ware is untradeable or simply a grouping of other wares, skip it
+         if (ware instanceof WareUntradeable || ware instanceof WareLinked)
+            continue;
 
          // find the ware's current price
-         // copy relevant parts of getPrice()
+         // get ware information
+         priceBase       = ware.getBasePrice();
+         quanCeiling     = Config.quanHigh[ware.getLevel()];
+         quanFloor       = Config.quanLow[ware.getLevel()];
+         quanEquilibrium = Config.quanMid[ware.getLevel()];
+         quanOnMarket    = ware.getQuantity();
+         quanFloorFromEquilibrium   = (float) (quanEquilibrium - quanFloor);
+         quanCeilingFromEquilibrium = (float) (quanCeiling - quanEquilibrium);
+
+         // if spread is normal or base is 0, make no adjustment
+         if (usePriceSpread && priceBase != 0.0f) {
+            // spreadAdjustment = distance from average * distance multiplier
+            spreadAdjustment = (priceBaseAverage - priceBase) * spreadMult;
+         }
+
+         // check if purchasing upcharge should be applied
+         if (usePriceBuyUpchargeMult)
+            // calculate price with upcharge multiplier
+            priceCurrent = (priceBase + spreadAdjustment) * Config.priceBuyUpchargeMult * Config.priceMult;
+         else
+            // calculate price without upcharge multiplier
+            priceCurrent = (priceBase + spreadAdjustment) * Config.priceMult;
+
+         // find price floor to be enforced
+         priceMinimum = priceCurrent * Config.priceFloor;
+
+         // calculate scarcity's effect on price
+         // if above equilibrium, lower the price
+         // if below, raise
+         if (quanOnMarket > quanEquilibrium) {
+            // enforce a non-zero price floor
+            if (quanOnMarket >= quanCeiling)
+               priceCurrent *= Config.priceFloor;
+            else
+               // saturation price drop percent = price floor multiplier - percent distance away from equilibrium toward overstocked
+               priceCurrent *= Config.priceFloorAdjusted - (((float) (quanOnMarket - quanEquilibrium)) / quanCeilingFromEquilibrium);
+         }
+         else if (quanOnMarket < quanEquilibrium) {
+            if (quanOnMarket <= quanFloor)
+               priceCurrent *= Config.priceCeiling;
+            else
+               // scarcity price rise percent = price ceiling multiplier - percent distance away from equilibrium toward stock floor
+               priceCurrent *= Config.priceCeilingAdjusted - (((float) (quanOnMarket - quanEquilibrium)) / quanFloorFromEquilibrium);
+         }
+
+         // enforce a price floor
+         if (priceCurrent >= priceMinimum)
+            // add ware's current price to the average
+            currentPriceAverage += priceCurrent;
+         else
+            currentPriceAverage += priceMinimum;
+      }
 
       // average the prices
-      return 0.0f;
+      currentPriceAverage /= wares.size() - numAverageExcludedWares;
+
+      // truncate the price to avoid rounding and multiplication errors
+      return CommandEconomy.truncatePrice(currentPriceAverage);
    }
 }

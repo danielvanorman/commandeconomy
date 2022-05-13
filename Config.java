@@ -203,6 +203,10 @@ public class Config
             aiRandomness = value;
             break;
 
+         case "investmentCostPerHierarchyLevel":
+            investmentCostPerHierarchyLevel = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -265,6 +269,10 @@ public class Config
             break;
          case "aiReportInvalidWares":
             aiReportInvalidWares = value;
+            break;
+
+         case "investmentCostIsAMultOfAvgPrice":
+            investmentCostIsAMultOfAvgPrice = value;
             break;
 
          default:
@@ -558,6 +566,10 @@ public class Config
       aiTradeQuantityPercent = 0.05f;
       aiRandomness           = 0.15f;
       aiReportInvalidWares   = false;
+
+      // investment
+      investmentCostPerHierarchyLevel = 185.0f;
+      investmentCostIsAMultOfAvgPrice = true;
    }
 
    /**

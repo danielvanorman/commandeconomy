@@ -938,6 +938,8 @@ public class InterfaceMinecraft implements InterfaceCommand
       handler.registerCommand(new CommandGeneral());
       handler.registerCommand(new CommandPrintMarket());
       handler.registerCommand(new CommandChangeStock());
+      if (Config.investmentCostPerHierarchyLevel != 0.0f)
+         handler.registerCommand(new CommandInvest());
    }
 
    /**
