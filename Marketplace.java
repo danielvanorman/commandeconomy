@@ -56,7 +56,7 @@ public class Marketplace {
    /** how many wares should be excluded from price and other averages */
    private static int numAverageExcludedWares = 0;
    /** a loose mutex used to avoid synchronization problems with threads rarely adjusting wares' properties */
-   public static volatile boolean doNotAdjustWares = false;
+   private static volatile boolean doNotAdjustWares = false;
 
    // STRUCTS
    /**
@@ -131,26 +131,8 @@ public class Marketplace {
          return;
       }
 
-      // check if another thread is adjusting wares' properties
-      if (doNotAdjustWares) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustWares) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
-
-      // prevent other threads from adjusting wares' properties
-      doNotAdjustWares = true;
-      // wait until any other threads finish execution since mutex is loose
-      try {
-         Thread.sleep(5);
-      } catch(Exception ex) {
-         Thread.currentThread().interrupt();
-      }
+      // prevents other threads from adjusting the marketplace's wares
+      acquireMutex();
 
       // if there are already wares in the market, remove them
       // useful for reloading
@@ -196,7 +178,7 @@ public class Marketplace {
       catch (FileNotFoundException e) {
          Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSED + Config.filenameWares);
          e.printStackTrace();
-         doNotAdjustWares = false;
+         releaseMutex();
          // signal threads to reload their wares when possible
          AIHandler.reloadWares();
          return;
@@ -380,7 +362,7 @@ public class Marketplace {
       }
 
       // allow other threads to adjust wares' properties
-      doNotAdjustWares = false;
+      releaseMutex();
 
       // signal threads to reload their wares when possible
       AIHandler.reloadWares();
@@ -698,25 +680,7 @@ public class Marketplace {
       StringBuilder json;
 
       // check if another thread is adjusting wares' properties
-      if (doNotAdjustWares) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustWares) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
-
-      // prevent other threads from adjusting wares' properties
-      doNotAdjustWares = true;
-      // wait until any other threads finish execution since mutex is loose
-      try {
-         Thread.sleep(5);
-      } catch(Exception ex) {
-         Thread.currentThread().interrupt();
-      }
+      acquireMutex();
 
       // regenerate entries for changed wares
       for (String wareID : waresChangedSinceLastSave) {
@@ -767,8 +731,7 @@ public class Marketplace {
          e.printStackTrace();
       }
 
-      // allow other threads to adjust wares' properties
-      doNotAdjustWares = false;
+      releaseMutex();
       return;
    }
 
@@ -1453,17 +1416,7 @@ public class Marketplace {
       Config.commandInterface.addToInventory(playerID, coordinates, wareID, quantityToBuy);
 
       // subtract from market's quantity
-      // check if another thread is adjusting wares' properties
-      if (doNotAdjustWares) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustWares) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex(); // check if another thread is adjusting wares' properties
       ware.subtractQuantity(quantityToBuy);
 
       // report success
@@ -1726,17 +1679,7 @@ public class Marketplace {
                quantitySold += stock.quantity;
 
                // add quantity sold to the marketplace
-               // check if another thread is adjusting wares' properties
-               if (doNotAdjustWares) {
-                  // sleep() may throw an exception
-                  try {
-                     while (doNotAdjustWares) {
-                        Thread.sleep(10); // 10 ms wait for mutex to become available
-                     }
-                  } catch(Exception ex) {
-                     Thread.currentThread().interrupt();
-                  }
-               }
+               waitForMutex(); // check if another thread is adjusting wares' properties
                ware.addQuantity(stock.quantity);
 
                continue;
@@ -1756,17 +1699,7 @@ public class Marketplace {
                quantitySold += quantityToBeSold;
 
                // add quantity sold to the marketplace
-               // check if another thread is adjusting wares' properties
-               if (doNotAdjustWares) {
-                  // sleep() may throw an exception
-                  try {
-                     while (doNotAdjustWares) {
-                        Thread.sleep(10); // 10 ms wait for mutex to become available
-                     }
-                  } catch(Exception ex) {
-                     Thread.currentThread().interrupt();
-                  }
-               }
+               waitForMutex(); // check if another thread is adjusting wares' properties
                ware.addQuantity(quantityToBeSold);
                break;
             } else {
@@ -1781,17 +1714,7 @@ public class Marketplace {
                quantitySold += stock.quantity;
 
                // add quantity sold to the marketplace
-               // check if another thread is adjusting wares' properties
-               if (doNotAdjustWares) {
-                  // sleep() may throw an exception
-                  try {
-                     while (doNotAdjustWares) {
-                        Thread.sleep(10); // 10 ms wait for mutex to become available
-                     }
-                  } catch(Exception ex) {
-                     Thread.currentThread().interrupt();
-                  }
-               }
+               waitForMutex(); // check if another thread is adjusting wares' properties
                ware.addQuantity(stock.quantity);
 
                // if enough quantity has been sold,
@@ -1954,6 +1877,65 @@ public class Marketplace {
             + " of held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, ware.getWareID(), quantity, false) * percentWorth));
       }
       return;
+   }
+
+   /**
+    * Prevents other threads from adjusting the marketplace's wares.
+    * If another thread is already adjusting wares, then waits for that thread to finish.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void acquireMutex() {
+      // wait for permission to adjust ware's properties
+      // check if another thread is adjusting wares' properties
+      if (doNotAdjustWares) {
+         // sleep() may throw an exception
+         try {
+            while (doNotAdjustWares) {
+               Thread.sleep(10); // 10 ms wait for mutex to become available
+            }
+         } catch(Exception ex) {
+            Thread.currentThread().interrupt();
+         }
+      }
+
+      // prevent other threads from adjusting wares' properties
+      doNotAdjustWares = true;
+      // wait until any other threads finish execution since mutex is loose
+      try {
+         Thread.sleep(5);
+      } catch(Exception ex) {
+         Thread.currentThread().interrupt();
+      }
+   }
+
+   /**
+    * Checks whether other threads are adjusting the marketplace's wares
+    * and waits for them to finish if they are.
+    * <p>
+    * Complexity: O(1)
+    */
+   private static void waitForMutex() {
+      // check if another thread is adjusting wares' properties
+      if (doNotAdjustWares) {
+         // sleep() may throw an exception
+         try {
+            while (doNotAdjustWares) {
+               Thread.sleep(10); // 10 ms wait for mutex to become available
+            }
+         } catch(Exception ex) {
+            Thread.currentThread().interrupt();
+         }
+      }
+   }
+
+   /**
+    * Allows other threads to adjust wares' properties.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void releaseMutex() {
+      doNotAdjustWares = false;
    }
 
    /**

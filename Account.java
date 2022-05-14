@@ -51,7 +51,7 @@ public class Account {
 
    // miscellaneous
    /** a loose mutex used to avoid synchronization problems with threads rarely adjusting accounts' properties */
-   public static volatile boolean doNotAdjustAccounts = false;
+   private static volatile boolean doNotAdjustAccounts = false;
 
    // INSTANCE VARIABLES
    /** funds held by account */
@@ -108,17 +108,7 @@ public class Account {
             }
 
             // delete the non-personal account
-            // check if another thread is adjusting accounts' properties
-            if (doNotAdjustAccounts) {
-               // sleep() may throw an exception
-               try {
-                  while (doNotAdjustAccounts) {
-                     Thread.sleep(10); // 10 ms wait for mutex to become available
-                  }
-               } catch(Exception ex) {
-                  Thread.currentThread().interrupt();
-               }
-            }
+            waitForMutex(); // check if another thread is adjusting accounts' properties
             accounts.remove(accountID);
 
             // tell the non-personal account owner about
@@ -160,17 +150,7 @@ public class Account {
       }
 
       // pass parameters to constructor
-      // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex(); // check if another thread is adjusting accounts' properties
       return new Account(accountID, accountOwner, Config.accountStartingMoney);
    }
 
@@ -223,17 +203,7 @@ public class Account {
             }
 
             // delete the non-personal account
-            // check if another thread is adjusting accounts' properties
-            if (doNotAdjustAccounts) {
-               // sleep() may throw an exception
-               try {
-                  while (doNotAdjustAccounts) {
-                     Thread.sleep(10); // 10 ms wait for mutex to become available
-                  }
-               } catch(Exception ex) {
-                  Thread.currentThread().interrupt();
-               }
-            }
+            waitForMutex(); // check if another thread is adjusting accounts' properties
             accounts.remove(accountID);
 
             // tell the non-personal account owner about
@@ -275,17 +245,7 @@ public class Account {
       }
 
       // pass parameters to constructor
-      // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex(); // check if another thread is adjusting accounts' properties
       return new Account(accountID, accountOwner, startingMoney);
    }
 
@@ -339,17 +299,7 @@ public class Account {
       }
 
       // delete the account
-      // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex(); // check if another thread is adjusting accounts' properties
       accounts.remove(accountID);
       accountsChangedSinceLastSave.remove(account);
       accountEntries.remove(accountID);
@@ -542,19 +492,8 @@ public class Account {
       if (quantity == 0.0f || Float.isNaN(quantity))
          return;
 
-      // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
-
       // add funds to the account
+      waitForMutex(); // check if another thread is adjusting accounts' properties
       money += quantity;
 
       // mark the new account as needing to be saved
@@ -573,19 +512,8 @@ public class Account {
       if (quantity == 0.0f || Float.isNaN(quantity))
          return;
 
-      // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
-
       // add funds to the account
+      waitForMutex(); // check if another thread is adjusting accounts' properties
       money -= quantity;
 
       // mark the new account as needing to be saved
@@ -656,16 +584,7 @@ public class Account {
       }
 
       // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex();
 
       // if no players are permitted, prepare a container to hold permitted players
       if (accountUsers == null)
@@ -718,16 +637,7 @@ public class Account {
       }
 
       // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex();
 
       // remove player to have access revoked
       accountUsers.remove(playerToDisallowAccess);
@@ -847,17 +757,7 @@ public class Account {
       // In this case, the transfer is allowed, but shouldn't do much.
 
       // transfer the money
-      // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex(); // check if another thread is adjusting accounts' properties
       money -= quantity;
       accountRecipient.addMoney(quantity);
 
@@ -968,26 +868,7 @@ public class Account {
          return;
       }
 
-      // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
-
-      // prevent other threads from adjusting accounts' properties
-      doNotAdjustAccounts = true;
-      // wait until any other threads finish execution since mutex is loose
-      try {
-         Thread.sleep(5);
-      } catch(Exception ex) {
-         Thread.currentThread().interrupt();
-      }
+      acquireMutex();
 
       // if there are already accounts usable in the market, remove them
       // this is useful for reloading
@@ -1012,7 +893,7 @@ public class Account {
          e.printStackTrace();
 
          // allow other threads to adjust accounts' properties
-         doNotAdjustAccounts = false;
+         releaseMutex();
          return;
       }
 
@@ -1145,7 +1026,7 @@ public class Account {
       regenerateDefaultAccountEntries = true;
 
       // allow other threads to adjust accounts' properties
-      doNotAdjustAccounts = false;
+      releaseMutex();
       return;
    }
 
@@ -1273,16 +1154,7 @@ public class Account {
       String playername = Config.commandInterface.getDisplayName(playerID);
 
       // check if another thread is adjusting accounts' properties
-      if (doNotAdjustAccounts) {
-         // sleep() may throw an exception
-         try {
-            while (doNotAdjustAccounts) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
+      waitForMutex();
 
       // if the account is the player's personal account,
       // remove any default accounts set for them
@@ -1296,5 +1168,63 @@ public class Account {
       defaultAccounts.put(playerID, account);
       regenerateDefaultAccountEntries = true;
       return true;
+   }
+
+   /**
+    * Prevents other threads from adjusting the marketplace's wares.
+    * If another thread is already adjusting accounts, then waits for that thread to finish.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void acquireMutex() {
+      // wait for permission to adjust accounts' properties
+      if (doNotAdjustAccounts) {
+         // sleep() may throw an exception
+         try {
+            while (doNotAdjustAccounts) {
+               Thread.sleep(10); // 10 ms wait for mutex to become available
+            }
+         } catch(Exception ex) {
+            Thread.currentThread().interrupt();
+         }
+      }
+
+      // prevent other threads from adjusting accounts' properties
+      doNotAdjustAccounts = true;
+      // wait until any other threads finish execution since mutex is loose
+      try {
+         Thread.sleep(5);
+      } catch(Exception ex) {
+         Thread.currentThread().interrupt();
+      }
+   }
+
+   /**
+    * Checks whether other threads are adjusting accounts' properties
+    * and waits for them to finish if they are.
+    * <p>
+    * Complexity: O(1)
+    */
+   private static void waitForMutex() {
+      // check if another thread is adjusting accounts' properties
+      if (doNotAdjustAccounts) {
+         // sleep() may throw an exception
+         try {
+            while (doNotAdjustAccounts) {
+               Thread.sleep(10); // 10 ms wait for mutex to become available
+            }
+         } catch(Exception ex) {
+            Thread.currentThread().interrupt();
+         }
+      }
+   }
+
+   /**
+    * Allows other threads to adjust accounts' properties.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void releaseMutex() {
+      doNotAdjustAccounts = false;
    }
 };
