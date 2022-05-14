@@ -451,4 +451,15 @@ public abstract class Ware
 
       return errorMessage;
    }
+
+   /**
+    * Returns a multiplier representing how much a
+    * ware's components are affecting its unit price.
+    * <p>
+    * Complexity: O(n), where n is number of this ware's components<br>
+    * @return multiplier for adjusting ware's unit price
+    */
+   public float getLinkedPriceMultiplier() {
+      return 0.0f;
+   }
  };

@@ -142,6 +142,12 @@ public class Config
    /** if true, the cost of investing in a ware is a multiplier applied to the market's current price average */
    public static boolean investmentCostIsAMultOfAvgPrice = true;
 
+   // linked prices
+   /** if true, components' current prices affect created wares' current prices */
+   public static boolean shouldComponentsCurrentPricesAffectWholesPrice = true;
+   /** how much components' prices may affect a created ware's price */
+   public static float linkedPricesPercent = 0.75f;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>
