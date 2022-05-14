@@ -11269,6 +11269,7 @@ public class TestSuite
       String[] purchasablesIDs;           // IDs for wares the AI may buy
       String[] sellablesIDs;              // IDs for wares the AI may sell
       HashMap<String, Float> preferences; // biases the AI carries toward wares and trade decisions
+      HashMap<Ware, Integer> tradesPending = new HashMap<Ware, Integer>(); // contains AI trade decisions before finalization
 
       // prepare to grab internal variables
       Field     fTimer;           // used to check whether feature is running
@@ -11617,7 +11618,8 @@ public class TestSuite
          quantityWare1    = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
 
-         testAI1.trade();
+         testAI1.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11634,7 +11636,8 @@ public class TestSuite
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
-         testAI2.trade();
+         testAI2.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11653,7 +11656,8 @@ public class TestSuite
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
-         testAI2.trade();
+         testAI2.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11674,7 +11678,8 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI3.trade();
+         testAI3.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11697,7 +11702,8 @@ public class TestSuite
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
-         testAI2.trade();
+         testAI2.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11715,7 +11721,8 @@ public class TestSuite
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
-         testAI2.trade();
+         testAI2.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11738,7 +11745,8 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI3.trade();
+         testAI3.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11764,7 +11772,8 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI3.trade();
+         testAI3.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11791,7 +11800,8 @@ public class TestSuite
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
 
-         testAI3.trade();
+         testAI3.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #3): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11817,7 +11827,8 @@ public class TestSuite
          testAI1.incrementDecisionsPerTradeEvent();
          testAI1.incrementDecisionsPerTradeEvent();
          testAI1.incrementDecisionsPerTradeEvent();
-         testAI1.trade();
+         testAI1.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11846,7 +11857,8 @@ public class TestSuite
          testAI1.incrementDecisionsPerTradeEvent();
          testAI1.incrementDecisionsPerTradeEvent();
          testAI1.incrementDecisionsPerTradeEvent();
-         testAI1.trade();
+         testAI1.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11868,7 +11880,8 @@ public class TestSuite
          testAI2.incrementDecisionsPerTradeEvent();
          testAI2.incrementDecisionsPerTradeEvent();
          testAI2.incrementDecisionsPerTradeEvent();
-         testAI2.trade();
+         testAI2.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -11893,7 +11906,8 @@ public class TestSuite
          testAI3.resetDecisionsPerTradeEvent();
          testAI3.incrementDecisionsPerTradeEvent();
          testAI3.incrementDecisionsPerTradeEvent();
-         testAI3.trade();
+         testAI3.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -12238,7 +12252,8 @@ public class TestSuite
          }
 
          // run the test
-         testAI1.trade();
+         testAI1.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
@@ -12282,7 +12297,8 @@ public class TestSuite
          }
 
          // run the test
-         testAI1.trade();
+         testAI1.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
             System.err.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));

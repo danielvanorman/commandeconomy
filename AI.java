@@ -1,7 +1,7 @@
 package commandeconomy;
 
 import java.util.concurrent.ThreadLocalRandom; // for randomizing trade frequency and decisions
-import java.util.HashMap;                      // for holding AI trade preferences
+import java.util.HashMap;                      // for holding AI trade preferences and decisions
 import java.util.Map;                          // for iterating through hashmaps and priority queues
 import java.util.Iterator;
 import java.util.HashSet;                      // for validating AI trade preferences
@@ -67,30 +67,6 @@ public class AI {
          this.desirability = desirability;
          this.isPurchase   = isPurchase;
       }
-
-      /**
-       * Makes the trade decision.
-       * Warning: Uses the tradeQuantities array without checking its existence.
-       * <p>
-       * Complexity: O(1)
-       */
-      public void trade() {
-         if (ware == null)
-            return;
-
-         // buy a ware
-         if (isPurchase) {
-            // only purchase what is available
-            if (ware.getQuantity() >= tradeQuantities[ware.getLevel()])
-               ware.subtractQuantity(tradeQuantities[ware.getLevel()]);
-            else // buyout the ware
-               ware.setQuantity(0);
-         }
-
-         // sell a ware
-         else
-            ware.addQuantity(tradeQuantities[ware.getLevel()]);
-      }
    };
 
    /**
@@ -112,18 +88,21 @@ public class AI {
     * @param rhs the second trade offer to be compared
     * @return a negative integer, zero, or a positive integer as the trade decision is less desirable, equally desirable, or more desirable than the second
     */
-      public int compare(TradeDecision lhs, TradeDecision rhs)
-      {
-         // if at least one trade decision is null
+      public int compare(TradeDecision lhs, TradeDecision rhs) {
+         // handle null trade decisions
+         if (lhs == null)
+            return -1; // lhs is less desirable
+         else if (rhs == null)
+            return 1;  // lhs is more desirable
 
          // sort as a min heap
          float result = lhs.desirability - rhs.desirability;
          if (result > 0.0f)
-            return 1; // lhs is more desirable
+            return 1;  // lhs is more desirable
          else if (result < 0.0f)
             return -1; // lhs is less desirable
          else
-            return 0; // lhs is equally desirable
+            return 0;  // lhs is equally desirable
       }
    };
 
@@ -142,6 +121,60 @@ public class AI {
       // calculate change amounts
       for (int i = 0; i < 6; i++)
          tradeQuantities[i]  = (int) (Config.aiTradeQuantityPercent * Config.quanMid[i]);
+   }
+
+   /**
+    * Recalculates how much to buy or sell for each trade
+    * according to configuration settings.
+    * <p>
+    * Complexity: O(n), where n is the number of wares to be traded
+    * @param tradesPending initialized map of ware references and changes to their quantities for sale
+    */
+   public static void finalizeTrades(HashMap<Ware, Integer> tradesPending) {
+      if (tradesPending == null || tradesPending.size() <= 0)
+         return;
+
+      // prepare to trade
+      Ware    ware;
+      Integer tradeQuantityObject;
+      int     tradeQuantity;
+
+      // prevent other threads from adjusting wares' properties
+      Marketplace.acquireMutex();
+
+      // perform each trade
+      for (Map.Entry<Ware, Integer> entry : tradesPending.entrySet()) {
+         ware                = entry.getKey();
+         tradeQuantityObject = entry.getValue();
+
+         // for paranoia's sake
+         if (ware == null || tradeQuantityObject == null)
+            continue;
+
+         // grab adjustment for ware's quantity available for sale
+         tradeQuantity = tradeQuantityObject.intValue();
+         if (tradeQuantity == 0)
+            continue;
+
+         // buy a ware
+         if (tradeQuantity < 0) {
+            // only purchase what is available
+            if (ware.getQuantity() >= -tradeQuantity)
+               ware.addQuantity(tradeQuantity);
+            else // buyout the ware
+               ware.setQuantity(0);
+         }
+
+         // sell a ware
+         else
+            ware.addQuantity(tradeQuantity);
+      }
+
+      // allow other threads to adjust wares' properties
+      Marketplace.releaseMutex();
+
+      // clear pending trades
+      tradesPending.clear();
    }
 
    // INSTANCE METHODS
@@ -481,10 +514,16 @@ public class AI {
     * Tells the AI to make a trading decision, if possible.
     * <p>
     * Complexity: O(n), where n is the number of wares affected by the AI
+    * @param tradesPending initialized map of ware references and changes to their quantities for sale
     */
-   public void trade() {
+   public void trade(HashMap<Ware, Integer> tradesPending) {
+      // if not allowed to trade,
+      // unaware of how much volume to trade at once,
+      // or have nowhere to schedule trades,
+      // don't trade
       if (decisionsPerTradeEvent <= 0 ||
-          tradeQuantities == null)
+          tradeQuantities == null ||
+          tradesPending == null)
          return;
 
       PriorityQueue<TradeDecision> tradeDecisions = null;         // if multiple trade decisions should be used, track the best potential decisions
@@ -630,27 +669,9 @@ public class AI {
           (tradeDecisions == null || tradeDecisions.size() <= 0))
          return;
 
-      // wait for permission to adjust ware's properties
-      // check if another thread is adjusting wares' properties
-      if (Marketplace.doNotAdjustWares) {
-         // sleep() may throw an exception
-         try {
-            while (Marketplace.doNotAdjustWares) {
-               Thread.sleep(10); // 10 ms wait for mutex to become available
-            }
-         } catch(Exception ex) {
-            Thread.currentThread().interrupt();
-         }
-      }
-
-      // prevent other threads from adjusting wares' properties
-      Marketplace.doNotAdjustWares = true;
-      // wait until any other threads finish execution since mutex is loose
-      try {
-         Thread.sleep(5);
-      } catch(Exception ex) {
-         Thread.currentThread().interrupt();
-      }
+      // prepare to combine trade amounts with pending trades' amounts
+      Integer intObject;
+      int     intValue;
 
       // make decisions according to the number of trade decisions to be made
       if (makeMultipleDecisions) {
@@ -683,27 +704,37 @@ public class AI {
                continue;
 
             // make the trade
-            decision.trade();
+            intObject = tradesPending.get(decision.ware);
+            if (intObject == null)
+               intValue = 0;
+            else
+               intValue = intObject.intValue();
+
+            // buy a ware
+            if (decision.isPurchase)
+               tradesPending.put(decision.ware, intValue - tradeQuantities[decision.ware.getLevel()]);
+
+            // sell a ware
+            else
+               tradesPending.put(decision.ware, intValue + tradeQuantities[decision.ware.getLevel()]);
             decisionsMade++;
          }
       }
       else {
+         intObject = tradesPending.get(wareBest);
+         if (intObject == null)
+            intValue = 0;
+         else
+            intValue = intObject.intValue();
+
          // buy a ware
-         if (isPurchaseBest) {
-            // only purchase what is available
-            if (wareBest.getQuantity() >= tradeQuantities[wareBest.getLevel()])
-               wareBest.subtractQuantity(tradeQuantities[wareBest.getLevel()]);
-            else // buyout the ware
-               wareBest.setQuantity(0);
-         }
+         if (isPurchaseBest)
+            tradesPending.put(wareBest, intValue - tradeQuantities[wareBest.getLevel()]);
          // sell a ware
-         else {
-            wareBest.addQuantity(tradeQuantities[wareBest.getLevel()]);
-         }
+         else
+            tradesPending.put(wareBest, intValue + tradeQuantities[wareBest.getLevel()]);
       }
 
-      // allow other threads to adjust wares' properties
-      Marketplace.doNotAdjustWares = false;
       return;
    }
 };

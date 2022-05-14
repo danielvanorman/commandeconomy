@@ -12,7 +12,7 @@ import java.util.Timer;                         // for triggering AI trades peri
 import java.util.TimerTask;                     // for disabling AI mid-execution
 import java.util.concurrent.ArrayBlockingQueue; // for communication between the main thread and the thread handling AI
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing trade frequency and decisions
-import java.util.HashMap;                       // for storing AI professions
+import java.util.HashMap;                       // for storing AI professions and trade decisions
 import java.util.Map;                           // for iterating through hashmaps
 import java.util.HashSet;                      // for storing AI before their activation
 
@@ -58,6 +58,8 @@ public class AIHandler extends TimerTask {
    // INSTANCE ATTRIBUTES
    /** whether the task should continue running */
    public transient volatile boolean stop = false;
+   /** unfinalized AI trade decisions; used to condense marketplace changes into one critical section */
+   private transient HashMap<Ware, Integer> tradesPending = null;
 
    // STATIC METHODS
    /**
@@ -175,12 +177,8 @@ public class AIHandler extends TimerTask {
       }
 
       // stop AI
-      else if (timerAITrades != null && (!Config.enableAI || Config.aiTradeFrequency <= 0)) {
-         timerTaskAITrades.stop = true;
-         timerTaskAITrades = null;
-         timerAITrades.cancel();
-         timerAITrades = null;
-      }
+      else if (timerAITrades != null && (!Config.enableAI || Config.aiTradeFrequency <= 0))
+         endAI();
 
       // record timer interval to monitor for changes
       oldFrequency = newFrequency;
@@ -414,7 +412,16 @@ public class AIHandler extends TimerTask {
       if (activeAI == null)
          return;
 
+      // prepare place to store AI trade decisions
+      // so all decisions may be processed within a single critical section
+      if (tradesPending == null)
+         tradesPending = new HashMap<Ware, Integer>();
+
       // initiate AI trades
-      activeAI[ThreadLocalRandom.current().nextInt(activeAI.length)].trade();
+      for (AI ai : activeAI)
+         ai.trade(tradesPending);
+
+      // finalize trades
+      AI.finalizeTrades(tradesPending);
    }
 };
