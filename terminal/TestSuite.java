@@ -326,6 +326,14 @@ public class TestSuite
             System.err.println("test failed - /invest\n");
             failedTests += "   /invest\n";
          }
+
+         // test making components' prices affect manufactured wares' prices
+         if (testLinkedPrices())
+            System.err.println("test passed - linked prices\n");
+         else {
+            System.err.println("test failed - linked prices\n");
+            failedTests += "   linked prices\n";
+         }
       }
       else {
          System.err.println("test suite canceled execution for check(), buy(), sell(), and sellAll() - getPrice() failed testing\n");
@@ -660,6 +668,8 @@ public class TestSuite
 
       Config.investmentCostPerHierarchyLevel = 3500.0f;
       Config.investmentCostIsAMultOfAvgPrice = false;
+
+      Config.shouldComponentsCurrentPricesAffectWholesPrice = false;
 
       // wares
       // raw materials
@@ -12937,6 +12947,875 @@ public class TestSuite
       }
       catch (Exception e) {
          System.err.println("invest() - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
+
+      return !errorFound;
+   }
+
+   /**
+    * Tests adjusting manufactured wares' prices based on components' prices.
+    *
+    * @return whether Ware.getLinkedPriceMultiplier() and Marketplace.getPrice() passed all test cases
+    */
+   private static boolean testLinkedPrices() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+      Config.shouldComponentsCurrentPricesAffectWholesPrice = true;
+      Config.linkedPricesPercent = 0.75f;
+
+      // track changes to variables
+      float priceMult;
+      float price;
+      int   quantityWare;
+      int   quantityComponent1;
+      int   quantityComponent2;
+      int   quantityComponent3;
+      Ware  testWare;
+      Ware  testComponent1;
+      Ware  testComponent2;
+      Ware  testComponent3;
+
+      try {
+         System.err.println("linked prices - lowering price at equilibrium");
+         priceMult          = 0.625f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 640;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 0.8125f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 56;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - lowering price when above equilibrium");
+         priceMult          = 0.625f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityComponent1 = 640;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 0.8125f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityComponent1 = 56;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - lowering price when below equilibrium");
+         priceMult          = 0.625f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityComponent1 = 640;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 0.8125f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityComponent1 = 56;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - raising price at equilibrium");
+         priceMult          = 1.375f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 192;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 1.5625f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 20;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - raising price when above equilibrium");
+         priceMult          = 1.375f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityComponent1 = 192;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) ((price + 0.0001f) * 10000.0f)) / 10000.0f; // truncate and round to match getPrice()
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 1.5625f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityComponent1 = 20;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - raising price when below equilibrium");
+         priceMult          = 1.375f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityComponent1 = 192;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 1.5625f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityComponent1 = 20;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - free components");
+         priceMult          = 0.25f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 0.25f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - expensive components");
+         priceMult          = 1.75f;
+         testWare           = testWareP1;
+         testComponent1     = testWare1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 0;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         priceMult          = 1.75f;
+         testWare           = testWareC3;
+         testComponent1     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 0;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+
+         System.err.println("linked prices - one free component");
+         priceMult          = 0.7692308f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 9999;
+         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 0.53846157f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent3 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 0.28712872f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+
+         priceMult          = 0.9628713f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 9999;
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+
+         System.err.println("linked prices - one expensive component");
+         priceMult          = 1.2307692f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 0;
+         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 1.0576923f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 0;
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 1.7128713f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 0;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+
+         priceMult          = 1.0371287f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 0;
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+
+         System.err.println("linked prices - equilibrium price smaller than base price");
+         Config.priceMult = 0.5f; // lowers all prices
+         priceMult          = 0.7692308f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 9999;
+         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 0.53846157f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent3 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 0.28712872f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+
+         priceMult          = 0.9628713f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 9999;
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+
+         System.err.println("linked prices - equilibrium price larger than base price");
+         Config.priceMult = 2.0f; // raises all prices
+         priceMult          = 0.7692308f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 9999;
+         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 0.53846157f;
+         testWare           = testWareP2;
+         testComponent1     = testWare1;
+         testComponent2     = testWare3;
+         testComponent3     = testWare4;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent3 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+         testComponent3.setQuantity(quantityComponent3);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+
+         priceMult          = 0.28712872f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityComponent2 = 9999;
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+
+         // prepare for next test
+         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+
+         priceMult          = 0.9628713f;
+         testWare           = testWareC2;
+         testComponent1     = testWare1;
+         testComponent2     = testWareC1;
+         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityComponent1 = 9999;
+         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         testWare.setQuantity(quantityWare);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
+         testComponent1.setQuantity(quantityComponent1);
+         testComponent2.setQuantity(quantityComponent2);
+
+         if (testWare.getLinkedPriceMultiplier() != priceMult) {
+            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            errorFound = true;
+         }
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
+            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            errorFound = true;
+         }
+      }
+      catch (Exception e) {
+         System.err.println("linked prices - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
