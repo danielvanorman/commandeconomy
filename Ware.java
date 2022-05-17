@@ -392,11 +392,8 @@ public abstract class Ware
     * then returns an error message for uncorrected errors or an empty string.
     * Will not recalculate price if it is unset.
     * <p>
-    * Complexity:<br>
-    * n = number of this ware's components<br>
-    * Worst-Case: O(n^2)<br>
-    * Average-Case: O(n)
-    * @return multiplier for adjusting ware's unit price
+    * Complexity: O(n), whether n is the number of wares used to create this ware
+    * @return error message or an empty string
     */
    String validateHasComponents() {
       String errorMessage = "";
@@ -459,7 +456,10 @@ public abstract class Ware
     * Returns a multiplier representing how much a
     * ware's components are affecting its unit price.
     * <p>
-    * Complexity: O(n), where n is number of this ware's components<br>
+    * Complexity:<br>
+    * n = number of this ware's components<br>
+    * Worst-Case: O(n^2)<br>
+    * Average-Case: O(n)
     * @return multiplier for adjusting ware's unit price
     */
    public float getLinkedPriceMultiplier() {
@@ -468,14 +468,22 @@ public abstract class Ware
       if (!Config.shouldComponentsCurrentPricesAffectWholesPrice || componentsIDs == null || this instanceof WareLinked)
          return 1.0f;
 
+      // initialize variables
+      float priceComponentsCurrent     = 0.0f; // sum of components' current prices
+      float priceComponentsEquilibrium = 0.0f; // sum of components' prices without considering supply and demand
+
       // get components' prices
+      for (Ware component : components) {
          // tally up base prices
+         priceComponentsEquilibrium += Marketplace.getEquilibriumPrice(component, true);
+
          // get current prices
+         priceComponentsCurrent += Marketplace.getPrice(null, component.getWareID(), 1, true);
+      }
 
       // solve for linked price effect
-      // linked price multiplier: (Config.linkedPricesPercent * sum of component wares' current prices / sum of component wares' base prices) + (1 - Config.linkedPricesPercent)
-      // (configurable effect * component price ratio) + (remaining percentage from whole's price)
+      float multiplier = (Config.linkedPricesPercent * priceComponentsCurrent / priceComponentsEquilibrium) + (1 - Config.linkedPricesPercent);
 
-      return 0.0f;
+      return multiplier;
    }
  };

@@ -213,6 +213,10 @@ public class Config
             investmentCostPerHierarchyLevel = value;
             break;
 
+         case "linkedPricesPercent":
+            linkedPricesPercent = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -279,6 +283,10 @@ public class Config
 
          case "investmentCostIsAMultOfAvgPrice":
             investmentCostIsAMultOfAvgPrice = value;
+            break;
+
+         case "shouldComponentsCurrentPricesAffectWholesPrice":
+            shouldComponentsCurrentPricesAffectWholesPrice = value;
             break;
 
          default:
@@ -576,6 +584,10 @@ public class Config
       // investment
       investmentCostPerHierarchyLevel = 185.0f;
       investmentCostIsAMultOfAvgPrice = true;
+
+      // linked prices
+      shouldComponentsCurrentPricesAffectWholesPrice = true;
+      linkedPricesPercent = 0.75f;
    }
 
    /**
