@@ -859,6 +859,10 @@ public class Marketplace {
          // calculate price without upcharge multiplier
          priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult;
 
+      // factor in components' prices affecting manufactured prices
+      if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents())
+         priceNoQuantityEffect *= ware.getLinkedPriceMultiplier();
+
       // if the ware is untradeable, don't evaluate its supply and demand
       if (ware instanceof WareUntradeable)
          return CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect);

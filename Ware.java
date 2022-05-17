@@ -392,8 +392,11 @@ public abstract class Ware
     * then returns an error message for uncorrected errors or an empty string.
     * Will not recalculate price if it is unset.
     * <p>
-    * Complexity: O(n), whether n is the number of wares used to create this ware
-    * @return error message or an empty string
+    * Complexity:<br>
+    * n = number of this ware's components<br>
+    * Worst-Case: O(n^2)<br>
+    * Average-Case: O(n)
+    * @return multiplier for adjusting ware's unit price
     */
    String validateHasComponents() {
       String errorMessage = "";
@@ -460,6 +463,19 @@ public abstract class Ware
     * @return multiplier for adjusting ware's unit price
     */
    public float getLinkedPriceMultiplier() {
+      // if linked prices is not enabled or
+      // the ware has no components, do nothing
+      if (!Config.shouldComponentsCurrentPricesAffectWholesPrice || componentsIDs == null || this instanceof WareLinked)
+         return 1.0f;
+
+      // get components' prices
+         // tally up base prices
+         // get current prices
+
+      // solve for linked price effect
+      // linked price multiplier: (Config.linkedPricesPercent * sum of component wares' current prices / sum of component wares' base prices) + (1 - Config.linkedPricesPercent)
+      // (configurable effect * component price ratio) + (remaining percentage from whole's price)
+
       return 0.0f;
    }
  };
