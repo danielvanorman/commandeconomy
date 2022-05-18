@@ -1302,9 +1302,11 @@ public class Marketplace {
     * @param quantity     how much of the ware should be purchased
     * @param maxUnitPrice stop buying if unit price is above this amount
     * @param accountID    key used to retrieve account information
+    * @param shouldManufacture if unable to fill an order, whether to purchase missing components and manufacture the ware
     */
    public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                             String wareID, int quantity, float maxUnitPrice, String accountID) {
+                          String wareID, int quantity, float maxUnitPrice, String accountID,
+                          boolean shouldManufacture) {
       if (Float.isNaN(maxUnitPrice) || // if something's wrong with the unit price, stop
          quantity <= 0              || // if nothing should be bought, stop
          playerID == null)             // if no player was given, there is no party responsible for the purchase
@@ -1456,6 +1458,22 @@ public class Marketplace {
             Config.commandInterface.printToUser(playerID, "Bought " + quantityToBuy + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from " + accountID);
       }
       return;
+   }
+
+   /**
+    * Purchases a ware from the market for a player.
+    * <p>
+    * Complexity: O(log n)
+    * @param playerID     user responsible for the trading
+    * @param coordinates  where wares may be found
+    * @param wareID       key used to retrieve ware information
+    * @param quantity     how much of the ware should be purchased
+    * @param maxUnitPrice stop buying if unit price is above this amount
+    * @param accountID    key used to retrieve account information
+    */
+   public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
+      String wareID, int quantity, float maxUnitPrice, String accountID) {
+      buy(playerID, coordinates, wareID, quantity, maxUnitPrice, accountID, false);
    }
 
    /**
@@ -1746,8 +1764,11 @@ public class Marketplace {
     * @param playerID user responsible for the trading
     * @param wareID   key used to retrieve ware information
     * @param quantity how much would be traded
+    * @param shouldManufacture if specified quantity is above quantity for sale,
+    *                          then true means to factor in purchasing
+    *                          missing components and manufacturing the ware
     */
-   public static void check(UUID playerID, String wareID, int quantity) {
+   public static void check(UUID playerID, String wareID, int quantity, boolean shouldManufacture) {
       // if no player was given, there is no one to send messages to
       if (playerID == null)
          return;
@@ -1859,9 +1880,13 @@ public class Marketplace {
     * @param wareID       key used to retrieve ware information
     * @param quantity     how much would be traded
     * @param percentWorth multiplier for price
+    * @param shouldManufacture if specified quantity is above quantity for sale,
+    *                          then true means to factor in purchasing
+    *                          missing components and manufacturing the ware
     */
-   public static void check(UUID playerID, String wareID, int quantity, float percentWorth) {
-      check(playerID, wareID, quantity);
+   public static void check(UUID playerID, String wareID, int quantity,
+                            float percentWorth, boolean shouldManufacture) {
+      check(playerID, wareID, quantity, shouldManufacture);
 
       // check whether anything could be printed
       if (playerID == null || wareID == null || wareID.isEmpty())

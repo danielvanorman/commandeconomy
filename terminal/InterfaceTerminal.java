@@ -1272,7 +1272,7 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       // call corresponding function
-      Marketplace.check(playerID, wareID, quantity);
+      Marketplace.check(playerID, wareID, quantity, false);
       return;
    }
 

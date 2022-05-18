@@ -4980,7 +4980,7 @@ public class TestSuite
       try {
          System.err.println("check() - null ware ID");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, null, 1);
+         Marketplace.check(PLAYER_ID, null, 1, false);
          if (!testBAOS.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -4988,7 +4988,7 @@ public class TestSuite
 
          System.err.println("check() - empty ware ID");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "", 1);
+         Marketplace.check(PLAYER_ID, "", 1, false);
          if (!testBAOS.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -4996,7 +4996,7 @@ public class TestSuite
 
          System.err.println("check() - invalid ware ID");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "invalidID", 1);
+         Marketplace.check(PLAYER_ID, "invalidID", 1, false);
          if (!testBAOS.toString().equals("error - ware not found: invalidID" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5004,7 +5004,7 @@ public class TestSuite
 
          System.err.println("check() - untradeable ware ID");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:untradeable1", 1);
+         Marketplace.check(PLAYER_ID, "test:untradeable1", 1, false);
          if (!testBAOS.toString().equals("notrade1 (test:untradeable1): $16.00" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5012,7 +5012,7 @@ public class TestSuite
 
          System.err.println("check() - using valid ware ID without alias and buying upcharge");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:material1", 1);
+         Marketplace.check(PLAYER_ID, "test:material1", 1, false);
          if (!testBAOS.toString().equals("test:material1: $1.00, 256" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5020,7 +5020,7 @@ public class TestSuite
 
          System.err.println("check() - using valid ware ID with alias and without buying upcharge");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:material3", 1);
+         Marketplace.check(PLAYER_ID, "test:material3", 1, false);
          if (!testBAOS.toString().equals("mat3 (test:material3): $4.00, 64" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5029,7 +5029,7 @@ public class TestSuite
          Config.priceBuyUpchargeMult = 2.0f;
          System.err.println("check() - using valid ware ID without alias and with buying upcharge");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:processed2", 1);
+         Marketplace.check(PLAYER_ID, "test:processed2", 1, false);
          if (!testBAOS.toString().equals("test:processed2: Buy - $28.60 | Sell - $14.30, 8" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5037,7 +5037,7 @@ public class TestSuite
 
          System.err.println("check() - using valid ware ID with alias and buying upcharge");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:crafted1", 1);
+         Marketplace.check(PLAYER_ID, "test:crafted1", 1, false);
          if (!testBAOS.toString().equals("craft1 (test:crafted1): Buy - $38.40 | Sell - $19.20, 128" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5045,7 +5045,7 @@ public class TestSuite
 
          System.err.println("check() - using zero quantity with buying upcharge");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "minecraft:material4", 0);
+         Marketplace.check(PLAYER_ID, "minecraft:material4", 0, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): Buy - $16.00 | Sell - $8.00, 32" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5053,7 +5053,7 @@ public class TestSuite
 
          System.err.println("check() - using high quantity with buying upcharge");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "minecraft:material4", 10);
+         Marketplace.check(PLAYER_ID, "minecraft:material4", 10, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): Buy - $16.00 | Sell - $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $205.00 | Sell - $75.50" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5062,7 +5062,7 @@ public class TestSuite
 
          System.err.println("check() - using negative quantity");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "minecraft:material4", -1);
+         Marketplace.check(PLAYER_ID, "minecraft:material4", -1, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5070,7 +5070,7 @@ public class TestSuite
 
          System.err.println("check() - using zero quantity");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "minecraft:material4", 0);
+         Marketplace.check(PLAYER_ID, "minecraft:material4", 0, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5078,7 +5078,7 @@ public class TestSuite
 
          System.err.println("check() - using singular quantity");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "minecraft:material4", 1);
+         Marketplace.check(PLAYER_ID, "minecraft:material4", 1, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5086,7 +5086,7 @@ public class TestSuite
 
          System.err.println("check() - using double quantity");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "minecraft:material4", 2);
+         Marketplace.check(PLAYER_ID, "minecraft:material4", 2, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 2: Buy - $16.50 | Sell - $15.83" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5094,7 +5094,7 @@ public class TestSuite
 
          System.err.println("check() - using high quantity");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "minecraft:material4", 10);
+         Marketplace.check(PLAYER_ID, "minecraft:material4", 10, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5102,7 +5102,7 @@ public class TestSuite
 
          System.err.println("check() - referencing ware using alias");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "material4", 10);
+         Marketplace.check(PLAYER_ID, "material4", 10, false);
          if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5110,7 +5110,7 @@ public class TestSuite
 
          System.err.println("check() - null username");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(null), "material4", 10);
+         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(null), "material4", 10, false);
          if (!testBAOS.toString().isEmpty()) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5118,7 +5118,7 @@ public class TestSuite
 
          System.err.println("check() - empty username");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(""), "material4", 10);
+         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(""), "material4", 10, false);
          if (!testBAOS.toString().isEmpty()) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5126,7 +5126,7 @@ public class TestSuite
 
          System.err.println("check() - different username");
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(InterfaceTerminal.getPlayerIDStatic("possibleID"), "material4", 10);
+         Marketplace.check(InterfaceTerminal.getPlayerIDStatic("possibleID"), "material4", 10, false);
          if (!testBAOS.toString().startsWith("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -5144,7 +5144,7 @@ public class TestSuite
          testWare1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:material1", 1);
+         Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
          if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (material): " + testBAOS.toString());
@@ -5157,7 +5157,7 @@ public class TestSuite
          testWareP1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:processed1", 1);
+         Marketplace.check(PLAYER_ID, "test:processed1", 1, false);
 
          if (!testBAOS.toString().startsWith("test:processed1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
@@ -5171,7 +5171,7 @@ public class TestSuite
          testWare1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:material1", 1);
+         Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
          if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (material): " + testBAOS.toString());
@@ -5184,7 +5184,7 @@ public class TestSuite
          testWareC2.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:crafted2", 1);
+         Marketplace.check(PLAYER_ID, "test:crafted2", 1, false);
 
          if (!testBAOS.toString().startsWith("test:crafted2: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
@@ -5198,7 +5198,7 @@ public class TestSuite
          testWare1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:material1", 1);
+         Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
          if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (material): " + testBAOS.toString());
@@ -5211,7 +5211,7 @@ public class TestSuite
          testWareP2.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:processed2", 1);
+         Marketplace.check(PLAYER_ID, "test:processed2", 1, false);
 
          if (!testBAOS.toString().startsWith("test:processed2: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
@@ -5225,7 +5225,7 @@ public class TestSuite
          testWare1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:material1", 1);
+         Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
          if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (material): " + testBAOS.toString());
@@ -5238,7 +5238,7 @@ public class TestSuite
          testWareC1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:crafted1", 1);
+         Marketplace.check(PLAYER_ID, "test:crafted1", 1, false);
 
          if (!testBAOS.toString().startsWith("craft1 (test:crafted1): " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
@@ -5252,7 +5252,7 @@ public class TestSuite
          testWare1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:material1", 1);
+         Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
          if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (material): " + testBAOS.toString());
@@ -5265,7 +5265,7 @@ public class TestSuite
          testWareC1.setQuantity(quantity);
 
          testBAOS.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "test:crafted1", 1);
+         Marketplace.check(PLAYER_ID, "test:crafted1", 1, false);
 
          if (!testBAOS.toString().startsWith("craft1 (test:crafted1): " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
             System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
@@ -5969,7 +5969,7 @@ public class TestSuite
          System.err.println("buy() - request: null input");
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(null);
-         if (!testBAOS.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }
@@ -5977,7 +5977,7 @@ public class TestSuite
          System.err.println("buy() - request: empty input");
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{});
-         if (!testBAOS.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }
@@ -5993,7 +5993,7 @@ public class TestSuite
          System.err.println("buy() - request: too few args");
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1"});
-         if (!testBAOS.toString().equals("error - wrong number of arguments: /buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("error - wrong number of arguments: /buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }
@@ -9683,7 +9683,7 @@ public class TestSuite
          System.err.println("serviceRequests() - check: null input");
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(null);
-         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }
@@ -9691,7 +9691,7 @@ public class TestSuite
          System.err.println("serviceRequests() - check: empty input");
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }
@@ -9707,7 +9707,7 @@ public class TestSuite
          System.err.println("serviceRequests() - check: too few args");
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }

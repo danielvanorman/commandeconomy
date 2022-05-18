@@ -150,6 +150,13 @@ public class Config
    /** how many recently calculated linked price multipliers are saved for recall */
    public static int linkedPriceMultsSaved = 5;
 
+   // manufacturing contracts
+   /** if true, out-of-stock processed/crafted wares may be purchased
+    *  if their components have enough available stock on the market */
+   protected static boolean buyingOutOfStockWaresAllowed = true;
+   /** how much to charge for purchasing out-of-stock processed/crafted wares */
+   protected static float buyingOutOfStockWaresPriceMult = 1.10f;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>
