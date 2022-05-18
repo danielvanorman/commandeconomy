@@ -147,6 +147,8 @@ public class Config
    public static boolean shouldComponentsCurrentPricesAffectWholesPrice = true;
    /** how much components' prices may affect a created ware's price */
    public static float linkedPricesPercent = 0.75f;
+   /** how many recently calculated linked price multipliers are saved for recall */
+   public static int linkedPriceMultsSaved = 5;
 
    /**
     * Sets a config option to a given value or prints an error.
@@ -215,6 +217,9 @@ public class Config
 
          case "linkedPricesPercent":
             linkedPricesPercent = value;
+            break;
+         case "linkedPriceMultsSaved":
+            linkedPriceMultsSaved = (int) value;
             break;
 
          default:
@@ -587,7 +592,8 @@ public class Config
 
       // linked prices
       shouldComponentsCurrentPricesAffectWholesPrice = true;
-      linkedPricesPercent = 0.75f;
+      linkedPricesPercent   = 0.75f;
+      linkedPriceMultsSaved = 5;
    }
 
    /**

@@ -670,6 +670,7 @@ public class TestSuite
       Config.investmentCostIsAMultOfAvgPrice = false;
 
       Config.shouldComponentsCurrentPricesAffectWholesPrice = false;
+      Config.linkedPriceMultsSaved = 0;
 
       // wares
       // raw materials

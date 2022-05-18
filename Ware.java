@@ -23,6 +23,14 @@ public abstract class Ware
      * Unfortunately, Minecraft 1.12.2's gson requires a JSONParser object. */
    private static transient JsonParser jsonParser = new JsonParser();
 
+   // linked prices
+   /** wares whose linked price multipliers have recently been calculated */
+   private static Ware[] recentLinkedPriceSearches;
+   /** multipliers for wares whose linked price multipliers have recently been calculated */
+   private static float[] recentLinkedPieceResults;
+   /** index to write next within a circular queue storing recently calculated linked price multipliers */
+   private static int recentLinkedPricePointer = 0;
+
    // INSTANCE VARIABLES
    /** wares used to create this ware */
    transient Ware[] components;
@@ -468,6 +476,23 @@ public abstract class Ware
       if (!Config.shouldComponentsCurrentPricesAffectWholesPrice || componentsIDs == null || this instanceof WareLinked)
          return 1.0f;
 
+      // set up or remake circular queue if necessary
+      if ((recentLinkedPriceSearches == null ||
+           recentLinkedPriceSearches.length != Config.linkedPriceMultsSaved)
+         && Config.linkedPriceMultsSaved > 0) {
+            recentLinkedPriceSearches = new Ware[Config.linkedPriceMultsSaved];
+            recentLinkedPieceResults  = new float[Config.linkedPriceMultsSaved];
+            recentLinkedPricePointer  = 0;
+      }
+
+      // search among recently calculated multipliers
+      if (recentLinkedPriceSearches != null) {
+         for (int i = 0; i < Config.linkedPriceMultsSaved; i++) {
+            if (recentLinkedPriceSearches[i] == this)
+               return recentLinkedPieceResults[i];
+         }
+      }
+
       // initialize variables
       float priceComponentsCurrent     = 0.0f; // sum of components' current prices
       float priceComponentsEquilibrium = 0.0f; // sum of components' prices without considering supply and demand
@@ -483,6 +508,17 @@ public abstract class Ware
 
       // solve for linked price effect
       float multiplier = (Config.linkedPricesPercent * priceComponentsCurrent / priceComponentsEquilibrium) + (1 - Config.linkedPricesPercent);
+
+      // add multiplier to recently calculated multipliers
+      if (recentLinkedPriceSearches != null) {
+         recentLinkedPriceSearches[recentLinkedPricePointer] = this;
+         recentLinkedPieceResults[recentLinkedPricePointer]  = multiplier;
+         recentLinkedPricePointer++;
+      }
+
+      // reset pointer if it is too large
+      if (recentLinkedPricePointer >= Config.linkedPriceMultsSaved)
+         recentLinkedPricePointer = 0;
 
       return multiplier;
    }
