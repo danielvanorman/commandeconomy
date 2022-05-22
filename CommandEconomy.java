@@ -326,13 +326,13 @@ public class CommandEconomy {
    public final static String ERROR_QUANTITY          = "error - invalid quantity: ";
    public final static String ERROR_PRICE             = "error - invalid price: ";
    public final static String ERROR_ARG               = "error - invalid argument: ";
-   public final static String ERROR_INVENTORY_DIR     = "error - invalid inventory direction: should be none, down, up, north, east, west, or south\n";
-   public final static String ERROR_INVENTORY_MISSING = "error - inventory not found\n";
+   public final static String ERROR_INVENTORY_DIR     = "error - invalid inventory direction: should be none, down, up, north, east, west, or south" + System.lineSeparator();
+   public final static String ERROR_INVENTORY_MISSING = "error - inventory not found" + System.lineSeparator();
    public final static String ERROR_INVENTORY_SPACE   = "You don't have enough inventory space";
    public final static String ERROR_PERMISSION        = "You do not have permission to use this command for other players";
    public final static String ERROR_ENTITY_SELECTOR   = "error - failed to parse entity selector; perhaps it referenced multiple players or you're not an op?";
    public final static String ERROR_RELOAD_MISSING    = "error - must provide instructions for reload: ";
-   public final static String ERROR_INVALID_CMD       = "error - invalid command\n   entering \"/" + MODID + " " + CMD_HELP + "\" will list valid commands";
+   public final static String ERROR_INVALID_CMD       = "error - invalid command" + System.lineSeparator() + "   entering \"/" + MODID + " " + CMD_HELP + "\" will list valid commands";
 
    // ware errors
    public final static String ERROR_WARE_MISSING      = "error - ware not found: ";
@@ -418,9 +418,9 @@ public class CommandEconomy {
    public final static String ERROR_COMPONENT_ID_BLANK     = "blank component ID";
    public final static String ERROR_WARE_PARSING_ID        = "could not parse ware ";
 
-   public final static String WARN_FILE_WARE_INVALID = "\n   upon saving, ware entry will be written to the bottom of ";
-   public final static String WARN_CRAFTING_DEPTH    = "\n   perhaps its crafting depth is deeper than configuration's maxCraftingDepth?";
-   public final static String WARN_COMPONENT_MISSING = "\n   missing component: ";
+   public final static String WARN_FILE_WARE_INVALID = System.lineSeparator() + "   upon saving, ware entry will be written to the bottom of ";
+   public final static String WARN_CRAFTING_DEPTH    = System.lineSeparator() + "   perhaps its crafting depth is deeper than configuration's maxCraftingDepth?";
+   public final static String WARN_COMPONENT_MISSING = System.lineSeparator() + "   missing component: ";
 
    // account file parsing
    public final static String ERROR_ACCOUNT_PARSING = "error - could not parse account: ";
@@ -433,7 +433,7 @@ public class CommandEconomy {
    // configuration
    public final static String ERROR_CONFIG_FILE_CREATE    = "error - unable to create config file: ";
    public final static String ERROR_CONFIG_OPTION_SET     = "error - could not set config option ";
-   public final static String ERROR_CONFIG_OPTION_VALUE   = "\n   intended value was ";
+   public final static String ERROR_CONFIG_OPTION_VALUE   = System.lineSeparator() + "   intended value was ";
    public final static String ERROR_CONFIG_OPTION_FORMAT  = "improperly formatted option: ";
    public final static String ERROR_CONFIG_OPTION_LOAD    = "error - could not load option ";
    public final static String ERROR_CONFIG_OPTION_PARSING = ", failed to parse ";
@@ -444,7 +444,7 @@ public class CommandEconomy {
    public final static String ERROR_AI_PARSING            = "error - could not parse AI professions JSON file: ";
    public final static String ERROR_AI_MISSING            = "error - AI profession not found: ";
    public final static String ERROR_AI_PREFS_MISMATCH_PRO = "error - AI profession failed to load due to mismatching preferences; AI profession: ";
-   public final static String ERROR_AI_PREFS_MISMATCH_IDS = "\n   mismatching ware IDs: ";
+   public final static String ERROR_AI_PREFS_MISMATCH_IDS = System.lineSeparator() + "   mismatching ware IDs: ";
    public final static String WARN_AI_NONE_LOADED         = "warning - no AI professions were loaded";
    public final static String WARN_AI_INVALID             = "warning - no AI professions were valid";
    public final static String WARN_AI_INVALID_WARE_PRO    = "warning - invalid ware ID for AI profession ";
@@ -503,7 +503,7 @@ public class CommandEconomy {
    String.format(String format, Object... args);
    String.format("name is %s",name); 
 
-   public final static String MISSING_DATA_RELOAD_INSTRUCT = "\nTo load %1$s, replace %2$s, \nthen use the command \"reload %3$s\"." // 1$ == object to be loaded, 2$ == file name, 3$ == corresponding reload command keyword
+   public final static String MISSING_DATA_RELOAD_INSTRUCT = System.lineSeparator() + "To load %1$s, replace %2$s, \nthen use the command \"reload %3$s\"." // 1$ == object to be loaded, 2$ == file name, 3$ == corresponding reload command keyword
 
    public final static String WARES = "wares";
    public final static String OR = " or "; // as in, "this or that"
@@ -513,10 +513,10 @@ public class CommandEconomy {
    "error - invalid alternate alias entry, invalid type: "
    "error - invalid alternate alias entry, missing alias: "
 
-   "\n   is used by "
-   "\n   failed to assign to "
-   "\n   is now used by "
-   "\n   was assigned to "
+   System.lineSeparator() + "   is used by "
+   System.lineSeparator() + "   failed to assign to "
+   System.lineSeparator() + "   is now used by "
+   System.lineSeparator() + "   was assigned to "
 
    "error - %s does not appear to exist outside of the marketplace"
    console prefix for nonexistent ware: "commandeconomy - Marketplace.buy(), "

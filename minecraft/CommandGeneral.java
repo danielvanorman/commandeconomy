@@ -163,6 +163,7 @@ public class CommandGeneral extends CommandBase {
            CommandEconomy.CMD_USAGE_DELETE + " - closes the account with the specified id\n" +
            CommandEconomy.CMD_USAGE_GRANT_ACCESS + " - allows a player to view and withdraw from a specified account\n" +
            CommandEconomy.CMD_USAGE_REVOKE_ACCESS + " - disallows a player to view and withdraw from a specified account\n" +
+           CommandEconomy.CMD_USAGE_INVEST + " - increases a ware's supply and demand\n" +
            CommandEconomy.CMD_USAGE_VERSION + " - says what version of Command Economy is running\n" +
            CommandEconomy.CMD_USAGE_ADD + " - summons money\n" +
            CommandEconomy.CMD_USAGE_SET + " - sets account's money to a specified amount\n" +

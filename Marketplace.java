@@ -125,8 +125,8 @@ public class Marketplace {
       if (!fileWares.isFile()) {
          // don't throw an exception, print a warning to advise user to reload wares
          Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameWares +
-            "\nTo load wares, replace " + Config.filenameWares + " or " + Config.filenameWaresSave +
-            ",\nthen use the command \"reload wares\"."
+            System.lineSeparator() + "To load wares, replace " + Config.filenameWares + " or " + Config.filenameWaresSave +
+            "," + System.lineSeparator() + "then use the command \"reload wares\"."
          );
          return;
       }
@@ -287,8 +287,8 @@ public class Marketplace {
                    !wareIDUsingAlias.equals(wareID)) {
                   Config.commandInterface.printToConsole(CommandEconomy.WARN_WARE_ALIAS_USED
                      + alias
-                     + "\n   is used by " + wareIDUsingAlias
-                     + "\n   failed to assign to " + wareID);
+                     + System.lineSeparator() + "   is used by " + wareIDUsingAlias
+                     + System.lineSeparator() + "   failed to assign to " + wareID);
                   ware.setAlias(null);
                } else {
                   wareAliasTranslations.put(alias, wareID);
@@ -536,7 +536,7 @@ public class Marketplace {
 
             // check whether it is a Forge OreDictionary name and
             // whether that name exists
-            if (alias.startsWith("#") && !Config.commandInterface.doesOreDictionaryNameExist(alias.substring(1, alias.length()))) {
+            if (Config.oreDictionaryReportInvalid && alias.startsWith("#") && !Config.commandInterface.doesOreDictionaryNameExist(alias.substring(1, alias.length()))) {
                Config.commandInterface.printToConsole(CommandEconomy.WARN_ORE_NAME_NONEXISTENT + alias.substring(1, alias.length()));
                continue;
             }
@@ -573,8 +573,8 @@ public class Marketplace {
                 !wareIDUsingAlias.equals(wareID)) {
                Config.commandInterface.printToConsole(CommandEconomy.WARN_WARE_ALIAS_USED
                   + alias
-                  + "\n   is now used by " + wareIDUsingAlias
-                  + "\n   was assigned to " + wareID);
+                  + System.lineSeparator() + "   is now used by " + wareIDUsingAlias
+                  + System.lineSeparator() + "   was assigned to " + wareID);
             }
 
             // assign the alias

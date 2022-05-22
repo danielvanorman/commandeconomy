@@ -11327,7 +11327,6 @@ public class TestSuite
          // buys testWare1
          purchasablesIDs = new String[]{"test:material1"};
          testAI1         = new AI("testAI1", purchasablesIDs, null, null);
-         testAI1.incrementDecisionsPerTradeEvent();
 
          // testAI2: simple + buys and sells
          // buys testWare2
@@ -11335,7 +11334,6 @@ public class TestSuite
          purchasablesIDs = new String[]{"test:material2"};
          sellablesIDs    = new String[]{"test:crafted1"};
          testAI2         = new AI("testAI2", purchasablesIDs, sellablesIDs, null);
-         testAI2.incrementDecisionsPerTradeEvent();
 
          // testAI3: has preferences
          // buys testWare1, testWare3
@@ -11346,7 +11344,6 @@ public class TestSuite
          preferences     = new HashMap<String, Float>(1, 1.0f);
          preferences.put("test:crafted2", 1.10f);
          testAI3         = new AI("testAI3", purchasablesIDs, sellablesIDs, preferences);
-         testAI3.incrementDecisionsPerTradeEvent();
 
          // grab references to AI handler attributes
          fProfessions    = AIHandler.class.getDeclaredField("professions");
@@ -12529,7 +12526,7 @@ public class TestSuite
          Config.investmentCostPerHierarchyLevel = 0.0f;
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
-         if (!testBAOS.toString().equals("error - invalid command\n   entering \"/commandeconomy help\" will list valid commands" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("error - invalid command" + System.lineSeparator() + "   entering \"/commandeconomy help\" will list valid commands" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }

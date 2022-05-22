@@ -216,8 +216,8 @@ public class AIHandler extends TimerTask {
       if (!fileAIProfessions.isFile()) {
          // don't throw an exception, print a warning to advise user to reload AI
          Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAIProfessions +
-            "\nTo use AI, replace " + Config.filenameAIProfessions +
-            ",\nthen use the command \"reload config\"."
+            System.lineSeparator() + "To use AI, replace " + Config.filenameAIProfessions +
+            "," + System.lineSeparator() + "then use the command \"reload config\"."
          );
          return;
       }
@@ -303,7 +303,7 @@ public class AIHandler extends TimerTask {
             // if the AI profession doesn't exist,
             // warn the server
             else
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_MISSING);
+               Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_MISSING + aiProfession);
          }
 
          // if no AI were found

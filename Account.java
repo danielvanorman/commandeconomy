@@ -113,7 +113,7 @@ public class Account {
 
             // tell the non-personal account owner about
             // the non-personal account being deleted
-            Config.commandInterface.printErrorToUser(nonpersonalAccountOwner, accountID + "'s funds have been sent to your personal account.\n" +
+            Config.commandInterface.printErrorToUser(nonpersonalAccountOwner, accountID + "'s funds have been sent to your personal account." + System.lineSeparator() +
                accountID + " is now another player's personal account.");
          }
          // non-personal accounts cannot take the IDs of existing accounts
@@ -208,7 +208,7 @@ public class Account {
 
             // tell the non-personal account owner about
             // the non-personal account being deleted
-            Config.commandInterface.printErrorToUser(nonpersonalAccountOwner, accountID + "'s funds have been sent to your personal account.\n" +
+            Config.commandInterface.printErrorToUser(nonpersonalAccountOwner, accountID + "'s funds have been sent to your personal account." + System.lineSeparator() +
                accountID + " is now another player's personal account.");
          }
          // non-personal accounts cannot take the IDs of existing accounts
@@ -862,8 +862,8 @@ public class Account {
       if (!fileAccounts.isFile()) {
          // don't throw an exception, print a warning to advise user to reload accounts 
          Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAccounts +
-            "\nTo load accounts, replace " + Config.filenameAccounts +
-            ", \nthen use the command \"reload accounts\"."
+            System.lineSeparator() + "To load accounts, replace " + Config.filenameAccounts +
+            ", " + System.lineSeparator() + "then use the command \"reload accounts\"."
          );
          return;
       }

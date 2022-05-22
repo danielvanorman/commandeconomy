@@ -171,13 +171,13 @@ public class CommandCheck extends CommandBase {
          // if the wares are damageable, handle potential damage
          if (itemStack.isItemStackDamageable() && itemStack.isItemDamaged()) {
             Marketplace.check(userID, wareID, quantity,
-               ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage());
+               ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage(), false);
             return;
          }
       }
 
       // call corresponding function
-      Marketplace.check(userID, wareID, quantity);
+      Marketplace.check(userID, wareID, quantity, false);
       return;
   }
 

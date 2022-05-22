@@ -47,7 +47,7 @@ public class Config
    private   static String filenameNoPathWaresSave     = "waresSaved.txt";
    /** contains accounts usable within the marketplace */
    private   static String filenameNoPathAccounts      = "accounts.txt";
-   /** contains wares to be tradeable within the marketplace */
+   /** contains possible AI, the wares they may trade, and their preferences */
    protected static String filenameNoPathAIProfessions = "aiProfessions.json";
 
    /** contains settings for customizing the marketplace */
@@ -60,7 +60,7 @@ public class Config
    public static String  filenameAccounts      = "CommandEconomy" + File.separator + "accounts.txt";
    /** output file for printing wares within the marketplace */
    public static String  filenameMarket        = "config" + File.separator + "CommandEconomy" + File.separator + "market.txt";
-   /** save file containing tradeable wares within the marketplace */
+   /** contains possible AI, the wares they may trade, and their preferences */
    public static String  filenameAIProfessions = "CommandEconomy" + File.separator + "aiProfessions.json";
    /** if true, load global save files instead of local */
    public static boolean crossWorldMarketplace = false;
@@ -115,6 +115,8 @@ public class Config
    public static boolean itemExistenceCheckIgnoresMeta = false;
    /** whether wares which are not in the market may be sold using a Forge OreDictionary name it shares with a ware in the market */
    public static boolean allowOreDictionarySubstitution = true;
+   /** whether to print warnings for not finding Forge OreDictionary names used by alternative aliases */
+   public static boolean oreDictionaryReportInvalid = false;
 
    // repeatedly-used constants
    /** adjusted multiplier for price floor */
@@ -125,7 +127,7 @@ public class Config
    // AI
    /** whether AI should be used */
    public static boolean enableAI = false;
-   /** whether AI should be used */
+   /** which AI professions should be used */
    public static String[] activeAI = null;
    /** how often AI should trade, in minutes */
    public static int aiTradeFrequency = 10;
@@ -282,6 +284,9 @@ public class Config
          case "allowOreDictionarySubstitution":
             allowOreDictionarySubstitution = value;
             break;
+         case "oreDictionaryReportInvalid":
+            oreDictionaryReportInvalid = value;
+            break;
          case "crossWorldMarketplace":
             crossWorldMarketplace = value;
             break;
@@ -363,17 +368,18 @@ public class Config
       if (!fileConfig.isFile()) {
          // don't throw an exception, print a warning to advise user to reload config
          commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + filenameConfig
-                              + "\nTo load custom settings, replace " + filenameConfig
-                              + ",\nthen use the command \"reload config\"."
+                              + System.lineSeparator() + "To load custom settings, replace " + filenameConfig
+                              + "," + System.lineSeparator() + "then use the command \"reload config\"."
          );
          return;
       }
 
       // track changes to filenames to potentially avoid regenerating them
-      boolean oldCrossWorldMarketplace   = crossWorldMarketplace;
-      String  oldFilenameNoPathWares     = filenameNoPathWares;
-      String  oldFilenameNoPathWaresSave = filenameNoPathWaresSave;
-      String  oldFilenameNoPathAccounts  = filenameNoPathAccounts;
+      boolean oldCrossWorldMarketplace       = crossWorldMarketplace;
+      String  oldFilenameNoPathWares         = filenameNoPathWares;
+      String  oldFilenameNoPathWaresSave     = filenameNoPathWaresSave;
+      String  oldFilenameNoPathAccounts      = filenameNoPathAccounts;
+      String  oldFilenameNoPathAIProfessions = filenameNoPathAIProfessions;
 
       // track changes to equilibrium quantities
       // for features depending on equilibriums
@@ -491,11 +497,12 @@ public class Config
 
       // ensure file paths are correct
       String path;
-      boolean regenWares     = !oldFilenameNoPathWares.equals(filenameWares);
-      boolean regenWaresSave = !oldFilenameNoPathWaresSave.equals(filenameWares);
-      boolean regenAccounts  = !oldFilenameNoPathAccounts.equals(filenameWares);
+      boolean regenWares         = !oldFilenameNoPathWares.equals(filenameWares);
+      boolean regenWaresSave     = !oldFilenameNoPathWaresSave.equals(filenameWares);
+      boolean regenAccounts      = !oldFilenameNoPathAccounts.equals(filenameWares);
+      boolean regenAIProfessions = !oldFilenameNoPathAIProfessions.equals(filenameWares);
       // check whether file paths need to be regenerated
-      if (regenWares || regenWaresSave || regenAccounts ||
+      if (regenWares || regenWaresSave || regenAccounts || regenAIProfessions ||
           oldCrossWorldMarketplace != crossWorldMarketplace) {
          if (crossWorldMarketplace)
             path = "config" + File.separator + "CommandEconomy" + File.separator;
@@ -503,11 +510,13 @@ public class Config
             path = commandInterface.getSaveDirectory() + File.separator + "CommandEconomy" + File.separator;
 
          if (regenWares)
-            filenameWares     = path + filenameNoPathWares;
+            filenameWares         = path + filenameNoPathWares;
          if (regenWaresSave)
-            filenameWaresSave = path + filenameNoPathWaresSave;
+            filenameWaresSave     = path + filenameNoPathWaresSave;
          if (regenAccounts)
-            filenameAccounts  = path + filenameNoPathAccounts;
+            filenameAccounts      = path + filenameNoPathAccounts;
+         if (regenAIProfessions)
+            filenameAIProfessions = path + filenameNoPathAIProfessions;
       }
 
       // check for changes to equilibrium quantities

@@ -35,7 +35,7 @@ public class AI {
    /** biases the AI carries when making trading decisions */
    HashMap<String, Float> preferences  = null;
    /** how many trade decisions the AI should make during a single trade event */
-   transient int decisionsPerTradeEvent = 0;
+   transient int decisionsPerTradeEvent = 1;
 
    // STRUCTS
    /**
