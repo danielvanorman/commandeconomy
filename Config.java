@@ -130,12 +130,12 @@ public class Config
    /** which AI professions should be used */
    public static String[] activeAI = null;
    /** how often AI should trade, in minutes */
-   public static int aiTradeFrequency = 10;
+   public static int aiTradeFrequency = 60;
    /** how many units AI should buy or sell per trade, in percentage of equilibrium stock */
    public static float aiTradeQuantityPercent = 0.05f;
    /** how randomized AI trade decisions should be */
-   public static float aiRandomness = 0.15f;
-   /** whether to print warnings for ware IDs or aliases not found within the marketplace */
+   public static float aiRandomness = 0.05f;
+   /** whether to print warnings for AI professions' ware IDs or aliases not found within the marketplace */
    public static boolean aiReportInvalidWares = false;
 
    // investment
@@ -228,7 +228,10 @@ public class Config
             linkedPricesPercent = value;
             break;
          case "linkedPriceMultsSaved":
-            linkedPriceMultsSaved = (int) value;
+            if (value <= 0)
+               linkedPriceMultsSaved = 0;
+            else
+               linkedPriceMultsSaved = (int) value;
             break;
 
          default:
@@ -592,14 +595,15 @@ public class Config
       // miscellaneous
       disableAutoSaving = false;
       allowOreDictionarySubstitution = true;
+      oreDictionaryReportInvalid = false;
       maxCraftingDepth  = 10;
 
       // AI
       enableAI               = false;
       activeAI               = null;
-      aiTradeFrequency       = 10;
+      aiTradeFrequency       = 60;
       aiTradeQuantityPercent = 0.05f;
-      aiRandomness           = 0.15f;
+      aiRandomness           = 0.05f;
       aiReportInvalidWares   = false;
 
       // investment

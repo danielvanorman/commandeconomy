@@ -14,6 +14,10 @@ import java.util.UUID;                                      // for more securely
 import java.util.Arrays;                                    // for removing the first element of args before passing it to other commands
 
 public class CommandGeneral extends CommandBase {
+   /** speeds up concatenation for /help */
+   private static StringBuilder sbHelpOutput   = new StringBuilder(2200);
+   /** whether help output currently includes /invest */
+   private static boolean sbHelpContainsInvest = false;
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -78,10 +82,7 @@ public class CommandGeneral extends CommandBase {
             return;
 
          case CommandEconomy.CMD_INVEST:
-            if (Config.investmentCostPerHierarchyLevel != 0.0f)
-               CommandProcessor.invest(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
-            else
-               serviceRequestHelp(sender, args);
+            CommandProcessor.invest(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
             break;
 
          case CommandEconomy.CMD_SAVE:
@@ -142,40 +143,57 @@ public class CommandGeneral extends CommandBase {
           args[1] != null &&
           args[1].equals(CommandEconomy.HELP_COMMAND_BLOCK)) {
          errorMessage = new TextComponentString(
-            CommandEconomy.CMD_USAGE_BLOCK_BUY + " // purchases an item\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_SELL + " // sells an item\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_CHECK + " // looks up item price and stock\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_SELLALL + " // sells all tradeable wares in your inventory at current market prices\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_MONEY + " // looks up how much is in an account\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_SEND + " // transfers money from one account to another\n" +
+            CommandEconomy.CMD_USAGE_BLOCK_BUY + CommandEconomy.CMD_DESC_BUY +
+            CommandEconomy.CMD_USAGE_BLOCK_SELL + CommandEconomy.CMD_DESC_SELL +
+            CommandEconomy.CMD_USAGE_BLOCK_CHECK + CommandEconomy.CMD_DESC_CHECK +
+            CommandEconomy.CMD_USAGE_BLOCK_SELLALL + CommandEconomy.CMD_DESC_SELLALL +
+            CommandEconomy.CMD_USAGE_BLOCK_MONEY + CommandEconomy.CMD_DESC_MONEY +
+            CommandEconomy.CMD_USAGE_BLOCK_SEND + CommandEconomy.CMD_DESC_SEND +
             "inventory_direction is none, down, up, north, east, west, or south\n"
          );
       } else {
-        errorMessage = new TextComponentString(
-           CommandEconomy.CMD_USAGE_BUY + " - purchases an item\n" +
-           CommandEconomy.CMD_USAGE_SELL + " - sells an item\n" +
-           CommandEconomy.CMD_USAGE_CHECK + " - looks up item price and stock\n" +
-           CommandEconomy.CMD_USAGE_SELLALL + " - sells all tradeable items in your inventory at current market prices\n" +
-           CommandEconomy.CMD_USAGE_NOSELL + " - marks an item stack to be unsellable\n" +
-           CommandEconomy.CMD_USAGE_MONEY + " - looks up how much is in an account\n" +
-           CommandEconomy.CMD_USAGE_SEND + " [sender_account_id] - transfers money from one account to another\n" +
-           CommandEconomy.CMD_USAGE_CREATE + " - opens a new account with the specified id\n" +
-           CommandEconomy.CMD_USAGE_DELETE + " - closes the account with the specified id\n" +
-           CommandEconomy.CMD_USAGE_GRANT_ACCESS + " - allows a player to view and withdraw from a specified account\n" +
-           CommandEconomy.CMD_USAGE_REVOKE_ACCESS + " - disallows a player to view and withdraw from a specified account\n" +
-           CommandEconomy.CMD_USAGE_INVEST + " - increases a ware's supply and demand\n" +
-           CommandEconomy.CMD_USAGE_VERSION + " - says what version of Command Economy is running\n" +
-           CommandEconomy.CMD_USAGE_ADD + " - summons money\n" +
-           CommandEconomy.CMD_USAGE_SET + " - sets account's money to a specified amount\n" +
-           CommandEconomy.CMD_USAGE_CHANGE_STOCK + " - increases or decreases an item's available quantity within the marketplace or sets the quantity to a certain level\n" +
-           CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT + " - marks an account to be used in place of your personal account\n" +
-           CommandEconomy.CMD_USAGE_SAVECE + " - saves market wares and accounts\n" +
-           CommandEconomy.CMD_USAGE_RELOAD + " - reloads part of the marketplace from file\n" +
-           CommandEconomy.CMD_USAGE_PRINT_MARKET + " - writes all wares currently tradeable to a file"
-        );
-      }
-      sender.sendMessage(errorMessage);
+         // in necessary, regenerate help output
+         if (sbHelpOutput.length() == 0 ||
+             sbHelpContainsInvest != (Config.investmentCostPerHierarchyLevel != 0.0f)) {
+            // clear buffer
+            sbHelpOutput.setLength(0);
 
+            // add in standard commands
+            sbHelpOutput.append(CommandEconomy.CMD_USAGE_BUY).append(CommandEconomy.CMD_DESC_BUY)
+                        .append(CommandEconomy.CMD_USAGE_SELL).append(CommandEconomy.CMD_DESC_SELL)
+                        .append(CommandEconomy.CMD_USAGE_CHECK).append(CommandEconomy.CMD_DESC_CHECK)
+                        .append(CommandEconomy.CMD_USAGE_SELLALL).append(CommandEconomy.CMD_DESC_SELLALL)
+                        .append(CommandEconomy.CMD_USAGE_NOSELL).append(CommandEconomy.CMD_DESC_NOSELL)
+                        .append(CommandEconomy.CMD_USAGE_MONEY).append(CommandEconomy.CMD_DESC_MONEY)
+                        .append(CommandEconomy.CMD_USAGE_SEND).append(CommandEconomy.CMD_DESC_SEND)
+                        .append(CommandEconomy.CMD_USAGE_CREATE).append(CommandEconomy.CMD_DESC_CREATE)
+                        .append(CommandEconomy.CMD_USAGE_DELETE).append(CommandEconomy.CMD_DESC_DELETE)
+                        .append(CommandEconomy.CMD_USAGE_GRANT_ACCESS).append(CommandEconomy.CMD_DESC_GRANT_ACCESS)
+                        .append(CommandEconomy.CMD_USAGE_REVOKE_ACCESS).append(CommandEconomy.CMD_DESC_REVOKE_ACCESS);
+
+            // if needed, add in /invest
+            if (Config.investmentCostPerHierarchyLevel != 0.0f) {
+               sbHelpContainsInvest = true;
+               sbHelpOutput.append(CommandEconomy.CMD_USAGE_INVEST).append(CommandEconomy.CMD_DESC_INVEST);
+            }
+            else
+               sbHelpContainsInvest = false;
+
+            // add in rest of standard commands
+            sbHelpOutput.append(CommandEconomy.CMD_USAGE_VERSION).append(CommandEconomy.CMD_DESC_VERSION)
+                        .append(CommandEconomy.CMD_USAGE_ADD).append(CommandEconomy.CMD_DESC_ADD)
+                        .append(CommandEconomy.CMD_USAGE_SET).append(CommandEconomy.CMD_DESC_SET)
+                        .append(CommandEconomy.CMD_USAGE_CHANGE_STOCK).append(CommandEconomy.CMD_DESC_CHANGE_STOCK)
+                        .append(CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT).append(CommandEconomy.CMD_DESC_SET_DEFAULT_ACCOUNT)
+                        .append(CommandEconomy.CMD_USAGE_SAVECE).append(CommandEconomy.CMD_DESC_SAVECE)
+                        .append(CommandEconomy.CMD_USAGE_RELOAD).append(CommandEconomy.CMD_DESC_RELOAD)
+                        .append(CommandEconomy.CMD_USAGE_PRINT_MARKET).append(CommandEconomy.CMD_DESC_PRINT_MARKET);
+         }
+
+        errorMessage = new TextComponentString(sbHelpOutput.toString());
+      }
+
+      sender.sendMessage(errorMessage);
       return;
    }
 

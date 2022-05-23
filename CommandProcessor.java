@@ -223,6 +223,12 @@ public class CommandProcessor
     * @param args     arguments given in the expected format
     */
    public static void invest(UUID playerID, String[] args) {
+      // check if the investment command is enabled
+      if (Config.investmentCostPerHierarchyLevel == 0.0f) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_INVEST_DISABLED);
+         return;
+      }
+
       // request should not be null
       if (args == null || args.length == 0) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_INVEST);

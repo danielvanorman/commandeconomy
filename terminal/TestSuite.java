@@ -12526,7 +12526,7 @@ public class TestSuite
          Config.investmentCostPerHierarchyLevel = 0.0f;
          testBAOS.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
-         if (!testBAOS.toString().equals("error - invalid command" + System.lineSeparator() + "   entering \"/commandeconomy help\" will list valid commands" + System.lineSeparator())) {
+         if (!testBAOS.toString().equals("error - investments are disabled" + System.lineSeparator())) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
          }

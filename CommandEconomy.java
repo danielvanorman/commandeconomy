@@ -312,7 +312,7 @@ public class CommandEconomy {
    public final static String CMD_USAGE_INVEST              = "/" + CMD_INVEST + " <ware_id> [max_price_acceptable] [account_id]";
    public final static String MSG_INVEST_USAGE_YES          = "; use /" + CMD_INVEST + " " + YES + " [max_price_acceptable] [account_id] to accept";
 
-   // command block
+   // command block usages
    public final static String CMD_USAGE_BLOCK_BUY     = "/" + CMD_BUY + " <player_name> <inventory_direction> <ware_id> <quantity> [max_unit_price] [account_id] [" + MANUFACTURING + "]";
    public final static String CMD_USAGE_BLOCK_SELL    = "/" + CMD_SELL + " <username> <inventory_direction> (<ware_id> | " + HELD_ITEM + ") [<quantity> [min_unit_price] [account_id]]";
    public final static String CMD_USAGE_BLOCK_CHECK   = "/" + CMD_CHECK + " <player_name> (<ware_id> | " + HELD_ITEM + ") <quantity> [" + MANUFACTURING + "]";
@@ -320,19 +320,40 @@ public class CommandEconomy {
    public final static String CMD_USAGE_BLOCK_MONEY   = "/" + CMD_MONEY + " <player_name> <account_id>";
    public final static String CMD_USAGE_BLOCK_SEND    = "/" + CMD_SEND + " <player_name> <quantity> <recipient_account_id> [sender_account_id]";
 
+   // command descriptions
+   public final static String CMD_DESC_BUY                 = " - purchases an item\n";
+   public final static String CMD_DESC_SELL                = " - sells an item\n";
+   public final static String CMD_DESC_CHECK               = " - looks up item price and stock\n";
+   public final static String CMD_DESC_SELLALL             = " - sells all tradeable items in your inventory at current market prices\n";
+   public final static String CMD_DESC_MONEY               = " - looks up how much is in an account\n";
+   public final static String CMD_DESC_SEND                = " [sender_account_id] - transfers money from one account to another\n";
+   public final static String CMD_DESC_CREATE              = " - opens a new account with the specified id\n";
+   public final static String CMD_DESC_DELETE              = " - closes the account with the specified id\n";
+   public final static String CMD_DESC_GRANT_ACCESS        = " - allows a player to view and withdraw from a specified account\n";
+   public final static String CMD_DESC_REVOKE_ACCESS       = " - disallows a player to view and withdraw from a specified account\n";
+   public final static String CMD_DESC_INVEST              = " - increases a ware's supply and demand\n";
+   public final static String CMD_DESC_VERSION             = " - says what version of Command Economy is running\n";
+   public final static String CMD_DESC_ADD                 = " - summons money\n";
+   public final static String CMD_DESC_SET                 = " - sets account's money to a specified amount\n";
+   public final static String CMD_DESC_CHANGE_STOCK        = " - increases or decreases an item's available quantity within the marketplace or sets the quantity to a certain level\n";
+   public final static String CMD_DESC_SET_DEFAULT_ACCOUNT = " - marks an account to be used in place of your personal account\n";
+   public final static String CMD_DESC_SAVECE              = " - saves market wares and accounts\n";
+   public final static String CMD_DESC_RELOAD              = " - reloads part or all of the marketplace from file\n";
+   public final static String CMD_DESC_PRINT_MARKET        = " - writes all wares currently tradeable to a file\n";
+
    // command errors
    public final static String ERROR_NUM_ARGS          = "error - wrong number of arguments: ";
    public final static String ERROR_ZERO_LEN_ARGS     = "error - zero-length arguments: ";
    public final static String ERROR_QUANTITY          = "error - invalid quantity: ";
    public final static String ERROR_PRICE             = "error - invalid price: ";
    public final static String ERROR_ARG               = "error - invalid argument: ";
-   public final static String ERROR_INVENTORY_DIR     = "error - invalid inventory direction: should be none, down, up, north, east, west, or south" + System.lineSeparator();
-   public final static String ERROR_INVENTORY_MISSING = "error - inventory not found" + System.lineSeparator();
+   public final static String ERROR_INVENTORY_DIR     = "error - invalid inventory direction: should be none, down, up, north, east, west, or south\n";
+   public final static String ERROR_INVENTORY_MISSING = "error - inventory not found\n";
    public final static String ERROR_INVENTORY_SPACE   = "You don't have enough inventory space";
    public final static String ERROR_PERMISSION        = "You do not have permission to use this command for other players";
    public final static String ERROR_ENTITY_SELECTOR   = "error - failed to parse entity selector; perhaps it referenced multiple players or you're not an op?";
    public final static String ERROR_RELOAD_MISSING    = "error - must provide instructions for reload: ";
-   public final static String ERROR_INVALID_CMD       = "error - invalid command" + System.lineSeparator() + "   entering \"/" + MODID + " " + CMD_HELP + "\" will list valid commands";
+   public final static String ERROR_INVALID_CMD       = "error - invalid command\n   entering \"/" + MODID + " " + CMD_HELP + "\" will list valid commands";
 
    // ware errors
    public final static String ERROR_WARE_MISSING      = "error - ware not found: ";
@@ -453,6 +474,7 @@ public class CommandEconomy {
    public final static String WARN_AI_INVALID_PREF_IDS    = ": ";
 
    // investments
+   public final static String ERROR_INVEST_DISABLED   = "error - investments are disabled";
    public final static String MSG_INVEST_NO_OFFERS    = "You don't have any pending investment offers";
    public final static String MSG_INVEST_LOWEST_LEVEL = " is already as plentiful as possible";
    public final static String MSG_INVEST_LINKED       = " is unsuitable for investment in that form";
@@ -476,6 +498,13 @@ public class CommandEconomy {
    public final static String CMD_USAGE_TAKE        = "/" + CMD_TAKE + " <ware_id> [quantity] [inventory_direction]";
    public final static String CMD_USAGE_CHANGE_NAME = "/" + CMD_CHANGE_NAME + " <player_name>";
 
+   public final static String CMD_DESC_OP           = " - grants admin permissions\n";
+   public final static String CMD_DESC_DEOP         = " - revokes admin permissions\n";
+   public final static String CMD_DESC_INVENTORY    = " - displays inventory contents\n";
+   public final static String CMD_DESC_GIVE         = " - puts one or a specific amount of a given id into the inventory\n";
+   public final static String CMD_DESC_TAKE         = " - removes all or a specific amount of a given id from the inventory\n";
+   public final static String CMD_DESC_CHANGE_NAME  = " - sets the player's name and ID\n";
+
    public final static String ERROR_HANDS_TERMINAL      = "Do consoles even have hands?";
    public final static String ERROR_CHANGE_NAME_MISSING = "error - must provide name or ID: ";
 
@@ -483,6 +512,7 @@ public class CommandEconomy {
    public final static String CMD_NOSELL       = "noSell";
    public final static String CMD_NOSELL_LOWER = "nosell";
    public final static String CMD_USAGE_NOSELL = "/" + CMD_NOSELL + " [" + TRUE + " | " + FALSE + " | " + ALL + "]";
+   public final static String CMD_DESC_NOSELL  = " - marks an item stack to be unsellable\n";
 
    public final static String ERROR_HANDS_MINECRAFT  = "There is nothing in your hand.";
    public final static String ERROR_POSITION_MISSING = "error - your position was not found: ";

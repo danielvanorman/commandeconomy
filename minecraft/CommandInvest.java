@@ -17,10 +17,7 @@ import java.util.UUID;                                      // for more securely
 public class CommandInvest extends CommandBase {
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      if (Config.investmentCostPerHierarchyLevel != 0.0f)
-         CommandProcessor.invest(InterfaceMinecraft.getSenderID(sender), args);
-      else
-         CommandGeneral.serviceRequestHelp(sender, args);
+      CommandProcessor.invest(InterfaceMinecraft.getSenderID(sender), args);
       return;
   }
 

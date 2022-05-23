@@ -1,12 +1,13 @@
 package commandeconomy;
 
-import java.util.Scanner;    // for reading from the console
-import java.util.HashMap;    // for storing wares in the user's inventory
-import java.util.LinkedList; // for returning properties of wares found in an inventory and tracking server administrators
-import java.util.Arrays;     // for removing the first element of user input before passing it to service request functions
-import java.util.UUID;       // for more securely tracking users internally
-import java.util.Timer;      // for autosaving
+import java.util.Scanner;              // for reading from the console
+import java.util.HashMap;              // for storing wares in the user's inventory
+import java.util.LinkedList;           // for returning properties of wares found in an inventory and tracking server administrators
+import java.util.Arrays;               // for removing the first element of user input before passing it to service request functions
+import java.util.UUID;                 // for more securely tracking users internally
+import java.util.Timer;                // for autosaving
 import java.util.TimerTask;
+import java.lang.StringBuilder;        // for faster output concatenation for /help
 
 /**
  * Contains functions for interacting with a terminal
@@ -42,6 +43,11 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static HashMap<String, Integer> inventoryUp = new HashMap<String, Integer>();
    /** downward inventory */
    protected static HashMap<String, Integer> inventoryDown = new HashMap<String, Integer>();
+
+   /** speeds up concatenation for /help */
+   private static StringBuilder sbHelpOutput   = new StringBuilder(2200);
+   /** whether help output currently includes /invest */
+   private static boolean sbHelpContainsInvest = false;
 
    // autosaving
    /** for automatically and periodically saving wares and accounts */
@@ -697,43 +703,60 @@ public class InterfaceTerminal implements InterfaceCommand
           args[0] != null &&
           args[0].equals(CommandEconomy.HELP_COMMAND_BLOCK)) {
          System.out.println(
-            CommandEconomy.CMD_USAGE_BLOCK_BUY + " - purchases an item\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_SELL + " - sells an item\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_CHECK + " - looks up item price and stock\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_SELLALL + " - sells all tradeable wares in your inventory at current market prices\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_MONEY + " - looks up how much is in an account\n" +
-            CommandEconomy.CMD_USAGE_BLOCK_SEND + " - transfers money from one account to another\n" +
-            "inventory_direction is none, down, up, north, east, west, or south\n"
+            CommandEconomy.CMD_USAGE_BLOCK_BUY + CommandEconomy.CMD_DESC_BUY +
+            CommandEconomy.CMD_USAGE_BLOCK_SELL + CommandEconomy.CMD_DESC_SELL +
+            CommandEconomy.CMD_USAGE_BLOCK_CHECK + CommandEconomy.CMD_DESC_CHECK +
+            CommandEconomy.CMD_USAGE_BLOCK_SELLALL + CommandEconomy.CMD_DESC_SELLALL +
+            CommandEconomy.CMD_USAGE_BLOCK_MONEY + CommandEconomy.CMD_DESC_MONEY +
+            CommandEconomy.CMD_USAGE_BLOCK_SEND + CommandEconomy.CMD_DESC_SEND +
+            "inventory_direction is none, down, up, north, east, west, or south" + System.lineSeparator()
          );
       } else {
-         System.out.println(
-           CommandEconomy.CMD_USAGE_BUY + " - purchases an item\n" +
-           CommandEconomy.CMD_USAGE_SELL + " - sells an item\n" +
-           CommandEconomy.CMD_USAGE_CHECK + " - looks up item price and stock\n" +
-           CommandEconomy.CMD_USAGE_SELLALL + " - sells all tradeable items in your inventory at current market prices\n" +
-           CommandEconomy.CMD_USAGE_MONEY + " - looks up how much is in an account\n" +
-           CommandEconomy.CMD_USAGE_SEND + " [sender_account_id] - transfers money from one account to another\n" +
-           CommandEconomy.CMD_USAGE_CREATE + " - opens a new account with the specified id\n" +
-           CommandEconomy.CMD_USAGE_DELETE + " - closes the account with the specified id\n" +
-           CommandEconomy.CMD_USAGE_GRANT_ACCESS + " - allows a player to view and withdraw from a specified account\n" +
-           CommandEconomy.CMD_USAGE_REVOKE_ACCESS + " - disallows a player to view and withdraw from a specified account\n" +
-           CommandEconomy.CMD_USAGE_INVEST + " - increases a ware's supply and demand\n" +
-           CommandEconomy.CMD_USAGE_VERSION + " - says what version of Command Economy is running\n" +
-           CommandEconomy.CMD_USAGE_ADD + " - summons money\n" +
-           CommandEconomy.CMD_USAGE_SET + " - sets account's money to a specified amount\n" +
-           CommandEconomy.CMD_USAGE_CHANGE_STOCK + " - increases or decreases an item's available quantity within the marketplace or sets the quantity to a certain level\n" +
-           CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT + " - marks an account to be used in place of your personal account\n" +
-           CommandEconomy.CMD_USAGE_SAVECE + " - saves market wares and accounts\n" +
-           CommandEconomy.CMD_USAGE_RELOAD + " - reloads part or all of the marketplace from file\n" +
-           CommandEconomy.CMD_USAGE_PRINT_MARKET + " - writes all wares currently tradeable to a file\n" +
-           CommandEconomy.CMD_USAGE_OP + " - grants admin permissions\n" +
-           CommandEconomy.CMD_USAGE_DEOP + " - revokes admin permissions\n" +
-            CommandEconomy.CMD_USAGE_INVENTORY + " - displays inventory contents\n" +
-            CommandEconomy.CMD_USAGE_GIVE + " - puts one or a specific amount of a given id into the inventory\n" +
-            CommandEconomy.CMD_USAGE_TAKE + " - removes all or a specific amount of a given id from the inventory\n" +
-            CommandEconomy.CMD_USAGE_CHANGE_NAME + " - sets the player's name and ID\n" +
-            "/stop || exit - shutdowns the market\n"
-         );
+         // in necessary, regenerate help output
+         if (sbHelpOutput.length() == 0 ||
+             sbHelpContainsInvest != (Config.investmentCostPerHierarchyLevel != 0.0f)) {
+            // clear buffer
+            sbHelpOutput.setLength(0);
+
+            // add in standard commands
+            sbHelpOutput.append(CommandEconomy.CMD_USAGE_BUY).append(CommandEconomy.CMD_DESC_BUY)
+                        .append(CommandEconomy.CMD_USAGE_SELL).append(CommandEconomy.CMD_DESC_SELL)
+                        .append(CommandEconomy.CMD_USAGE_CHECK).append(CommandEconomy.CMD_DESC_CHECK)
+                        .append(CommandEconomy.CMD_USAGE_SELLALL).append(CommandEconomy.CMD_DESC_SELLALL)
+                        .append(CommandEconomy.CMD_USAGE_MONEY).append(CommandEconomy.CMD_DESC_MONEY)
+                        .append(CommandEconomy.CMD_USAGE_SEND).append(CommandEconomy.CMD_DESC_SEND)
+                        .append(CommandEconomy.CMD_USAGE_CREATE).append(CommandEconomy.CMD_DESC_CREATE)
+                        .append(CommandEconomy.CMD_USAGE_DELETE).append(CommandEconomy.CMD_DESC_DELETE)
+                        .append(CommandEconomy.CMD_USAGE_GRANT_ACCESS).append(CommandEconomy.CMD_DESC_GRANT_ACCESS)
+                        .append(CommandEconomy.CMD_USAGE_REVOKE_ACCESS).append(CommandEconomy.CMD_DESC_REVOKE_ACCESS);
+
+            // if needed, add in /invest
+            if (Config.investmentCostPerHierarchyLevel != 0.0f) {
+               sbHelpContainsInvest = true;
+               sbHelpOutput.append(CommandEconomy.CMD_USAGE_INVEST).append(CommandEconomy.CMD_DESC_INVEST);
+            }
+            else
+               sbHelpContainsInvest = false;
+
+            // add in rest of standard commands
+            sbHelpOutput.append(CommandEconomy.CMD_USAGE_VERSION).append(CommandEconomy.CMD_DESC_VERSION)
+                        .append(CommandEconomy.CMD_USAGE_ADD).append(CommandEconomy.CMD_DESC_ADD)
+                        .append(CommandEconomy.CMD_USAGE_SET).append(CommandEconomy.CMD_DESC_SET)
+                        .append(CommandEconomy.CMD_USAGE_CHANGE_STOCK).append(CommandEconomy.CMD_DESC_CHANGE_STOCK)
+                        .append(CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT).append(CommandEconomy.CMD_DESC_SET_DEFAULT_ACCOUNT)
+                        .append(CommandEconomy.CMD_USAGE_SAVECE).append(CommandEconomy.CMD_DESC_SAVECE)
+                        .append(CommandEconomy.CMD_USAGE_RELOAD).append(CommandEconomy.CMD_DESC_RELOAD)
+                        .append(CommandEconomy.CMD_USAGE_PRINT_MARKET).append(CommandEconomy.CMD_DESC_PRINT_MARKET)
+                        .append(CommandEconomy.CMD_USAGE_OP).append(CommandEconomy.CMD_DESC_OP)
+                        .append(CommandEconomy.CMD_USAGE_DEOP).append(CommandEconomy.CMD_DESC_DEOP)
+                        .append(CommandEconomy.CMD_USAGE_INVENTORY).append(CommandEconomy.CMD_DESC_INVENTORY)
+                        .append(CommandEconomy.CMD_USAGE_GIVE).append(CommandEconomy.CMD_DESC_GIVE)
+                        .append(CommandEconomy.CMD_USAGE_TAKE).append(CommandEconomy.CMD_DESC_TAKE)
+                        .append(CommandEconomy.CMD_USAGE_CHANGE_NAME).append(CommandEconomy.CMD_DESC_CHANGE_NAME)
+                        .append("/stop || exit - shutdowns the market").append(System.lineSeparator());
+         }
+
+         System.out.println(sbHelpOutput.toString());
       }
 
       return;
@@ -1786,12 +1809,6 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestInvest(String[] args) {
-      // check if the investment command is enabled
-      if (Config.investmentCostPerHierarchyLevel == 0.0f) {
-         System.out.println(CommandEconomy.ERROR_INVALID_CMD);
-         return;
-      }
-
       CommandProcessor.invest(getPlayerIDStatic(playername), args);
       return;
    }
