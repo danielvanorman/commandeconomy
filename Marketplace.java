@@ -1312,6 +1312,7 @@ public class Marketplace {
          playerID == null)             // if no player was given, there is no party responsible for the purchase
          return;
 
+      // ---Analyze Ware:---
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, stop
@@ -1342,6 +1343,7 @@ public class Marketplace {
          return;
       }
 
+      // ---Analyze Player's Inventory:---
       // check whether it is possible to give the ware to the player
       if (!Config.commandInterface.doesWareExist(wareID)) {
          Config.commandInterface.printErrorToUser(playerID, "error - " + wareID + " does not appear to exist outside of the marketplace");
@@ -1362,6 +1364,7 @@ public class Marketplace {
          return;
       }
 
+      // ---Analyze Account:---
       // if no account ID was given, use the player's personal account
       if (accountID == null || accountID.isEmpty())
          accountID = Config.commandInterface.getDisplayName(playerID);
@@ -1373,6 +1376,7 @@ public class Marketplace {
       if (account == null)
          return; // an error message has already been sent to the player
 
+      // ---Determine Order Quantity:---
       // variable for finding how much to buy
       int quantityToBuy = quantity;
 
@@ -1414,6 +1418,15 @@ public class Marketplace {
          }
       }
 
+      // ---Manufacturing:---
+      // if possible, ordered, and necessary,
+      // attempt to manufacture the ware
+         // float[] manufacturedWares = manufactureComponents(Ware ware, int quantity, float maxUnitPrice, float moneyAvailable);
+         // add manufacturing costs and quantity to order
+
+      // if nothing can be bought, buy nothing
+
+      // ---Complete Transaction:---
       // buy the ware
       // take the money
       account.subtractMoney(price);
@@ -1474,6 +1487,67 @@ public class Marketplace {
    public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID, int quantity, float maxUnitPrice, String accountID) {
       buy(playerID, coordinates, wareID, quantity, maxUnitPrice, accountID, false);
+   }
+
+   /**
+    * Calculates how many units of a ware could be manufactured
+    * below a given price per unit and maximum budget
+    * and how much manufacturing would cost.
+    * <p>
+    * Return Results:
+    * [0]: Total cost (float, untruncated)
+    * [1]: Quantity   (int)
+    * <p>
+    * Complexity: O(n^4)<br>
+    * where n is the number of components
+    * <p>
+    * @param ware         key used to retrieve ware information
+    * @param quantity     how much of the ware should be purchased
+    * @param maxUnitPrice stop buying if unit price is above this amount
+    * @param moneyAvailable the maximum amount of funds spendable
+    */
+   protected static float[] manufactureComponents(Ware ware, int quantity, float maxUnitPrice, float moneyAvailable) {
+      // store how much of each component is needed
+      ArrayDeque<Integer> componentsAmounts = new ArrayDeque<Integer>();
+      // ware IDs corresponding to the array storing component manufacturing recipe amounts
+      ArrayDeque<String>  componentsIDs     = new ArrayDeque<String>();
+      int[] componentsStocks;    // store components' quantities available for sale
+      int quantityToManufacture; // how much of the ware to create
+      float totalCost;           // total expenses for manufacturing quantity ordered
+      float totalCostMinusOne;   // total expenses for manufacturing one less than the quantity ordered
+      float unitPrice;           // current unit price of the manufactured ware
+
+      // find how much of each component is required for manufacturing
+      /// [loop through components]
+         // if the component has not been parsed yet,
+         // add it to the component arrays
+
+         // if the component has been parsed,
+         // increment the manufacturing recipe's amount required for it
+
+      // allocate space for tracking component quantities
+
+      // find how much of the requested ware can be manufactured
+
+      // if the order cannot be filled due to supply shortage,
+      // only manufacture as much as is possible
+
+      // find total cost of buying and manufacturing to fill order
+
+      // find how much should be bought
+      // considering max acceptable unit price and budget
+      // iterate backwards searching for an acceptable deal
+         // if total cost is too high, lower how much should be manufactured
+
+         // unit price is the cost of manufacturing everything
+         // minus the cost of manufacturing everything minus one
+
+         // if unit price is unacceptable, lower how much should be manufactured
+
+      // purchase each component
+
+      // return total cost and quantity purchased
+      return null;
    }
 
    /**

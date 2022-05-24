@@ -804,6 +804,11 @@ public class InterfaceTerminal implements InterfaceCommand
       int     quantity  = 0;
       float   priceUnit = 0.0f;
       String  accountID = null;
+      boolean shouldManufacture = false; // whether or not to factor in manufacturing for purchases
+
+      // check for and process special keywords
+         // special keywords start with &
+         // check whether user specifies manufacturing the ware
 
       // if the second argument is a direction, a username and a direction should be given
       // otherwise, the second argument should be a number and, no username or direction should be given
@@ -965,7 +970,7 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       // call corresponding function
-      Marketplace.buy(playerID, coordinates, wareID, quantity, priceUnit, accountID);
+      Marketplace.buy(playerID, coordinates, wareID, quantity, priceUnit, accountID, shouldManufacture);
       return;
    }
 
@@ -1229,6 +1234,11 @@ public class InterfaceTerminal implements InterfaceCommand
       String  username = null;
       String  wareID   = null;
       int     quantity = 0; // holds ware quantities
+      boolean shouldManufacture = false; // whether or not to factor in manufacturing for purchases
+
+      // check for and process special keywords
+         // special keywords start with &
+         // check whether user specifies manufacturing the ware
 
       // if one argument is given,
       // the it is a ware ID
@@ -1296,7 +1306,7 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       // call corresponding function
-      Marketplace.check(playerID, wareID, quantity, false);
+      Marketplace.check(playerID, wareID, quantity, shouldManufacture);
       return;
    }
 
