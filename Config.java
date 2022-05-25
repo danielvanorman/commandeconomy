@@ -234,6 +234,10 @@ public class Config
                linkedPriceMultsSaved = (int) value;
             break;
 
+         case "buyingOutOfStockWaresPriceMult":
+            buyingOutOfStockWaresPriceMult = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -307,6 +311,10 @@ public class Config
 
          case "shouldComponentsCurrentPricesAffectWholesPrice":
             shouldComponentsCurrentPricesAffectWholesPrice = value;
+            break;
+
+         case "buyingOutOfStockWaresAllowed":
+            buyingOutOfStockWaresAllowed = value;
             break;
 
          default:
@@ -614,6 +622,10 @@ public class Config
       shouldComponentsCurrentPricesAffectWholesPrice = true;
       linkedPricesPercent   = 0.75f;
       linkedPriceMultsSaved = 5;
+
+      // manufacturing contracts
+      buyingOutOfStockWaresAllowed   = true;
+      buyingOutOfStockWaresPriceMult = 0.10f;
    }
 
    /**

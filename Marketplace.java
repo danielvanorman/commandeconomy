@@ -1390,7 +1390,8 @@ public class Marketplace {
 
       // if ware has no quantity in the market, stop
       // unless the ware should be manufactured if possible
-      if (ware.getQuantity() <= 0) {
+      if (ware.getQuantity() <= 0 &&
+          !(Config.buyingOutOfStockWaresAllowed && shouldManufacture)) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
          return;
       }
@@ -1438,7 +1439,8 @@ public class Marketplace {
          quantityToBuy = getQuantityUntilPrice(ware, maxUnitPrice, true);
 
          // if nothing can be bought, buy nothing
-         if (quantityToBuy == 0)
+         if (quantityToBuy == 0 &&
+             !(Config.buyingOutOfStockWaresAllowed && shouldManufacture))
             return; // no message to avoid needless messaging and ease autobuying
 
          // if an unacceptable price will not be reached,
@@ -1471,12 +1473,30 @@ public class Marketplace {
       }
 
       // ---Manufacturing:---
+      // prepare a spot to hold manufacturing results
+      float[] manufacturedWares = null;
+
       // if possible, ordered, and necessary,
       // attempt to manufacture the ware
-         // float[] manufacturedWares = manufactureComponents(Ware ware, int quantity, float maxUnitPrice, float moneyAvailable);
+      if (Config.buyingOutOfStockWaresAllowed && shouldManufacture &&
+          quantityToBuy < quantity) {
+         // purchase components and create wares
+         // manufacturedWares = manufactureComponents(Ware ware, int quantity, float maxUnitPrice, float moneyAvailable);
+
+         // if manufacturing fails, stop
+         if (manufacturedWares == null) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
+            return;
+         }
+
          // add manufacturing costs and quantity to order
+         price         += manufacturedWares[0];
+         quantityToBuy += manufacturedWares[1];
+      }
 
       // if nothing can be bought, buy nothing
+      if (quantityToBuy == 0)
+         return; // no message to avoid needless messaging and ease autobuying
 
       // ---Complete Transaction:---
       // buy the ware

@@ -781,7 +781,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // command must have the right number of args
       if (args.length < 2 ||
-          args.length > 6) {
+          args.length > 7) {
          System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_BUY);
          return;
       }
@@ -792,23 +792,36 @@ public class InterfaceTerminal implements InterfaceCommand
           (args.length >= 3 && (args[2] == null || args[2].length() == 0)) ||
           (args.length >= 4 && (args[3] == null || args[3].length() == 0)) ||
           (args.length >= 5 && (args[4] == null || args[4].length() == 0)) ||
-          (args.length >= 6 && (args[5] == null || args[5].length() == 0))) {
+          (args.length >= 6 && (args[5] == null || args[5].length() == 0)) ||
+          (args.length == 7 && (args[6] == null || args[6].length() == 0))) {
          System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
          return;
       }
 
       // set up variables
-      String  username  = null;
+      String  username          = null;
       InterfaceCommand.Coordinates coordinates = null;
-      String  wareID    = null;
-      int     quantity  = 0;
-      float   priceUnit = 0.0f;
-      String  accountID = null;
-      boolean shouldManufacture = false; // whether or not to factor in manufacturing for purchases
+      String  wareID            = null;
+      int     quantity          = 0;
+      float   priceUnit         = 0.0f;
+      String  accountID         = null;
+      int     baseArgsLength    = args.length; // number of args, not counting special keywords
+      boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
       // check for and process special keywords
+      for (String arg : args) {
          // special keywords start with &
+         if (!arg.startsWith("&"))
+            continue;
+
+         // if a special keyword is detected,
+         // adjust the arg length count for non-special args
+         baseArgsLength--;
+
          // check whether user specifies manufacturing the ware
+         if (arg.equals(CommandEconomy.MANUFACTURING))
+            shouldManufacture = true;
+      }
 
       // if the second argument is a direction, a username and a direction should be given
       // otherwise, the second argument should be a number and, no username or direction should be given
@@ -829,7 +842,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if five arguments are given,
          // the fifth must either be a price or an account ID
-         if (args.length == 5) {
+         if (baseArgsLength == 5) {
             try {
                // assume the fifth argument is a price
                priceUnit = Float.parseFloat(args[4]);
@@ -842,7 +855,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if seven arguments are given,
          // they must be a price and an account ID
-         else if (args.length == 6) {
+         else if (baseArgsLength == 6) {
             try {
                priceUnit = Float.parseFloat(args[4]);
             } catch (NumberFormatException e) {
@@ -909,7 +922,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if three arguments are given,
          // the third must either be a price or an account ID
-         if (args.length == 3) {
+         if (baseArgsLength == 3) {
             try {
                // assume the third argument is a price
                priceUnit = Float.parseFloat(args[2]);
@@ -922,7 +935,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if four arguments are given,
          // they must be a price and an account ID
-         else if (args.length == 4) {
+         else if (baseArgsLength == 4) {
             try {
                priceUnit = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
@@ -1217,7 +1230,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // command must have the right number of args
       if (args.length < 1 ||
-          args.length > 3) {
+          args.length > 4) {
          System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHECK);
          return;
       }
@@ -1225,31 +1238,44 @@ public class InterfaceTerminal implements InterfaceCommand
       // check for zero-length args
       if (args[0] == null || args[0].length() == 0 ||
           (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
-          (args.length >= 3 && (args[2] == null || args[2].length() == 0))) {
+          (args.length >= 3 && (args[2] == null || args[2].length() == 0)) ||
+          (args.length == 4 && (args[3] == null || args[3].length() == 0))) {
          System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHECK);
          return;
       }
 
       // set up variables
-      String  username = null;
-      String  wareID   = null;
-      int     quantity = 0; // holds ware quantities
-      boolean shouldManufacture = false; // whether or not to factor in manufacturing for purchases
+      String  username          = null;
+      String  wareID            = null;
+      int     quantity          = 0; // holds ware quantities
+      int     baseArgsLength    = args.length; // number of args, not counting special keywords
+      boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
       // check for and process special keywords
+      for (String arg : args) {
          // special keywords start with &
+         if (!arg.startsWith("&"))
+            continue;
+
+         // if a special keyword is detected,
+         // adjust the arg length count for non-special args
+         baseArgsLength--;
+
          // check whether user specifies manufacturing the ware
+         if (arg.equals(CommandEconomy.MANUFACTURING))
+            shouldManufacture = true;
+      }
 
       // if one argument is given,
       // the it is a ware ID
-      if (args.length == 1) {
+      if (baseArgsLength == 1) {
          username = playername;
          wareID = args[0];
       }
 
       // if two arguments are given,
       // the second must be a quantity
-      else if (args.length == 2) {
+      else if (baseArgsLength == 2) {
          try {
             // assume the second argument is a number
             quantity = Integer.parseInt(args[1]);
@@ -1265,7 +1291,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // if three arguments are given,
       // then they include a username and a quantity
-      else if (args.length == 3) {
+      else if (baseArgsLength == 3) {
          // try to process quantity
          try {
             quantity = Integer.parseInt(args[2]);
