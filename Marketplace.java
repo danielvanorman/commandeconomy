@@ -252,7 +252,7 @@ public class Marketplace {
             duplicateWare = wares.containsKey(wareID);
             if (duplicateWare)
                Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_MISSING + wareID);
-               // Note: If a new alias is assigned to this duplicate ware ID, 
+               // Note: If a new alias is assigned to this duplicate ware ID,
                // then until wares are saved and reloaded,
                // the ware ID will have two aliases: the old one and the new one.
 
@@ -802,10 +802,14 @@ public class Marketplace {
     * @param quanToTrade how much to buy or sell; used for price sliding
     * @param isPurchase  <code>true</code> if the price should reflect buying the ware
     *                    <code>false</code> if the price should reflect selling the ware
+    * @param shouldManufacture if amount to buy is above quantity for sale,
+    *                          then true means to factor in purchasing
+    *                          missing components and manufacturing the ware
     * @return the modified price of an ware
     * @see    Ware
     */
-   public static float getPrice(UUID playerID, String wareID, int quanToTrade, boolean isPurchase) {
+   public static float getPrice(UUID playerID, String wareID, int quanToTrade,
+                                boolean isPurchase, boolean shouldManufacture) {
       // check if ware id is empty
       if (wareID == null || wareID.isEmpty()) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_ID);
@@ -873,8 +877,13 @@ public class Marketplace {
       // find the total price
       // if buying, adjust the price first
       // so buying and selling are reciprocal
-      if (isPurchase)
+      if (isPurchase) {
          quanOnMarket -= quanToTrade;
+
+         // if manufacturing wares should be included and
+         // buying out quantity available for sale,
+         // factor in manufacturing costs
+      }
 
       // if understocked, enforce a price ceiling
       if (quanOnMarket < quanFloor) {
@@ -941,6 +950,49 @@ public class Marketplace {
          return CommandEconomy.truncatePrice(priceTotal);
       else
          return priceMinimum;
+   }
+
+   /**
+    * Returns the current price of a ware in the marketplace.
+    * <p>
+    * Complexity: O(1)
+    * @param playerID    who to send any error messages to
+    * @param wareID      key used to retrieve ware information
+    * @param quanToTrade how much to buy or sell; used for price sliding
+    * @param isPurchase  <code>true</code> if the price should reflect buying the ware
+    *                    <code>false</code> if the price should reflect selling the ware
+    * @return the modified price of an ware
+    * @see    Ware
+    */
+   public static float getPrice(UUID playerID, String wareID, int quanToTrade, boolean isPurchase) {
+      return getPrice(playerID, wareID, quanToTrade, isPurchase, false);
+   }
+
+   /**
+    * Calculates how many units of the ware could be manufactured
+    * and how much manufacturing would cost.
+    * <p>
+    * Complexity: O(n), where n is the number of the ware's components
+    * <p>
+    * @param ware     tradeable ware to be manufactured
+    * @param quantity how much of the ware should be manufactured
+    * @return [0]: Total cost (float, untruncated) and [1]: Quantity (int) or null
+    */
+   public float[] getManufacturingPrice(Ware ware, int quantity) {
+      // if the ware cannot be manufactured or
+      // nothing should be manufactured, do nothing
+
+      // find how much of the requested ware can be manufactured
+
+      // if more can be manufactured than is ordered,
+      // then only manufacture as much as is ordered
+
+      // if nothing can be manufactured, stop
+
+      // find total cost of buying and manufacturing to fill order
+
+      // return total cost and quantity purchased
+      return null;
    }
 
    /**
@@ -1722,7 +1774,7 @@ public class Marketplace {
    }
 
    /**
-    * Removes wares from a player's inventory and 
+    * Removes wares from a player's inventory and
     * tallies up money gained from selling those wares
     * as well as the total quantity of wares sold.
     * <p>
@@ -1732,7 +1784,7 @@ public class Marketplace {
     * @param stocks       wares to be sold and their information
     * @param quantity     how much wares should be sold; 0 means sell everything
     * @param minUnitPrice stop selling if unit price is below this amount
-    * @return total money from selling wares and the quantity sold 
+    * @return total money from selling wares and the quantity sold
     */
    protected static float[] sellStock(UUID playerID, InterfaceCommand.Coordinates coordinates,
                                       LinkedList<Stock> stocks, int quantity, float minUnitPrice) {
@@ -1901,7 +1953,7 @@ public class Marketplace {
          // print prices for buying and selling
          else {
             Config.commandInterface.printToUser(playerID, alias + " (" + wareID
-               + "): Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true))
+               + "): Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true, shouldManufacture))
                + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false))
                + ", " + ware.getQuantity());
          }
@@ -1920,7 +1972,7 @@ public class Marketplace {
          // print prices for buying and selling
          else {
             Config.commandInterface.printToUser(playerID, wareID
-               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true))
+               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true, shouldManufacture))
                + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false))
                + ", " + ware.getQuantity());
          }
