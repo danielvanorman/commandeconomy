@@ -843,7 +843,7 @@ public class Marketplace {
       float spreadAdjustment = 0.0f; // spread's effect on price
       float priceNoQuantityEffect;   // ware's price without considering supply and demand
       float priceTotal       = 0.0f; // total price of quantity traded
-      int   quanPartialTrade;        // quantity to be traded in a particular price quadrant
+      int   quanPartialTrade = 0;    // quantity to be traded in a particular price quadrant
 
       // precalculate repeatedly used information
       float quanFloorFromEquilibrium   = (float) (quanEquilibrium - quanFloor);   // how much quantity is between the price floor stock and equilibrium stock
@@ -883,18 +883,34 @@ public class Marketplace {
          // if manufacturing wares should be included and
          // buying out quantity available for sale,
          // factor in manufacturing costs
+         if (Config.buyingOutOfStockWaresAllowed && shouldManufacture &&
+             quanOnMarket < 0) {
+            // find price and quantity from manufacturing
+            float[] manufacturedWares = ware.getManufacturingPrice(-quanOnMarket);
+
+            // only factor in manufacturing if the ware is manufactureable
+            if (manufacturedWares != null) {
+               // factor in manufacturing costs and quantity
+               priceTotal   = manufacturedWares[0];
+               quanToTrade -= (int) manufacturedWares[1];
+
+               // reset quantity available for sale
+               // to prevent double-counting trade quantity
+               quanOnMarket = 0;
+            }
+         }
       }
 
       // if understocked, enforce a price ceiling
-      if (quanOnMarket < quanFloor) {
+      if (quanToTrade > 0 && quanOnMarket < quanFloor) {
          // figure how how much should be sold in this price quadrant
          if ((quanOnMarket + quanToTrade) <= quanFloor)
-            quanPartialTrade = quanToTrade;
+            quanPartialTrade += quanToTrade;
          else
-            quanPartialTrade = quanFloor - quanOnMarket;
+            quanPartialTrade += quanFloor - quanOnMarket;
 
          // trade within the price quadrant
-         priceTotal    = quanPartialTrade * priceNoQuantityEffect * Config.priceCeiling;
+         priceTotal   += quanPartialTrade * priceNoQuantityEffect * Config.priceCeiling;
          quanOnMarket += quanPartialTrade;
          quanToTrade  -= quanPartialTrade;
       }
@@ -1446,6 +1462,11 @@ public class Marketplace {
       }
 
       // ---Manufacturing:---
+      // if no quantity is set to be purchased,
+      // reset the amount to charge
+      if (quantityToBuy <= 0)
+         price = 0.0f;
+
       // prepare a spot to hold manufacturing results
       float[] manufacturedWares = null;
 
@@ -1454,17 +1475,31 @@ public class Marketplace {
       if (Config.buyingOutOfStockWaresAllowed && shouldManufacture &&
           quantityToBuy < quantity) {
          // purchase components and create wares
-         // manufacturedWares = ware.manufacture(int quantity, float maxUnitPrice, float moneyAvailable);
+         manufacturedWares = ware.manufacture(quantity - quantityToBuy,
+                                              maxUnitPrice, moneyAvailable - price);
 
-         // if manufacturing fails, stop
-         if (manufacturedWares == null) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
+         // if ware has no quantity in the market and
+         // failed to be manufactured, stop
+         if (ware.getQuantity() <= 0 &&
+             (manufacturedWares == null || manufacturedWares[1] == 0.0f)) {
+            // if the quantity manufactured is null,
+            // the ware couldn't be manufactured
+            if (manufacturedWares == null)
+               Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
+
+            // If the manufacturing price is 0,
+            // then the unit price or money available
+            // was insufficient. Since unit price may be
+            // used in autotrading, don't print an error message
             return;
          }
 
          // add manufacturing costs and quantity to order
          price         += manufacturedWares[0];
          quantityToBuy += manufacturedWares[1];
+
+         // truncate price for neatness and avoiding problematic rounding
+         price = CommandEconomy.truncatePrice(price);
       }
 
       // if nothing can be bought, buy nothing
@@ -1481,7 +1516,11 @@ public class Marketplace {
 
       // subtract from market's quantity
       waitForMutex(); // check if another thread is adjusting wares' properties
-      ware.subtractQuantity(quantityToBuy);
+      // don't double-count manufactured quantity from marketplace
+      if (manufacturedWares == null)
+         ware.subtractQuantity(quantityToBuy);
+      else
+         ware.subtractQuantity(quantityToBuy - (int) manufacturedWares[1]);
 
       // report success
       // if the ware has an alias, use it
@@ -1878,7 +1917,7 @@ public class Marketplace {
          // only print one price
          if (Config.priceBuyUpchargeMult == 1.0f) {
             Config.commandInterface.printToUser(playerID, alias + " (" + wareID
-               + "): " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false))
+               + "): " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, shouldManufacture, shouldManufacture))
                + ", " + ware.getQuantity());
          }
          // if there is an upcharge for purchases,
@@ -1886,7 +1925,7 @@ public class Marketplace {
          else {
             Config.commandInterface.printToUser(playerID, alias + " (" + wareID
                + "): Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true, shouldManufacture))
-               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false))
+               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false, false))
                + ", " + ware.getQuantity());
          }
       }
@@ -1897,7 +1936,7 @@ public class Marketplace {
          // only print one price
          if (Config.priceBuyUpchargeMult == 1.0f) {
             Config.commandInterface.printToUser(playerID, wareID
-               + ": " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false))
+               + ": " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, shouldManufacture, shouldManufacture))
                + ", " + ware.getQuantity());
          }
          // if there is an upcharge for purchases,
@@ -1905,7 +1944,7 @@ public class Marketplace {
          else {
             Config.commandInterface.printToUser(playerID, wareID
                + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true, shouldManufacture))
-               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false))
+               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false, false))
                + ", " + ware.getQuantity());
          }
       }
@@ -1918,8 +1957,8 @@ public class Marketplace {
       // print prices for buying and selling
       else {
          Config.commandInterface.printToUser(playerID, "   for " + quantity
-            + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, true))
-            + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, false)));
+            + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, true, shouldManufacture))
+            + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, false, false)));
       }
 
       return;
