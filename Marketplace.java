@@ -969,33 +969,6 @@ public class Marketplace {
    }
 
    /**
-    * Calculates how many units of the ware could be manufactured
-    * and how much manufacturing would cost.
-    * <p>
-    * Complexity: O(n), where n is the number of the ware's components
-    * <p>
-    * @param ware     tradeable ware to be manufactured
-    * @param quantity how much of the ware should be manufactured
-    * @return [0]: Total cost (float, untruncated) and [1]: Quantity (int) or null
-    */
-   public float[] getManufacturingPrice(Ware ware, int quantity) {
-      // if the ware cannot be manufactured or
-      // nothing should be manufactured, do nothing
-
-      // find how much of the requested ware can be manufactured
-
-      // if more can be manufactured than is ordered,
-      // then only manufacture as much as is ordered
-
-      // if nothing can be manufactured, stop
-
-      // find total cost of buying and manufacturing to fill order
-
-      // return total cost and quantity purchased
-      return null;
-   }
-
-   /**
     * Returns how much of a ware may be afforded with a given budget.
     * <p>
     * Complexity: O(1)
@@ -1481,7 +1454,7 @@ public class Marketplace {
       if (Config.buyingOutOfStockWaresAllowed && shouldManufacture &&
           quantityToBuy < quantity) {
          // purchase components and create wares
-         // manufacturedWares = manufactureComponents(Ware ware, int quantity, float maxUnitPrice, float moneyAvailable);
+         // manufacturedWares = ware.manufacture(int quantity, float maxUnitPrice, float moneyAvailable);
 
          // if manufacturing fails, stop
          if (manufacturedWares == null) {
@@ -1559,67 +1532,6 @@ public class Marketplace {
    public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID, int quantity, float maxUnitPrice, String accountID) {
       buy(playerID, coordinates, wareID, quantity, maxUnitPrice, accountID, false);
-   }
-
-   /**
-    * Calculates how many units of a ware could be manufactured
-    * below a given price per unit and maximum budget
-    * and how much manufacturing would cost.
-    * <p>
-    * Return Results:
-    * [0]: Total cost (float, untruncated)
-    * [1]: Quantity   (int)
-    * <p>
-    * Complexity: O(n^4)<br>
-    * where n is the number of components
-    * <p>
-    * @param ware         key used to retrieve ware information
-    * @param quantity     how much of the ware should be purchased
-    * @param maxUnitPrice stop buying if unit price is above this amount
-    * @param moneyAvailable the maximum amount of funds spendable
-    */
-   protected static float[] manufactureComponents(Ware ware, int quantity, float maxUnitPrice, float moneyAvailable) {
-      // store how much of each component is needed
-      ArrayDeque<Integer> componentsAmounts = new ArrayDeque<Integer>();
-      // ware IDs corresponding to the array storing component manufacturing recipe amounts
-      ArrayDeque<String>  componentsIDs     = new ArrayDeque<String>();
-      int[] componentsStocks;    // store components' quantities available for sale
-      int quantityToManufacture; // how much of the ware to create
-      float totalCost;           // total expenses for manufacturing quantity ordered
-      float totalCostMinusOne;   // total expenses for manufacturing one less than the quantity ordered
-      float unitPrice;           // current unit price of the manufactured ware
-
-      // find how much of each component is required for manufacturing
-      /// [loop through components]
-         // if the component has not been parsed yet,
-         // add it to the component arrays
-
-         // if the component has been parsed,
-         // increment the manufacturing recipe's amount required for it
-
-      // allocate space for tracking component quantities
-
-      // find how much of the requested ware can be manufactured
-
-      // if the order cannot be filled due to supply shortage,
-      // only manufacture as much as is possible
-
-      // find total cost of buying and manufacturing to fill order
-
-      // find how much should be bought
-      // considering max acceptable unit price and budget
-      // iterate backwards searching for an acceptable deal
-         // if total cost is too high, lower how much should be manufactured
-
-         // unit price is the cost of manufacturing everything
-         // minus the cost of manufacturing everything minus one
-
-         // if unit price is unacceptable, lower how much should be manufactured
-
-      // purchase each component
-
-      // return total cost and quantity purchased
-      return null;
    }
 
    /**

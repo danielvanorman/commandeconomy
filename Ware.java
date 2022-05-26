@@ -3,6 +3,8 @@ package commandeconomy;
 import com.google.gson.Gson;          // for saving and loading
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.util.HashMap;             // for iterating through components when manufacturing
+import java.util.Map;                 // for iterating through hashmaps
 
 /**
  * Holds values for a ware used within the market.
@@ -521,5 +523,101 @@ public abstract class Ware
          recentLinkedPricePointer = 0;
 
       return multiplier;
+   }
+
+   /**
+    * Calculates how many units of the ware could be manufactured
+    * and how much manufacturing would cost.
+    * <p>
+    * Complexity: O(n^2), where n is the number of the ware's components
+    * <p>
+    * @param quantity how much of the ware should be manufactured
+    * @return [0]: Total cost (float, untruncated) and [1]: Quantity (int) or null
+    */
+   public float[] getManufacturingPrice(int quantity) {
+      // if the ware cannot be manufactured or
+      // nothing should be manufactured, do nothing
+      if (components == null || quantity < 0 ||
+          (!(this instanceof WareCrafted) && !(this instanceof WareProcessed)))
+         return null;
+
+      // store component references and
+      // how much of each component is needed
+      // HashMap<Ware, Integer> componentsAmounts = new HashMap<Ware, Integer>(9);
+
+      // find how much of each component is required for manufacturing
+
+      // find how much of the requested ware can be manufactured
+         // find how much could be manufactured
+
+         // if the current component is constraining,
+         // use the constrained quantity
+
+      // if more can be manufactured than is ordered,
+      // then only manufacture as much as is ordered
+
+      // if nothing can be manufactured, stop
+
+      // find total cost of buying and manufacturing to fill order
+      // sum ordering each component
+
+      // return total cost and quantity purchased
+      return null;
+   }
+
+   /**
+    * Calculates how many units of a ware could be manufactured
+    * below a given price per unit and maximum budget
+    * and how much manufacturing would cost.
+    * <p>
+    * Complexity: O(n^5)<br>
+    * where n is the number of components
+    * <p>
+    * @param quantity       how much of the ware should be purchased
+    * @param maxUnitPrice   stop buying if unit price is above this amount
+    * @param moneyAvailable the maximum amount of funds spendable
+    * @return [0]: Total cost (float, untruncated) and [1]: Quantity (int) or null
+    */
+   protected float[] manufacture(int quantity, float maxUnitPrice, float moneyAvailable) {
+      // if the ware cannot be manufactured or
+      // nothing should be manufactured, do nothing
+      if (components == null || quantity < 0 ||
+          (!(this instanceof WareCrafted) && !(this instanceof WareProcessed)))
+         return null;
+
+      // store component references and
+      // how much of each component is needed
+      // HashMap<Ware, Integer> componentsAmounts = new HashMap<Ware, Integer>(9);
+
+      // find how much of each component is required for manufacturing
+
+      // find how many batches of the requested ware can be manufactured
+         // find how much could be manufactured
+
+         // if the current component is constraining,
+         // use the constrained quantity
+
+      // if nothing can be manufactured, stop
+
+      // if more can be manufactured than is ordered,
+      // then only manufacture as much as is ordered
+
+      // find total cost of buying and manufacturing to fill order
+      // sum ordering each component
+
+      // find how much should be bought
+         // find total cost of buying and manufacturing to fill order
+         // sum ordering each component
+
+         // factor in manufacturing overhead
+
+      // if nothing should be manufactured,
+      // don't charge anything
+
+      // purchase each component
+         // subtract from each component's quantity available for sale
+
+      // return total cost and quantity purchased
+      return;
    }
  };
