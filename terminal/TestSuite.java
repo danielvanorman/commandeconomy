@@ -14771,6 +14771,56 @@ public class TestSuite
             errorFound = true;
          }
 
+         System.err.println("manufacturing contracts - buy: no inventory space");
+         int inventorySpaceOrig = InterfaceTerminal.inventorySpace;
+         InterfaceTerminal.inventorySpace = 0; // maximum inventory space is no inventory
+         ware1           = testWareC3;
+         ware2           = testWare4;
+         quantityToTrade = 1;
+         quantityWare1   = 0;
+         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         expectedOutput  = CommandEconomy.MSG_INVENTORY_NO_SPACE + System.lineSeparator();
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), "&craft"});
+
+         if (!testBAOS.toString().equals(expectedOutput)) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            System.err.println("   expected: " + expectedOutput);
+            errorFound = true;
+         }
+
+         // ensure test environment is still valid
+         InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
+         playerAccount.setMoney(1000.0f);
+
+         System.err.println("manufacturing contracts - buy: low in inventory space");
+         InterfaceTerminal.inventory.clear();  // reset free inventory space to known value - empty
+         InterfaceTerminal.inventorySpace = 1; // maximum inventory space is 64 items
+         ware1           = testWareC3;
+         ware2           = testWare4;
+         quantityToTrade = 64; // stack size is 64 items per stack
+         quantityWare1   = 0;
+         quantityWare2   = Config.quanHigh[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         price           = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade / 4, true) // recipe yield is 4
+                           * Config.priceCrafted
+                           * Config.buyingOutOfStockWaresPriceMult;
+         expectedOutput  = "Bought " + quantityToTrade  + " " + ware1.getWareID() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + System.lineSeparator();
+
+         testBAOS.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade * 2), "&craft"});
+
+         if (!testBAOS.toString().equals(expectedOutput)) {
+            System.err.println("   unexpected console output: " + testBAOS.toString());
+            System.err.println("   expected: " + expectedOutput);
+            errorFound = true;
+         }
+         InterfaceTerminal.inventorySpace = inventorySpaceOrig; // reset maximum inventory space
+
          System.err.println("manufacturing contracts - buy: non-manufactured ware");
          ware1           = testWare1;
          quantityToTrade = 1;

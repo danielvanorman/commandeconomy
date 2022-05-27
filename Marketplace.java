@@ -1443,8 +1443,9 @@ public class Marketplace {
          quantityToBuy = ware.getQuantity();
 
       // if quantity exceeds inventory space, only buy enough to fill inventory
-      if (quantityToBuy > inventorySpaceAvailable * Config.commandInterface.getStackSize(wareID)) {
-         quantityToBuy = inventorySpaceAvailable * Config.commandInterface.getStackSize(wareID);
+      inventorySpaceAvailable *= Config.commandInterface.getStackSize(wareID); // how many more items may be held
+      if (quantityToBuy > inventorySpaceAvailable) {
+         quantityToBuy = inventorySpaceAvailable;
       }
 
       // if the ware isn't free, figure out how much is affordable
@@ -1475,8 +1476,9 @@ public class Marketplace {
       if (Config.buyingOutOfStockWaresAllowed && shouldManufacture &&
           quantityToBuy < quantity) {
          // purchase components and create wares
-         manufacturedWares = ware.manufacture(quantity - quantityToBuy,
-                                              maxUnitPrice, moneyAvailable - price);
+         manufacturedWares = ware.manufacture(playerID, quantity - quantityToBuy,
+                                              maxUnitPrice, moneyAvailable - price,
+                                              inventorySpaceAvailable - quantityToBuy);
 
          // if ware has no quantity in the market and
          // failed to be manufactured, stop

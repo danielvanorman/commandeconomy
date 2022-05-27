@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.HashMap;             // for iterating through components when manufacturing
 import java.util.Map;                 // for iterating through hashmaps
+import java.util.UUID;                // for more securely tracking users internally
 
 /**
  * Holds values for a ware used within the market.
@@ -610,17 +611,26 @@ public abstract class Ware
     * Complexity: O(n^2 + 7n)<br>
     * where n is the number of components
     * <p>
+    * @param playerID       who to send inventory space error messages to
     * @param quantity       how much of the ware should be purchased
     * @param maxUnitPrice   stop buying if unit price is above this amount
-    * @param moneyAvailable the maximum amount of funds spendablemanufactured
+    * @param moneyAvailable the maximum amount of funds spendable
+    * @param inventorySpaceAvailable the maximum amount of items which should be manufactured
     * @return [0]: Total cost (float, untruncated) and [1]: Quantity (int) or null
     */
-   protected float[] manufacture(int quantity, float maxUnitPrice, float moneyAvailable) {
+   protected float[] manufacture(UUID playerID, int quantity, float maxUnitPrice,
+                                 float moneyAvailable, int inventorySpaceAvailable) {
       // if the ware cannot be manufactured or
       // nothing should be manufactured, do nothing
       if (components == null || quantity <= 0 ||
           (!(this instanceof WareCrafted) && !(this instanceof WareProcessed)))
          return null;
+
+      // lacking inventory space should have its own error message
+      if (inventorySpaceAvailable <= 0) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_NO_SPACE);
+         return new float[] {0.0f, 0.0f};
+      }
 
       // store component references and
       // how much of each component is needed
@@ -731,6 +741,26 @@ public abstract class Ware
       // grab a mutex for no reason
       if (acceptableQuantity == 0)
          return new float[] {0.0f, 0.0f};
+
+      // only manufacture however much the inventory can hold
+      if (quantityToManufacture > inventorySpaceAvailable) {
+         quantityToManufacture = inventorySpaceAvailable;
+
+         // find total cost of buying and manufacturing to fill new order
+         totalCost = 0.0f;
+         // sum ordering each component
+         for (Map.Entry<Ware, Integer> entry : componentsAmounts.entrySet()) {
+            totalCost += Marketplace.getPrice(null, entry.getKey().getWareID(),
+                                              quantityToManufacture * entry.getValue() / yield,
+                                              true, false);
+         }
+
+         // factor in manufacturing overhead
+         if (this instanceof WareCrafted)
+            totalCost         *= Config.priceCrafted   * Config.buyingOutOfStockWaresPriceMult;
+         else
+            totalCost         *= Config.priceProcessed * Config.buyingOutOfStockWaresPriceMult;
+      }
 
       // find unpurchased leftovers from recipe iterations
       remainder = quantityToManufacture % yield;
