@@ -608,9 +608,7 @@ public abstract class Ware
     * below a given price per unit and maximum budget
     * and how much manufacturing would cost.
     * <p>
-    * Complexity: O(n^2 + 7n)<br>
-    * where n is the number of components
-    * <p>
+    * Complexity: O(4n), where n is the number of components
     * @param playerID       who to send inventory space error messages to
     * @param quantity       how much of the ware should be purchased
     * @param maxUnitPrice   stop buying if unit price is above this amount
@@ -673,6 +671,10 @@ public abstract class Ware
       // if nothing can be manufactured, stop
       if (quantityToManufacture == 0)
          return null;
+
+      // only manufacture however much the inventory can hold
+      if (quantity > inventorySpaceAvailable)
+         quantity = inventorySpaceAvailable;
 
       // if more can be manufactured than is ordered,
       // then only manufacture as much as is ordered
@@ -741,26 +743,6 @@ public abstract class Ware
       // grab a mutex for no reason
       if (acceptableQuantity == 0)
          return new float[] {0.0f, 0.0f};
-
-      // only manufacture however much the inventory can hold
-      if (quantityToManufacture > inventorySpaceAvailable) {
-         quantityToManufacture = inventorySpaceAvailable;
-
-         // find total cost of buying and manufacturing to fill new order
-         totalCost = 0.0f;
-         // sum ordering each component
-         for (Map.Entry<Ware, Integer> entry : componentsAmounts.entrySet()) {
-            totalCost += Marketplace.getPrice(null, entry.getKey().getWareID(),
-                                              quantityToManufacture * entry.getValue() / yield,
-                                              true, false);
-         }
-
-         // factor in manufacturing overhead
-         if (this instanceof WareCrafted)
-            totalCost         *= Config.priceCrafted   * Config.buyingOutOfStockWaresPriceMult;
-         else
-            totalCost         *= Config.priceProcessed * Config.buyingOutOfStockWaresPriceMult;
-      }
 
       // find unpurchased leftovers from recipe iterations
       remainder = quantityToManufacture % yield;
