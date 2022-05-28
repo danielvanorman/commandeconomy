@@ -17,15 +17,11 @@ import java.util.UUID;                                      // for more securely
 public class CommandMoney extends CommandBase {
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // request can be null or have zero arguments
       // except for the command block variant
       if (!(sender instanceof EntityPlayer) &&
           (args == null || args.length == 0)) {
-         errorMessage = new TextComponentString(getUsage(sender));
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardToUser(sender, getUsage(sender));
          return;
       }
 
@@ -33,9 +29,7 @@ public class CommandMoney extends CommandBase {
       if (args != null && 
           ((args.length >= 1 && (args[0] == null || args[0].length() == 0)) ||
            (args.length >= 2 && (args[1] == null || args[1].length() == 0)))) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_MONEY);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_MONEY);
          return;
       }
 
@@ -71,9 +65,7 @@ public class CommandMoney extends CommandBase {
          if (accountID != null && EntitySelector.isSelector(accountID))
             accountID = EntitySelector.matchOnePlayer(sender, accountID).getName();
       } catch (Exception e) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ENTITY_SELECTOR);
          return;
       }
 
@@ -83,9 +75,7 @@ public class CommandMoney extends CommandBase {
       // check if command sender has permission to
       // execute this command for other players
       if (!InterfaceMinecraft.permissionToExecute(userID, sender)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
@@ -135,16 +125,16 @@ public class CommandMoney extends CommandBase {
       if (args.length == 1)
       {
          if (sender instanceof EntityPlayer)
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"accounts"});
+            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"players"});
+            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
       }
       else if (args.length == 2)
       {
          if (sender instanceof EntityPlayer)
             return new LinkedList<String>();
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"accounts"});
+            return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
       }
 
       return new LinkedList<String>();

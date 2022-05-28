@@ -19,11 +19,15 @@ public class CommandGeneral extends CommandBase {
    /** whether help output currently includes /invest */
    private static boolean sbHelpContainsInvest = false;
 
+   /** valid arguments for referring /ChangeStock ware stock levels */
+   public static final String[] CHANGE_STOCK_KEYWORDS = new String[] {CommandEconomy.CHANGE_STOCK_EQUILIBRIUM, CommandEconomy.CHANGE_STOCK_OVERSTOCKED, CommandEconomy.CHANGE_STOCK_UNDERSTOCKED};
+   /** valid arguments for referring to reloading parts of CommandEconomy */
+   public static final String[] RELOAD_KEYWORDS = new String[] {CommandEconomy.RELOAD_CONFIG, CommandEconomy.RELOAD_WARES, CommandEconomy.RELOAD_ACCOUNTS, CommandEconomy.ALL};
+   /** valid arguments for CommandEconomy command names */
+   public static final String[] COMMAND_NAMES = new String[] {CommandEconomy.CMD_HELP, CommandEconomy.CMD_BUY, CommandEconomy.CMD_SELL, CommandEconomy.CMD_CHECK, CommandEconomy.CMD_SELLALL, CommandEconomy.CMD_MONEY, CommandEconomy.CMD_SEND, CommandEconomy.CMD_CREATE, CommandEconomy.CMD_DELETE, CommandEconomy.CMD_GRANT_ACCESS, CommandEconomy.CMD_REVOKE_ACCESS, CommandEconomy.CMD_VERSION, CommandEconomy.CMD_ADD, CommandEconomy.CMD_SET, CommandEconomy.CMD_CHANGE_STOCK, CommandEconomy.CMD_SAVE, CommandEconomy.CMD_SET_DEFAULT_ACCOUNT, CommandEconomy.CMD_RELOAD, CommandEconomy.CMD_PRINT_MARKET, CommandEconomy.CMD_INVEST};
+
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // request should not be null
       if (args == null || args.length == 0) {
          serviceRequestHelp(sender, args);
@@ -119,9 +123,7 @@ public class CommandGeneral extends CommandBase {
             break;
 
          default:
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_INVALID_CMD);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_INVALID_CMD);
             break;
       }
 
@@ -136,13 +138,13 @@ public class CommandGeneral extends CommandBase {
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestHelp(ICommandSender sender, String[] args) {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
+      // prepare to tell the user about command usages
+      TextComponentString message;
 
       if (args != null && args.length > 1 &&
           args[1] != null &&
           args[1].equals(CommandEconomy.HELP_COMMAND_BLOCK)) {
-         errorMessage = new TextComponentString(
+         message = new TextComponentString(
             CommandEconomy.CMD_USAGE_BLOCK_BUY + CommandEconomy.CMD_DESC_BUY +
             CommandEconomy.CMD_USAGE_BLOCK_SELL + CommandEconomy.CMD_DESC_SELL +
             CommandEconomy.CMD_USAGE_BLOCK_CHECK + CommandEconomy.CMD_DESC_CHECK +
@@ -190,10 +192,10 @@ public class CommandGeneral extends CommandBase {
                         .append(CommandEconomy.CMD_USAGE_PRINT_MARKET).append(CommandEconomy.CMD_DESC_PRINT_MARKET);
          }
 
-        errorMessage = new TextComponentString(sbHelpOutput.toString());
+        message = new TextComponentString(sbHelpOutput.toString());
       }
 
-      sender.sendMessage(errorMessage);
+      sender.sendMessage(message);
       return;
    }
 
@@ -204,23 +206,17 @@ public class CommandGeneral extends CommandBase {
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestSave(ICommandSender sender, String[] args) {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // check if command sender has
       // permission to execute this command
       if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
       // call corresponding functions
       Marketplace.saveWares();
       Account.saveAccounts();
-      errorMessage = new TextComponentString(CommandEconomy.MSG_SAVED_ECONOMY);
-      sender.sendMessage(errorMessage);
+      InterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_SAVED_ECONOMY);
       return;
    }
 
@@ -231,15 +227,10 @@ public class CommandGeneral extends CommandBase {
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestReload(ICommandSender sender, String[] args) {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // check if command sender has
       // permission to execute this command
       if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
@@ -265,15 +256,10 @@ public class CommandGeneral extends CommandBase {
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestSet(ICommandSender sender, String[] args) {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // check if command sender has
       // permission to execute this command
       if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
@@ -289,15 +275,10 @@ public class CommandGeneral extends CommandBase {
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestChangeStock(ICommandSender sender, String[] args) {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // check if command sender has
       // permission to execute this command
       if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
@@ -312,22 +293,16 @@ public class CommandGeneral extends CommandBase {
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestPrintMarket(ICommandSender sender, String[] args) {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // check if command sender has
       // permission to execute this command
       if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
       // call corresponding functions
       Marketplace.printMarket();
-      errorMessage = new TextComponentString(CommandEconomy.MSG_PRINT_MARKET);
-      sender.sendMessage(errorMessage);
+      InterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_PRINT_MARKET);
       return;
    }
 
@@ -363,7 +338,7 @@ public class CommandGeneral extends CommandBase {
 
       if (args.length == 1)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"help", "add", "buy", "changeStock", "check", "create", "delete", "grantAccess", "money", "noSell", "printMarket", "reload", "revokeAccess", "save", "sell", "sellAll", "send", "set", "setDefaultAccount", "version"});
+         return InterfaceMinecraft.getAutoCompletionStrings(args[0], COMMAND_NAMES);
       }
 
       if (args.length >= 2)
@@ -376,7 +351,7 @@ public class CommandGeneral extends CommandBase {
             case CommandEconomy.CMD_SET:
                switch(args.length)
                {
-                  case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], new String[] {"accounts"});
+                  case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
                   default: return new LinkedList<String>();
                }
 
@@ -389,11 +364,11 @@ public class CommandGeneral extends CommandBase {
 
                if (args.length == 2)
                {
-                  return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"wares"});
+                  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
                }
                else if (args.length == 3)
                {
-                  return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.CHANGE_STOCK_EQUILIBRIUM, CommandEconomy.CHANGE_STOCK_OVERSTOCKED, CommandEconomy.CHANGE_STOCK_UNDERSTOCKED});
+                  return InterfaceMinecraft.getAutoCompletionStrings(args[1], CHANGE_STOCK_KEYWORDS);
                }
 
                return new LinkedList<String>();
@@ -411,8 +386,8 @@ public class CommandGeneral extends CommandBase {
             case CommandEconomy.CMD_REVOKE_ACCESS_LOWER:
                switch(args.length)
                {
-                  case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"players"});
-                  case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], new String[] {"accounts"});
+                  case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+                  case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
                   default: return new LinkedList<String>();
                }
 
@@ -425,7 +400,7 @@ public class CommandGeneral extends CommandBase {
             case CommandEconomy.CMD_RELOAD:
                switch(args.length)
                {
-                  case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.RELOAD_CONFIG, CommandEconomy.RELOAD_WARES, CommandEconomy.RELOAD_ACCOUNTS, CommandEconomy.ALL});
+                  case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], RELOAD_KEYWORDS);
                   default: return new LinkedList<String>();
                }
 
@@ -435,7 +410,7 @@ public class CommandGeneral extends CommandBase {
             case CommandEconomy.CMD_SELLALL_LOWER:
                return InterfaceMinecraft.commandSellAll.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
-            case "send":
+            case CommandEconomy.CMD_SEND:
                return InterfaceMinecraft.commandSend.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             default: return new LinkedList<String>();

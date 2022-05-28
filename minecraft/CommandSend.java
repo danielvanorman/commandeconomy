@@ -22,18 +22,14 @@ public class CommandSend extends CommandBase {
 
       // request should not be null
       if (args == null || args.length == 0) {
-         errorMessage = new TextComponentString(getUsage(sender));
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, getUsage(sender));
          return;
       }
 
       // command must have the right number of args
       if (args.length < 2 ||
           args.length > 4) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SEND);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SEND);
          return;
       }
 
@@ -42,9 +38,7 @@ public class CommandSend extends CommandBase {
           args[1] == null || args[1].length() == 0 ||
           (args.length == 3 && (args[2] == null || args[2].length() == 0)) ||
           (args.length == 4 && (args[3] == null || args[3].length() == 0))) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SEND);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SEND);
          return;
       }
 
@@ -76,9 +70,7 @@ public class CommandSend extends CommandBase {
          try {
             quantity = Float.parseFloat(args[1]);
          } catch (NumberFormatException nfe) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SEND);
-               errorMessage.getStyle().setColor(TextFormatting.RED);
-               sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SEND);
             return;
          }
 
@@ -107,9 +99,7 @@ public class CommandSend extends CommandBase {
             if (senderAccountID != null && EntitySelector.isSelector(senderAccountID))
                senderAccountID = EntitySelector.matchOnePlayer(sender, senderAccountID).getName();
          } catch (Exception ese) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_ENTITY_SELECTOR);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ENTITY_SELECTOR);
             return;
          }
       }
@@ -160,16 +150,16 @@ public class CommandSend extends CommandBase {
       if (sender instanceof EntityPlayer) {
          switch(args.length)
          {
-            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"accounts"});
-            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], new String[] {"accounts"});
+            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
             default: return new LinkedList<String>();
          }
       } else {
          switch(args.length)
          {
-            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"players"});
-            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], new String[] {"accounts"});
-            case 4:  return InterfaceMinecraft.getAutoCompletionStrings(args[3], new String[] {"accounts"});
+            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 4:  return InterfaceMinecraft.getAutoCompletionStrings(args[3], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
             default: return new LinkedList<String>();
          }
       }

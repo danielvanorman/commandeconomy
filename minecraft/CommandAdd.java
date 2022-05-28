@@ -42,7 +42,7 @@ public class CommandAdd extends CommandBase {
          return new LinkedList<String>();
 
       if (args.length == 2)
-         return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"accounts"});
+         return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
 
       return new LinkedList<String>();
    }

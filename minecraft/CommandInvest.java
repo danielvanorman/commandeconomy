@@ -54,8 +54,8 @@ public class CommandInvest extends CommandBase {
 
       switch(args.length)
       {
-         case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"wares"});
-         case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], new String[] {"accounts"});
+         case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
+         case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
          default: return new LinkedList<String>();
       }
    }

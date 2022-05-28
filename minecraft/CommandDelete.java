@@ -50,7 +50,7 @@ public class CommandDelete extends CommandBase {
          return new LinkedList<String>();
 
       if (args.length == 1)
-         return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"accounts"});
+         return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
 
       return new LinkedList<String>();
    }

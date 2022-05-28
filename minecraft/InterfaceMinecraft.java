@@ -19,7 +19,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraft.util.math.BlockPos;                           // for finding block inventories
 import net.minecraft.util.NonNullList;                          // for checking the existence of item subtypes when validating ware IDs
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.command.ICommandSender;                    // for checking for server operator permissions and converting sender names to UUIDs
+import net.minecraft.command.ICommandSender;                    // for checking for server operator permissions, converting sender names to UUIDs, and simplifying sending error messages
 import net.minecraftforge.oredict.OreDictionary;                // for checking Forge OreDictionary names
 import net.minecraft.server.management.PlayerList;              // for checking server operator permissions
 import java.util.UUID;                                          // for more securely tracking users internally
@@ -67,6 +67,16 @@ public class InterfaceMinecraft implements InterfaceCommand
    public static final CommandBase commandRevokeAccess = new CommandRevokeAccess();
    /** handles the /add command */
    public static final CommandBase commandAdd = new CommandAdd();
+
+   /** used to signal what data should be returned in a list of strings */
+   public enum AutoCompletionStringCategories {
+      ACCOUNTS,
+      INVENTORY,
+      PLAYERS,
+      WARES
+   }
+   /** valid arguments for referring to an inventory */
+   public static final String[] INVENTORY_KEYWORDS = new String[] {CommandEconomy.INVENTORY_NONE, CommandEconomy.INVENTORY_DOWN, CommandEconomy.INVENTORY_UP, CommandEconomy.INVENTORY_NORTH, CommandEconomy.INVENTORY_EAST, CommandEconomy.INVENTORY_WEST, CommandEconomy.INVENTORY_SOUTH};
 
    // FUNCTIONS
    /**
@@ -828,6 +838,39 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
 
    /**
+    * Forwards an message to a given user.
+    *
+    * @param player  who to give the message to
+    * @param message what to tell the user
+    */
+   public static void forwardToUser(ICommandSender player, String message) {
+      if (message == null || message.isEmpty() ||
+          player == null)
+         return;
+
+      // prepare to tell the user if something is wrong
+      TextComponentString errorMessage = new TextComponentString(message);
+      player.sendMessage(errorMessage);
+   }
+
+   /**
+    * Forwards an error message to a given user.
+    *
+    * @param player  who to give the message to
+    * @param message what to tell the user
+    */
+   public static void forwardErrorToUser(ICommandSender player, String message) {
+      if (message == null || message.isEmpty() ||
+          player == null)
+         return;
+
+      // prepare to tell the user if something is wrong
+      TextComponentString errorMessage = new TextComponentString(message);
+      errorMessage.getStyle().setColor(TextFormatting.RED);
+      player.sendMessage(errorMessage);
+   }
+
+   /**
     * Forwards an error message to the specified user.
     *
     * @param playerID who to give the message to
@@ -943,64 +986,74 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
 
    /**
-    * Returns a list of strings starting with a specific argument for autocompleting commands.
+    * Returns a list of strings with a specific prefix for autocompleting command arguments.
     *
-    * @param arg what each string in the list should start with; can be empty or null
-    * @param possibleCompletionStrings possible choices or a single string containing a keyword referencing another list of string
+    * @param arg            what each string in the list should start with; can be empty or null
+    * @param stringCategory enumeration value referencing a specific list of strings
     * @return list of strings starting with the given argument
     */
-   public static List<String> getAutoCompletionStrings(String arg, String[] possibleCompletionStrings) {
+   public static List<String> getAutoCompletionStrings(String arg, AutoCompletionStringCategories stringCategory) {
       LinkedList<String> autoCompletionStrings = new LinkedList<String>();
-      if (possibleCompletionStrings == null || possibleCompletionStrings.length == 0)
-         return null;
 
       // prevent null pointer exception
       if (arg == null)
          arg = "";
 
-      // check if the possible values are hashmap keys
-      if (possibleCompletionStrings.length == 1) {
-         // traverse through all possible values and
-         // grab each plausible one
-         if (possibleCompletionStrings[0].equals("accounts")) {
+      // generate list based on category requested
+      switch (stringCategory) {
+         case ACCOUNTS:
             for (String account : Account.getAllAccountNames()) {
                if (account.startsWith(arg))
                   autoCompletionStrings.add(account);
             }
-         }
+            break;
 
-         else if (possibleCompletionStrings[0].equals("wares")) {
-            for (String ware : Marketplace.getAllWareAliases()) {
-               if (ware.startsWith(arg))
-                  autoCompletionStrings.add(ware);
+         case INVENTORY:
+            for (String direction : INVENTORY_KEYWORDS) {
+               if (direction.startsWith(arg))
+                  autoCompletionStrings.add(direction);
             }
-         }
+            break;
 
-         else if (possibleCompletionStrings[0].equals("players")) {
+         case PLAYERS:
             for (String username : FMLCommonHandler.instance().getMinecraftServerInstance().getOnlinePlayerNames()) {
                if (username.startsWith(arg))
                   autoCompletionStrings.add(username);
             }
-         }
+            break;
 
-         else if (possibleCompletionStrings[0].equals("inventory")) {
-            for (String direction : new String[] {"none", "down", "up", "north", "east", "west", "south"}) {
-               if (direction.startsWith(arg))
-                  autoCompletionStrings.add(direction);
+         case WARES:
+            for (String ware : Marketplace.getAllWareAliases()) {
+               if (ware.startsWith(arg))
+                  autoCompletionStrings.add(ware);
             }
-         }
-
-         else {
-            autoCompletionStrings.add(possibleCompletionStrings[0]);
-         }
       }
-      else {
-         // traverse through all possible values and
-         // grab each plausible one
-         for (String possibleCompletionString : possibleCompletionStrings) {
-            if (possibleCompletionString.startsWith(arg))
-               autoCompletionStrings.add(possibleCompletionString);
-         }
+
+      return autoCompletionStrings;
+   }
+
+   /**
+    * Returns a list of strings with a specific prefix for autocompleting command arguments.
+    *
+    * @param arg what each string in the list should start with; can be empty or null
+    * @param possibleCompletionStrings possible choices
+    * @return list of strings starting with the given argument
+    */
+   public static List<String> getAutoCompletionStrings(String arg, String[] possibleCompletionStrings) {
+      if (possibleCompletionStrings == null || possibleCompletionStrings.length == 0)
+         return null;
+
+      LinkedList<String> autoCompletionStrings = new LinkedList<String>();
+
+      // prevent null pointer exception
+      if (arg == null)
+         arg = "";
+
+      // traverse through all possible values and
+      // grab each plausible one
+      for (String possibleCompletionString : possibleCompletionStrings) {
+         if (possibleCompletionString.startsWith(arg))
+            autoCompletionStrings.add(possibleCompletionString);
       }
 
       return autoCompletionStrings;

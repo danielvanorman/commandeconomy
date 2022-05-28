@@ -288,7 +288,8 @@ public class CommandEconomy {
    public final static String INVENTORY_WEST            = "west";
    public final static String INVENTORY_SOUTH           = "south";
    public final static String YES                       = "yes";
-   public final static String MANUFACTURING             = "&craft";
+   public final static String ARG_SPECIAL_PREFIX        = "&";
+   public final static String MANUFACTURING             = ARG_SPECIAL_PREFIX + "craft";
 
    // command usages
    public final static String CMD_USAGE_BUY                 = "/" + CMD_BUY + " <ware_id> <quantity> [max_unit_price] [account_id] [" + MANUFACTURING + "]";

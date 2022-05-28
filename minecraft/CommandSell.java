@@ -21,23 +21,16 @@ public class CommandSell extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // request should not be null
       if (args == null || args.length == 0) {
-         errorMessage = new TextComponentString(getUsage(sender));
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, getUsage(sender));
          return;
       }
 
       // command must have the right number of args
       if (args.length < 1 ||
           args.length > 6) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELL);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELL);
          return;
       }
 
@@ -48,9 +41,7 @@ public class CommandSell extends CommandBase {
           (args.length >= 4 && (args[3] == null || args[3].length() == 0)) ||
           (args.length >= 5 && (args[4] == null || args[4].length() == 0)) ||
           (args.length == 6 && (args[5] == null || args[5].length() == 0))) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELL);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELL);
          return;
       }
 
@@ -80,9 +71,7 @@ public class CommandSell extends CommandBase {
             try {
                quantity = Integer.parseInt(args[3]);
             } catch (NumberFormatException e) {
-               errorMessage = new TextComponentString(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-               errorMessage.getStyle().setColor(TextFormatting.RED);
-               sender.sendMessage(errorMessage);
+               InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SELL);
                return;
             }
          }
@@ -106,9 +95,7 @@ public class CommandSell extends CommandBase {
             try {
                   priceUnit = Float.parseFloat(args[4]);
             } catch (NumberFormatException e) {
-               errorMessage = new TextComponentString(CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-               errorMessage.getStyle().setColor(TextFormatting.RED);
-               sender.sendMessage(errorMessage);
+               InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BLOCK_SELL);
                return;
             }
             accountID = args[5];
@@ -121,9 +108,7 @@ public class CommandSell extends CommandBase {
          // translate coordinates
          BlockPos position = sender.getPosition();
          if (position == null) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELL);
             return;
          }
 
@@ -162,9 +147,7 @@ public class CommandSell extends CommandBase {
                break;
 
             default:
-               errorMessage = new TextComponentString(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-               errorMessage.getStyle().setColor(TextFormatting.RED);
-               sender.sendMessage(errorMessage);
+               InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_SELL);
                return;
          }
          coordinates = new InterfaceCommand.Coordinates(position.getX(), position.getY(), position.getZ(), sender.getEntityWorld().provider.getDimension());
@@ -179,9 +162,7 @@ public class CommandSell extends CommandBase {
             try {
                quantity = Integer.parseInt(args[1]);
             } catch (NumberFormatException e) {
-               errorMessage = new TextComponentString(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_SELL);
-               errorMessage.getStyle().setColor(TextFormatting.RED);
-               sender.sendMessage(errorMessage);
+               InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_SELL);
                return;
             }
          }
@@ -205,9 +186,7 @@ public class CommandSell extends CommandBase {
             try {
                   priceUnit = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
-               errorMessage = new TextComponentString(CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_SELL);
-               errorMessage.getStyle().setColor(TextFormatting.RED);
-               sender.sendMessage(errorMessage);
+               InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_SELL);
                return;
             }
             accountID = args[3];
@@ -226,9 +205,7 @@ public class CommandSell extends CommandBase {
          if (accountID != null && EntitySelector.isSelector(accountID))
             accountID = EntitySelector.matchOnePlayer(sender, accountID).getName();
       } catch (Exception e) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ENTITY_SELECTOR);
          return;
       }
 
@@ -238,9 +215,7 @@ public class CommandSell extends CommandBase {
       // check if command sender has permission to
       // execute this command for other players
       if (!InterfaceMinecraft.permissionToExecute(userID, sender)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
@@ -249,9 +224,7 @@ public class CommandSell extends CommandBase {
          IItemHandler inventoryToUse = InterfaceMinecraft.getInventory(userID, coordinates);
 
          if (inventoryToUse == null) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELL);
             return;
          }
       }
@@ -278,9 +251,7 @@ public class CommandSell extends CommandBase {
          if (itemStack == null ||
              itemStack.isEmpty() ||
              itemStack == ItemStack.EMPTY) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_HANDS_MINECRAFT);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_HANDS_MINECRAFT);
             return;
          }
 
@@ -351,20 +322,20 @@ public class CommandSell extends CommandBase {
       if (sender instanceof EntityPlayer) {
          switch(args.length)
          {
-            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"wares"});
-            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"accounts"});
-            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], new String[] {"accounts"});
-            case 4:  return InterfaceMinecraft.getAutoCompletionStrings(args[3], new String[] {"accounts"});
+            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
+            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 4:  return InterfaceMinecraft.getAutoCompletionStrings(args[3], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
             default: return new LinkedList<String>();
          }
       } else {
          switch(args.length)
          {
-            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"players"});
-            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"inventory"});
-            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], new String[] {"wares"});
-            case 5:  return InterfaceMinecraft.getAutoCompletionStrings(args[4], new String[] {"accounts"});
-            case 6:  return InterfaceMinecraft.getAutoCompletionStrings(args[5], new String[] {"accounts"});
+            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.INVENTORY);
+            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
+            case 5:  return InterfaceMinecraft.getAutoCompletionStrings(args[4], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 6:  return InterfaceMinecraft.getAutoCompletionStrings(args[5], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
             default: return new LinkedList<String>();
          }
       }

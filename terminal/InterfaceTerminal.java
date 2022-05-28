@@ -779,25 +779,6 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
       }
 
-      // command must have the right number of args
-      if (args.length < 2 ||
-          args.length > 7) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_BUY);
-         return;
-      }
-
-      // check for zero-length args
-      if (args[0] == null || args[0].length() == 0 ||
-          args[1] == null || args[1].length() == 0 ||
-          (args.length >= 3 && (args[2] == null || args[2].length() == 0)) ||
-          (args.length >= 4 && (args[3] == null || args[3].length() == 0)) ||
-          (args.length >= 5 && (args[4] == null || args[4].length() == 0)) ||
-          (args.length >= 6 && (args[5] == null || args[5].length() == 0)) ||
-          (args.length == 7 && (args[6] == null || args[6].length() == 0))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
-         return;
-      }
-
       // set up variables
       String  username          = null;
       InterfaceCommand.Coordinates coordinates = null;
@@ -808,10 +789,16 @@ public class InterfaceTerminal implements InterfaceCommand
       int     baseArgsLength    = args.length; // number of args, not counting special keywords
       boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
-      // check for and process special keywords
+      // check for and process special keywords and zero-length args
       for (String arg : args) {
+         // if a zero-length arg is detected, stop
+         if (arg == null || arg.length() == 0) {
+            System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+            return;
+         }
+
          // special keywords start with &
-         if (!arg.startsWith("&"))
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX))
             continue;
 
          // if a special keyword is detected,
@@ -821,6 +808,13 @@ public class InterfaceTerminal implements InterfaceCommand
          // check whether user specifies manufacturing the ware
          if (arg.equals(CommandEconomy.MANUFACTURING))
             shouldManufacture = true;
+      }
+
+      // command must have the right number of args
+      if (baseArgsLength < 2 ||
+          baseArgsLength > 6) {
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_BUY);
+         return;
       }
 
       // if the second argument is a direction, a username and a direction should be given
@@ -963,6 +957,8 @@ public class InterfaceTerminal implements InterfaceCommand
          System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
          return;
       }
+
+      // grab user's UUID once
       UUID playerID = getPlayerIDStatic(username);
 
       // check if command sender has permission to
@@ -1228,22 +1224,6 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
       }
 
-      // command must have the right number of args
-      if (args.length < 1 ||
-          args.length > 4) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHECK);
-         return;
-      }
-
-      // check for zero-length args
-      if (args[0] == null || args[0].length() == 0 ||
-          (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
-          (args.length >= 3 && (args[2] == null || args[2].length() == 0)) ||
-          (args.length == 4 && (args[3] == null || args[3].length() == 0))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHECK);
-         return;
-      }
-
       // set up variables
       String  username          = null;
       String  wareID            = null;
@@ -1251,10 +1231,16 @@ public class InterfaceTerminal implements InterfaceCommand
       int     baseArgsLength    = args.length; // number of args, not counting special keywords
       boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
-      // check for and process special keywords
+      // check for and process special keywords and zero-length args
       for (String arg : args) {
+         // if a zero-length arg is detected, stop
+         if (arg == null || arg.length() == 0) {
+            System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHECK);
+            return;
+         }
+
          // special keywords start with &
-         if (!arg.startsWith("&"))
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX))
             continue;
 
          // if a special keyword is detected,
@@ -1264,6 +1250,13 @@ public class InterfaceTerminal implements InterfaceCommand
          // check whether user specifies manufacturing the ware
          if (arg.equals(CommandEconomy.MANUFACTURING))
             shouldManufacture = true;
+      }
+
+      // command must have the right number of args
+      if (baseArgsLength < 1 ||
+          baseArgsLength > 3) {
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHECK);
+         return;
       }
 
       // if one argument is given,

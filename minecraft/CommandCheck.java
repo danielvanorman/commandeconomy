@@ -20,58 +20,62 @@ public class CommandCheck extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // request should not be null
       if (args == null || args.length == 0) {
-         errorMessage = new TextComponentString(getUsage(sender));
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
-         return;
-      }
-
-      // command must have the right number of args
-      if (args.length < 1 ||
-          args.length > 3) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHECK);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
-         return;
-      }
-
-      // check for zero-length args
-      if (args[0] == null || args[0].length() == 0 ||
-          (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
-          (args.length == 3 && (args[2] == null || args[2].length() == 0))) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHECK);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardToUser(sender, getUsage(sender));
          return;
       }
 
       // set up variables
-      String username = null;
-      String wareID   = null;
-      int    quantity = 0; // holds ware quantities
+      String  username          = null;
+      String  wareID            = null;
+      int     quantity          = 0; // holds ware quantities
+      int     baseArgsLength    = args.length; // number of args, not counting special keywords
+      boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
+
+      // check for and process special keywords and zero-length args
+      for (String arg : args) {
+         // if a zero-length arg is detected, stop
+         if (arg == null || arg.length() == 0) {
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHECK);
+            return;
+         }
+
+         // special keywords start with &
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX))
+            continue;
+
+         // if a special keyword is detected,
+         // adjust the arg length count for non-special args
+         baseArgsLength--;
+
+         // check whether user specifies manufacturing the ware
+         if (arg.equals(CommandEconomy.MANUFACTURING))
+            shouldManufacture = true;
+      }
+
+      // command must have the right number of args
+      if (baseArgsLength < 1 ||
+          baseArgsLength > 3) {
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHECK);
+         return;
+      }
 
       // if one argument is given,
       // the it is a ware ID
-      if (args.length == 1) {
+      if (baseArgsLength == 1) {
          username = sender.getName();
          wareID = args[0];
       }
 
       // if two arguments are given,
       // the second must be a quantity
-      else if (args.length == 2) {
+      else if (baseArgsLength == 2) {
          try {
             // assume the second argument is a number
             quantity = Integer.parseInt(args[1]);
          } catch (NumberFormatException e) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_CHECK);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_CHECK);
             return;
          }
 
@@ -82,14 +86,12 @@ public class CommandCheck extends CommandBase {
 
       // if three arguments are given,
       // then they include a username and a quantity
-      else if (args.length == 3) {
+      else if (baseArgsLength == 3) {
          // try to process quantity
          try {
             quantity = Integer.parseInt(args[2]);
          } catch (NumberFormatException e) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BLOCK_CHECK);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BLOCK_CHECK);
             return;
          }
 
@@ -103,9 +105,7 @@ public class CommandCheck extends CommandBase {
          if (username != null && EntitySelector.isSelector(username))
             username = EntitySelector.matchOnePlayer(sender, username).getName();
       } catch (Exception e) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ENTITY_SELECTOR);
          return;
       }
 
@@ -115,9 +115,7 @@ public class CommandCheck extends CommandBase {
       // check if command sender has permission to
       // execute this command for other players
       if (!InterfaceMinecraft.permissionToExecute(userID, sender)) {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PERMISSION);
-         errorMessage.getStyle().setColor(TextFormatting.RED);
-         sender.sendMessage(errorMessage);
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
@@ -143,9 +141,7 @@ public class CommandCheck extends CommandBase {
          if (itemStack == null ||
              itemStack.isEmpty() ||
              itemStack == ItemStack.EMPTY) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_HANDS_MINECRAFT);
-            errorMessage.getStyle().setColor(TextFormatting.RED);
-            sender.sendMessage(errorMessage);
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_HANDS_MINECRAFT);
             return;
          }
 
@@ -171,13 +167,13 @@ public class CommandCheck extends CommandBase {
          // if the wares are damageable, handle potential damage
          if (itemStack.isItemStackDamageable() && itemStack.isItemDamaged()) {
             Marketplace.check(userID, wareID, quantity,
-               ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage(), false);
+               ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage(), shouldManufacture);
             return;
          }
       }
 
       // call corresponding function
-      Marketplace.check(userID, wareID, quantity, false);
+      Marketplace.check(userID, wareID, quantity, shouldManufacture);
       return;
   }
 
@@ -218,16 +214,16 @@ public class CommandCheck extends CommandBase {
       if (args.length == 1)
       {
          if (sender instanceof EntityPlayer)
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"wares"});
+            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"players"});
+            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
       }
       else if (args.length == 2)
       {
          if (sender instanceof EntityPlayer)
             return new LinkedList<String>();
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"wares"});
+            return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
       }
 
       return new LinkedList<String>();

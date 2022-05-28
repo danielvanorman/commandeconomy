@@ -51,8 +51,8 @@ public class CommandGrantAccess extends CommandBase {
 
       switch(args.length)
       {
-         case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"players"});
-         case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {"accounts"});
+         case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+         case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
          default: return new LinkedList<String>();
       }
    }

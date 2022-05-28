@@ -42,11 +42,11 @@ public class CommandChangeStock extends CommandBase {
 
       if (args.length == 1)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {"wares"});
+         return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
       }
       else if (args.length == 2)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.CHANGE_STOCK_EQUILIBRIUM, CommandEconomy.CHANGE_STOCK_OVERSTOCKED, CommandEconomy.CHANGE_STOCK_UNDERSTOCKED});
+         return InterfaceMinecraft.getAutoCompletionStrings(args[1], CommandGeneral.CHANGE_STOCK_KEYWORDS);
       }
 
       return new LinkedList<String>();

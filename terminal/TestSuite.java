@@ -6010,7 +6010,7 @@ public class TestSuite
 
          System.err.println("buy() - request: too many args");
          testBAOS.reset(); // clear buffer holding console output
-         InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "10.0", "testAccount1", "excessArgument", "excessArgument", "excessArgument", "excessArgument"});
+         InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "10.0", "testAccount1", "excessArgument", "excessArgument", "excessArgument"});
          if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
@@ -9724,7 +9724,7 @@ public class TestSuite
 
          System.err.println("serviceRequests() - check: too many args");
          testBAOS.reset(); // clear buffer holding console output
-         InterfaceTerminal.serviceRequestCheck(new String[]{"test:material1", "10", "excessArgument", "excessArgument", "excessArgument"});
+         InterfaceTerminal.serviceRequestCheck(new String[]{"test:material1", "10", "excessArgument", "excessArgument"});
          if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
             System.err.println("   unexpected console output: " + testBAOS.toString());
             errorFound = true;
