@@ -164,7 +164,7 @@ public class CommandEconomy {
    /** title case name for presentation */
    public static final String NAME    = "Command Economy";
    /** version of this mod */
-   public static final String VERSION = "0.6.4";
+   public static final String VERSION = "0.6.5";
 
    /** used to format currency before displaying */
    public static final DecimalFormat PRICE_FORMAT = new DecimalFormat("$###,##0.00");
@@ -269,6 +269,7 @@ public class CommandEconomy {
 
    // command keywords
    public final static String ACCOUNT_ADMIN             = "$admin$";
+   public final static String TRANSACT_FEE_COLLECTION   = "cumulativeTransactionFees";
    public final static String HELD_ITEM                 = "held";
    public final static String ALL                       = "all";
    public final static String TRUE                      = "true";
@@ -370,6 +371,7 @@ public class CommandEconomy {
    public final static String ERROR_ACCOUNT_ID_INVALID = "error - invalid quantity, transfer not completed";
 
    public final static String MSG_ACCOUNT_NO_MONEY               = "You do not have enough money";
+   public final static String MSG_ACCOUNT_NO_MONEY_FEE           = "You do not have enough money to both send and pay the transaction fee";
    public final static String MSG_ACCOUNT_TOO_MANY               = "You may not create any more accounts";
    public final static String MSG_ACCOUNT_NUMERICAL_ID           = "Account IDs cannot be numerical";
    public final static String MSG_ACCOUNT_DENIED_ACCESS          = "You don't have permission to access ";
@@ -390,12 +392,14 @@ public class CommandEconomy {
    public final static String MSG_PRINT_MARKET     = "Current market wares printed to file";
 
    // trade messages
-   public final static String MSG_BUY_UNTRADEABLE    = " is not for sale in that form";
-   public final static String MSG_BUY_OUT_OF_STOCK   = "Market is out of ";
-   public final static String MSG_BUY_NO_MONEY       = "Not enough money to buy one item";
-   public final static String MSG_INVENTORY_NO_SPACE = "No inventory space available";
-   public final static String MSG_INVENTORY_MISSING  = "No inventory was found";
-   public final static String MSG_SELLALL            = "failed to sell ware: ";
+   public final static String MSG_BUY_UNTRADEABLE         = " is not for sale in that form";
+   public final static String MSG_BUY_OUT_OF_STOCK        = "Market is out of ";
+   public final static String MSG_BUY_NO_MONEY            = "Not enough money to buy one item";
+   public final static String MSG_INVENTORY_NO_SPACE      = "No inventory space available";
+   public final static String MSG_INVENTORY_MISSING       = "No inventory was found";
+   public final static String MSG_SELLALL                 = "failed to sell ware: ";
+   public final static String MSG_TRANSACT_FEE            = "   Transaction fee applied: ";
+   public final static String MSG_TRANSACT_FEE_SALES_LOSS = "Transaction fee is too high to make a profit";
 
    // file-handling
    public final static String ERROR_FILE_LOAD_ACCOUNTS   = "error - unable to load accounts";

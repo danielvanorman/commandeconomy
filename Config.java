@@ -159,6 +159,25 @@ public class Config
    /** how much to charge for purchasing out-of-stock processed/crafted wares */
    protected static float buyingOutOfStockWaresPriceMult = 1.10f;
 
+   // transaction fees
+   /** whether or not to charge for buying, selling, and possibly sending */
+   protected static boolean chargeTransactionFees = false;
+   /** if true, transactionFeeAmount is treated as a multiplier,
+    *  charging based off of how much is being transferred */
+   protected static boolean transactionFeeIsMult = true;
+   /** how much to charge per transaction */
+   protected static float transactionFeesAmount = 0.05f;
+   /** whether or not to charge for buying */
+   protected static boolean transactionFeesForBuying = true;
+   /** whether or not to charge for selling */
+   protected static boolean transactionFeesForSelling = true;
+   /** whether or not to charge for sending */
+   protected static boolean transactionFeesForSending = true;
+   /** if true, money from paid fees is put into transactionFeeAccount */
+   protected static boolean transactionFeesShouldPutFeesIntoAccount = true;
+   /** the account which transaction fees are paid to */
+   protected static String transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>
