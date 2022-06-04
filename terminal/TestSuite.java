@@ -28,9 +28,15 @@ public class TestSuite
 {
    // GLOBAL VARIABLES
    /** used to check player name and inventory */
-   private static InterfaceTerminal InterfaceTerminal = new InterfaceTerminal();
+   private static InterfaceTerminal     InterfaceTerminal   = new InterfaceTerminal();
    /** used to check function console output */
-   private static ByteArrayOutputStream testBAOS = new ByteArrayOutputStream();
+   private static ByteArrayOutputStream baosOut             = new ByteArrayOutputStream();
+   /** used to redirect program errors */
+   private static ByteArrayOutputStream baosErr             = new ByteArrayOutputStream();
+   /** collects output intended for System.err; ex: System.err.println(output); */
+   private static PrintStream           streamErrorsProgram = new PrintStream(baosErr, true);
+   /* sends output to System.err; allows for printing test data while redirecting program's error messages */
+   private static final PrintStream     TEST_OUTPUT         = System.err;
 
    /** number of wares in the market after resetting the test environment */
    private static int numTestWares = 0;
@@ -126,7 +132,7 @@ public class TestSuite
          filenameNoPathWaresSave.set(null, "testWaresSaved.txt");
          filenameNoPathAccounts.set(null,  "testAccounts.txt");
       } catch (Exception e) {
-         System.err.println("failed to protect user data");
+         TEST_OUTPUT.println("failed to protect user data");
          e.printStackTrace();
       }
 
@@ -165,23 +171,26 @@ public class TestSuite
          accounts                  = (HashMap<String, Account>) fAccounts.get(null);
          defaultAccounts           = (HashMap<UUID, Account>) fDefaultAccounts.get(null);
       } catch (Exception e) {
-         System.err.println("failed to access private variables");
+         TEST_OUTPUT.println("failed to access private variables");
          e.printStackTrace();
          return;
       }
 
       // disable sending messages to users while testing
       PrintStream originalStream = System.out;
-      PrintStream testStream = new PrintStream(testBAOS);
+      PrintStream testStream = new PrintStream(baosOut);
       System.setOut(testStream);
 
-      System.err.println("\nexecuting test suite....\n");
+      // redirect program's error messages while testing
+      System.setErr(streamErrorsProgram);
+
+      TEST_OUTPUT.println("\nexecuting test suite....\n");
 
       // test loading custom configuration
       if (testLoadConfig())
-         System.err.println("test passed - loadConfig()\n");
+         TEST_OUTPUT.println("test passed - loadConfig()\n");
       else {
-         System.err.println("test failed - loadConfig()\n");
+         TEST_OUTPUT.println("test failed - loadConfig()\n");
          failedTests += "   loadConfig()\n";
       }
 
@@ -189,10 +198,10 @@ public class TestSuite
       // even if this fails, the test environment will be reset
       // to expected values before test wares are used
       if (testLoadWares()) {
-         System.err.println("test passed - loadWares()\n");
+         TEST_OUTPUT.println("test passed - loadWares()\n");
       }
       else {
-         System.err.println("test failed - loadWares()\n");
+         TEST_OUTPUT.println("test failed - loadWares()\n");
          failedTests += "   loadWares()\n";
       }
 
@@ -200,17 +209,17 @@ public class TestSuite
       // current properties (quantity, price, etc.)
       // are directly tied to other wares' current properties
       if (testLinkedWares())
-         System.err.println("test passed - linked wares\n");
+         TEST_OUTPUT.println("test passed - linked wares\n");
       else {
-         System.err.println("test failed - linked wares\n");
+         TEST_OUTPUT.println("test failed - linked wares\n");
          failedTests += "   linked wares\n";
       }
 
       // test detecting and correcting errors for wares
       if (testWareValidate())
-         System.err.println("test passed - Ware.validate()\n");
+         TEST_OUTPUT.println("test passed - Ware.validate()\n");
       else {
-         System.err.println("test failed - Ware.validate()\n");
+         TEST_OUTPUT.println("test failed - Ware.validate()\n");
          failedTests += "   Ware.validate()\n";
       }
 
@@ -218,34 +227,34 @@ public class TestSuite
       // even if this fails, the test environment will be reset
       // to expected values before test accounts are used
       if (testAccountCreation()) {
-         System.err.println("test passed - Account's constructors and addMoney()\n");
+         TEST_OUTPUT.println("test passed - Account's constructors and addMoney()\n");
       }
       else {
-         System.err.println("test failed - Account's constructors and addMoney()\n");
+         TEST_OUTPUT.println("test failed - Account's constructors and addMoney()\n");
          failedTests += "   Account's constructors and addMoney()\n";
       }
 
       // test changing account permissions
       if (testAccountAccess())
-         System.err.println("test passed - Account's permissions functions\n");
+         TEST_OUTPUT.println("test passed - Account's permissions functions\n");
       else {
-         System.err.println("test failed - Account's permissions functions\n");
+         TEST_OUTPUT.println("test failed - Account's permissions functions\n");
          failedTests += "   Account's permissions functions()\n";
       }
 
       // test checking account funds
       if (testAccountCheck())
-         System.err.println("test passed - Account's check()\n");
+         TEST_OUTPUT.println("test passed - Account's check()\n");
       else {
-         System.err.println("test failed - Account's check()\n");
+         TEST_OUTPUT.println("test failed - Account's check()\n");
          failedTests += "   Account's check()\n";
       }
 
       // test transferring funds between accounts
       if (testAccountSendMoney())
-         System.err.println("test passed - Account's sendMoney()\n");
+         TEST_OUTPUT.println("test passed - Account's sendMoney()\n");
       else {
-         System.err.println("test failed - Account's sendMoney()\n");
+         TEST_OUTPUT.println("test failed - Account's sendMoney()\n");
          failedTests += "   Account's sendMoney()\n";
       }
 
@@ -253,157 +262,157 @@ public class TestSuite
       // even if this fails, the test environment will be reset
       // to expected values before test accounts are used
       if (testAccountDeletion()) {
-         System.err.println("test passed - Account's deleteAccount()\n");
+         TEST_OUTPUT.println("test passed - Account's deleteAccount()\n");
       }
       else {
-         System.err.println("test failed - Account's deleteAccount()\n");
+         TEST_OUTPUT.println("test failed - Account's deleteAccount()\n");
          failedTests += "   Account's deleteAccount()\n";
       }
 
       // test setting accounts as defaults for players' transactions
       if (testDefaultAccounts()) {
-         System.err.println("test passed - Account's default account functionality\n");
+         TEST_OUTPUT.println("test passed - Account's default account functionality\n");
       }
       else {
-         System.err.println("test failed - Account's default account functionality\n");
+         TEST_OUTPUT.println("test failed - Account's default account functionality\n");
          failedTests += "   Account's default account functionality\n";
       }
 
       // test admin permissions
       if (testAdminPermissions())
-         System.err.println("test passed - testAdminPermissions()\n");
+         TEST_OUTPUT.println("test passed - testAdminPermissions()\n");
       else {
-         System.err.println("test failed - testAdminPermissions()\n");
+         TEST_OUTPUT.println("test failed - testAdminPermissions()\n");
          failedTests += "   /op, /deop, isAnOp(), and permissionToExecute()\n";
       }
 
       // test finding and translating ware IDs
       if (testTranslateWareID())
-         System.err.println("test passed - checkWareID()\n");
+         TEST_OUTPUT.println("test passed - checkWareID()\n");
       else {
-         System.err.println("test failed - checkWareID()\n");
+         TEST_OUTPUT.println("test failed - checkWareID()\n");
          failedTests += "   checkWareID()\n";
       }
 
       // test retrieving prices
       // if prices cannot retrieved, don't test buying and selling
       if (testGetPrice()) {
-         System.err.println("test passed - getPrice()\n");
+         TEST_OUTPUT.println("test passed - getPrice()\n");
 
          // test displaying ware prices and quantities
          if (testCheck())
-            System.err.println("test passed - check()\n");
+            TEST_OUTPUT.println("test passed - check()\n");
          else {
-            System.err.println("test failed - check()\n");
+            TEST_OUTPUT.println("test failed - check()\n");
             failedTests += "   check()\n";
          }
 
          // test buying wares
          if (testBuy())
-            System.err.println("test passed - buy()\n");
+            TEST_OUTPUT.println("test passed - buy()\n");
          else {
-            System.err.println("test failed - buy()\n");
+            TEST_OUTPUT.println("test failed - buy()\n");
             failedTests += "   buy()\n";
          }
 
          // test selling wares
          if (testSell())
-            System.err.println("test passed - sell()\n");
+            TEST_OUTPUT.println("test passed - sell()\n");
          else {
-            System.err.println("test failed - sell()\n");
+            TEST_OUTPUT.println("test failed - sell()\n");
             failedTests += "   sell()\n";
          }
 
          // test selling all wares in inventory at once
          if (testSellAll())
-            System.err.println("test passed - sellAll()\n");
+            TEST_OUTPUT.println("test passed - sellAll()\n");
          else {
-            System.err.println("test failed - sellAll()\n");
+            TEST_OUTPUT.println("test failed - sellAll()\n");
             failedTests += "   sellAll()\n";
          }
 
          // test spending to increase wares' supply and demand
          if (testInvest())
-            System.err.println("test passed - /invest\n");
+            TEST_OUTPUT.println("test passed - /invest\n");
          else {
-            System.err.println("test failed - /invest\n");
+            TEST_OUTPUT.println("test failed - /invest\n");
             failedTests += "   /invest\n";
          }
 
          // test making components' prices affect manufactured wares' prices
          if (testLinkedPrices())
-            System.err.println("test passed - linked prices\n");
+            TEST_OUTPUT.println("test passed - linked prices\n");
          else {
-            System.err.println("test failed - linked prices\n");
+            TEST_OUTPUT.println("test failed - linked prices\n");
             failedTests += "   linked prices\n";
          }
       }
       else {
-         System.err.println("test suite canceled execution for check(), buy(), sell(), and sellAll() - getPrice() failed testing\n");
+         TEST_OUTPUT.println("test suite canceled execution for check(), buy(), sell(), and sellAll() - getPrice() failed testing\n");
          failedTests += "   getPrice()\n";
       }
 
       // test saving and loading wares
       if (testWareIO())
-         System.err.println("test passed - saveWares() and loadWares()\n");
+         TEST_OUTPUT.println("test passed - saveWares() and loadWares()\n");
       else {
-         System.err.println("test failed - saveWares() and loadWares()\n");
+         TEST_OUTPUT.println("test failed - saveWares() and loadWares()\n");
          failedTests += "   testWareIO()'s saveWares() and loadWares()\n";
       }
 
       // test saving and loading accounts
       if (testAccountIO())
-         System.err.println("test passed - saveAccounts() and loadAccounts()\n");
+         TEST_OUTPUT.println("test passed - saveAccounts() and loadAccounts()\n");
       else {
-         System.err.println("test failed - saveAccounts() and loadAccounts()\n");
+         TEST_OUTPUT.println("test failed - saveAccounts() and loadAccounts()\n");
          failedTests += "   testAccountIO()'s saveAccounts() and loadAccounts()\n";
       }
 
       // test servicing user requests
       if (testServiceRequests())
-         System.err.println("test passed - various serviceRequest() functions\n");
+         TEST_OUTPUT.println("test passed - various serviceRequest() functions\n");
       else {
-         System.err.println("test failed - various serviceRequest() functions\n");
+         TEST_OUTPUT.println("test failed - various serviceRequest() functions\n");
          failedTests += "   testServiceRequests()'s various serviceRequest() functions\n";
       }
 
       // test the command /create
       if (testCreate())
-         System.err.println("test passed - testCreate()\n");
+         TEST_OUTPUT.println("test passed - testCreate()\n");
       else {
-         System.err.println("test failed - testCreate()\n");
+         TEST_OUTPUT.println("test failed - testCreate()\n");
          failedTests += "   /create\n";
       }
 
       // test the command /changeStock
       if (testChangeStock())
-         System.err.println("test passed - testChangeStock()\n");
+         TEST_OUTPUT.println("test passed - testChangeStock()\n");
       else {
-         System.err.println("test failed - testChangeStock()\n");
+         TEST_OUTPUT.println("test failed - testChangeStock()\n");
          failedTests += "   /changeStock\n";
       }
 
       // test AI functionality
       if (testAI())
-         System.err.println("test passed - testAI()\n");
+         TEST_OUTPUT.println("test passed - testAI()\n");
       else {
-         System.err.println("test failed - testAI()\n");
+         TEST_OUTPUT.println("test failed - testAI()\n");
          failedTests += "   AI\n";
       }
 
       // test purchasing out-of-stock manufactured wares
       if (testManufacturingContracts())
-         System.err.println("test passed - testManufacturingContracts()\n");
+         TEST_OUTPUT.println("test passed - testManufacturingContracts()\n");
       else {
-         System.err.println("test failed - testManufacturingContracts()\n");
+         TEST_OUTPUT.println("test failed - testManufacturingContracts()\n");
          failedTests += "   manufacturing contracts\n";
       }
 
       // test handling transaction fees
       if (testTransactionFees())
-         System.err.println("test passed - testTransactionFees()\n");
+         TEST_OUTPUT.println("test passed - testTransactionFees()\n");
       else {
-         System.err.println("test failed - testTransactionFees()\n");
+         TEST_OUTPUT.println("test failed - testTransactionFees()\n");
          failedTests += "   transaction fees\n";
       }
 
@@ -425,15 +434,19 @@ public class TestSuite
       // restore config options
       Config.loadConfig();
 
-      // enable sending messages to users while testing
+      // reenable sending messages to users
       System.out.flush();
       System.setOut(originalStream);
 
+      // reenable program's printing of error messages
+      System.err.flush();
+      System.setErr(TEST_OUTPUT);
+
       // report any test failures found
       if (!failedTests.isEmpty())
-         System.err.println("Tests checking the following failed:\n" + failedTests);
+         TEST_OUTPUT.println("Tests checking the following failed:\n" + failedTests);
       else
-         System.err.println("All tests passed!");
+         TEST_OUTPUT.println("All tests passed!");
 
       System.out.println("test suite finished execution\n");
    }
@@ -811,7 +824,7 @@ public class TestSuite
          fPriceBaseAverage.setFloat(null, priceBaseAverage);
          fStartQuanBaseAverage.setFloat(null, startQuanBaseAverage);
       } catch (Exception e) {
-         System.err.println("could not set Marketplace averages");
+         TEST_OUTPUT.println("could not set Marketplace averages");
          e.printStackTrace();
       }
 
@@ -835,55 +848,55 @@ public class TestSuite
 
       if (testWare != null) {
          if (!type.isInstance(testWare)) {
-            System.err.println("   unexpected type: " + testWare.getClass().getName() + ", should be " + type.getName());
+            TEST_OUTPUT.println("   unexpected type: " + testWare.getClass().getName() + ", should be " + type.getName());
             errorFound = true;
          }
 
          if (testWare.getAlias() != null && !testWare.getAlias().equals(alias)) {
             // give more specific error message depends on whether given alias is empty
             if (alias.equals(""))
-               System.err.println("   unexpected alias: " + testWare.getAlias() + ", should not have an alias");
+               TEST_OUTPUT.println("   unexpected alias: " + testWare.getAlias() + ", should not have an alias");
             else
-               System.err.println("   unexpected alias: " + testWare.getAlias() + ", should be " + alias);
+               TEST_OUTPUT.println("   unexpected alias: " + testWare.getAlias() + ", should be " + alias);
 
             errorFound = true;
          }
 
          if (testWare.getLevel() != level) {
-            System.err.println("   unexpected hierarchy level: " + testWare.getLevel() + ", should be " + level);
+            TEST_OUTPUT.println("   unexpected hierarchy level: " + testWare.getLevel() + ", should be " + level);
             errorFound = true;
          }
          // since price bases are truncated before loading, floats are compared here without using a threshold/epsilon
          if (testWare.getBasePrice() != priceBase) {
-            System.err.println("   unexpected base price: " + testWare.getBasePrice() + ", should be " + priceBase);
+            TEST_OUTPUT.println("   unexpected base price: " + testWare.getBasePrice() + ", should be " + priceBase);
             errorFound = true;
          }
          if (testWare.getQuantity() != quantity) {
-            System.err.println("   unexpected quantity: " + testWare.getQuantity() + ", should be " + quantity);
+            TEST_OUTPUT.println("   unexpected quantity: " + testWare.getQuantity() + ", should be " + quantity);
             errorFound = true;
          }
 
          // check if ware should have components
          if (testWare instanceof WareMaterial && testWare.components != null) {
-            System.err.println("   ware's components should be null, first entry is " + testWare.components[0]);
+            TEST_OUTPUT.println("   ware's components should be null, first entry is " + testWare.components[0]);
             errorFound = true;
          }
 
          else if ((testWare instanceof WareProcessed || testWare instanceof WareCrafted) && testWare.components == null) {
-            System.err.println("   ware's components shouldn't be null");
+            TEST_OUTPUT.println("   ware's components shouldn't be null");
             errorFound = true;
          }
 
          else if (testWare instanceof WareUntradeable && testWare.yield == 0 && testWare.components != null) {
-            System.err.println("   ware's components should be null, first entry is " + testWare.components[0]);
+            TEST_OUTPUT.println("   ware's components should be null, first entry is " + testWare.components[0]);
             errorFound = true;
          } 
          else if (testWare instanceof WareUntradeable && testWare.yield != 0 && testWare.components == null) {
-            System.err.println("   ware's components shouldn't be null");
+            TEST_OUTPUT.println("   ware's components shouldn't be null");
             errorFound = true;
          }
       } else {
-         System.err.println("   ware was not loaded");
+         TEST_OUTPUT.println("   ware was not loaded");
          errorFound = true;
       }
 
@@ -904,17 +917,17 @@ public class TestSuite
 
       if (testAccount != null) {
          if (testAccount.getMoney() != money) {
-            System.err.println("   unexpected account money: " + testAccount.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account money: " + testAccount.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check whether player has permission to use account
          if (permittedPlayer != null && !testAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic(permittedPlayer))) {
-            System.err.println("   account should allow access to the player " + permittedPlayer + ", but does not");
+            TEST_OUTPUT.println("   account should allow access to the player " + permittedPlayer + ", but does not");
             errorFound = true;
          }
       } else {
-         System.err.println("   account was not loaded");
+         TEST_OUTPUT.println("   account was not loaded");
          errorFound = true;
       }
 
@@ -971,14 +984,14 @@ public class TestSuite
       // then regardless of prior configuration, that's an error.
 
       // test for handling missing files
-      System.err.println("loadConfig() - handling of missing files");
-      testBAOS.reset(); // clear buffer holding console output
+      TEST_OUTPUT.println("loadConfig() - handling of missing files");
+      baosOut.reset(); // clear buffer holding console output
       Config.filenameConfig = "CommandEconomy" + File.separator + "tempConfig.txt";
       try {
          Config.loadConfig();
       }
       catch (Exception e) {
-         System.err.println("loadConfig() - loadConfig() should not throw any exception, but it did\n   was testing for handling missing files");
+         TEST_OUTPUT.println("loadConfig() - loadConfig() should not throw any exception, but it did\n   was testing for handling missing files");
          e.printStackTrace();
          return false;
       }
@@ -987,7 +1000,7 @@ public class TestSuite
       File fileConfig = new File("config" + File.separator + Config.filenameConfig);
       if (!fileConfig.exists()){
          errorFound = true;
-         System.err.println("   default config file failed to be created");
+         TEST_OUTPUT.println("   default config file failed to be created");
       } else {
          fileConfig.delete();
       }
@@ -1013,7 +1026,7 @@ public class TestSuite
          // close the file
          fileWriter.close();
       } catch (Exception e) {
-         System.err.println("loadConfig() - unable to create test config file");
+         TEST_OUTPUT.println("loadConfig() - unable to create test config file");
          e.printStackTrace();
          return false;
       }
@@ -1023,7 +1036,7 @@ public class TestSuite
          Config.loadConfig();
       }
       catch (Exception e) {
-         System.err.println("loadConfig() - loadConfig() should not throw any exception, but it did\n   was loading test config file");
+         TEST_OUTPUT.println("loadConfig() - loadConfig() should not throw any exception, but it did\n   was loading test config file");
          e.printStackTrace();
          return false;
       }
@@ -1034,7 +1047,7 @@ public class TestSuite
 
       // check configuration values
       try {
-         System.err.println("loadConfig() - differences from defaults");
+         TEST_OUTPUT.println("loadConfig() - differences from defaults");
          if (Config.startQuanBase[0] != 0 ||
              Config.startQuanBase[1] != 100 ||
              Config.startQuanBase[2] != 200 ||
@@ -1042,7 +1055,7 @@ public class TestSuite
              Config.startQuanBase[4] != 400 ||
              Config.startQuanBase[5] != 500) {
             errorFound = true;
-            System.err.println("   startQuanBase has unexpected values:\n   " +
+            TEST_OUTPUT.println("   startQuanBase has unexpected values:\n   " +
                                Config.startQuanBase[0] + ", " + Config.startQuanBase[1] +
                                Config.startQuanBase[2] + ", " + Config.startQuanBase[3] + 
                                Config.startQuanBase[4] + ", " + Config.startQuanBase[5] + 
@@ -1051,23 +1064,23 @@ public class TestSuite
 
          if (Config.startQuanMult != 8.0f) {
             errorFound = true;
-            System.err.println("   startQuanMult has unexpected value: " +
+            TEST_OUTPUT.println("   startQuanMult has unexpected value: " +
                                Config.startQuanMult + ", should be 8.0");
          }
 
          if (Config.priceFloor != 1.0f) {
             errorFound = true;
-            System.err.println("   priceFloor has unexpected value: " +
+            TEST_OUTPUT.println("   priceFloor has unexpected value: " +
                                Config.priceFloor + ", should be 1.0");
          }
 
          if (Config.accountStartingMoney != 1024.0f) {
             errorFound = true;
-            System.err.println("   accountStartingMoney has unexpected value: " +
+            TEST_OUTPUT.println("   accountStartingMoney has unexpected value: " +
                                Config.accountStartingMoney + ", should be 1024.0");
          }
 
-         System.err.println("loadConfig() - defaults");
+         TEST_OUTPUT.println("loadConfig() - defaults");
          if (Config.quanLow[0] != 4096 ||
              Config.quanLow[1] != 2048 ||
              Config.quanLow[2] != 1536 ||
@@ -1075,7 +1088,7 @@ public class TestSuite
              Config.quanLow[4] !=  768 ||
              Config.quanLow[5] !=  512) {
             errorFound = true;
-            System.err.println("   quanLow has unexpected values:\n   " +
+            TEST_OUTPUT.println("   quanLow has unexpected values:\n   " +
                                Config.quanLow[0] + ", " + Config.quanLow[1] + ", " +
                                Config.quanLow[2] + ", " + Config.quanLow[3] + ", " +
                                Config.quanLow[4] + ", " + Config.quanLow[5] +
@@ -1084,22 +1097,22 @@ public class TestSuite
 
          if (Config.startQuanSpread != 1.0f) {
             errorFound = true;
-            System.err.println("   startQuanSpread has unexpected value: " +
+            TEST_OUTPUT.println("   startQuanSpread has unexpected value: " +
                                Config.startQuanSpread + ", should be 1.0");
          }
 
          if (Config.priceBuyUpchargeMult != 1.0f) {
             errorFound = true;
-            System.err.println("   priceBuyUpchargeMult has unexpected value: " +
+            TEST_OUTPUT.println("   priceBuyUpchargeMult has unexpected value: " +
                                Config.priceBuyUpchargeMult + ", should be 1.0");
          }
       }
       catch (Exception e) {
-         System.err.println("loadConfig() - fatal error: " + e);
+         TEST_OUTPUT.println("loadConfig() - fatal error: " + e);
          return false;
       }
 
-      System.err.println("loadConfig() - changing config file");
+      TEST_OUTPUT.println("loadConfig() - changing config file");
       // create test config file
       try {
          // open the save file for config, create it if it doesn't exist
@@ -1119,7 +1132,7 @@ public class TestSuite
          // close the file
          fileWriter.close();
       } catch (Exception e) {
-         System.err.println("loadConfig() - unable to change test config file");
+         TEST_OUTPUT.println("loadConfig() - unable to change test config file");
          e.printStackTrace();
          return false;
       }
@@ -1129,14 +1142,14 @@ public class TestSuite
          Config.loadConfig();
       }
       catch (Exception e) {
-         System.err.println("loadConfig() - loadConfig() should not throw any exception, but it did\n   was loading changed test config file");
+         TEST_OUTPUT.println("loadConfig() - loadConfig() should not throw any exception, but it did\n   was loading changed test config file");
          e.printStackTrace();
          return false;
       }
 
       // check configuration values
       try {
-         System.err.println("loadConfig() - changed differences");
+         TEST_OUTPUT.println("loadConfig() - changed differences");
          if (Config.quanLow[0] != 1024 ||
              Config.quanLow[1] !=  512 ||
              Config.quanLow[2] !=  256 ||
@@ -1144,7 +1157,7 @@ public class TestSuite
              Config.quanLow[4] !=   64 ||
              Config.quanLow[5] !=   32) {
             errorFound = true;
-            System.err.println("   quanLow has unexpected values:\n   " +
+            TEST_OUTPUT.println("   quanLow has unexpected values:\n   " +
                                Config.quanLow[0] + ", " + Config.quanLow[1] + ", " +
                                Config.quanLow[2] + ", " + Config.quanLow[3] + ", " +
                                Config.quanLow[4] + ", " + Config.quanLow[5] +
@@ -1153,23 +1166,23 @@ public class TestSuite
 
          if (Config.startQuanSpread != 16.0f) {
             errorFound = true;
-            System.err.println("   startQuanSpread has unexpected value: " +
+            TEST_OUTPUT.println("   startQuanSpread has unexpected value: " +
                                Config.startQuanMult + ", should be 16.0");
          }
 
          if (Config.priceBuyUpchargeMult != 786.0f) {
             errorFound = true;
-            System.err.println("   priceBuyUpchargeMult has unexpected value: " +
+            TEST_OUTPUT.println("   priceBuyUpchargeMult has unexpected value: " +
                                Config.priceBuyUpchargeMult + ", should be 786.0");
          }
 
          if (Config.accountStartingMoney != 256.0f) {
             errorFound = true;
-            System.err.println("   accountStartingMoney has unexpected value: " +
+            TEST_OUTPUT.println("   accountStartingMoney has unexpected value: " +
                                Config.accountStartingMoney + ", should be 256.0");
          }
 
-         System.err.println("loadConfig() - reset defaults");
+         TEST_OUTPUT.println("loadConfig() - reset defaults");
          if (Config.startQuanBase[0] != 16384 ||
              Config.startQuanBase[1] !=  9216 ||
              Config.startQuanBase[2] !=  5120 ||
@@ -1177,7 +1190,7 @@ public class TestSuite
              Config.startQuanBase[4] !=  2048 ||
              Config.startQuanBase[5] !=  1024) {
             errorFound = true;
-            System.err.println("   startQuanBase has unexpected values:\n   " +
+            TEST_OUTPUT.println("   startQuanBase has unexpected values:\n   " +
                                Config.startQuanBase[0] + ", " + Config.startQuanBase[1] + ", " + 
                                Config.startQuanBase[2] + ", " + Config.startQuanBase[3] + ", " + 
                                Config.startQuanBase[4] + ", " + Config.startQuanBase[5] +
@@ -1186,18 +1199,18 @@ public class TestSuite
 
          if (Config.startQuanMult != 1.0f) {
             errorFound = true;
-            System.err.println("   startQuanMult has unexpected value: " +
+            TEST_OUTPUT.println("   startQuanMult has unexpected value: " +
                                Config.startQuanMult + ", should be 1.0");
          }
 
          if (Config.priceFloor != 0.0f) {
             errorFound = true;
-            System.err.println("   priceFloor has unexpected value: " +
+            TEST_OUTPUT.println("   priceFloor has unexpected value: " +
                                Config.priceFloor + ", should be 0.0");
          }
       }
       catch (Exception e) {
-         System.err.println("loadConfig() - fatal error: " + e);
+         TEST_OUTPUT.println("loadConfig() - fatal error: " + e);
          return false;
       }
 
@@ -1224,13 +1237,13 @@ public class TestSuite
       wareAliasTranslations.clear();
 
       // test for handling missing files
-      System.err.println("testLoadWares() - handling of missing files");
+      TEST_OUTPUT.println("testLoadWares() - handling of missing files");
       Config.filenameWares = "no file here";
       try {
          Marketplace.loadWares();
       }
       catch (Exception e) {
-         System.err.println("testLoadWares() - loadWares() should not throw any exception, but it did\n   was testing for handling missing files");
+         TEST_OUTPUT.println("testLoadWares() - loadWares() should not throw any exception, but it did\n   was testing for handling missing files");
          e.printStackTrace();
          return false;
       }
@@ -1240,18 +1253,18 @@ public class TestSuite
       // check local file
       if (fileWares.exists()){
          errorFound = true;
-         System.err.println("   \"no file here\" file should not exist in local/world directory");
+         TEST_OUTPUT.println("   \"no file here\" file should not exist in local/world directory");
       }
       // check global file
       fileWares = new File("config" + File.separator + Config.filenameWares);
       if (fileWares.exists()){
          errorFound = true;
-         System.err.println("   \"no file here\" file should not exist in global/config directory");
+         TEST_OUTPUT.println("   \"no file here\" file should not exist in global/config directory");
       }
 
       // further check handling of missing files
       if (wares.size() != 0) {
-         System.err.println("   loaded wares despite all files having been missing");
+         TEST_OUTPUT.println("   loaded wares despite all files having been missing");
          errorFound = true;
       }
 
@@ -1289,7 +1302,7 @@ public class TestSuite
          // close the file
          fileWriter.close();
       } catch (IOException e) {
-         System.err.println("testLoadWares() - unable to create test wares file");
+         TEST_OUTPUT.println("testLoadWares() - unable to create test wares file");
          e.printStackTrace();
          return false;
       }
@@ -1299,7 +1312,7 @@ public class TestSuite
          Marketplace.loadWares();
       }
       catch (Exception e) {
-         System.err.println("testLoadWares() - loadWares() should not throw any exception, but it did\n   was loading test wares");
+         TEST_OUTPUT.println("testLoadWares() - loadWares() should not throw any exception, but it did\n   was loading test wares");
          e.printStackTrace();
          return false;
       }
@@ -1311,159 +1324,159 @@ public class TestSuite
       // prepare to check wares
       Ware testWare; // holds ware currently being checked
       try {
-         System.err.println("testLoadWares() - creation of new material ware without specified starting quantity");
+         TEST_OUTPUT.println("testLoadWares() - creation of new material ware without specified starting quantity");
          testWare = wares.get("test:material1");
          errorFound = errorFound || testWareFields(testWare, WareMaterial.class, "", (byte) 0, 1.0f, 256);
 
-         System.err.println("testLoadWares() - creation of new material ware with specified starting quantity");
+         TEST_OUTPUT.println("testLoadWares() - creation of new material ware with specified starting quantity");
          testWare = wares.get("test:material2");
          errorFound = errorFound || testWareFields(testWare, WareMaterial.class, "", (byte) 1, 2.0f, 5);
 
-         System.err.println("testLoadWares() - creation of new material ware with specified alias");
+         TEST_OUTPUT.println("testLoadWares() - creation of new material ware with specified alias");
          testWare = wares.get("test:material3");
          errorFound = errorFound || testWareFields(testWare, WareMaterial.class, "mat3", (byte) 2, 4.0f, 64);
          if (!wareAliasTranslations.containsKey("mat3") ||
              !wareAliasTranslations.get("mat3").equals("test:material3")) {
-            System.err.println("   test:material3 did not have expected alias");
+            TEST_OUTPUT.println("   test:material3 did not have expected alias");
             errorFound = true;
          }
 
-         System.err.println("testLoadWares() - creation of new material ware with alias taken from minecraft:wareID");
+         TEST_OUTPUT.println("testLoadWares() - creation of new material ware with alias taken from minecraft:wareID");
          testWare = wares.get("minecraft:material4");
          errorFound = errorFound || testWareFields(testWare, WareMaterial.class, "material4", (byte) 3, 8.0f, 32);
          if (!wareAliasTranslations.containsKey("material4") ||
              !wareAliasTranslations.get("material4").equals("minecraft:material4")) {
-            System.err.println("   minecraft:material4 did not have expected alias");
+            TEST_OUTPUT.println("   minecraft:material4 did not have expected alias");
             errorFound = true;
          }
 
-         System.err.println("testLoadWares() - creation of an untradeable ware without components");
+         TEST_OUTPUT.println("testLoadWares() - creation of an untradeable ware without components");
          testWare = wares.get("test:untradeable1");
          errorFound = errorFound || testWareFields(testWare, WareUntradeable.class, "notrade1", (byte) 0, 16.0f, Integer.MAX_VALUE);
          if (!wareAliasTranslations.containsKey("notrade1") ||
              !wareAliasTranslations.get("notrade1").equals("test:untradeable1")) {
-            System.err.println("   test:untradeable1 did not have expected alias");
+            TEST_OUTPUT.println("   test:untradeable1 did not have expected alias");
             errorFound = true;
          }
 
-         System.err.println("testLoadWares() - creation of an untradeable ware with components");
+         TEST_OUTPUT.println("testLoadWares() - creation of an untradeable ware with components");
          testWare = wares.get("test:untradeable2");
          errorFound = errorFound || testWareFields(testWare, WareUntradeable.class, "notrade2", (byte) 0, 9.0f, Integer.MAX_VALUE);
 
-         System.err.println("testLoadWares() - creation of a processed ware with one component ware");
+         TEST_OUTPUT.println("testLoadWares() - creation of a processed ware with one component ware");
          testWare = wares.get("test:processed1");
          errorFound = errorFound || testWareFields(testWare, WareProcessed.class, "", (byte) 4, 1.1f, 16);
 
-         System.err.println("testLoadWares() - creation of a processed ware with many component wares");
+         TEST_OUTPUT.println("testLoadWares() - creation of a processed ware with many component wares");
          testWare = wares.get("test:processed2");
          errorFound = errorFound || testWareFields(testWare, WareProcessed.class, "", (byte) 5, 14.3f, 8);
 
-         System.err.println("testLoadWares() - creation of a processed ware with yield affecting price");
+         TEST_OUTPUT.println("testLoadWares() - creation of a processed ware with yield affecting price");
          testWare = wares.get("test:processed3");
          errorFound = errorFound || testWareFields(testWare, WareProcessed.class, "", (byte) 3, 1.76f, 32);
 
-         System.err.println("testLoadWares() - creation of a crafted ware with one component ware and an alias");
+         TEST_OUTPUT.println("testLoadWares() - creation of a crafted ware with one component ware and an alias");
          testWare = wares.get("test:crafted1");
          errorFound = errorFound || testWareFields(testWare, WareCrafted.class, "craft1", (byte) 1, 19.2f, 128);
          if (!wareAliasTranslations.containsKey("craft1") ||
              !wareAliasTranslations.get("craft1").equals("test:crafted1")) {
-            System.err.println("   test:crafted1 did not have expected alias");
+            TEST_OUTPUT.println("   test:crafted1 did not have expected alias");
             errorFound = true;
          }
 
-         System.err.println("testLoadWares() - creation of a crafted ware with many component wares, including another crafted ware");
+         TEST_OUTPUT.println("testLoadWares() - creation of a crafted ware with many component wares, including another crafted ware");
          testWare = wares.get("test:crafted2");
          errorFound = errorFound || testWareFields(testWare, WareCrafted.class, "", (byte) 2, 24.24f, 64);
 
-         System.err.println("testLoadWares() - creation of a crafted ware with yield affecting price");
+         TEST_OUTPUT.println("testLoadWares() - creation of a crafted ware with yield affecting price");
          testWare = wares.get("test:crafted3");
          errorFound = errorFound || testWareFields(testWare, WareCrafted.class, "", (byte) 3, 2.4f, 32);
 
-         System.err.println("testLoadWares() - checking average for base price");
+         TEST_OUTPUT.println("testLoadWares() - checking average for base price");
          if ((float) fPriceBaseAverage.get(null) != 7.8f) {
             errorFound = true;
-            System.err.println("   priceBaseAverage is " + (float) fPriceBaseAverage.get(null) + ", should be 7.8");
+            TEST_OUTPUT.println("   priceBaseAverage is " + (float) fPriceBaseAverage.get(null) + ", should be 7.8");
          }
 
-         System.err.println("testLoadWares() - checking average for base starting quantities");
+         TEST_OUTPUT.println("testLoadWares() - checking average for base starting quantities");
          if ((float) fStartQuanBaseAverage.get(null) != 76) {
             errorFound = true;
-            System.err.println("   startQuanBaseAverage is " + (float) fStartQuanBaseAverage.get(null) + ", should be 76");
+            TEST_OUTPUT.println("   startQuanBaseAverage is " + (float) fStartQuanBaseAverage.get(null) + ", should be 76");
          }
 
-         System.err.println("testLoadWares() - checking ware alias translation accuracy");
+         TEST_OUTPUT.println("testLoadWares() - checking ware alias translation accuracy");
          if (!wareAliasTranslations.containsKey("mat3")) {
             errorFound = true;
-            System.err.println("   mat3 does not exist, should be mapped to test:material3");
+            TEST_OUTPUT.println("   mat3 does not exist, should be mapped to test:material3");
          } else {
             if (!wareAliasTranslations.get("mat3").equals("test:material3")) {
                errorFound = true;
-               System.err.println("   mat3's ware ID is " + wareAliasTranslations.get("mat3") + ", should be test:material3");
+               TEST_OUTPUT.println("   mat3's ware ID is " + wareAliasTranslations.get("mat3") + ", should be test:material3");
             }
          }
          if (!wareAliasTranslations.containsKey("material4")) {
             errorFound = true;
-            System.err.println("   material4 does not exist, should be mapped to minecraft:material4");
+            TEST_OUTPUT.println("   material4 does not exist, should be mapped to minecraft:material4");
          } else {
             if (!wareAliasTranslations.get("material4").equals("minecraft:material4")) {
                errorFound = true;
-               System.err.println("   material4's ware ID is " + wareAliasTranslations.get("material4") + ", should be minecraft:material4");
+               TEST_OUTPUT.println("   material4's ware ID is " + wareAliasTranslations.get("material4") + ", should be minecraft:material4");
             }
          }
          if (!wareAliasTranslations.containsKey("notrade1")) {
             errorFound = true;
-            System.err.println("   notrade1 does not exist, should be mapped to test:untradeable1");
+            TEST_OUTPUT.println("   notrade1 does not exist, should be mapped to test:untradeable1");
          } else {
             if (!wareAliasTranslations.get("notrade1").equals("test:untradeable1")) {
                errorFound = true;
-               System.err.println("   notrade1's ware ID is " + wareAliasTranslations.get("notrade1") + ", should be test:untradeable1");
+               TEST_OUTPUT.println("   notrade1's ware ID is " + wareAliasTranslations.get("notrade1") + ", should be test:untradeable1");
             }
          }
          if (!wareAliasTranslations.containsKey("craft1")) {
             errorFound = true;
-            System.err.println("   craft1 does not exist, should be mapped to test:crafted1");
+            TEST_OUTPUT.println("   craft1 does not exist, should be mapped to test:crafted1");
          } else {
             if (!wareAliasTranslations.get("craft1").equals("test:crafted1")) {
                errorFound = true;
-               System.err.println("   craft1's ware ID is " + wareAliasTranslations.get("craft1") + ", should be test:crafted1");
+               TEST_OUTPUT.println("   craft1's ware ID is " + wareAliasTranslations.get("craft1") + ", should be test:crafted1");
             }
          }
 
-         System.err.println("testLoadWares() - checking alternate ware alias translation accuracy");
+         TEST_OUTPUT.println("testLoadWares() - checking alternate ware alias translation accuracy");
          if (!wareAliasTranslations.containsKey("#testName")) {
             errorFound = true;
-            System.err.println("   #testName does not exist, should be mapped to test:material2");
+            TEST_OUTPUT.println("   #testName does not exist, should be mapped to test:material2");
          } else {
             if (!wareAliasTranslations.get("#testName").equals("test:material2")) {
                errorFound = true;
-               System.err.println("   #testName's ware ID is " + wareAliasTranslations.get("#testName") + ", should be test:material2");
+               TEST_OUTPUT.println("   #testName's ware ID is " + wareAliasTranslations.get("#testName") + ", should be test:material2");
             }
          }
          if (!wareAliasTranslations.containsKey("testAlternateAlias")) {
             errorFound = true;
-            System.err.println("   testAlternateAlias does not exist, should be mapped to test:material1");
+            TEST_OUTPUT.println("   testAlternateAlias does not exist, should be mapped to test:material1");
          } else {
             if (!wareAliasTranslations.get("testAlternateAlias").equals("test:material1")) {
                errorFound = true;
-               System.err.println("   testAlternateAlias's ware ID is " + wareAliasTranslations.get("testAlternateAlias") + ", should be test:material1");
+               TEST_OUTPUT.println("   testAlternateAlias's ware ID is " + wareAliasTranslations.get("testAlternateAlias") + ", should be test:material1");
             }
          }
       }
       catch (Exception e) {
-         System.err.println("testLoadWares() - fatal error: " + e);
+         TEST_OUTPUT.println("testLoadWares() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
 
       // ensure loaded wares matches the expected amount
-      System.err.println("testLoadWares() - checking loaded wares volume");
+      TEST_OUTPUT.println("testLoadWares() - checking loaded wares volume");
       if (wares.size() != 12) {
-         System.err.println("   total loaded wares: " + wares.size() + ", should be 12");
+         TEST_OUTPUT.println("   total loaded wares: " + wares.size() + ", should be 12");
          return false;
       }
-      System.err.println("testLoadWares() - checking loaded ware aliases volume");
+      TEST_OUTPUT.println("testLoadWares() - checking loaded ware aliases volume");
       if (wareAliasTranslations.size() != 7) {
-         System.err.println("   total loaded ware aliases: " + wareAliasTranslations.size() + ", should be 7");
+         TEST_OUTPUT.println("   total loaded ware aliases: " + wareAliasTranslations.size() + ", should be 7");
          return false;
       }
 
@@ -1516,63 +1529,63 @@ public class TestSuite
          wares.put("minecraft:torch", torch);
          wareAliasTranslations.put("torch", "minecraft:torch");
 
-         System.err.println("linked wares - negative yield");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("linked wares - negative yield");
+         baosOut.reset(); // clear buffer holding console output
          planks = new WareLinked(new String[]{"wood"}, new int[]{1}, "invalidYield", "planks", -1);
 
          if ((int) yield.get(planks) != 1) {
-            System.err.println("   unexpected yield for planks: " + yield.get(planks) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for planks: " + yield.get(planks) + ", should be 1");
             errorFound = true;
          }
 
-         System.err.println("linked wares - zero yield");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("linked wares - zero yield");
+         baosOut.reset(); // clear buffer holding console output
          planks = new WareLinked(new String[]{"wood"}, new int[]{1}, "invalidYield", "planks", 0);
 
          if ((int) yield.get(planks) != 1) {
-            System.err.println("   unexpected yield for planks: " + yield.get(planks) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for planks: " + yield.get(planks) + ", should be 1");
             errorFound = true;
          }
 
-         System.err.println("linked wares - null component amount array");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("linked wares - null component amount array");
+         baosOut.reset(); // clear buffer holding console output
          planks = new WareLinked(new String[]{"wood"}, null, "nullComponentsAmounts", "planks", 2);
 
          if (!Float.isNaN(planks.getBasePrice())) {
-            System.err.println("   unexpected price: " + planks.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price: " + planks.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (planks.getQuantity() != 0) {
-            System.err.println("   unexpected quantity: " + planks.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity: " + planks.getQuantity() + ", should be 0");
             errorFound = true;
          }
 
-         System.err.println("linked wares - zero length component amount array");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("linked wares - zero length component amount array");
+         baosOut.reset(); // clear buffer holding console output
          planks = new WareLinked(new String[]{"wood"}, new int[]{}, "zeroLengthComponentsAmounts", "planks", 2);
 
          if (!Float.isNaN(planks.getBasePrice())) {
-            System.err.println("   unexpected price: " + planks.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price: " + planks.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (planks.getQuantity() != 0) {
-            System.err.println("   unexpected quantity: " + planks.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity: " + planks.getQuantity() + ", should be 0");
             errorFound = true;
          }
 
-         System.err.println("linked wares - unequal lengths of component arrays");
+         TEST_OUTPUT.println("linked wares - unequal lengths of component arrays");
          planks = new WareLinked(new String[]{"wood"}, new int[]{1, 1}, "unequalLengths", "planks", 1);
 
          if (!Float.isNaN(planks.getBasePrice())) {
-            System.err.println("   unexpected price: " + planks.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price: " + planks.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (planks.getQuantity() != 0) {
-            System.err.println("   unexpected quantity: " + planks.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity: " + planks.getQuantity() + ", should be 0");
             errorFound = true;
          }
 
-         System.err.println("linked wares - valid creation");
+         TEST_OUTPUT.println("linked wares - valid creation");
          planks = new WareLinked(new String[]{"wood"}, new int[]{1}, "minecraft:planks", "planks", 2);
          wares.put("minecraft:planks", planks);
          wareAliasTranslations.put("planks", "minecraft:planks");
@@ -1581,79 +1594,79 @@ public class TestSuite
          jack_o_lantern = new WareLinked(new String[]{"pumpkin", "torch"}, new int[]{1, 1}, "minecraft:lit_pumpkin", "jack_o_lantern", 1);
 
          if (planks.getBasePrice() != 0.25f) {
-            System.err.println("   unexpected price for planks: " + planks.getBasePrice() + ", should be 0.25f");
+            TEST_OUTPUT.println("   unexpected price for planks: " + planks.getBasePrice() + ", should be 0.25f");
             errorFound = true;
          }
          if (planks.getQuantity() != 20) {
-            System.err.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 20");
+            TEST_OUTPUT.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 20");
             errorFound = true;
          }
          if (stick.getBasePrice() != 0.125f) {
-            System.err.println("   unexpected price for stick: " + stick.getBasePrice() + ", should be 0.125f");
+            TEST_OUTPUT.println("   unexpected price for stick: " + stick.getBasePrice() + ", should be 0.125f");
             errorFound = true;
          }
          if (stick.getQuantity() != 40) {
-            System.err.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 40");
+            TEST_OUTPUT.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 40");
             errorFound = true;
          }
          if (gold_block.getBasePrice() != 108.0f) {
-            System.err.println("   unexpected price for gold_block: " + gold_block.getBasePrice() + ", should be 108.0f");
+            TEST_OUTPUT.println("   unexpected price for gold_block: " + gold_block.getBasePrice() + ", should be 108.0f");
             errorFound = true;
          }
          if (gold_block.getQuantity() != 2) {
-            System.err.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 2");
+            TEST_OUTPUT.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 2");
             errorFound = true;
          }
          if (jack_o_lantern.getBasePrice() != 5.2f) {
-            System.err.println("   unexpected price for jack_o_lantern: " + jack_o_lantern.getBasePrice() + ", should be 5.2f");
+            TEST_OUTPUT.println("   unexpected price for jack_o_lantern: " + jack_o_lantern.getBasePrice() + ", should be 5.2f");
             errorFound = true;
          }
          if (jack_o_lantern.getQuantity() != 3) {
-            System.err.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 3");
+            TEST_OUTPUT.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 3");
             errorFound = true;
          }
 
-         System.err.println("linked wares - setQuantity()");
+         TEST_OUTPUT.println("linked wares - setQuantity()");
          stick.setQuantity(17);
          gold_block.setQuantity(10);
          jack_o_lantern.setQuantity(15);
 
          if (wood.getQuantity() != 4) {
-            System.err.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 4");
+            TEST_OUTPUT.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 4");
             errorFound = true;
          }
          if (planks.getQuantity() != 8) {
-            System.err.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 8");
+            TEST_OUTPUT.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 8");
             errorFound = true;
          }
          if (stick.getQuantity() != 17) {
-            System.err.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 17");
+            TEST_OUTPUT.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 17");
             errorFound = true;
          }
 
          if (gold_ingot.getQuantity() != 90) {
-            System.err.println("   unexpected quantity for gold_ingot: " + gold_ingot.getQuantity() + ", should be 90");
+            TEST_OUTPUT.println("   unexpected quantity for gold_ingot: " + gold_ingot.getQuantity() + ", should be 90");
             errorFound = true;
          }
          if (gold_block.getQuantity() != 10) {
-            System.err.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 10");
+            TEST_OUTPUT.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 10");
             errorFound = true;
          }
 
          if (pumpkin.getQuantity() != 15) {
-            System.err.println("   unexpected quantity for pumpkin: " + pumpkin.getQuantity() + ", should be 15");
+            TEST_OUTPUT.println("   unexpected quantity for pumpkin: " + pumpkin.getQuantity() + ", should be 15");
             errorFound = true;
          }
          if (torch.getQuantity() != 15) {
-            System.err.println("   unexpected quantity for torch: " + torch.getQuantity() + ", should be 15");
+            TEST_OUTPUT.println("   unexpected quantity for torch: " + torch.getQuantity() + ", should be 15");
             errorFound = true;
          }
          if (jack_o_lantern.getQuantity() != 15) {
-            System.err.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 15");
+            TEST_OUTPUT.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 15");
             errorFound = true;
          }
 
-         System.err.println("linked wares - addQuantity()");
+         TEST_OUTPUT.println("linked wares - addQuantity()");
          stick.setQuantity(1);
          stick.addQuantity(16);
          gold_ingot.setQuantity(10);
@@ -1662,41 +1675,41 @@ public class TestSuite
          jack_o_lantern.addQuantity(5);
 
          if (wood.getQuantity() != 4) {
-            System.err.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 4");
+            TEST_OUTPUT.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 4");
             errorFound = true;
          }
          if (planks.getQuantity() != 8) {
-            System.err.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 8");
+            TEST_OUTPUT.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 8");
             errorFound = true;
          }
          if (stick.getQuantity() != 17) {
-            System.err.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 17");
+            TEST_OUTPUT.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 17");
             errorFound = true;
          }
 
          if (gold_ingot.getQuantity() != 19) {
-            System.err.println("   unexpected quantity for gold_ingot: " + gold_ingot.getQuantity() + ", should be 19");
+            TEST_OUTPUT.println("   unexpected quantity for gold_ingot: " + gold_ingot.getQuantity() + ", should be 19");
             errorFound = true;
          }
          if (gold_block.getQuantity() != 2) {
-            System.err.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 2");
+            TEST_OUTPUT.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 2");
             errorFound = true;
          }
 
          if (pumpkin.getQuantity() != 15) {
-            System.err.println("   unexpected quantity for pumpkin: " + pumpkin.getQuantity() + ", should be 15");
+            TEST_OUTPUT.println("   unexpected quantity for pumpkin: " + pumpkin.getQuantity() + ", should be 15");
             errorFound = true;
          }
          if (torch.getQuantity() != 15) {
-            System.err.println("   unexpected quantity for torch: " + torch.getQuantity() + ", should be 15");
+            TEST_OUTPUT.println("   unexpected quantity for torch: " + torch.getQuantity() + ", should be 15");
             errorFound = true;
          }
          if (jack_o_lantern.getQuantity() != 15) {
-            System.err.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 15");
+            TEST_OUTPUT.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 15");
             errorFound = true;
          }
 
-         System.err.println("linked wares - subtractQuantity()");
+         TEST_OUTPUT.println("linked wares - subtractQuantity()");
          stick.setQuantity(100);
          stick.subtractQuantity(33);
          gold_ingot.setQuantity(18);
@@ -1705,75 +1718,75 @@ public class TestSuite
          jack_o_lantern.subtractQuantity(5);
 
          if (wood.getQuantity() != 16) {
-            System.err.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 16");
+            TEST_OUTPUT.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 16");
             errorFound = true;
          }
          if (planks.getQuantity() != 33) {
-            System.err.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 33");
+            TEST_OUTPUT.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 33");
             errorFound = true;
          }
          if (stick.getQuantity() != 67) {
-            System.err.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 67");
+            TEST_OUTPUT.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 67");
             errorFound = true;
          }
 
          stick.subtractQuantity(33);
          if (wood.getQuantity() != 8) {
-            System.err.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 8");
+            TEST_OUTPUT.println("   unexpected quantity for wood: " + wood.getQuantity() + ", should be 8");
             errorFound = true;
          }
          if (planks.getQuantity() != 17) {
-            System.err.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 17");
+            TEST_OUTPUT.println("   unexpected quantity for planks: " + planks.getQuantity() + ", should be 17");
             errorFound = true;
          }
          if (stick.getQuantity() != 34) {
-            System.err.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 34");
+            TEST_OUTPUT.println("   unexpected quantity for stick: " + stick.getQuantity() + ", should be 34");
             errorFound = true;
          }
 
          if (gold_ingot.getQuantity() != 9) {
-            System.err.println("   unexpected quantity for gold_ingot: " + gold_ingot.getQuantity() + ", should be 9");
+            TEST_OUTPUT.println("   unexpected quantity for gold_ingot: " + gold_ingot.getQuantity() + ", should be 9");
             errorFound = true;
          }
          if (gold_block.getQuantity() != 1) {
-            System.err.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 1");
+            TEST_OUTPUT.println("   unexpected quantity for gold_block: " + gold_block.getQuantity() + ", should be 1");
             errorFound = true;
          }
 
          if (pumpkin.getQuantity() != 5) {
-            System.err.println("   unexpected quantity for pumpkin: " + pumpkin.getQuantity() + ", should be 5");
+            TEST_OUTPUT.println("   unexpected quantity for pumpkin: " + pumpkin.getQuantity() + ", should be 5");
             errorFound = true;
          }
          if (torch.getQuantity() != 5) {
-            System.err.println("   unexpected quantity for torch: " + torch.getQuantity() + ", should be 5");
+            TEST_OUTPUT.println("   unexpected quantity for torch: " + torch.getQuantity() + ", should be 5");
             errorFound = true;
          }
          if (jack_o_lantern.getQuantity() != 5) {
-            System.err.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 5");
+            TEST_OUTPUT.println("   unexpected quantity for jack_o_lantern: " + jack_o_lantern.getQuantity() + ", should be 5");
             errorFound = true;
          }
 
-         System.err.println("linked wares - basic getters and setters");
+         TEST_OUTPUT.println("linked wares - basic getters and setters");
          if (!planks.getWareID().equals("minecraft:planks")) {
-            System.err.println("   unexpected ware ID for planks: " + planks.getWareID() + ", should be minecraft:planks");
+            TEST_OUTPUT.println("   unexpected ware ID for planks: " + planks.getWareID() + ", should be minecraft:planks");
             errorFound = true;
          }
          stick.setAlias("testStick");
          if (!stick.getAlias().equals("testStick")) {
-            System.err.println("   unexpected alias for stick: " + stick.getAlias() + ", should be testStick");
+            TEST_OUTPUT.println("   unexpected alias for stick: " + stick.getAlias() + ", should be testStick");
             errorFound = true;
          }
          gold_block.setLevel((byte) 5);
          if (gold_block.getLevel() != 5) {
-            System.err.println("   unexpected level for gold_block: " + gold_block.getLevel() + ", should be 5");
+            TEST_OUTPUT.println("   unexpected level for gold_block: " + gold_block.getLevel() + ", should be 5");
             errorFound = true;
          }
          if (!jack_o_lantern.hasComponents()) {
-            System.err.println("   unexpected value for jack_o_lantern.hasComponents(): " + jack_o_lantern.hasComponents() + ", should be true");
+            TEST_OUTPUT.println("   unexpected value for jack_o_lantern.hasComponents(): " + jack_o_lantern.hasComponents() + ", should be true");
             errorFound = true;
          }
 
-         System.err.println("linked wares - pricing");
+         TEST_OUTPUT.println("linked wares - pricing");
          gold_ingot.setQuantity(27);
          wood.setQuantity(3);
          torch.setQuantity(18);
@@ -1788,71 +1801,71 @@ public class TestSuite
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 9, false);
          if (gold_block_linked.getCurrentPrice(1, false) != price) {
-            System.err.println("   unexpected price for selling 9 ingots: " + gold_block_linked.getCurrentPrice(1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for selling 9 ingots: " + gold_block_linked.getCurrentPrice(1, false) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 9, true);
          if (gold_block_linked.getCurrentPrice(1, true) != price) {
-            System.err.println("   unexpected price for buying 9 ingots: " + gold_block_linked.getCurrentPrice(1, true) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for buying 9 ingots: " + gold_block_linked.getCurrentPrice(1, true) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 27, false);
          if (gold_block_linked.getCurrentPrice(3, false) != price) {
-            System.err.println("   unexpected price for selling 27 ingots: " + gold_block_linked.getCurrentPrice(3, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for selling 27 ingots: " + gold_block_linked.getCurrentPrice(3, false) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 27, true);
          if (gold_block_linked.getCurrentPrice(3, true) != price) {
-            System.err.println("   unexpected price for buying 27 ingots: " + gold_block_linked.getCurrentPrice(3, true) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for buying 27 ingots: " + gold_block_linked.getCurrentPrice(3, true) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 1, false);
          if (planks_linked.getCurrentPrice(2, false) != price) {
-            System.err.println("   unexpected price for selling 1 wood: " + planks_linked.getCurrentPrice(2, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for selling 1 wood: " + planks_linked.getCurrentPrice(2, false) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 1, true);
          if (planks_linked.getCurrentPrice(2, true) != price) {
-            System.err.println("   unexpected price for buying 1 wood: " + planks_linked.getCurrentPrice(2, true) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for buying 1 wood: " + planks_linked.getCurrentPrice(2, true) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 3, false);
          if (planks_linked.getCurrentPrice(6, false) != price) {
-            System.err.println("   unexpected price for selling 3 wood: " + planks_linked.getCurrentPrice(6, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for selling 3 wood: " + planks_linked.getCurrentPrice(6, false) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 3, true);
          if (planks_linked.getCurrentPrice(6, true) != price) {
-            System.err.println("   unexpected price for buying 3 wood: " + planks_linked.getCurrentPrice(6, true) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for buying 3 wood: " + planks_linked.getCurrentPrice(6, true) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 3, true);
          if (planks_linked.getCurrentPrice(6, true) != price) {
-            System.err.println("   unexpected price for buying 3 wood: " + planks_linked.getCurrentPrice(6, true) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for buying 3 wood: " + planks_linked.getCurrentPrice(6, true) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:torch", 16, false) + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:pumpkin", 16, false);
          if (jack_o_lantern_linked.getCurrentPrice(18, false) != price) {
-            System.err.println("   unexpected price for selling jack o' lanterns: " + jack_o_lantern_linked.getCurrentPrice(18, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for selling jack o' lanterns: " + jack_o_lantern_linked.getCurrentPrice(18, false) + ", should be " + price);
             errorFound = true;
          }
 
          price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:torch", 16, true) + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:pumpkin", 16, true);
          if (jack_o_lantern_linked.getCurrentPrice(18, true) != price) {
-            System.err.println("   unexpected price for buying jack o' lanterns: " + jack_o_lantern_linked.getCurrentPrice(18, true) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price for buying jack o' lanterns: " + jack_o_lantern_linked.getCurrentPrice(18, true) + ", should be " + price);
             errorFound = true;
          }
 
-         System.err.println("linked wares - saving and loading");
+         TEST_OUTPUT.println("linked wares - saving and loading");
          Ware new_stick          = Ware.fromJSON(stick.toJSON());
          Ware new_gold_block     = Ware.fromJSON(gold_block.toJSON());
          Ware new_jack_o_lantern = Ware.fromJSON(jack_o_lantern.toJSON());
@@ -1863,58 +1876,58 @@ public class TestSuite
          new_jack_o_lantern.reloadComponents();
 
          if (!new_stick.getAlias().equals(stick.getAlias())) {
-            System.err.println("   unexpected alias for new_stick: " + new_stick.getAlias() + ", should be " + stick.getAlias());
+            TEST_OUTPUT.println("   unexpected alias for new_stick: " + new_stick.getAlias() + ", should be " + stick.getAlias());
             errorFound = true;
          }
          if (new_stick.getBasePrice() != stick.getBasePrice()) {
-            System.err.println("   unexpected price for new_stick: " + new_stick.getBasePrice() + ", should be " + stick.getBasePrice());
+            TEST_OUTPUT.println("   unexpected price for new_stick: " + new_stick.getBasePrice() + ", should be " + stick.getBasePrice());
             errorFound = true;
          }
          if (new_stick.getLevel() != (byte) 0) {
-            System.err.println("   unexpected level for new_stick: " + new_stick.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for new_stick: " + new_stick.getLevel() + ", should be 0");
             errorFound = true;
          }
          if (new_stick.getQuantity() != stick.getQuantity()) {
-            System.err.println("   unexpected quantity for new_stick: " + new_stick.getQuantity() + ", should be " + stick.getQuantity());
+            TEST_OUTPUT.println("   unexpected quantity for new_stick: " + new_stick.getQuantity() + ", should be " + stick.getQuantity());
             errorFound = true;
          }
 
          if (!new_gold_block.getAlias().equals(gold_block.getAlias())) {
-            System.err.println("   unexpected alias for new_gold_block: " + new_gold_block.getAlias() + ", should be " + gold_block.getAlias());
+            TEST_OUTPUT.println("   unexpected alias for new_gold_block: " + new_gold_block.getAlias() + ", should be " + gold_block.getAlias());
             errorFound = true;
          }
          if (new_gold_block.getBasePrice() != gold_block.getBasePrice()) {
-            System.err.println("   unexpected price for new_gold_block: " + new_gold_block.getBasePrice() + ", should be " + gold_block.getBasePrice());
+            TEST_OUTPUT.println("   unexpected price for new_gold_block: " + new_gold_block.getBasePrice() + ", should be " + gold_block.getBasePrice());
             errorFound = true;
          }
          if (new_gold_block.getLevel() != (byte) 3) {
-            System.err.println("   unexpected level for new_gold_block: " + new_gold_block.getLevel() + ", should be 3");
+            TEST_OUTPUT.println("   unexpected level for new_gold_block: " + new_gold_block.getLevel() + ", should be 3");
             errorFound = true;
          }
          if (new_gold_block.getQuantity() != gold_block.getQuantity()) {
-            System.err.println("   unexpected quantity for new_gold_block: " + new_gold_block.getQuantity() + ", should be " + gold_block.getQuantity());
+            TEST_OUTPUT.println("   unexpected quantity for new_gold_block: " + new_gold_block.getQuantity() + ", should be " + gold_block.getQuantity());
             errorFound = true;
          }
 
          if (!new_jack_o_lantern.getAlias().equals(jack_o_lantern.getAlias())) {
-            System.err.println("   unexpected alias for new_jack_o_lantern: " + new_jack_o_lantern.getAlias() + ", should be " + jack_o_lantern.getAlias());
+            TEST_OUTPUT.println("   unexpected alias for new_jack_o_lantern: " + new_jack_o_lantern.getAlias() + ", should be " + jack_o_lantern.getAlias());
             errorFound = true;
          }
          if (new_jack_o_lantern.getBasePrice() != jack_o_lantern.getBasePrice()) {
-            System.err.println("   unexpected price for new_jack_o_lantern: " + new_jack_o_lantern.getBasePrice() + ", should be " + jack_o_lantern.getBasePrice());
+            TEST_OUTPUT.println("   unexpected price for new_jack_o_lantern: " + new_jack_o_lantern.getBasePrice() + ", should be " + jack_o_lantern.getBasePrice());
             errorFound = true;
          }
          if (new_jack_o_lantern.getLevel() != (byte) 2) {
-            System.err.println("   unexpected level for new_jack_o_lantern: " + new_jack_o_lantern.getLevel() + ", should be 2");
+            TEST_OUTPUT.println("   unexpected level for new_jack_o_lantern: " + new_jack_o_lantern.getLevel() + ", should be 2");
             errorFound = true;
          }
          if (new_jack_o_lantern.getQuantity() != jack_o_lantern.getQuantity()) {
-            System.err.println("   unexpected quantity for new_jack_o_lantern: " + new_jack_o_lantern.getQuantity() + ", should be " + jack_o_lantern.getQuantity());
+            TEST_OUTPUT.println("   unexpected quantity for new_jack_o_lantern: " + new_jack_o_lantern.getQuantity() + ", should be " + jack_o_lantern.getQuantity());
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("linked wares - fatal error: " + e);
+         TEST_OUTPUT.println("linked wares - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -1960,7 +1973,7 @@ public class TestSuite
          yield.setAccessible(true);
          componentsIDs.setAccessible(true);
 
-         System.err.println("Ware.validate() - empty ware ID, empty alias, valid price, level, and quantity");
+         TEST_OUTPUT.println("Ware.validate() - empty ware ID, empty alias, valid price, level, and quantity");
          wareID.set(wareMaterial, "");
          wareID.set(wareCrafted, "");
          wareID.set(wareProcessed, "");
@@ -1974,111 +1987,111 @@ public class TestSuite
 
          validateFeedback = wareMaterial.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareMaterial: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareMaterial: " + validateFeedback);
             errorFound = true;
          }
          if (wareMaterial.getAlias() != null) {
-            System.err.println("   unexpected alias for wareMaterial: " + wareMaterial.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareMaterial: " + wareMaterial.getAlias() + ", should be null");
             errorFound = true;
          }
          if (wareMaterial.getBasePrice() != 10.0f) {
-            System.err.println("   unexpected price base for wareMaterial: " + wareMaterial.getBasePrice() + ", should be 10.0");
+            TEST_OUTPUT.println("   unexpected price base for wareMaterial: " + wareMaterial.getBasePrice() + ", should be 10.0");
             errorFound = true;
          }
          if (wareMaterial.getQuantity() != 50) {
-            System.err.println("   unexpected quantity for wareMaterial: " + wareMaterial.getQuantity() + ", should be 50");
+            TEST_OUTPUT.println("   unexpected quantity for wareMaterial: " + wareMaterial.getQuantity() + ", should be 50");
             errorFound = true;
          }
          if (wareMaterial.getLevel() != 0) {
-            System.err.println("   unexpected level for wareMaterial: " + wareMaterial.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareMaterial: " + wareMaterial.getLevel() + ", should be 0");
             errorFound = true;
          }
 
          validateFeedback = wareCrafted.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
             errorFound = true;
          }
          if (wareCrafted.getAlias() != null) {
-            System.err.println("   unexpected alias for wareCrafted: " + wareCrafted.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareCrafted: " + wareCrafted.getAlias() + ", should be null");
             errorFound = true;
          }
          if (wareCrafted.getBasePrice() != 1.2f) {
-            System.err.println("   unexpected price base for wareCrafted: " + wareCrafted.getBasePrice() + ", should be 1.2");
+            TEST_OUTPUT.println("   unexpected price base for wareCrafted: " + wareCrafted.getBasePrice() + ", should be 1.2");
             errorFound = true;
          }
          if (wareCrafted.getQuantity() != 80) {
-            System.err.println("   unexpected quantity for wareCrafted: " + wareCrafted.getQuantity() + ", should be 80");
+            TEST_OUTPUT.println("   unexpected quantity for wareCrafted: " + wareCrafted.getQuantity() + ", should be 80");
             errorFound = true;
          }
          if (wareCrafted.getLevel() != 1) {
-            System.err.println("   unexpected level for wareCrafted: " + wareCrafted.getLevel() + ", should be 1");
+            TEST_OUTPUT.println("   unexpected level for wareCrafted: " + wareCrafted.getLevel() + ", should be 1");
             errorFound = true;
          }
 
          validateFeedback = wareProcessed.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
             errorFound = true;
          }
          if (wareProcessed.getAlias() != null) {
-            System.err.println("   unexpected alias for wareProcessed: " + wareProcessed.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareProcessed: " + wareProcessed.getAlias() + ", should be null");
             errorFound = true;
          }
          if (wareProcessed.getBasePrice() != 2.2f) {
-            System.err.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be 2.2");
+            TEST_OUTPUT.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be 2.2");
             errorFound = true;
          }
          if (wareProcessed.getQuantity() != 123456789) {
-            System.err.println("   unexpected quantity for wareProcessed: " + wareProcessed.getQuantity() + ", should be 123456789");
+            TEST_OUTPUT.println("   unexpected quantity for wareProcessed: " + wareProcessed.getQuantity() + ", should be 123456789");
             errorFound = true;
          }
          if (wareProcessed.getLevel() != 4) {
-            System.err.println("   unexpected level for wareProcessed: " + wareProcessed.getLevel() + ", should be 4");
+            TEST_OUTPUT.println("   unexpected level for wareProcessed: " + wareProcessed.getLevel() + ", should be 4");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableRaw.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableRaw: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableRaw: " + validateFeedback);
             errorFound = true;
          }
          if (wareUntradeableRaw.getAlias() != null) {
-            System.err.println("   unexpected alias for wareUntradeableRaw: " + wareUntradeableRaw.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareUntradeableRaw: " + wareUntradeableRaw.getAlias() + ", should be null");
             errorFound = true;
          }
          if (wareUntradeableRaw.getBasePrice() != 20.0f) {
-            System.err.println("   unexpected price base for wareUntradeableRaw: " + wareUntradeableRaw.getBasePrice() + ", should be 20.0");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableRaw: " + wareUntradeableRaw.getBasePrice() + ", should be 20.0");
             errorFound = true;
          }
          if (wareUntradeableRaw.getQuantity() != Integer.MAX_VALUE) {
-            System.err.println("   unexpected quantity for wareUntradeableRaw: " + wareUntradeableRaw.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity for wareUntradeableRaw: " + wareUntradeableRaw.getQuantity() + ", should be 0");
             errorFound = true;
          }
          if (wareUntradeableRaw.getLevel() != 0) {
-            System.err.println("   unexpected level for wareUntradeableRaw: " + wareUntradeableRaw.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareUntradeableRaw: " + wareUntradeableRaw.getLevel() + ", should be 0");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableComponents.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
             errorFound = true;
          }
          if (wareUntradeableComponents.getAlias() != null) {
-            System.err.println("   unexpected alias for wareUntradeableComponents: " + wareUntradeableComponents.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareUntradeableComponents: " + wareUntradeableComponents.getAlias() + ", should be null");
             errorFound = true;
          }
          if (wareUntradeableComponents.getBasePrice() != 5.0f) {
-            System.err.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be 5.0");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be 5.0");
             errorFound = true;
          }
          if (wareUntradeableComponents.getQuantity() != Integer.MAX_VALUE) {
-            System.err.println("   unexpected quantity for wareUntradeableComponents: " + wareUntradeableComponents.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity for wareUntradeableComponents: " + wareUntradeableComponents.getQuantity() + ", should be 0");
             errorFound = true;
          }
          if (wareUntradeableComponents.getLevel() != 0) {
-            System.err.println("   unexpected level for wareUntradeableComponents: " + wareUntradeableComponents.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareUntradeableComponents: " + wareUntradeableComponents.getLevel() + ", should be 0");
             errorFound = true;
          }
 
@@ -2089,7 +2102,7 @@ public class TestSuite
          wareUntradeableRaw = new WareUntradeable("wareUntradeableRaw", null, 20.0f);
          wareUntradeableComponents = new WareUntradeable(new String[]{"test:material1", "test:material1", "minecraft:material4"}, "wareUntradeableComponents", null, 2);
 
-         System.err.println("Ware.validate() - null ware ID, alias with colon, unset price, unset quantity, level too high");
+         TEST_OUTPUT.println("Ware.validate() - null ware ID, alias with colon, unset price, unset quantity, level too high");
          wareID.set(wareMaterial, null);
          wareID.set(wareCrafted, null);
          wareID.set(wareProcessed, null);
@@ -2118,111 +2131,111 @@ public class TestSuite
 
          validateFeedback = wareMaterial.validate();
          if (!validateFeedback.equals("missing ware ID, unset price")) {
-            System.err.println("   unexpected validate feedback for wareMaterial: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareMaterial: " + validateFeedback);
             errorFound = true;
          }
          if (!wareMaterial.getAlias().equals("aliasMaterial")) {
-            System.err.println("   unexpected alias for wareMaterial: " + wareMaterial.getAlias() + ", should be aliasMaterial");
+            TEST_OUTPUT.println("   unexpected alias for wareMaterial: " + wareMaterial.getAlias() + ", should be aliasMaterial");
             errorFound = true;
          }
          if (!Float.isNaN(wareMaterial.getBasePrice())) {
-            System.err.println("   unexpected price base for wareMaterial: " + wareMaterial.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareMaterial: " + wareMaterial.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareMaterial.getQuantity() != -1) {
-            System.err.println("   unexpected quantity for wareMaterial: " + wareMaterial.getQuantity() + ", should be -1");
+            TEST_OUTPUT.println("   unexpected quantity for wareMaterial: " + wareMaterial.getQuantity() + ", should be -1");
             errorFound = true;
          }
          if (wareMaterial.getLevel() != 5) {
-            System.err.println("   unexpected level for wareMaterial: " + wareMaterial.getLevel() + ", should be 5");
+            TEST_OUTPUT.println("   unexpected level for wareMaterial: " + wareMaterial.getLevel() + ", should be 5");
             errorFound = true;
          }
 
          validateFeedback = wareCrafted.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
             errorFound = true;
          }
          if (!wareCrafted.getAlias().equals("aliasCrafted")) {
-            System.err.println("   unexpected alias for wareCrafted: " + wareCrafted.getAlias() + ", should be aliasCrafted");
+            TEST_OUTPUT.println("   unexpected alias for wareCrafted: " + wareCrafted.getAlias() + ", should be aliasCrafted");
             errorFound = true;
          }
          if (!Float.isNaN(wareCrafted.getBasePrice())) {
-            System.err.println("   unexpected price base for wareCrafted: " + wareCrafted.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareCrafted: " + wareCrafted.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareCrafted.getQuantity() != -1) {
-            System.err.println("   unexpected quantity for wareCrafted: " + wareCrafted.getQuantity() + ", should be -1");
+            TEST_OUTPUT.println("   unexpected quantity for wareCrafted: " + wareCrafted.getQuantity() + ", should be -1");
             errorFound = true;
          }
          if (wareCrafted.getLevel() != 5) {
-            System.err.println("   unexpected level for wareCrafted: " + wareCrafted.getLevel() + ", should be 5");
+            TEST_OUTPUT.println("   unexpected level for wareCrafted: " + wareCrafted.getLevel() + ", should be 5");
             errorFound = true;
          }
 
          validateFeedback = wareProcessed.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
             errorFound = true;
          }
          if (!wareProcessed.getAlias().equals("aliasProcessed")) {
-            System.err.println("   unexpected alias for wareProcessed: " + wareProcessed.getAlias() + ", should be aliasProcessed");
+            TEST_OUTPUT.println("   unexpected alias for wareProcessed: " + wareProcessed.getAlias() + ", should be aliasProcessed");
             errorFound = true;
          }
          if (!Float.isNaN(wareProcessed.getBasePrice())) {
-            System.err.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareProcessed.getQuantity() != -1) {
-            System.err.println("   unexpected quantity for wareProcessed: " + wareProcessed.getQuantity() + ", should be -1");
+            TEST_OUTPUT.println("   unexpected quantity for wareProcessed: " + wareProcessed.getQuantity() + ", should be -1");
             errorFound = true;
          }
          if (wareProcessed.getLevel() != 5) {
-            System.err.println("   unexpected level for wareProcessed: " + wareProcessed.getLevel() + ", should be 5");
+            TEST_OUTPUT.println("   unexpected level for wareProcessed: " + wareProcessed.getLevel() + ", should be 5");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableRaw.validate();
          if (!validateFeedback.equals("missing ware ID, unset price")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableRaw: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableRaw: " + validateFeedback);
             errorFound = true;
          }
          if (!wareUntradeableRaw.getAlias().equals("aliasUntradeableRaw")) {
-            System.err.println("   unexpected alias for wareUntradeableRaw: " + wareUntradeableRaw.getAlias() + ", should be aliasUntradeableRaw");
+            TEST_OUTPUT.println("   unexpected alias for wareUntradeableRaw: " + wareUntradeableRaw.getAlias() + ", should be aliasUntradeableRaw");
             errorFound = true;
          }
          if (!Float.isNaN(wareUntradeableRaw.getBasePrice())) {
-            System.err.println("   unexpected price base for wareUntradeableRaw: " + wareUntradeableRaw.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableRaw: " + wareUntradeableRaw.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareUntradeableRaw.getQuantity() != Integer.MAX_VALUE) {
-            System.err.println("   unexpected quantity for wareUntradeableRaw: " + wareUntradeableRaw.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity for wareUntradeableRaw: " + wareUntradeableRaw.getQuantity() + ", should be 0");
             errorFound = true;
          }
          if (wareUntradeableRaw.getLevel() != 0) {
-            System.err.println("   unexpected level for wareUntradeableRaw: " + wareUntradeableRaw.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareUntradeableRaw: " + wareUntradeableRaw.getLevel() + ", should be 0");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableComponents.validate();
          if (!validateFeedback.equals("missing ware ID")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
             errorFound = true;
          }
          if (!wareUntradeableComponents.getAlias().equals("aliasUntradeableComponents")) {
-            System.err.println("   unexpected alias for wareUntradeableComponents: " + wareUntradeableComponents.getAlias() + ", should be aliasUntradeableComponents");
+            TEST_OUTPUT.println("   unexpected alias for wareUntradeableComponents: " + wareUntradeableComponents.getAlias() + ", should be aliasUntradeableComponents");
             errorFound = true;
          }
          if (!Float.isNaN(wareUntradeableComponents.getBasePrice())) {
-            System.err.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareUntradeableComponents.getQuantity() != Integer.MAX_VALUE) {
-            System.err.println("   unexpected quantity for wareUntradeableComponents: " + wareUntradeableComponents.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity for wareUntradeableComponents: " + wareUntradeableComponents.getQuantity() + ", should be 0");
             errorFound = true;
          }
          if (wareUntradeableComponents.getLevel() != 0) {
-            System.err.println("   unexpected level for wareUntradeableComponents: " + wareUntradeableComponents.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareUntradeableComponents: " + wareUntradeableComponents.getLevel() + ", should be 0");
             errorFound = true;
          }
 
@@ -2233,7 +2246,7 @@ public class TestSuite
          wareUntradeableRaw = new WareUntradeable("wareUntradeableRaw", null, 20.0f);
          wareUntradeableComponents = new WareUntradeable(new String[]{"test:material1", "test:material1", "minecraft:material4"}, "wareUntradeableComponents", null, 2);
 
-         System.err.println("Ware.validate() - valid ware ID, null alias, NaN price, level too low, and valid quantity");
+         TEST_OUTPUT.println("Ware.validate() - valid ware ID, null alias, NaN price, level too low, and valid quantity");
          price.setFloat(wareMaterial, Float.NaN);
          price.setFloat(wareCrafted, Float.NaN);
          price.setFloat(wareProcessed, Float.NaN);
@@ -2252,111 +2265,111 @@ public class TestSuite
 
          validateFeedback = wareMaterial.validate();
          if (!validateFeedback.equals("unset price")) {
-            System.err.println("   unexpected validate feedback for wareMaterial: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareMaterial: " + validateFeedback);
             errorFound = true;
          }
          if (wareMaterial.getAlias() != null) {
-            System.err.println("   unexpected alias for wareMaterial: " + wareMaterial.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareMaterial: " + wareMaterial.getAlias() + ", should be null");
             errorFound = true;
          }
          if (!Float.isNaN(wareMaterial.getBasePrice())) {
-            System.err.println("   unexpected price base for wareMaterial: " + wareMaterial.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareMaterial: " + wareMaterial.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareMaterial.getLevel() != 0) {
-            System.err.println("   unexpected level for wareMaterial: " + wareMaterial.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareMaterial: " + wareMaterial.getLevel() + ", should be 0");
             errorFound = true;
          }
          if (wareMaterial.getQuantity() != 50) {
-            System.err.println("   unexpected quantity for wareMaterial: " + wareMaterial.getQuantity() + ", should be 50");
+            TEST_OUTPUT.println("   unexpected quantity for wareMaterial: " + wareMaterial.getQuantity() + ", should be 50");
             errorFound = true;
          }
 
          validateFeedback = wareCrafted.validate();
          if (!validateFeedback.equals("")) {
-            System.err.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
             errorFound = true;
          }
          if (wareCrafted.getAlias() != null) {
-            System.err.println("   unexpected alias for wareCrafted: " + wareCrafted.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareCrafted: " + wareCrafted.getAlias() + ", should be null");
             errorFound = true;
          }
          if (!Float.isNaN(wareCrafted.getBasePrice())) {
-            System.err.println("   unexpected price base for wareCrafted: " + wareCrafted.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareCrafted: " + wareCrafted.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareCrafted.getLevel() != 0) {
-            System.err.println("   unexpected level for wareCrafted: " + wareCrafted.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareCrafted: " + wareCrafted.getLevel() + ", should be 0");
             errorFound = true;
          }
          if (wareCrafted.getQuantity() != 80) {
-            System.err.println("   unexpected quantity for wareCrafted: " + wareCrafted.getQuantity() + ", should be 80");
+            TEST_OUTPUT.println("   unexpected quantity for wareCrafted: " + wareCrafted.getQuantity() + ", should be 80");
             errorFound = true;
          }
 
          validateFeedback = wareProcessed.validate();
          if (!validateFeedback.equals("")) {
-            System.err.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
             errorFound = true;
          }
          if (wareProcessed.getAlias() != null) {
-            System.err.println("   unexpected alias for wareProcessed: " + wareProcessed.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareProcessed: " + wareProcessed.getAlias() + ", should be null");
             errorFound = true;
          }
          if (!Float.isNaN(wareProcessed.getBasePrice())) {
-            System.err.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareProcessed.getLevel() != 0) {
-            System.err.println("   unexpected level for wareProcessed: " + wareProcessed.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareProcessed: " + wareProcessed.getLevel() + ", should be 0");
             errorFound = true;
          }
          if (wareProcessed.getQuantity() != 123456789) {
-            System.err.println("   unexpected quantity for wareProcessed: " + wareProcessed.getQuantity() + ", should be 16");
+            TEST_OUTPUT.println("   unexpected quantity for wareProcessed: " + wareProcessed.getQuantity() + ", should be 16");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableRaw.validate();
          if (!validateFeedback.equals("unset price")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableRaw: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableRaw: " + validateFeedback);
             errorFound = true;
          }
          if (wareUntradeableRaw.getAlias() != null) {
-            System.err.println("   unexpected alias for wareUntradeableRaw: " + wareUntradeableRaw.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareUntradeableRaw: " + wareUntradeableRaw.getAlias() + ", should be null");
             errorFound = true;
          }
          if (!Float.isNaN(wareUntradeableRaw.getBasePrice())) {
-            System.err.println("   unexpected price base for wareUntradeableRaw: " + wareUntradeableRaw.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableRaw: " + wareUntradeableRaw.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareUntradeableRaw.getLevel() != 0) {
-            System.err.println("   unexpected level for wareUntradeableRaw: " + wareUntradeableRaw.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareUntradeableRaw: " + wareUntradeableRaw.getLevel() + ", should be 0");
             errorFound = true;
          }
          if (wareUntradeableRaw.getQuantity() != Integer.MAX_VALUE) {
-            System.err.println("   unexpected quantity for wareUntradeableRaw: " + wareUntradeableRaw.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity for wareUntradeableRaw: " + wareUntradeableRaw.getQuantity() + ", should be 0");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableComponents.validate();
          if (!validateFeedback.equals("")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
             errorFound = true;
          }
          if (wareUntradeableComponents.getAlias() != null) {
-            System.err.println("   unexpected alias for wareUntradeableComponents: " + wareUntradeableComponents.getAlias() + ", should be null");
+            TEST_OUTPUT.println("   unexpected alias for wareUntradeableComponents: " + wareUntradeableComponents.getAlias() + ", should be null");
             errorFound = true;
          }
          if (!Float.isNaN(wareUntradeableComponents.getBasePrice())) {
-            System.err.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if (wareUntradeableComponents.getLevel() != 0) {
-            System.err.println("   unexpected level for wareUntradeableComponents: " + wareUntradeableComponents.getLevel() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected level for wareUntradeableComponents: " + wareUntradeableComponents.getLevel() + ", should be 0");
             errorFound = true;
          }
          if (wareUntradeableComponents.getQuantity() != Integer.MAX_VALUE) {
-            System.err.println("   unexpected quantity for wareUntradeableComponents: " + wareUntradeableComponents.getQuantity() + ", should be 0");
+            TEST_OUTPUT.println("   unexpected quantity for wareUntradeableComponents: " + wareUntradeableComponents.getQuantity() + ", should be 0");
             errorFound = true;
          }
 
@@ -2365,7 +2378,7 @@ public class TestSuite
          wareProcessed = new WareProcessed(new String[]{"test:material1", "test:material1"}, "wareProcessed", null, 16, 1, (byte) 4);
          wareUntradeableComponents = new WareUntradeable(new String[]{"test:material1", "test:material1", "minecraft:material4"}, "wareUntradeableComponents", null, 2);
 
-         System.err.println("Ware.validate() - null components' IDs, zero yield");
+         TEST_OUTPUT.println("Ware.validate() - null components' IDs, zero yield");
          componentsIDs.set(wareCrafted, null);
          componentsIDs.set(wareProcessed, null);
          componentsIDs.set(wareUntradeableComponents, null);
@@ -2378,39 +2391,39 @@ public class TestSuite
 
          validateFeedback = wareCrafted.validate();
          if (!validateFeedback.equals("missing components' IDs")) {
-            System.err.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
             errorFound = true;
          }
          if (!Float.isNaN(wareCrafted.getBasePrice())) {
-            System.err.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if ((int) yield.get(wareCrafted) != 1) {
-            System.err.println("   unexpected yield for wareCrafted: " + yield.get(wareCrafted) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for wareCrafted: " + yield.get(wareCrafted) + ", should be 1");
             errorFound = true;
          }
 
          validateFeedback = wareProcessed.validate();
          if (!validateFeedback.equals("missing components' IDs")) {
-            System.err.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
             errorFound = true;
          }
          if (!Float.isNaN(wareProcessed.getBasePrice())) {
-            System.err.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if ((int) yield.get(wareProcessed) != 1) {
-            System.err.println("   unexpected yield for wareProcessed: " + yield.get(wareProcessed) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for wareProcessed: " + yield.get(wareProcessed) + ", should be 1");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableComponents.validate();
          if (!validateFeedback.equals("missing components' IDs")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
             errorFound = true;
          }
          if (!Float.isNaN(wareUntradeableComponents.getBasePrice())) {
-            System.err.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          // now test untradeable ware with zero yield
@@ -2418,7 +2431,7 @@ public class TestSuite
          yield.setByte(wareUntradeableComponents, (byte) 0);
          validateFeedback = wareUntradeableComponents.validate();
          if ((int) yield.get(wareUntradeableComponents) != 1) {
-            System.err.println("   unexpected yield for wareUntradeableComponents: " + yield.get(wareUntradeableComponents) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for wareUntradeableComponents: " + yield.get(wareUntradeableComponents) + ", should be 1");
             errorFound = true;
          }
 
@@ -2427,7 +2440,7 @@ public class TestSuite
          wareProcessed = new WareProcessed(new String[]{"test:material1", "test:material1"}, "wareProcessed", null, 16, 1, (byte) 4);
          wareUntradeableComponents = new WareUntradeable(new String[]{"test:material1", "test:material1", "minecraft:material4"}, "wareUntradeableComponents", null, 2);
 
-         System.err.println("Ware.validate() - empty individual components' IDs, negative yield");
+         TEST_OUTPUT.println("Ware.validate() - empty individual components' IDs, negative yield");
          componentsIDs.set(wareCrafted, new String[]{""});
          componentsIDs.set(wareProcessed, new String[]{"test:material1", null});
          componentsIDs.set(wareUntradeableComponents, new String[]{"", "test:material1", null});
@@ -2440,48 +2453,48 @@ public class TestSuite
 
          validateFeedback = wareCrafted.validate();
          if (!validateFeedback.equals("blank component ID")) {
-            System.err.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareCrafted: " + validateFeedback);
             errorFound = true;
          }
          if (!Float.isNaN(wareCrafted.getBasePrice())) {
-            System.err.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if ((int) yield.get(wareCrafted) != 1) {
-            System.err.println("   unexpected yield for wareCrafted: " + yield.get(wareCrafted) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for wareCrafted: " + yield.get(wareCrafted) + ", should be 1");
             errorFound = true;
          }
 
          validateFeedback = wareProcessed.validate();
          if (!validateFeedback.equals("blank component ID")) {
-            System.err.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareProcessed: " + validateFeedback);
             errorFound = true;
          }
          if (!Float.isNaN(wareProcessed.getBasePrice())) {
-            System.err.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareProcessed: " + wareProcessed.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if ((int) yield.get(wareProcessed) != 1) {
-            System.err.println("   unexpected yield for wareProcessed: " + yield.get(wareProcessed) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for wareProcessed: " + yield.get(wareProcessed) + ", should be 1");
             errorFound = true;
          }
 
          validateFeedback = wareUntradeableComponents.validate();
          if (!validateFeedback.equals("blank component ID")) {
-            System.err.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
+            TEST_OUTPUT.println("   unexpected validate feedback for wareUntradeableComponents: " + validateFeedback);
             errorFound = true;
          }
          if (!Float.isNaN(wareUntradeableComponents.getBasePrice())) {
-            System.err.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
+            TEST_OUTPUT.println("   unexpected price base for wareUntradeableComponents: " + wareUntradeableComponents.getBasePrice() + ", should be NaN");
             errorFound = true;
          }
          if ((int) yield.get(wareUntradeableComponents) != 1) {
-            System.err.println("   unexpected yield for wareUntradeableComponents: " + yield.get(wareUntradeableComponents) + ", should be 1");
+            TEST_OUTPUT.println("   unexpected yield for wareUntradeableComponents: " + yield.get(wareUntradeableComponents) + ", should be 1");
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("Ware.validate() - fatal error: " + e);
+         TEST_OUTPUT.println("Ware.validate() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -2507,31 +2520,31 @@ public class TestSuite
 
       Account testAccount; // holds account currently being checked
       try {
-         System.err.println("accountCreation() - creation of account using null ID");
+         TEST_OUTPUT.println("accountCreation() - creation of account using null ID");
          Account.makeAccount(null, null);
          if (accounts.size() != 0) {
-            System.err.println("   account was created using a null id");
+            TEST_OUTPUT.println("   account was created using a null id");
             errorFound = true;
             accounts.clear(); // delete account so other tests run properly
          }
 
-         System.err.println("accountCreation() - creation of account using empty ID");
+         TEST_OUTPUT.println("accountCreation() - creation of account using empty ID");
          Account.makeAccount("", null);
          if (accounts.size() != 0) {
-            System.err.println("   account was created using an empty id");
+            TEST_OUTPUT.println("   account was created using an empty id");
             errorFound = true;
             accounts.clear(); // delete account to avoid interfering with other tests
          }
 
-         System.err.println("accountCreation() - creation of account using numerical id");
+         TEST_OUTPUT.println("accountCreation() - creation of account using numerical id");
          Account.makeAccount("12345", null);
          if (accounts.size() != 0) {
-            System.err.println("   account was created using a numerical id");
+            TEST_OUTPUT.println("   account was created using a numerical id");
             errorFound = true;
             accounts.clear(); // delete account to avoid interfering with other tests
          }
 
-         System.err.println("accountCreation() - creation of account using valid id and no given player");
+         TEST_OUTPUT.println("accountCreation() - creation of account using valid id and no given player");
          Account.makeAccount("testAccount1", null);
          testAccount = accounts.get("testAccount1");
          errorFound = errorFound || testAccountFields(testAccount, 10.0f, null);
@@ -2539,112 +2552,112 @@ public class TestSuite
          // grant account access to player for next tests
          testAccount.grantAccess(null, PLAYER_ID, null);
 
-         System.err.println("accountCreation() - adding money to account");
+         TEST_OUTPUT.println("accountCreation() - adding money to account");
          testAccount.addMoney(2.0f);
          errorFound = errorFound || testAccountFields(testAccount, 12.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - creation of account using existing ID");
+         TEST_OUTPUT.println("accountCreation() - creation of account using existing ID");
          Account.makeAccount("testAccount1", null);
          testAccount = accounts.get("testAccount1");
          errorFound = errorFound || testAccountFields(testAccount, 12.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - permissions of account with valid ID");
+         TEST_OUTPUT.println("accountCreation() - permissions of account with valid ID");
          if (testAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   arbitrary player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   arbitrary player ID has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - creation of account with specified starting amount");
+         TEST_OUTPUT.println("accountCreation() - creation of account with specified starting amount");
          Account.makeAccount("testAccount2", PLAYER_ID, 14.0f);
          testAccount = accounts.get("testAccount2");
          errorFound = errorFound || testAccountFields(testAccount, 14.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - permissions of account with specified starting amount");
+         TEST_OUTPUT.println("accountCreation() - permissions of account with specified starting amount");
          if (testAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   arbitrary player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   arbitrary player ID has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - creation of account with specified starting amount of NaN");
+         TEST_OUTPUT.println("accountCreation() - creation of account with specified starting amount of NaN");
          Account accountNaNMoney = Account.makeAccount("", PLAYER_ID, Float.NaN);
          errorFound = errorFound || testAccountFields(accountNaNMoney, 0.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - creation of account for arbitrary player ID");
+         TEST_OUTPUT.println("accountCreation() - creation of account for arbitrary player ID");
          Account.makeAccount("testAccount3", InterfaceTerminal.getPlayerIDStatic("possibleID"));
          testAccount = accounts.get("testAccount3");
          errorFound = errorFound || testAccountFields(testAccount, 10.0f, "possibleID");
 
-         System.err.println("accountCreation() - permissions of account with arbitrary player ID");
+         TEST_OUTPUT.println("accountCreation() - permissions of account with arbitrary player ID");
          if (testAccount.hasAccess(PLAYER_ID)) {
-            System.err.println("   " + InterfaceTerminal.playername + " has access when they shouldn't");
+            TEST_OUTPUT.println("   " + InterfaceTerminal.playername + " has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - creation of inaccessible account");
+         TEST_OUTPUT.println("accountCreation() - creation of inaccessible account");
          Account.makeAccount("testAccount4", null, 6.0f);
          testAccount = accounts.get("testAccount4");
          if (testAccount.hasAccess(PLAYER_ID)) {
-            System.err.println("   " + InterfaceTerminal.playername + " has access when they shouldn't");
+            TEST_OUTPUT.println("   " + InterfaceTerminal.playername + " has access when they shouldn't");
             errorFound = true;
          }
          if (testAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   arbitrary player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   arbitrary player ID has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - creation of a player's personal account");
+         TEST_OUTPUT.println("accountCreation() - creation of a player's personal account");
          Account.makeAccount(InterfaceTerminal.playername, PLAYER_ID);
          testAccount = accounts.get(InterfaceTerminal.playername);
          errorFound = errorFound || testAccountFields(testAccount, 10.0f, InterfaceTerminal.playername);
          if (testAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   arbitrary player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   arbitrary player ID has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - adding money to account created with specified starting amount");
+         TEST_OUTPUT.println("accountCreation() - adding money to account created with specified starting amount");
          testAccount = accounts.get("testAccount2");
          testAccount.addMoney(3.0f);
          errorFound = errorFound || testAccountFields(testAccount, 17.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - adding NaN amount of money to account");
+         TEST_OUTPUT.println("accountCreation() - adding NaN amount of money to account");
          testAccount = accounts.get("testAccount1");
          testAccount.addMoney(Float.NaN);
          errorFound = errorFound || testAccountFields(testAccount, 12.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - adding no money to account");
+         TEST_OUTPUT.println("accountCreation() - adding no money to account");
          testAccount.addMoney(0.0f);
          testAccount = accounts.get("testAccount1");
          errorFound = errorFound || testAccountFields(testAccount, 12.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - subtracting money from account");
+         TEST_OUTPUT.println("accountCreation() - subtracting money from account");
          testAccount.addMoney(-10.0f);
          testAccount = accounts.get("testAccount1");
          errorFound = errorFound || testAccountFields(testAccount, 2.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - retrieving number of accounts using null input");
+         TEST_OUTPUT.println("accountCreation() - retrieving number of accounts using null input");
          int accountsCreated = -1;
          accountsCreated = Account.getNumAccountsCreatedByUser(null);
          if (accountsCreated != 2147483647) {
-            System.err.println("   null input gave unexpected value: " + accountsCreated + ", should be 2147483647");
+            TEST_OUTPUT.println("   null input gave unexpected value: " + accountsCreated + ", should be 2147483647");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - retrieving number of accounts created by nonexistent user");
+         TEST_OUTPUT.println("accountCreation() - retrieving number of accounts created by nonexistent user");
          accountsCreated = -1;
          accountsCreated = Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("possibleID2"));
          if (accountsCreated != 0) {
-            System.err.println("   unexpected value: " + accountsCreated + ", should be 0");
+            TEST_OUTPUT.println("   unexpected value: " + accountsCreated + ", should be 0");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - retrieving number of accounts created by test users");
+         TEST_OUTPUT.println("accountCreation() - retrieving number of accounts created by test users");
          accountsCreated = -1;
          Account.makeAccount("possibleAccount1", InterfaceTerminal.getPlayerIDStatic("possibleID2"), 10.0f);
          Account.makeAccount("", InterfaceTerminal.getPlayerIDStatic("possibleID2"), 10.0f);
          Account.makeAccount(null, InterfaceTerminal.getPlayerIDStatic("possibleID2"), 10.0f);
          accountsCreated = Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("possibleID2"));
          if (accountsCreated != 3) {
-            System.err.println("   unexpected value for number of accounts created by possibleID2: " + accountsCreated + ", should be 3");
+            TEST_OUTPUT.println("   unexpected value for number of accounts created by possibleID2: " + accountsCreated + ", should be 3");
             errorFound = true;
          }
 
@@ -2653,84 +2666,84 @@ public class TestSuite
          Account.makeAccount("possibleAccount2", InterfaceTerminal.getPlayerIDStatic("possibleID3"));
          accountsCreated = Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("possibleID3"));
          if (accountsCreated != 1) {
-            System.err.println("   unexpected value for number of accounts created by possibleID3: " + accountsCreated + ", should be 1");
+            TEST_OUTPUT.println("   unexpected value for number of accounts created by possibleID3: " + accountsCreated + ", should be 1");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - non-personal account creation when exceeding per-player limit");
+         TEST_OUTPUT.println("accountCreation() - non-personal account creation when exceeding per-player limit");
          Config.accountMaxCreatedByIndividual = 0;
          Account.makeAccount("shouldNotExist", InterfaceTerminal.getPlayerIDStatic("possibleID4"), 10.0f);
          if (accounts.containsKey("shouldNotExist")) {
-            System.err.println("   account was created despite exceeding limit");
+            TEST_OUTPUT.println("   account was created despite exceeding limit");
             errorFound = true;
          }
 
          accountsCreated = -1;
          accountsCreated = Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("possibleID4"));
          if (accountsCreated != 0) {
-            System.err.println("   unexpected value for number of accounts created by possible user: " + accountsCreated + ", should be 0");
+            TEST_OUTPUT.println("   unexpected value for number of accounts created by possible user: " + accountsCreated + ", should be 0");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - personal account creation when exceeding per-player limit");
+         TEST_OUTPUT.println("accountCreation() - personal account creation when exceeding per-player limit");
          Config.accountMaxCreatedByIndividual = 0;
          Account.makeAccount("possibleID4", InterfaceTerminal.getPlayerIDStatic("possibleID4"), 10.0f);
          if (!accounts.containsKey("possibleID4")) {
-            System.err.println("   account was not created when it should have been");
+            TEST_OUTPUT.println("   account was not created when it should have been");
             errorFound = true;
          }
 
          accountsCreated = -1;
          accountsCreated = Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("possibleID4"));
          if (accountsCreated != 0) {
-            System.err.println("   unexpected value for number of accounts created by possible user: " + accountsCreated + ", should be 0");
+            TEST_OUTPUT.println("   unexpected value for number of accounts created by possible user: " + accountsCreated + ", should be 0");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - account creation after removing limit");
+         TEST_OUTPUT.println("accountCreation() - account creation after removing limit");
          Config.accountMaxCreatedByIndividual = -1;
          Account.makeAccount("shouldExist", InterfaceTerminal.getPlayerIDStatic("possibleID4"), 10.0f);
          if (!accounts.containsKey("shouldExist")) {
-            System.err.println("   account was not created when it should have been");
+            TEST_OUTPUT.println("   account was not created when it should have been");
             errorFound = true;
          }
 
          accountsCreated = -1;
          accountsCreated = Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("possibleID4"));
          if (accountsCreated != 1) {
-            System.err.println("   unexpected value for number of accounts created by possible user: " + accountsCreated + ", should be 1");
+            TEST_OUTPUT.println("   unexpected value for number of accounts created by possible user: " + accountsCreated + ", should be 1");
             errorFound = true;
          }
 
-         System.err.println("accountCreation() - non-personal account creation using nonexistent player ID");
+         TEST_OUTPUT.println("accountCreation() - non-personal account creation using nonexistent player ID");
          Account.makeAccount("possibleID5", PLAYER_ID, Config.accountStartingMoney + 10.0f);
          testAccount = accounts.get("possibleID5");
          errorFound = errorFound || testAccountFields(testAccount, Config.accountStartingMoney + 10.0f, InterfaceTerminal.playername);
 
-         System.err.println("accountCreation() - personal account creation using existing non-personal account ID");
+         TEST_OUTPUT.println("accountCreation() - personal account creation using existing non-personal account ID");
          accounts.get(InterfaceTerminal.playername).setMoney(10.0f); // set player account funds to a known value
          Account.makeAccount("possibleID5", InterfaceTerminal.getPlayerIDStatic("possibleID5"));
          testAccount = accounts.get("possibleID5");
          errorFound = errorFound || testAccountFields(testAccount, Config.accountStartingMoney, "possibleID5");
          if (testAccount.hasAccess(PLAYER_ID)) {
-            System.err.println("   player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   player ID has access when they shouldn't");
             errorFound = true;
          }
          testAccount = accounts.get(InterfaceTerminal.playername);
          if (testAccount.getMoney() != Config.accountStartingMoney + 20.0f) {
-            System.err.println("   player's account has $" + testAccount.getMoney() + ", should be " + (Config.accountStartingMoney + 20.0f));
+            TEST_OUTPUT.println("   player's account has $" + testAccount.getMoney() + ", should be " + (Config.accountStartingMoney + 20.0f));
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("accountCreation() - fatal error: " + e);
+         TEST_OUTPUT.println("accountCreation() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
 
       // ensure loaded wares matches the expected amount
       if (accounts.size() != 10) {
-         System.err.println("only 10 test accounts should have been created, but total accounts is " + accounts.size());
+         TEST_OUTPUT.println("only 10 test accounts should have been created, but total accounts is " + accounts.size());
          return false;
       }
 
@@ -2751,274 +2764,274 @@ public class TestSuite
       resetTestEnvironment();
 
       try {
-         System.err.println("accountAccess() - adding permissions for null account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions for null account ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("possibleID"), null);
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check permissions
          if (!testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   possible player ID doesn't have access when they should");
+            TEST_OUTPUT.println("   possible player ID doesn't have access when they should");
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions for empty account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions for empty account ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("anotherPossibleID"), "");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check permissions
          if (!testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("anotherPossibleID"))) {
-            System.err.println("   possible player ID doesn't have access when they should");
+            TEST_OUTPUT.println("   possible player ID doesn't have access when they should");
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions for invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions for invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("yetAnotherPossibleID"), "some arbitrary account");
 
          // check console output
-         if (!testBAOS.toString().startsWith("yetAnotherPossibleID may now access some arbitrary account")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("yetAnotherPossibleID may now access some arbitrary account")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check permissions
          if (!testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("yetAnotherPossibleID"))) {
-            System.err.println("   possible player ID doesn't have access when they should");
+            TEST_OUTPUT.println("   possible player ID doesn't have access when they should");
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions for null player ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions for null player ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(PLAYER_ID, null, "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions for empty player ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions for empty player ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic(""), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions for player ID already given permissions");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions for player ID already given permissions");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().startsWith("possibleID already may access testAccount1")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("possibleID already may access testAccount1")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions so multiple players share an account");
+         TEST_OUTPUT.println("accountAccess() - adding permissions so multiple players share an account");
          testAccount1.grantAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("possibleID1"), "testAccount1");
          testAccount1.grantAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("possibleID2"), "testAccount1");
 
          // check permissions
          if (!testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID1"))) {
-            System.err.println("   first possible player ID doesn't have access when they should");
+            TEST_OUTPUT.println("   first possible player ID doesn't have access when they should");
             errorFound = true;
          }
          if (!testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID2"))) {
-            System.err.println("   second possible player ID doesn't have access when they should");
+            TEST_OUTPUT.println("   second possible player ID doesn't have access when they should");
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions without permission to do so");
+         TEST_OUTPUT.println("accountAccess() - adding permissions without permission to do so");
          String playernameOrig = InterfaceTerminal.playername;
          InterfaceTerminal.playername = "permissionlessPlayer";
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(InterfaceTerminal.getPlayerIDStatic("permissionlessPlayer"), InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().startsWith("You don't have permission to access testAccount1")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("You don't have permission to access testAccount1")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          InterfaceTerminal.playername = playernameOrig;
 
-         System.err.println("accountAccess() - adding permissions with null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions with null username");
+         baosOut.reset(); // clear buffer holding console output
          testAccount4.grantAccess(null, InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount4");
 
          // check console output
-         if (!testBAOS.toString().startsWith("(for possibleID) You may now access testAccount4")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("(for possibleID) You may now access testAccount4")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions with empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions with empty username");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.grantAccess(InterfaceTerminal.getPlayerIDStatic(""), InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - adding permissions with different username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - adding permissions with different username");
+         baosOut.reset(); // clear buffer holding console output
          testAccount3.grantAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"), PLAYER_ID, "testAccount3");
 
          // check permissions
          if (!testAccount3.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   possible player ID doesn't have access when they should");
+            TEST_OUTPUT.println("   possible player ID doesn't have access when they should");
             errorFound = true;
          }
          if (!testAccount3.hasAccess(PLAYER_ID)) {
-            System.err.println("   player doesn't have access when they should");
+            TEST_OUTPUT.println("   player doesn't have access when they should");
             errorFound = true;
          }
 
 
-         System.err.println("accountAccess() - removing permissions for null account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions for null account ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("possibleID"), null);
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check permissions
          if (testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   possible player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   possible player ID has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions for empty account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions for empty account ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("anotherPossibleID"), "");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check permissions
          if (testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("anotherPossibleID"))) {
-            System.err.println("   possible player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   possible player ID has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions for invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions for invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("yetAnotherPossibleID"), "some arbitrary account");
 
          // check console output
-         if (!testBAOS.toString().startsWith("yetAnotherPossibleID may no longer access some arbitrary account")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("yetAnotherPossibleID may no longer access some arbitrary account")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check permissions
          if (testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("yetAnotherPossibleID"))) {
-            System.err.println("   possible player ID has access when they shouldn't");
+            TEST_OUTPUT.println("   possible player ID has access when they shouldn't");
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions for null player ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions for null player ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic(null), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions for empty player ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions for empty player ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic(""), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions for player ID without permissions");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions for player ID without permissions");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(PLAYER_ID, InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().startsWith("possibleID already cannot access testAccount1.")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("possibleID already cannot access testAccount1.")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions without permission to do so");
+         TEST_OUTPUT.println("accountAccess() - removing permissions without permission to do so");
          playernameOrig = InterfaceTerminal.playername;
          InterfaceTerminal.playername = "permissionlessPlayer";
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(InterfaceTerminal.getPlayerIDStatic("permissionlessPlayer"), InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount1");
          InterfaceTerminal.playername = playernameOrig;
 
          // check console output
-         if (!testBAOS.toString().startsWith("You don't have permission to access testAccount1")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("You don't have permission to access testAccount1")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions with null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions with null username");
+         baosOut.reset(); // clear buffer holding console output
          testAccount4.revokeAccess(InterfaceTerminal.getPlayerIDStatic(null), InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount4");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions with empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions with empty username");
+         baosOut.reset(); // clear buffer holding console output
          testAccount1.revokeAccess(InterfaceTerminal.getPlayerIDStatic(""), InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount1");
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountAccess() - removing permissions with different username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountAccess() - removing permissions with different username");
+         baosOut.reset(); // clear buffer holding console output
          testAccount3.revokeAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"), PLAYER_ID, "testAccount3");
 
          // check permissions
          if (!testAccount3.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
-            System.err.println("   possible player ID doesn't have access when they should");
+            TEST_OUTPUT.println("   possible player ID doesn't have access when they should");
             errorFound = true;
          }
          if (testAccount3.hasAccess(PLAYER_ID)) {
-            System.err.println("   player has access when they shouldn't");
+            TEST_OUTPUT.println("   player has access when they shouldn't");
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("accountAccess() - fatal error: " + e);
+         TEST_OUTPUT.println("accountAccess() - fatal error: " + e);
          return false;
       }
 
@@ -3041,57 +3054,57 @@ public class TestSuite
       Account testAccountAccessible   = Account.makeAccount("", PLAYER_ID, 10.0f);
       Account testAccountInaccessible = Account.makeAccount("", null, 20.0f);
       try {
-         System.err.println("accountCheck() - null account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountCheck() - null account ID");
+         baosOut.reset(); // clear buffer holding console output
          playerAccount.check(PLAYER_ID, null);
-         if (!testBAOS.toString().equals("")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountCheck() - empty account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountCheck() - empty account ID");
+         baosOut.reset(); // clear buffer holding console output
          playerAccount.check(PLAYER_ID, "");
-         if (!testBAOS.toString().equals("")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountCheck() - arbitrary account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountCheck() - arbitrary account ID");
+         baosOut.reset(); // clear buffer holding console output
          testAccountAccessible.check(PLAYER_ID, "Your account");
-         if (!testBAOS.toString().equals("Your account: $10.00" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Your account: $10.00" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountCheck() - without permission");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountCheck() - without permission");
+         baosOut.reset(); // clear buffer holding console output
          testAccountInaccessible.check(PLAYER_ID, "this inaccessible account");
-         if (!testBAOS.toString().equals("You don't have permission to access this inaccessible account" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You don't have permission to access this inaccessible account" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountCheck() - different username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountCheck() - different username");
+         baosOut.reset(); // clear buffer holding console output
          testAccount3.check(InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount3");
-         if (!testBAOS.toString().equals("(for possibleID) testAccount3: $30.00" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("(for possibleID) testAccount3: $30.00" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("accountCheck() - large number");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("accountCheck() - large number");
+         baosOut.reset(); // clear buffer holding console output
          testAccountAccessible.setMoney(1000000.1f);
          testAccountAccessible.check(PLAYER_ID, "Your account");
-         if (!testBAOS.toString().equals("Your account: $1,000,000.12" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Your account: $1,000,000.12" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("accountCheck() - fatal error: " + e);
+         TEST_OUTPUT.println("accountCheck() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -3112,135 +3125,135 @@ public class TestSuite
       resetTestEnvironment();
 
       try {
-         System.err.println("accountSendMoney() - sending a negative amount of money");
+         TEST_OUTPUT.println("accountSendMoney() - sending a negative amount of money");
          testAccount1.sendMoney(PLAYER_ID, -10.0f, "testAccount1", "testAccount2");
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)
              || testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account changed when it should not have changed");
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 10.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 20.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account changed when it should not have changed");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 10.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 20.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(10.0f);
             testAccount2.setMoney(20.0f);
          }
 
-         System.err.println("accountSendMoney() - sending no money");
+         TEST_OUTPUT.println("accountSendMoney() - sending no money");
          testAccount1.sendMoney(PLAYER_ID, 0.0f, "testAccount1", "testAccount2");
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)
              || testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account changed when it should not have changed");
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 10.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 20.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account changed when it should not have changed");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 10.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 20.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(10.0f);
             testAccount2.setMoney(20.0f);
          }
 
-         System.err.println("accountSendMoney() - sending with a null sender ID");
+         TEST_OUTPUT.println("accountSendMoney() - sending with a null sender ID");
          testAccount1.sendMoney(PLAYER_ID, 1.0f, null, "testAccount2");
          if (testAccountFields(testAccount1, 9.0f, InterfaceTerminal.playername)
              || testAccountFields(testAccount2, 21.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 9.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 21.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 9.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 21.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(9.0f);
             testAccount2.setMoney(21.0f);
          }
 
-         System.err.println("accountSendMoney() - sending with an empty sender ID");
+         TEST_OUTPUT.println("accountSendMoney() - sending with an empty sender ID");
          testAccount1.sendMoney(PLAYER_ID, 1.0f, "", "testAccount2");
          if (testAccountFields(testAccount1, 8.0f, InterfaceTerminal.playername)
              || testAccountFields(testAccount2, 22.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 8.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 22.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 8.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 22.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(8.0f);
             testAccount2.setMoney(22.0f);
          }
 
-         System.err.println("accountSendMoney() - sending with an arbitrary sender ID");
+         TEST_OUTPUT.println("accountSendMoney() - sending with an arbitrary sender ID");
          testAccount1.sendMoney(PLAYER_ID, 1.0f, "arbitrary account", "testAccount2");
          if (testAccountFields(testAccount1, 7.0f, InterfaceTerminal.playername)
              || testAccountFields(testAccount2, 23.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 23.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 23.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(7.0f);
             testAccount2.setMoney(23.0f);
          }
 
-         System.err.println("accountSendMoney() - sending with a null recipient ID");
+         TEST_OUTPUT.println("accountSendMoney() - sending with a null recipient ID");
          testAccount1.sendMoney(PLAYER_ID, 1.0f, "testAccount1", null);
          if (testAccountFields(testAccount1, 7.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account changed when it should not have changed");
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account changed when it should not have changed");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(7.0f);
          }
 
-         System.err.println("accountSendMoney() - sending with an empty recipient ID");
+         TEST_OUTPUT.println("accountSendMoney() - sending with an empty recipient ID");
          testAccount1.sendMoney(PLAYER_ID, 1.0f, "testAccount1", "");
          if (testAccountFields(testAccount1, 7.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account changed when it should not have changed");
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account changed when it should not have changed");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(7.0f);
          }
 
-         System.err.println("accountSendMoney() - sending with an invalid recipient ID");
+         TEST_OUTPUT.println("accountSendMoney() - sending with an invalid recipient ID");
          testAccount1.sendMoney(PLAYER_ID, 10.0f, "testAccount1", "invalidAccount");
          if (testAccountFields(testAccount1, 7.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account changed when it should not have changed");
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account changed when it should not have changed");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 7.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
             // set up accounts appropriately for other tests
             testAccount1.setMoney(7.0f);
          }
 
-         System.err.println("accountSendMoney() - transferring normally between two accounts");
+         TEST_OUTPUT.println("accountSendMoney() - transferring normally between two accounts");
          testAccount1.sendMoney(PLAYER_ID, 5.0f, "testAccount1", "testAccount2");
          if (testAccountFields(testAccount1, 2.0f, InterfaceTerminal.playername)
              || testAccountFields(testAccount2, 28.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 2.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 28.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 2.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 28.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
             // set accounts appropriately for other tests
             testAccount1.setMoney(2.0f);
             testAccount2.setMoney(28.0f);
          }
 
-         System.err.println("accountSendMoney() - transferring some funds from account to player");
+         TEST_OUTPUT.println("accountSendMoney() - transferring some funds from account to player");
          float playerAccountMoney = playerAccount.getMoney();
          testAccount2.sendMoney(PLAYER_ID, 20.0f, "testAccount2", InterfaceTerminal.playername);
          if (testAccountFields(testAccount2, 8.0f, InterfaceTerminal.playername)
              || testAccountFields(playerAccount, playerAccountMoney + 20.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 8.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   player account - money: " + playerAccount.getMoney() + ", should be " + (playerAccountMoney + 20.0f));
-            System.err.println("   player account - player has permission: " + playerAccount.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 8.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   player account - money: " + playerAccount.getMoney() + ", should be " + (playerAccountMoney + 20.0f));
+            TEST_OUTPUT.println("   player account - player has permission: " + playerAccount.hasAccess(PLAYER_ID) + ", should be true");
             // set accounts appropriately for other tests
             testAccount2.setMoney(8.0f);
             playerAccount.addMoney(playerAccount.getMoney() * -1.0f);
@@ -3248,15 +3261,15 @@ public class TestSuite
             playerAccount.grantAccess(PLAYER_ID, PLAYER_ID, InterfaceTerminal.playername);
          }
 
-         System.err.println("accountSendMoney() - transferring all funds from player to account");
+         TEST_OUTPUT.println("accountSendMoney() - transferring all funds from player to account");
          playerAccount.sendMoney(PLAYER_ID, playerAccount.getMoney(), InterfaceTerminal.playername, "testAccount1");
          if (testAccountFields(testAccount1, playerAccountMoney + 22.0f, InterfaceTerminal.playername)
              || testAccountFields(playerAccount, 0.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 52.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   player account - money: " + playerAccount.getMoney() + ", should be 0.0");
-            System.err.println("   player account - player has permission: " + playerAccount.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 52.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   player account - money: " + playerAccount.getMoney() + ", should be 0.0");
+            TEST_OUTPUT.println("   player account - player has permission: " + playerAccount.hasAccess(PLAYER_ID) + ", should be true");
          }
          // set accounts to appropriate or known values
          testAccount1.setMoney(52.0f);
@@ -3264,50 +3277,50 @@ public class TestSuite
          playerAccount.addMoney(playerAccountMoney);
          playerAccount.grantAccess(PLAYER_ID, PLAYER_ID, InterfaceTerminal.playername);
 
-         System.err.println("accountSendMoney() - transferring without sufficient funds");
+         TEST_OUTPUT.println("accountSendMoney() - transferring without sufficient funds");
          testAccount1.sendMoney(PLAYER_ID, 500.0f, "testAccount1", "testAccount2");
          if (testAccountFields(testAccount1, 52.0f, InterfaceTerminal.playername)
              || testAccountFields(testAccount2, 8.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account changed unexpectedly");
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 52.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 8.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account changed unexpectedly");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 52.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 8.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(PLAYER_ID) + ", should be true");
             // set up account fields appropriately for other tests
             testAccount1.setMoney(52.0f);
             testAccount2.setMoney(8.0f);
          }
 
-         System.err.println("accountSendMoney() - transferring without permission");
+         TEST_OUTPUT.println("accountSendMoney() - transferring without permission");
          String playernameOrig = InterfaceTerminal.playername;
          InterfaceTerminal.playername = "notPermitted";
          testAccount1.sendMoney(InterfaceTerminal.getPlayerIDStatic("notPermitted"), 1.0f, "testAccount1", "testAccount2");
          if (testAccountFields(testAccount1, 52.0f, playernameOrig)
              || testAccountFields(testAccount2, 8.0f, playernameOrig)) {
             errorFound = true;
-            System.err.println("   test account changed unexpectedly");
-            System.err.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 52.0");
-            System.err.println("   test account 1 - player has permission: " + testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic(playernameOrig)) + ", should be true");
-            System.err.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 8.0");
-            System.err.println("   test account 2 - player has permission: " + testAccount2.hasAccess(InterfaceTerminal.getPlayerIDStatic(playernameOrig)) + ", should be true");
+            TEST_OUTPUT.println("   test account changed unexpectedly");
+            TEST_OUTPUT.println("   test account 1 - money: " + testAccount1.getMoney() + ", should be 52.0");
+            TEST_OUTPUT.println("   test account 1 - player has permission: " + testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic(playernameOrig)) + ", should be true");
+            TEST_OUTPUT.println("   test account 2 - money: " + testAccount2.getMoney() + ", should be 8.0");
+            TEST_OUTPUT.println("   test account 2 - player has permission: " + testAccount2.hasAccess(InterfaceTerminal.getPlayerIDStatic(playernameOrig)) + ", should be true");
          }
          InterfaceTerminal.playername = playernameOrig;
          resetTestEnvironment();
 
-         System.err.println("accountSendMoney() - different username");
+         TEST_OUTPUT.println("accountSendMoney() - different username");
          testAccount3.sendMoney(InterfaceTerminal.getPlayerIDStatic("possibleID"), 10.0f, "testAccount3", InterfaceTerminal.playername);
          if (testAccountFields(testAccount3, 20.0f, "possibleID")
              || testAccountFields(playerAccount, 40.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   test account 3 - money: " + testAccount3.getMoney() + ", should be 20.0");
-            System.err.println("   test account 3 - possible ID has permission: " + testAccount3.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID")) + ", should be true");
-            System.err.println("   player account - money: " + playerAccount.getMoney() + ", should be 40.0");
-            System.err.println("   player account - player has permission: " + playerAccount.hasAccess(PLAYER_ID) + ", should be true");
+            TEST_OUTPUT.println("   test account 3 - money: " + testAccount3.getMoney() + ", should be 20.0");
+            TEST_OUTPUT.println("   test account 3 - possible ID has permission: " + testAccount3.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID")) + ", should be true");
+            TEST_OUTPUT.println("   player account - money: " + playerAccount.getMoney() + ", should be 40.0");
+            TEST_OUTPUT.println("   player account - player has permission: " + playerAccount.hasAccess(PLAYER_ID) + ", should be true");
          }
       }
       catch (Exception e) {
-         System.err.println("accountSendMoney() - fatal error: " + e);
+         TEST_OUTPUT.println("accountSendMoney() - fatal error: " + e);
          return false;
       }
 
@@ -3333,42 +3346,42 @@ public class TestSuite
       UUID    playerID;
 
       try {
-         System.err.println("deleteAccount() - null account ID");
+         TEST_OUTPUT.println("deleteAccount() - null account ID");
          accountID  = null;
          playerID   = PLAYER_ID;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3376,42 +3389,42 @@ public class TestSuite
          if (errorFound)
             resetTestEnvironment();
 
-         System.err.println("deleteAccount() - empty account ID");
+         TEST_OUTPUT.println("deleteAccount() - empty account ID");
          accountID  = "";
          playerID   = PLAYER_ID;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3419,42 +3432,42 @@ public class TestSuite
          if (errorFound)
             resetTestEnvironment();
 
-         System.err.println("deleteAccount() - invalid account ID");
+         TEST_OUTPUT.println("deleteAccount() - invalid account ID");
          accountID  = "invalidAccount";
          playerID   = PLAYER_ID;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3462,42 +3475,42 @@ public class TestSuite
          if (errorFound)
             resetTestEnvironment();
 
-         System.err.println("deleteAccount() - null account owner");
+         TEST_OUTPUT.println("deleteAccount() - null account owner");
          accountID  = "testAccount1";
          playerID   = null;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3505,42 +3518,42 @@ public class TestSuite
          if (errorFound)
             resetTestEnvironment();
 
-         System.err.println("deleteAccount() - invalid account owner");
+         TEST_OUTPUT.println("deleteAccount() - invalid account owner");
          accountID  = "testAccount1";
          playerID   = InterfaceTerminal.getPlayerIDStatic("possibleID");
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().equals("(for possibleID) You are not permitted to delete " + accountID + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("(for possibleID) You are not permitted to delete " + accountID + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3548,43 +3561,43 @@ public class TestSuite
          if (errorFound)
             resetTestEnvironment();
 
-         System.err.println("deleteAccount() - account user instead of owner");
+         TEST_OUTPUT.println("deleteAccount() - account user instead of owner");
          accountID  = "testAccount1";
          playerID   = InterfaceTerminal.getPlayerIDStatic("possibleID");
          accounts.get(accountID).grantAccess(PLAYER_ID, playerID, accountID);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().equals("(for possibleID) You are not permitted to delete " + accountID + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("(for possibleID) You are not permitted to delete " + accountID + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3592,43 +3605,43 @@ public class TestSuite
          if (errorFound)
             resetTestEnvironment();
 
-         System.err.println("deleteAccount() - server operator");
+         TEST_OUTPUT.println("deleteAccount() - server operator");
          accountID  = "testAccount4";
          playerID   = PLAYER_ID;
          accountsSize--;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (accounts.containsKey(accountID)) {
-            System.err.println("   test account 4 exists when it shouldn't");
+            TEST_OUTPUT.println("   test account 4 exists when it shouldn't");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3636,42 +3649,42 @@ public class TestSuite
          accountsSize++;
          resetTestEnvironment();
 
-         System.err.println("deleteAccount() - personal account");
+         TEST_OUTPUT.println("deleteAccount() - personal account");
          accountID  = InterfaceTerminal.playername;
          playerID   = PLAYER_ID;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().equals("Personal accounts may not be deleted" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Personal accounts may not be deleted" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 1");
+            TEST_OUTPUT.println("   unexpected values for test account 1");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
 
@@ -3679,44 +3692,44 @@ public class TestSuite
          if (errorFound)
             resetTestEnvironment();
 
-         System.err.println("deleteAccount() - valid account ID and owner");
+         TEST_OUTPUT.println("deleteAccount() - valid account ID and owner");
          accountID  = "testAccount1";
          playerID   = PLAYER_ID;
          money      = accounts.get(accountID).getMoney();
          accountsSize--;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Account.deleteAccount(accountID, playerID);
 
          // check console output
-         if (!testBAOS.toString().equals("You received $" + money + " from " + accountID + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You received $" + money + " from " + accountID + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
          if (accounts.containsKey(accountID)) {
-            System.err.println("   test account 1 exists when it shouldn't");
+            TEST_OUTPUT.println("   test account 1 exists when it shouldn't");
             errorFound = true;
          }
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for test account 2");
+            TEST_OUTPUT.println("   unexpected values for test account 2");
             errorFound = true;
          }
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            System.err.println("   unexpected values for test account 3");
+            TEST_OUTPUT.println("   unexpected values for test account 3");
             errorFound = true;
          }
          if (testAccountFields(testAccount4, 6.0f, null)) {
-            System.err.println("   unexpected values for test account 4");
+            TEST_OUTPUT.println("   unexpected values for test account 4");
             errorFound = true;
          }
          if (testAccountFields(playerAccount, 30.0f + money, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected values for player account");
+            TEST_OUTPUT.println("   unexpected values for player account");
             errorFound = true;
          }
          accountsSize++;
@@ -3724,73 +3737,73 @@ public class TestSuite
 
 
          // delete account_id
-         System.err.println("delete() - null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("delete() - null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(null);
-         if (!testBAOS.toString().equals("/delete <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/delete <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("delete() - empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("delete() - empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{});
-         if (!testBAOS.toString().equals("/delete <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/delete <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("delete() - blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("delete() - blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - must provide account ID")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - must provide account ID")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("delete() - too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("delete() - too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{});
-         if (!testBAOS.toString().equals("/delete <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/delete <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("delete() - too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("delete() - too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{"possibleAccount", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("deleteAccount() - invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("deleteAccount() - invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{"invalidAccount"});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("delete() - account user instead of owner");
+         TEST_OUTPUT.println("delete() - account user instead of owner");
          accounts.get(accountID).grantAccess(PLAYER_ID, playerID, accountID);
          String playernameOrig = InterfaceTerminal.playername;
          InterfaceTerminal.playername = "possibleID";
          accountID  = "testAccount1";
          playerID   = PLAYER_ID;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{accountID});
 
          // check console output
-         if (!testBAOS.toString().equals("You are not permitted to delete " + accountID + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You are not permitted to delete " + accountID + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -3798,22 +3811,22 @@ public class TestSuite
          InterfaceTerminal.playername = playernameOrig;
          resetTestEnvironment();
 
-         System.err.println("delete() - server operator");
+         TEST_OUTPUT.println("delete() - server operator");
          accountID  = "testAccount4";
          accountsSize--;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{accountID});
 
          // check console output
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
 
@@ -3821,41 +3834,41 @@ public class TestSuite
          accountsSize++;
          resetTestEnvironment();
 
-         System.err.println("delete() - personal account");
+         TEST_OUTPUT.println("delete() - personal account");
          accountID  = InterfaceTerminal.playername;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{accountID});
 
          // check console output
-         if (!testBAOS.toString().equals("Personal accounts may not be deleted" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Personal accounts may not be deleted" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("delete() - valid account ID and owner");
+         TEST_OUTPUT.println("delete() - valid account ID and owner");
          accountID  = "testAccount1";
          money      = accounts.get(accountID).getMoney();
          accountsSize--;
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDelete(new String[]{accountID});
 
          // check console output
-         if (!testBAOS.toString().equals("You received $" + money + " from " + accountID + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You received $" + money + " from " + accountID + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // check accounts
          if (accounts.size() != accountsSize) {
-            System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
+            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("deleteAccount() - fatal error: " + e);
+         TEST_OUTPUT.println("deleteAccount() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -3886,7 +3899,7 @@ public class TestSuite
       Config.filenameAccounts = "config" + File.separator + "CommandEconomy" + File.separator + "testAccounts.txt";
 
       try {
-         System.err.println("setDefaultAccount() - null player ID");
+         TEST_OUTPUT.println("setDefaultAccount() - null player ID");
          money = playerAccount.getMoney();
 
          Account.setDefaultAccount(null, "testAccount1");
@@ -3895,18 +3908,18 @@ public class TestSuite
 
          // check account funds
          if (account.getMoney() != money) {
-            System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check account reference
          if (account != playerAccount) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
          defaultAccounts.clear();
 
-         System.err.println("setDefaultAccount() - null account ID");
+         TEST_OUTPUT.println("setDefaultAccount() - null account ID");
          money = playerAccount.getMoney();
 
          Account.setDefaultAccount(playerID, null);
@@ -3915,18 +3928,18 @@ public class TestSuite
 
          // check account funds
          if (account.getMoney() != money) {
-            System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check account reference
          if (account != playerAccount) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
          defaultAccounts.clear();
 
-         System.err.println("setDefaultAccount() - empty account ID");
+         TEST_OUTPUT.println("setDefaultAccount() - empty account ID");
          money = playerAccount.getMoney();
 
          Account.setDefaultAccount(playerID, "");
@@ -3935,18 +3948,18 @@ public class TestSuite
 
          // check account funds
          if (account.getMoney() != money) {
-            System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check account reference
          if (account != playerAccount) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
          defaultAccounts.clear();
 
-         System.err.println("setDefaultAccount() - nonexistent account ID");
+         TEST_OUTPUT.println("setDefaultAccount() - nonexistent account ID");
          money = playerAccount.getMoney();
 
          Account.setDefaultAccount(playerID, "invalidAccount");
@@ -3955,18 +3968,18 @@ public class TestSuite
 
          // check account funds
          if (account.getMoney() != money) {
-            System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check account reference
          if (account != playerAccount) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
          defaultAccounts.clear();
 
-         System.err.println("setDefaultAccount() - personal account ID when personal account doesn't exist");
+         TEST_OUTPUT.println("setDefaultAccount() - personal account ID when personal account doesn't exist");
          money = Config.accountStartingMoney;
 
          Account.setDefaultAccount(InterfaceTerminal.getPlayerIDStatic("possibleID"), "possibleID");
@@ -3977,22 +3990,22 @@ public class TestSuite
          if (account != null) {
             // check account funds
             if (account.getMoney() != money) {
-               System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+               TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
                errorFound = true;
             }
 
             // check account reference
             if (account == playerAccount) {
-               System.err.println("   unexpected account reference");
+               TEST_OUTPUT.println("   unexpected account reference");
                errorFound = true;
             }
          } else {
-            System.err.println("   account for possibleID does not exist when it should");
+            TEST_OUTPUT.println("   account for possibleID does not exist when it should");
             errorFound = true;
          }
          defaultAccounts.clear();
 
-         System.err.println("setDefaultAccount() - no permissions");
+         TEST_OUTPUT.println("setDefaultAccount() - no permissions");
          money = playerAccount.getMoney();
 
          Account.setDefaultAccount(playerID, "testAccount4");
@@ -4001,18 +4014,18 @@ public class TestSuite
 
          // check account funds
          if (account.getMoney() != money) {
-            System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check account reference
          if (account != playerAccount) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
          defaultAccounts.clear();
 
-         System.err.println("setDefaultAccount() - has permissions");
+         TEST_OUTPUT.println("setDefaultAccount() - has permissions");
          money = testAccount1.getMoney();
 
          Account.setDefaultAccount(playerID, "testAccount1");
@@ -4021,13 +4034,13 @@ public class TestSuite
 
          // check account funds
          if (account.getMoney() != money) {
-            System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check account reference
          if (account != testAccount1) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
          defaultAccounts.clear();
@@ -4035,7 +4048,7 @@ public class TestSuite
          // prepare for next tests
          defaultAccounts.put(playerID, testAccount1);
 
-         System.err.println("default accounts - buying");
+         TEST_OUTPUT.println("default accounts - buying");
          quantityToTrade = 5;
          quantityWare    = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
@@ -4053,7 +4066,7 @@ public class TestSuite
          InterfaceTerminal.inventory.clear();
          testAccount1.setMoney(10.0f);
 
-         System.err.println("default accounts - selling");
+         TEST_OUTPUT.println("default accounts - selling");
          InterfaceTerminal.inventory.put("test:material1", 10);
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
@@ -4071,7 +4084,7 @@ public class TestSuite
          InterfaceTerminal.inventory.clear();
          testAccount1.setMoney(10.0f);
 
-         System.err.println("default accounts - sellall");
+         TEST_OUTPUT.println("default accounts - sellall");
          quantityToTrade = 10;
          InterfaceTerminal.inventory.put("test:material1", quantityToTrade);
          quantityWare    = testWare1.getQuantity();
@@ -4089,7 +4102,7 @@ public class TestSuite
          InterfaceTerminal.inventory.clear();
          testAccount1.setMoney(10.0f);
 
-         System.err.println("default accounts - sending");
+         TEST_OUTPUT.println("default accounts - sending");
          money           = testAccount1.getMoney();
          price           = testAccount4.getMoney();
 
@@ -4104,7 +4117,7 @@ public class TestSuite
          testAccount1.setMoney(10.0f);
          testAccount4.setMoney(price);
 
-         System.err.println("default accounts - receiving");
+         TEST_OUTPUT.println("default accounts - receiving");
          money           = testAccount1.getMoney();
          price           = playerAccount.getMoney();
 
@@ -4119,7 +4132,7 @@ public class TestSuite
          testAccount1.setMoney(10.0f);
          playerAccount.setMoney(price);
 
-         System.err.println("default accounts - deleting account");
+         TEST_OUTPUT.println("default accounts - deleting account");
          defaultAccounts.put(playerID, testAccount1);
          money = playerAccount.getMoney() + testAccount1.getMoney();
 
@@ -4128,17 +4141,17 @@ public class TestSuite
 
          // check account funds
          if (account.getMoney() != money) {
-            System.err.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + account.getMoney() + ", should be " + money);
             errorFound = true;
          }
 
          // check account reference
          if (account != playerAccount) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
 
-         System.err.println("default accounts - loading, entry with nonexistent account");
+         TEST_OUTPUT.println("default accounts - loading, entry with nonexistent account");
          // write to accounts file
          FileWriter fileWriter = new FileWriter(Config.filenameAccounts);
          fileWriter.write(
@@ -4164,41 +4177,41 @@ public class TestSuite
 
          // check account reference
          if (account != playerAccount) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
 
-         System.err.println("default accounts - loading, entry with invalid player ID");
+         TEST_OUTPUT.println("default accounts - loading, entry with invalid player ID");
          if (defaultAccounts.size() != 1) {
-            System.err.println("   unexpected number of default account entries: " + defaultAccounts.size() + ", should be 1");
+            TEST_OUTPUT.println("   unexpected number of default account entries: " + defaultAccounts.size() + ", should be 1");
             errorFound = true;
          }
 
-         System.err.println("default accounts - loading, entry mapping player to account without permissions");
+         TEST_OUTPUT.println("default accounts - loading, entry mapping player to account without permissions");
          testAccount1 = Account.getAccount("testAccount1");
          account      = Account.grabAndCheckAccount(null, InterfaceTerminal.getPlayerIDStatic("possibleID"));
 
          // check account reference
          if (account == testAccount1) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
 
-         System.err.println("default accounts - loading, valid entry");
+         TEST_OUTPUT.println("default accounts - loading, valid entry");
          account = Account.grabAndCheckAccount(null, UUID.nameUUIDFromBytes(("$admin$").getBytes()));
 
          // check account reference
          if (account != Account.getAccount("$admin$")) {
-            System.err.println("   unexpected account reference");
+            TEST_OUTPUT.println("   unexpected account reference");
             errorFound = true;
          }
 
-         System.err.println("default accounts - revoking access to default account");
+         TEST_OUTPUT.println("default accounts - revoking access to default account");
          // set up test and check setup
          defaultAccounts.put(playerID, testAccount1);
          account = Account.grabAndCheckAccount(null, playerID);
          if (account != testAccount1) {
-            System.err.println("   unexpected account reference: failed to set up test");
+            TEST_OUTPUT.println("   unexpected account reference: failed to set up test");
             errorFound = true;
          }
 
@@ -4209,12 +4222,12 @@ public class TestSuite
 
             // check account reference
             if (account != playerAccount) {
-               System.err.println("   unexpected account reference");
+               TEST_OUTPUT.println("   unexpected account reference");
                errorFound = true;
             }
          }
 
-         System.err.println("default accounts - saving and loading");
+         TEST_OUTPUT.println("default accounts - saving and loading");
          // add data to be saved
          Account.setDefaultAccount(InterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount3");
 
@@ -4224,17 +4237,17 @@ public class TestSuite
          // check account references
          account = Account.grabAndCheckAccount(null, UUID.nameUUIDFromBytes(("$admin$").getBytes()));
          if (account != Account.getAccount("$admin$")) {
-            System.err.println("   unexpected account reference for $admin$");
+            TEST_OUTPUT.println("   unexpected account reference for $admin$");
             errorFound = true;
          }
          account = Account.grabAndCheckAccount(null, playerID);
          if (account != Account.getAccount(InterfaceTerminal.playername)) {
-            System.err.println("   unexpected account reference for " + InterfaceTerminal.playername);
+            TEST_OUTPUT.println("   unexpected account reference for " + InterfaceTerminal.playername);
             errorFound = true;
          }
          account = Account.grabAndCheckAccount(null, InterfaceTerminal.getPlayerIDStatic("possibleID"));
          if (account != Account.getAccount("testAccount3")) {
-            System.err.println("   unexpected account reference for possibleID");
+            TEST_OUTPUT.println("   unexpected account reference for possibleID");
             errorFound = true;
          }
 
@@ -4243,64 +4256,64 @@ public class TestSuite
          resetTestEnvironment();
 
          // test requests
-         System.err.println("default accounts - request: null arg");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("default accounts - request: null arg");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSetDefaultAccount(null);
-         if (!testBAOS.toString().equals("/setDefaultAccount <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/setDefaultAccount <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("default accounts - request: blank arg");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("default accounts - request: blank arg");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{""});
-         if (!testBAOS.toString().equals("error - zero-length arguments: /setDefaultAccount <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - zero-length arguments: /setDefaultAccount <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("default accounts - request: empty args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("default accounts - request: empty args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{});
-         if (!testBAOS.toString().equals("/setDefaultAccount <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/setDefaultAccount <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("default accounts - request: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("default accounts - request: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"testAccount1", "excessArgument"});
-         if (!testBAOS.toString().equals("error - wrong number of arguments: /setDefaultAccount <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - wrong number of arguments: /setDefaultAccount <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("default accounts - request: invalid account");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("default accounts - request: invalid account");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"invalidAccount"});
-         if (!testBAOS.toString().equals("error - account not found: invalidAccount" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - account not found: invalidAccount" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("default accounts - request: no permissions");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("default accounts - request: no permissions");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"testAccount4"});
-         if (!testBAOS.toString().equals("You don't have permission to access testAccount4" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You don't have permission to access testAccount4" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("default accounts - request: valid usage");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("default accounts - request: valid usage");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"testAccount1"});
-         if (!testBAOS.toString().equals("testAccount1 will now be used in place of your personal account" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("testAccount1 will now be used in place of your personal account" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("default accounts - fatal error: " + e);
+         TEST_OUTPUT.println("default accounts - fatal error: " + e);
          return false;
       }
 
@@ -4320,117 +4333,117 @@ public class TestSuite
       resetTestEnvironment();
 
       try {
-         System.err.println("/op - null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/op - null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestOp(null);
-         if (!testBAOS.toString().startsWith("/op <player_name>")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("/op <player_name>")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/op - blank username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/op - blank username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestOp(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/op - too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/op - too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestOp(new String[]{});
-         if (!testBAOS.toString().equals("/op <player_name>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/op <player_name>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/op - too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/op - too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestOp(new String[]{"possibleID", "excessArgument"});
-         if (!testBAOS.toString().equals("error - wrong number of arguments: /op <player_name>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - wrong number of arguments: /op <player_name>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/op - valid username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/op - valid username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestOp(new String[]{"opID"});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/deop - null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/deop - null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDeop(null);
-         if (!testBAOS.toString().startsWith("/deop <player_name>")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("/deop <player_name>")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/deop - blank username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/deop - blank username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDeop(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/deop - too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/deop - too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDeop(new String[]{});
-         if (!testBAOS.toString().equals("/deop <player_name>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/deop <player_name>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/deop - too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/deop - too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDeop(new String[]{"possibleID", "excessArgument"});
-         if (!testBAOS.toString().equals("error - wrong number of arguments: /deop <player_name>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - wrong number of arguments: /deop <player_name>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("/deop - valid username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("/deop - valid username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestDeop(new String[]{"nonopID"});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("isAnOp() - null username");
+         TEST_OUTPUT.println("isAnOp() - null username");
          if (InterfaceTerminal.isAnOp(InterfaceTerminal.getPlayerIDStatic(null))) {
-            System.err.println("   unexpected value: true");
+            TEST_OUTPUT.println("   unexpected value: true");
             errorFound = true;
          }
 
-         System.err.println("isAnOp() - blank username");
+         TEST_OUTPUT.println("isAnOp() - blank username");
          if (InterfaceTerminal.isAnOp(InterfaceTerminal.getPlayerIDStatic(""))) {
-            System.err.println("   unexpected value: true");
+            TEST_OUTPUT.println("   unexpected value: true");
             errorFound = true;
          }
 
-         System.err.println("isAnOp() - checking for non-op");
+         TEST_OUTPUT.println("isAnOp() - checking for non-op");
          if (InterfaceTerminal.isAnOp(InterfaceTerminal.getPlayerIDStatic("nonopID"))) {
-            System.err.println("   unexpected value: true");
+            TEST_OUTPUT.println("   unexpected value: true");
             errorFound = true;
          }
 
-         System.err.println("isAnOp() - checking for op");
+         TEST_OUTPUT.println("isAnOp() - checking for op");
          if (!InterfaceTerminal.isAnOp(InterfaceTerminal.getPlayerIDStatic("opID"))) {
-            System.err.println("   unexpected value: false");
+            TEST_OUTPUT.println("   unexpected value: false");
             errorFound = true;
          }
 
-         System.err.println("adminPermissions() - giving multiple times, then revoking once");
+         TEST_OUTPUT.println("adminPermissions() - giving multiple times, then revoking once");
          InterfaceTerminal.serviceRequestOp(new String[]{"nonopID"});
          InterfaceTerminal.serviceRequestOp(new String[]{"nonopID"});
          InterfaceTerminal.serviceRequestOp(new String[]{"nonopID"});
          InterfaceTerminal.serviceRequestDeop(new String[]{"nonopID"});
          if (InterfaceTerminal.isAnOp(InterfaceTerminal.getPlayerIDStatic("nonopID"))) {
-            System.err.println("   unexpected value: true");
+            TEST_OUTPUT.println("   unexpected value: true");
             errorFound = true;
 
             // reset for other tests
@@ -4439,44 +4452,44 @@ public class TestSuite
             InterfaceTerminal.serviceRequestDeop(new String[]{"nonopID"});
          }
 
-         System.err.println("permissionToExecute() - non-op executing non-op command on self");
+         TEST_OUTPUT.println("permissionToExecute() - non-op executing non-op command on self");
          if (!InterfaceTerminal.permissionToExecute(InterfaceTerminal.getPlayerIDStatic("nonopID"), InterfaceTerminal.getPlayerIDStatic("nonopID"), false)) {
-            System.err.println("   unexpected value: false");
+            TEST_OUTPUT.println("   unexpected value: false");
             errorFound = true;
          }
 
-         System.err.println("permissionToExecute() - non-op executing non-op command on others");
+         TEST_OUTPUT.println("permissionToExecute() - non-op executing non-op command on others");
          if (InterfaceTerminal.permissionToExecute(InterfaceTerminal.getPlayerIDStatic("opID"), InterfaceTerminal.getPlayerIDStatic("nonopID"), false)) {
-            System.err.println("   unexpected value: true");
+            TEST_OUTPUT.println("   unexpected value: true");
             errorFound = true;
          }
 
-         System.err.println("permissionToExecute() - non-op executing op command");
+         TEST_OUTPUT.println("permissionToExecute() - non-op executing op command");
          if (InterfaceTerminal.permissionToExecute(InterfaceTerminal.getPlayerIDStatic("nonopID"), InterfaceTerminal.getPlayerIDStatic("nonopID"), true)) {
-            System.err.println("   unexpected value: true");
+            TEST_OUTPUT.println("   unexpected value: true");
             errorFound = true;
          }
 
-         System.err.println("permissionToExecute() - op executing non-op command on self");
+         TEST_OUTPUT.println("permissionToExecute() - op executing non-op command on self");
          if (!InterfaceTerminal.permissionToExecute(InterfaceTerminal.getPlayerIDStatic("opID"), InterfaceTerminal.getPlayerIDStatic("opID"), false)) {
-            System.err.println("   unexpected value: false");
+            TEST_OUTPUT.println("   unexpected value: false");
             errorFound = true;
          }
 
-         System.err.println("permissionToExecute() - op executing non-op command on others");
+         TEST_OUTPUT.println("permissionToExecute() - op executing non-op command on others");
          if (!InterfaceTerminal.permissionToExecute(InterfaceTerminal.getPlayerIDStatic("nonopID"), InterfaceTerminal.getPlayerIDStatic("opID"), false)) {
-            System.err.println("   unexpected value: false");
+            TEST_OUTPUT.println("   unexpected value: false");
             errorFound = true;
          }
 
-         System.err.println("permissionToExecute() - op executing op command");
+         TEST_OUTPUT.println("permissionToExecute() - op executing op command");
          if (!InterfaceTerminal.permissionToExecute(InterfaceTerminal.getPlayerIDStatic("opID"), InterfaceTerminal.getPlayerIDStatic("opID"), true)) {
-            System.err.println("   unexpected value: false");
+            TEST_OUTPUT.println("   unexpected value: false");
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("adminPermissions() - fatal error: " + e);
+         TEST_OUTPUT.println("adminPermissions() - fatal error: " + e);
          return false;
       }
 
@@ -4502,91 +4515,91 @@ public class TestSuite
       wareAliasTranslations.put("notrade1&1", "test:untradeable1&1");
 
       try {
-         System.err.println("translateWareID() - null ware ID");
+         TEST_OUTPUT.println("translateWareID() - null ware ID");
          if (!Marketplace.translateWareID(null).isEmpty()) {
-            System.err.println("   unexpected console output: " + Marketplace.translateWareID(null));
+            TEST_OUTPUT.println("   unexpected console output: " + Marketplace.translateWareID(null));
             errorFound = true;
          }
 
-         System.err.println("translateWareID() - empty ware ID");
+         TEST_OUTPUT.println("translateWareID() - empty ware ID");
          if (!Marketplace.translateWareID("").isEmpty()) {
-            System.err.println("   unexpected console output: " + Marketplace.translateWareID(""));
+            TEST_OUTPUT.println("   unexpected console output: " + Marketplace.translateWareID(""));
             errorFound = true;
          }
 
-         System.err.println("translateWareID() - invalid ware ID");
+         TEST_OUTPUT.println("translateWareID() - invalid ware ID");
          if (!Marketplace.translateWareID("test:invalidWareID").isEmpty()) {
-            System.err.println("   unexpected console output: " + Marketplace.translateWareID("test:invalidWareID"));
+            TEST_OUTPUT.println("   unexpected console output: " + Marketplace.translateWareID("test:invalidWareID"));
             errorFound = true;
          }
 
-         System.err.println("translateWareID() - invalid ware alias");
+         TEST_OUTPUT.println("translateWareID() - invalid ware alias");
          if (!Marketplace.translateWareID("invalidWareAlias").isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("translateWareID() - invalid variant ware ID");
+         TEST_OUTPUT.println("translateWareID() - invalid variant ware ID");
          if (!Marketplace.translateWareID("test:invalidWareID&6").isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("translateWareID() - invalid variant ware alias");
+         TEST_OUTPUT.println("translateWareID() - invalid variant ware alias");
          if (!Marketplace.translateWareID("invalidWareAlias&6").isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("translateWareID() - valid ware ID");
+         TEST_OUTPUT.println("translateWareID() - valid ware ID");
          if (!Marketplace.translateWareID("test:material1").equals("test:material1")) {
             errorFound = true;
-            System.err.println("   unexpected result: " + Marketplace.translateWareID("test:material1") + ", should be test:material1");
+            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("test:material1") + ", should be test:material1");
          }
          if (!Marketplace.translateWareID("mat3").equals("test:material3")) {
             errorFound = true;
-            System.err.println("   unexpected result: " + Marketplace.translateWareID("mat3") + ", should be test:material3");
+            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("mat3") + ", should be test:material3");
          }
 
-         System.err.println("translateWareID() - valid variant ware ID");
+         TEST_OUTPUT.println("translateWareID() - valid variant ware ID");
          if (!Marketplace.translateWareID("test:material1&1").equals("test:material1&1")) {
             errorFound = true;
-            System.err.println("   unexpected result: " + Marketplace.translateWareID("test:material1&1") + ", should be test:material1&1");
+            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("test:material1&1") + ", should be test:material1&1");
          }
 
-         System.err.println("translateWareID() - valid variant ware alias");
+         TEST_OUTPUT.println("translateWareID() - valid variant ware alias");
          if (!Marketplace.translateWareID("notrade1&1").equals("test:untradeable1&1")) {
             errorFound = true;
-            System.err.println("   unexpected result: " + Marketplace.translateWareID("notrade1&1") + ", should be test:untradeable1&1");
+            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("notrade1&1") + ", should be test:untradeable1&1");
          }
 
-         System.err.println("translateWareID() - unknown variant of valid ware ID");
+         TEST_OUTPUT.println("translateWareID() - unknown variant of valid ware ID");
          if (!Marketplace.translateWareID("test:material1&2").equals("test:material1")) {
             errorFound = true;
-            System.err.println("   unexpected result: " + Marketplace.translateWareID("test:material1&2") + ", should be test:material1");
+            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("test:material1&2") + ", should be test:material1");
          }
 
-         System.err.println("translateWareID() - unknown variant of valid ware alias");
+         TEST_OUTPUT.println("translateWareID() - unknown variant of valid ware alias");
          if (!Marketplace.translateWareID("craft1&6").equals("test:crafted1")) {
             errorFound = true;
-            System.err.println("   unexpected result: " + Marketplace.translateWareID("craft1&6") + ", should be test:crafted1");
+            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("craft1&6") + ", should be test:crafted1");
          }
 
-         System.err.println("translateWareID() - existing Forge OreDictionary Name");
+         TEST_OUTPUT.println("translateWareID() - existing Forge OreDictionary Name");
          wareAliasTranslations.put("#testName", "test:material2");
          if (!Marketplace.translateWareID("#testName").equals("test:material2")) {
             errorFound = true;
-            System.err.println("   unexpected result: " + Marketplace.translateWareID("#testName") + ", should be test:material2");
+            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("#testName") + ", should be test:material2");
          }
 
-         System.err.println("translateWareID() - nonexistent Forge OreDictionary Name");
+         TEST_OUTPUT.println("translateWareID() - nonexistent Forge OreDictionary Name");
          if (!Marketplace.translateWareID("#invalidName").isEmpty()) {
-            System.err.println("   unexpected console output: " + Marketplace.translateWareID("#invalidName"));
+            TEST_OUTPUT.println("   unexpected console output: " + Marketplace.translateWareID("#invalidName"));
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("translateWareID() - fatal error: " + e);
+         TEST_OUTPUT.println("translateWareID() - fatal error: " + e);
          return false;
       }
 
@@ -4610,81 +4623,81 @@ public class TestSuite
       float expectedPrice = 0.0f;                   // holds price to be checked against
       int   quantity = 0;                           // holds ware's quantity available for sale
       try {
-         System.err.println("getPrice() - using null ware ID");
+         TEST_OUTPUT.println("getPrice() - using null ware ID");
          currentPrice = Marketplace.getPrice(PLAYER_ID, null, 0, false);
          if (!Float.isNaN(currentPrice)) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be NaN");
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be NaN");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using empty ware ID");
+         TEST_OUTPUT.println("getPrice() - using empty ware ID");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "", 0, false);
          if (!Float.isNaN(currentPrice)) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be NaN");
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be NaN");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using invalid ware ID");
+         TEST_OUTPUT.println("getPrice() - using invalid ware ID");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "invalidWare", 0, false);
          if (!Float.isNaN(currentPrice)) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be NaN");
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be NaN");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using level 0 ware");
+         TEST_OUTPUT.println("getPrice() - using level 0 ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
          if (currentPrice != 1.0f) {
-            System.err.println("   incorrect price (test:material1): " + currentPrice + ", should be 1.0");
+            TEST_OUTPUT.println("   incorrect price (test:material1): " + currentPrice + ", should be 1.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using level 1 ware");
+         TEST_OUTPUT.println("getPrice() - using level 1 ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
          if (currentPrice != 19.2f) {
-            System.err.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 19.2");
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 19.2");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using level 2 ware");
+         TEST_OUTPUT.println("getPrice() - using level 2 ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
          if (currentPrice != 4.0f) {
-            System.err.println("   incorrect price (test:material3): " + currentPrice + ", should be 4.0");
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 4.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using level 3 ware");
+         TEST_OUTPUT.println("getPrice() - using level 3 ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", 0, false);
          if (currentPrice != 8.0f) {
-            System.err.println("   incorrect price (minecraft:material4): " + currentPrice + ", should be 8.0");
+            TEST_OUTPUT.println("   incorrect price (minecraft:material4): " + currentPrice + ", should be 8.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using level 4 ware");
+         TEST_OUTPUT.println("getPrice() - using level 4 ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
          if (currentPrice != 1.1f) {
-            System.err.println("   incorrect price (test:processed1): " + currentPrice + ", should be 1.1");
+            TEST_OUTPUT.println("   incorrect price (test:processed1): " + currentPrice + ", should be 1.1");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using level 5 ware");
+         TEST_OUTPUT.println("getPrice() - using level 5 ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed2", 0, false);
          if (currentPrice != 14.3f) {
-            System.err.println("   incorrect price (test:processed2): " + currentPrice + ", should be 14.3");
+            TEST_OUTPUT.println("   incorrect price (test:processed2): " + currentPrice + ", should be 14.3");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - purchase without buying upcharge");
+         TEST_OUTPUT.println("getPrice() - purchase without buying upcharge");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true);
          if (currentPrice != 1.0f) {
-            System.err.println("   incorrect price (test:material1): " + currentPrice + ", should be 1.0");
+            TEST_OUTPUT.println("   incorrect price (test:material1): " + currentPrice + ", should be 1.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - purchase with buying upcharge");
+         TEST_OUTPUT.println("getPrice() - purchase with buying upcharge");
          Config.priceBuyUpchargeMult = 2.0f;
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true);
          if (currentPrice != 2.0f) {
-            System.err.println("   incorrect price (test:material1): " + currentPrice + ", should be 2.0");
+            TEST_OUTPUT.println("   incorrect price (test:material1): " + currentPrice + ", should be 2.0");
             errorFound = true;
          }
 
@@ -4694,83 +4707,83 @@ public class TestSuite
          testPriceBase.setAccessible(true);
          testPriceBase.setFloat(testWare, 2.0f);
 
-         System.err.println("getPrice() - using no quantity ware");
+         TEST_OUTPUT.println("getPrice() - using no quantity ware");
          testWare.setQuantity(0);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 4.0f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 4.0");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 4.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using understocked ware");
+         TEST_OUTPUT.println("getPrice() - using understocked ware");
          testWare.setQuantity(63);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 4.0f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 4.0");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 4.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using low stock ware");
+         TEST_OUTPUT.println("getPrice() - using low stock ware");
          testWare.setQuantity(79);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 3.5f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 3.5");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 3.5");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using pretty low stock ware");
+         TEST_OUTPUT.println("getPrice() - using pretty low stock ware");
          testWare.setQuantity(95);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 3.0f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 3.0");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 3.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using kinda low stock ware");
+         TEST_OUTPUT.println("getPrice() - using kinda low stock ware");
          testWare.setQuantity(111);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 2.5f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 2.5");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 2.5");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using kinda high stock ware");
+         TEST_OUTPUT.println("getPrice() - using kinda high stock ware");
          testWare.setQuantity(223);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 1.5f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 1.5");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 1.5");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using pretty high stock ware");
+         TEST_OUTPUT.println("getPrice() - using pretty high stock ware");
          testWare.setQuantity(319);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 1.0f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 1.0");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 1.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using high stock ware");
+         TEST_OUTPUT.println("getPrice() - using high stock ware");
          testWare.setQuantity(415);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 0.5f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.5");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.5");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using overstocked ware");
+         TEST_OUTPUT.println("getPrice() - using overstocked ware");
          testWare.setQuantity(511);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 0.0f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.0");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using excessively overstocked ware");
+         TEST_OUTPUT.println("getPrice() - using excessively overstocked ware");
          testWare.setQuantity(1023);
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
          if (currentPrice != 0.0f) {
-            System.err.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.0");
+            TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.0");
             errorFound = true;
          }
 
@@ -4779,77 +4792,77 @@ public class TestSuite
          fStartQuanBaseAverage.setFloat(null, 87);
 
          Config.priceSpread = 2.0f;
-         System.err.println("getPrice() - using high spread with inexpensive ware");
+         TEST_OUTPUT.println("getPrice() - using high spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
          if (currentPrice != 0.0f) {
-            System.err.println("   incorrect price (test:material3): " + currentPrice + ", should be 0.0");
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 0.0");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using high spread with expensive ware");
+         TEST_OUTPUT.println("getPrice() - using high spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
          if (currentPrice != 29.17f) {
-            System.err.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 29.17");
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 29.17");
             errorFound = true;
          }
 
          Config.priceSpread = 1.5f;
-         System.err.println("getPrice() - using fairly high spread with inexpensive ware");
+         TEST_OUTPUT.println("getPrice() - using fairly high spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
          if (currentPrice != 1.385f) {
-            System.err.println("   incorrect price (test:material3): " + currentPrice + ", should be 1.385");
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 1.385");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using fairly high spread with expensive ware");
+         TEST_OUTPUT.println("getPrice() - using fairly high spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
          if (currentPrice != 24.185f) {
-            System.err.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 24.185");
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 24.185");
             errorFound = true;
          }
 
          Config.priceSpread = 0.75f;
-         System.err.println("getPrice() - using fairly low spread with inexpensive ware");
+         TEST_OUTPUT.println("getPrice() - using fairly low spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
          if (currentPrice != 5.3075f) {
-            System.err.println("   incorrect price (test:material3): " + currentPrice + ", should be 1.385");
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 1.385");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using fairly low spread with expensive ware");
+         TEST_OUTPUT.println("getPrice() - using fairly low spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
          if (currentPrice != 16.7075f) {
-            System.err.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 16.7075");
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 16.7075");
             errorFound = true;
          }
 
          Config.priceSpread = 0.5f;
-         System.err.println("getPrice() - using low spread with inexpensive ware");
+         TEST_OUTPUT.println("getPrice() - using low spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
          if (currentPrice != 6.615f) {
-            System.err.println("   incorrect price (test:material3): " + currentPrice + ", should be 6.615");
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 6.615");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using low spread with expensive ware");
+         TEST_OUTPUT.println("getPrice() - using low spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
          if (currentPrice != 14.215f) {
-            System.err.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 14.215");
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 14.215");
             errorFound = true;
          }
 
          Config.priceSpread = 0.0f;
-         System.err.println("getPrice() - using zero spread with inexpensive ware");
+         TEST_OUTPUT.println("getPrice() - using zero spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
          if (currentPrice != 9.2299f) {
-            System.err.println("   incorrect price (test:material3): " + currentPrice + ", should be 9.23");
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 9.23");
             errorFound = true;
          }
 
-         System.err.println("getPrice() - using zero spread with expensive ware");
+         TEST_OUTPUT.println("getPrice() - using zero spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
          if (currentPrice != 9.2299f) {
-            System.err.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 9.23");
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 9.23");
             errorFound = true;
          }
 
@@ -4859,7 +4872,7 @@ public class TestSuite
          Config.priceFloorAdjusted =  2.0f;
          double quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
 
-         System.err.println("getPrice() - negative prices, at -100% cost");
+         TEST_OUTPUT.println("getPrice() - negative prices, at -100% cost");
          expectedPrice = testWare1.getBasePrice() * Config.priceFloor;
          quantity      = Config.quanHigh[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
@@ -4867,7 +4880,7 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
@@ -4878,11 +4891,11 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
-         System.err.println("getPrice() - negative prices, at -50% cost");
+         TEST_OUTPUT.println("getPrice() - negative prices, at -50% cost");
          expectedPrice = testWare1.getBasePrice() * Config.priceFloor * 0.50f;
          quantity      = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75) - 1;
          testWare1.setQuantity(quantity);
@@ -4890,7 +4903,7 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
@@ -4901,11 +4914,11 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
-         System.err.println("getPrice() - negative prices, at no cost");
+         TEST_OUTPUT.println("getPrice() - negative prices, at no cost");
          expectedPrice = 0.0f;
          quantity      = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.5) - 1;
          testWare1.setQuantity(quantity);
@@ -4913,7 +4926,7 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
@@ -4924,11 +4937,11 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
-         System.err.println("getPrice() - negative prices, at 50% cost");
+         TEST_OUTPUT.println("getPrice() - negative prices, at 50% cost");
          expectedPrice = testWare1.getBasePrice() * Config.priceFloor * -0.50f;
          quantity      = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25) - 1;
          testWare1.setQuantity(quantity);
@@ -4936,7 +4949,7 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
@@ -4947,11 +4960,11 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed2", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
-         System.err.println("getPrice() - negative prices, at equilibrium");
+         TEST_OUTPUT.println("getPrice() - negative prices, at equilibrium");
          expectedPrice = testWare1.getBasePrice();
          quantity      = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
@@ -4959,7 +4972,7 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
 
@@ -4970,12 +4983,12 @@ public class TestSuite
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted2", 0, false);
 
          if (currentPrice != expectedPrice) {
-            System.err.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
+            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("getPrice() - fatal error: " + e);
+         TEST_OUTPUT.println("getPrice() - fatal error: " + e);
          errorFound = true;
       }
 
@@ -4999,157 +5012,157 @@ public class TestSuite
       int   quantity;
 
       try {
-         System.err.println("check() - null ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - null ware ID");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, null, 1, false);
-         if (!testBAOS.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - empty ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - empty ware ID");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "", 1, false);
-         if (!testBAOS.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - invalid ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - invalid ware ID");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "invalidID", 1, false);
-         if (!testBAOS.toString().equals("error - ware not found: invalidID" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - ware not found: invalidID" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - untradeable ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - untradeable ware ID");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:untradeable1", 1, false);
-         if (!testBAOS.toString().equals("notrade1 (test:untradeable1): $16.00" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("notrade1 (test:untradeable1): $16.00" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using valid ware ID without alias and buying upcharge");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using valid ware ID without alias and buying upcharge");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:material1", 1, false);
-         if (!testBAOS.toString().equals("test:material1: $1.00, 256" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:material1: $1.00, 256" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using valid ware ID with alias and without buying upcharge");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using valid ware ID with alias and without buying upcharge");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:material3", 1, false);
-         if (!testBAOS.toString().equals("mat3 (test:material3): $4.00, 64" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("mat3 (test:material3): $4.00, 64" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          Config.priceBuyUpchargeMult = 2.0f;
-         System.err.println("check() - using valid ware ID without alias and with buying upcharge");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using valid ware ID without alias and with buying upcharge");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:processed2", 1, false);
-         if (!testBAOS.toString().equals("test:processed2: Buy - $28.60 | Sell - $14.30, 8" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:processed2: Buy - $28.60 | Sell - $14.30, 8" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using valid ware ID with alias and buying upcharge");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using valid ware ID with alias and buying upcharge");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:crafted1", 1, false);
-         if (!testBAOS.toString().equals("craft1 (test:crafted1): Buy - $38.40 | Sell - $19.20, 128" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("craft1 (test:crafted1): Buy - $38.40 | Sell - $19.20, 128" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using zero quantity with buying upcharge");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using zero quantity with buying upcharge");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "minecraft:material4", 0, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): Buy - $16.00 | Sell - $8.00, 32" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): Buy - $16.00 | Sell - $8.00, 32" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using high quantity with buying upcharge");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using high quantity with buying upcharge");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "minecraft:material4", 10, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): Buy - $16.00 | Sell - $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $205.00 | Sell - $75.50" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): Buy - $16.00 | Sell - $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $205.00 | Sell - $75.50" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          Config.priceBuyUpchargeMult = 1.0f;
 
-         System.err.println("check() - using negative quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using negative quantity");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "minecraft:material4", -1, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using zero quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using zero quantity");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "minecraft:material4", 0, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using singular quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using singular quantity");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "minecraft:material4", 1, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using double quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using double quantity");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "minecraft:material4", 2, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 2: Buy - $16.50 | Sell - $15.83" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 2: Buy - $16.50 | Sell - $15.83" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - using high quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - using high quantity");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "minecraft:material4", 10, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - referencing ware using alias");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - referencing ware using alias");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "material4", 10, false);
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - null username");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(InterfaceTerminal.getPlayerIDStatic(null), "material4", 10, false);
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - empty username");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(InterfaceTerminal.getPlayerIDStatic(""), "material4", 10, false);
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("check() - different username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("check() - different username");
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(InterfaceTerminal.getPlayerIDStatic("possibleID"), "material4", 10, false);
-         if (!testBAOS.toString().startsWith("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -5159,17 +5172,17 @@ public class TestSuite
          Config.priceFloorAdjusted =  2.0f;
          float quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
 
-         System.err.println("check() - negative prices, at -100% cost");
+         TEST_OUTPUT.println("check() - negative prices, at -100% cost");
          price    = testWare1.getBasePrice() * Config.priceFloor;
          quantity = Config.quanHigh[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (material): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (material): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
@@ -5177,26 +5190,26 @@ public class TestSuite
          quantity = Config.quanHigh[testWareP1.getLevel()];
          testWareP1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:processed1", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:processed1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:processed1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (manufactured): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
-         System.err.println("check() - negative prices, at -50% cost");
+         TEST_OUTPUT.println("check() - negative prices, at -50% cost");
          price    = testWare1.getBasePrice() * Config.priceFloor * 0.50f;
          quantity = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f) - 1;
          testWare1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (material): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (material): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
@@ -5204,26 +5217,26 @@ public class TestSuite
          quantity = Config.quanMid[testWareC2.getLevel()] + (int) ((Config.quanHigh[testWareC2.getLevel()] - Config.quanMid[testWareC2.getLevel()]) * 0.75f) - 1;
          testWareC2.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:crafted2", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:crafted2: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:crafted2: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (manufactured): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
-         System.err.println("check() - negative prices, at no cost");
+         TEST_OUTPUT.println("check() - negative prices, at no cost");
          price    = 0.0f;
          quantity = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f) - 1;
          testWare1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (material): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (material): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
@@ -5231,26 +5244,26 @@ public class TestSuite
          quantity = Config.quanMid[testWareP2.getLevel()] + (int) ((Config.quanHigh[testWareP2.getLevel()] - Config.quanMid[testWareP2.getLevel()]) * 0.50f) - 1;
          testWareP2.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:processed2", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:processed2: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:processed2: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (manufactured): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
-         System.err.println("check() - negative prices, at 50% cost");
+         TEST_OUTPUT.println("check() - negative prices, at 50% cost");
          price    = testWare1.getBasePrice() * Config.priceFloor * -0.50f;
          quantity = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f) - 1;
          testWare1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (material): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (material): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
@@ -5258,26 +5271,26 @@ public class TestSuite
          quantity = Config.quanMid[testWareC1.getLevel()] + (int) ((Config.quanHigh[testWareC1.getLevel()] - Config.quanMid[testWareC1.getLevel()]) * 0.25f) - 1;
          testWareC1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:crafted1", 1, false);
 
-         if (!testBAOS.toString().startsWith("craft1 (test:crafted1): " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("craft1 (test:crafted1): " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (manufactured): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
-         System.err.println("check() - negative prices, at equilibrium");
+         TEST_OUTPUT.println("check() - negative prices, at equilibrium");
          price    = testWare1.getBasePrice();
          quantity = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:material1", 1, false);
 
-         if (!testBAOS.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (material): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("test:material1: " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (material): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
 
@@ -5285,17 +5298,17 @@ public class TestSuite
          quantity = Config.quanMid[testWareC1.getLevel()];
          testWareC1.setQuantity(quantity);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.check(PLAYER_ID, "test:crafted1", 1, false);
 
-         if (!testBAOS.toString().startsWith("craft1 (test:crafted1): " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
-            System.err.println("   unexpected console output (manufactured): " + testBAOS.toString());
-            System.err.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
+         if (!baosOut.toString().startsWith("craft1 (test:crafted1): " +  CommandEconomy.PRICE_FORMAT.format(price) + ", " + quantity + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output (manufactured): " + baosOut.toString());
+            TEST_OUTPUT.println("   expected price: " + CommandEconomy.PRICE_FORMAT.format(price) + "\n   expected quantity: " + quantity);
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("check() - fatal error: " + e);
+         TEST_OUTPUT.println("check() - fatal error: " + e);
          return false;
       }
 
@@ -5321,7 +5334,7 @@ public class TestSuite
       float money;
 
       try {
-         System.err.println("buy() - null account ID");
+         TEST_OUTPUT.println("buy() - null account ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5335,7 +5348,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - empty account ID");
+         TEST_OUTPUT.println("buy() - empty account ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5349,7 +5362,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - invalid account ID");
+         TEST_OUTPUT.println("buy() - invalid account ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = playerAccount.getMoney();
@@ -5362,7 +5375,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - using account without permission");
+         TEST_OUTPUT.println("buy() - using account without permission");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount4.getMoney();
@@ -5372,11 +5385,11 @@ public class TestSuite
          }
          if (testAccount4.getMoney() != money) {
             errorFound = true;
-            System.err.println("   unexpected account funds: " + testAccount4.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + testAccount4.getMoney() + ", should be " + money);
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - null ware ID");
+         TEST_OUTPUT.println("buy() - null ware ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5390,7 +5403,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - empty ware ID");
+         TEST_OUTPUT.println("buy() - empty ware ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
@@ -5403,7 +5416,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - invalid ware ID");
+         TEST_OUTPUT.println("buy() - invalid ware ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
@@ -5416,7 +5429,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - untradeable ware ID");
+         TEST_OUTPUT.println("buy() - untradeable ware ID");
          quantityToTrade = 1;
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, null, "test:untradeable1", quantityToTrade, 0.0f, "testAccount1");
@@ -5425,7 +5438,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying no quantity of ware");
+         TEST_OUTPUT.println("buy() - buying no quantity of ware");
          quantityToTrade = 0;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
@@ -5438,7 +5451,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying negative quantity of ware");
+         TEST_OUTPUT.println("buy() - buying negative quantity of ware");
          quantityToTrade = -1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
@@ -5451,7 +5464,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying out-of-stock ware");
+         TEST_OUTPUT.println("buy() - buying out-of-stock ware");
          testWare1.setQuantity(0); // set ware to be out-of-stock
          quantityWare      = 0;
          money             = testAccount1.getMoney();
@@ -5464,7 +5477,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying without inventory space");
+         TEST_OUTPUT.println("buy() - buying without inventory space");
          int inventorySpaceOrig = InterfaceTerminal.inventorySpace;
          InterfaceTerminal.inventorySpace = 0; // maximum inventory space is no inventory
          quantityWare = testWare1.getQuantity();
@@ -5479,7 +5492,7 @@ public class TestSuite
          resetTestEnvironment();
          InterfaceTerminal.inventorySpace = inventorySpaceOrig; // reset maximum inventory space
 
-         System.err.println("buy() - buying without any money");
+         TEST_OUTPUT.println("buy() - buying without any money");
          testAccount1.setMoney(0.0f);
          Marketplace.buy(PLAYER_ID, null, "test:material1", 1, 0.0f, "testAccount1");
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, 256)) {
@@ -5490,7 +5503,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad4 to quad4) overstocked to overstocked");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad4) overstocked to overstocked");
          Config.priceFloor = 0.1f;
          quantityToTrade = 100; // only able to buy this much
          quantityWare    = Config.quanHigh[testWare1.getLevel()] * 2;
@@ -5504,16 +5517,16 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          Config.priceFloor = 0.0f;
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad4 to quad3), overstocked to above equilibrium");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad3), overstocked to above equilibrium");
          Config.priceFloor = 0.1f;
          quantityToTrade = 128; // only able to buy this much
          quantityWare    = Config.quanHigh[testWare1.getLevel()] + 10;
@@ -5527,16 +5540,16 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          Config.priceFloor = 0.0f;
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad4 to quad2), overstocked to below equilibrium");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad2), overstocked to below equilibrium");
          Config.priceFloor = 0.1f;
          quantityToTrade = 832; // only able to buy this much
          quantityWare    = Config.quanHigh[testWare1.getLevel()] + 10;
@@ -5551,16 +5564,16 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          Config.priceFloor = 0.0f;
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad4 to quad1), overstocked to understocked");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad1), overstocked to understocked");
          Config.priceFloor = 0.1f;
          quantityToTrade = 934; // only able to buy this much
          quantityWare    = Config.quanHigh[testWare1.getLevel()] + 10;
@@ -5575,16 +5588,16 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          Config.priceFloor = 0.0f;
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad3 to quad3), above equilibrium to above equilibrium");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad3), above equilibrium to above equilibrium");
          quantityToTrade = 14; // only able to buy this much
          quantityWare    = testWare1.getQuantity() * 2;
          testWare1.setQuantity(quantityWare);
@@ -5597,15 +5610,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad3 to quad2), above equilibrium to below equilibrium");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad2), above equilibrium to below equilibrium");
          quantityToTrade = testWare1.getQuantity() * 2 - Config.quanLow[testWare1.getLevel()] - 10; // only able to buy this much
          quantityWare    = testWare1.getQuantity() * 2;
          testWare1.setQuantity(quantityWare);
@@ -5619,15 +5632,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad3 to quad1), above equilibrium to understocked");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad1), above equilibrium to understocked");
          quantityToTrade = 448; // only able to buy this much
          quantityWare    = testWare1.getQuantity() * 2;
          testWare1.setQuantity(quantityWare);
@@ -5641,15 +5654,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - (equil to quad2) equilibrium to below equilibrium");
+         TEST_OUTPUT.println("buy() - (equil to quad2) equilibrium to below equilibrium");
          quantityToTrade = 1; // only able to buy this much
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5662,15 +5675,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad2 to quad2), below equilibrium to below equilibrium");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad2 to quad2), below equilibrium to below equilibrium");
          quantityToTrade = 6; // only able to buy this much
          quantityWare    = 192;
          testWare1.setQuantity(quantityWare);
@@ -5683,10 +5696,10 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
@@ -5704,15 +5717,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad2 to quad1), below equilibrium to understocked");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad2 to quad1), below equilibrium to understocked");
          quantityToTrade = 192 - Config.quanLow[testWare1.getLevel()] + 20; // only able to buy this much
          quantityWare    = 192;
          testWare1.setQuantity(quantityWare);
@@ -5726,15 +5739,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - over-ordering, (quad1 to quad1), understocked to understocked");
+         TEST_OUTPUT.println("buy() - over-ordering, (quad1 to quad1), understocked to understocked");
          quantityToTrade = 5; // only able to buy this much
          quantityWare    = testWare1.getQuantity() / 3;
          testWare1.setQuantity(quantityWare);
@@ -5747,15 +5760,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(testAccount1, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + testAccount1.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + testAccount1.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying some of a ware with means to buy more");
+         TEST_OUTPUT.println("buy() - buying some of a ware with means to buy more");
          quantityToTrade = 8;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5769,7 +5782,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying-out ware by requesting more than is available");
+         TEST_OUTPUT.println("buy() - buying-out ware by requesting more than is available");
          testAccount1.setMoney(1000.0f); // make sure there's enough money to buy-out ware
          quantityToTrade = testWare1.getQuantity(); // will buy this much
          quantityWare    = 0;
@@ -5784,7 +5797,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying ware with max price acceptable being NaN");
+         TEST_OUTPUT.println("buy() - buying ware with max price acceptable being NaN");
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, null, "test:material1", 1, Float.NaN, "testAccount1");
@@ -5796,7 +5809,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying ware with max price acceptable being too low");
+         TEST_OUTPUT.println("buy() - buying ware with max price acceptable being too low");
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, null, "test:material1", 1, 0.1f, "testAccount1");
@@ -5808,7 +5821,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - buying ware with max price acceptable being high");
+         TEST_OUTPUT.println("buy() - buying ware with max price acceptable being high");
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5827,7 +5840,7 @@ public class TestSuite
          // buy() handles purchasing wares, ensuring stock is reduced and accounts are charged
          // when appropriate, not managing the cascading effects of those actions.
 
-         System.err.println("buy() - referencing ware using alias");
+         TEST_OUTPUT.println("buy() - referencing ware using alias");
          quantityToTrade = 2;
          quantityWare    = testWare3.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material3", quantityToTrade, true);
@@ -5841,7 +5854,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - null coordinates");
+         TEST_OUTPUT.println("buy() - null coordinates");
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5854,22 +5867,22 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - invalid coordinates");
+         TEST_OUTPUT.println("buy() - invalid coordinates");
          // note: coordinates below are invalid for the Terminal Interface, but not the Minecraft Interface
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, new InterfaceCommand.Coordinates(1, 2, 3, 0), "test:material1", 5, 100.0f, "testAccount1");
-         if (!testBAOS.toString().equals("No inventory was found" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("No inventory was found" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
@@ -5880,7 +5893,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - valid coordinates");
+         TEST_OUTPUT.println("buy() - valid coordinates");
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5893,15 +5906,15 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventoryNorth.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventoryNorth.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryNorth.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryNorth.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - zeroed coordinates");
+         TEST_OUTPUT.println("buy() - zeroed coordinates");
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5914,21 +5927,21 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - null username");
+         baosOut.reset(); // clear buffer holding console output
          quantityWare    = testWare1.getQuantity();
          money           = testAccount4.getMoney();
          Marketplace.buy(InterfaceTerminal.getPlayerIDStatic(null), null, "test:material1", 3, 100.0f, "testAccount4");
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
@@ -5938,34 +5951,34 @@ public class TestSuite
             errorFound = true;
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does contains ware when it shouldn't");
+            TEST_OUTPUT.println("   inventory does contains ware when it shouldn't");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - empty username");
+         baosOut.reset(); // clear buffer holding console output
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
          Marketplace.buy(InterfaceTerminal.getPlayerIDStatic(""), null, "test:material1", 3, 100.0f, null);
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
             errorFound = true;
          }
          if (accounts.containsKey("")) {
-            System.err.println("   account was created when it should not have been");
+            TEST_OUTPUT.println("   account was created when it should not have been");
             errorFound = true;
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does contains ware when it shouldn't");
+            TEST_OUTPUT.println("   inventory does contains ware when it shouldn't");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - different username");
+         TEST_OUTPUT.println("buy() - different username");
          quantityToTrade = 20;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -5978,102 +5991,102 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          resetTestEnvironment();
 
          // buy ware_id quantity [max_unit_price] [account_id]
-         System.err.println("buy() - request: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(null);
-         if (!testBAOS.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("buy() - request: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{});
-         if (!testBAOS.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("buy() - request: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("buy() - request: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1"});
-         if (!testBAOS.toString().equals("error - wrong number of arguments: /buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - wrong number of arguments: /buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("buy() - request: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "10.0", "testAccount1", "excessArgument", "excessArgument", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: invalid ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: invalid ware ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"invalidWare", "10"});
-         if (!testBAOS.toString().startsWith("error - ware not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - ware not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: invalid price");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: invalid price");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "invalidPrice", "testAccount1"});
-         if (!testBAOS.toString().startsWith("error - invalid price")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid price")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: invalid account ID without given price");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: invalid account ID without given price");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: invalid account ID with valid price");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: invalid account ID with valid price");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "10.0", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: minimum args");
+         TEST_OUTPUT.println("buy() - request: minimum args");
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade)});
@@ -6082,7 +6095,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: valid price");
+         TEST_OUTPUT.println("buy() - request: valid price");
          testWare1.setQuantity(256);
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
@@ -6092,7 +6105,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: valid account ID");
+         TEST_OUTPUT.println("buy() - request: valid account ID");
          testWare1.setQuantity(256);
          quantityToTrade    = 10;
          price              = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
@@ -6103,7 +6116,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: valid price and account ID");
+         TEST_OUTPUT.println("buy() - request: valid price and account ID");
          testWare1.setQuantity(256);
          testAccount2.setMoney(20.0f);
          quantityToTrade    = 10;
@@ -6115,7 +6128,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: referencing ware using alias");
+         TEST_OUTPUT.println("buy() - request: referencing ware using alias");
          testWare4.setQuantity(32);
          testAccount2.setMoney(20.0f);
          quantityToTrade    = 2;
@@ -6128,100 +6141,100 @@ public class TestSuite
          // reset changed variables to avoid interfering with other tests
          resetTestEnvironment();
 
-         System.err.println("buy() - request: null coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: null coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{InterfaceTerminal.playername, null, "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does contains ware when it shouldn't");
+            TEST_OUTPUT.println("   inventory does contains ware when it shouldn't");
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: invalid coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: invalid coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{InterfaceTerminal.playername, "invalidCoordinates", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")
+         if (!baosOut.toString().startsWith("error - invalid quantity")
          ) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - request: valid coordinates");
+         TEST_OUTPUT.println("buy() - request: valid coordinates");
          quantityToTrade = 10;
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{InterfaceTerminal.playername, "south", "test:material1", String.valueOf(quantityToTrade)});
-         if (!testBAOS.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (!InterfaceTerminal.inventorySouth.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventorySouth.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventorySouth.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventorySouth.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - request: zeroed coordinates");
+         TEST_OUTPUT.println("buy() - request: zeroed coordinates");
          quantityToTrade = 10;
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{InterfaceTerminal.playername, "none", "test:material1", String.valueOf(quantityToTrade)});
-         if (!testBAOS.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - request: null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{null, "none", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does contains ware when it shouldn't");
+            TEST_OUTPUT.println("   inventory does contains ware when it shouldn't");
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("buy() - request: empty username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"", "none", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does contains ware when it shouldn't");
+            TEST_OUTPUT.println("   inventory does contains ware when it shouldn't");
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("buy() - request: different username");
+         TEST_OUTPUT.println("buy() - request: different username");
          quantityToTrade = 20;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount3.getMoney();
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"possibleID", "none", "test:material1", String.valueOf(quantityToTrade), "testAccount3"});
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
             errorFound = true;
@@ -6230,21 +6243,21 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
-         if (!testBAOS.toString().startsWith("(for possibleID) Bought " + quantityToTrade + " test:material1 for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from testAccount3" + System.lineSeparator())
+         if (!baosOut.toString().startsWith("(for possibleID) Bought " + quantityToTrade + " test:material1 for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from testAccount3" + System.lineSeparator())
          ) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + "(for possibleID) Bought " + quantityToTrade + " test:material1 for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from testAccount3" + System.lineSeparator());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + "(for possibleID) Bought " + quantityToTrade + " test:material1 for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from testAccount3" + System.lineSeparator());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - existing Forge OreDictionary Name");
+         TEST_OUTPUT.println("buy() - existing Forge OreDictionary Name");
          wareAliasTranslations.put("#testName", "test:material2");
          testWare2.setQuantity(1000);
          quantityToTrade = 2;
@@ -6260,7 +6273,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - nonexistent Forge OreDictionary Name");
+         TEST_OUTPUT.println("buy() - nonexistent Forge OreDictionary Name");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
@@ -6273,13 +6286,13 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - request: admin account");
+         TEST_OUTPUT.println("buy() - request: admin account");
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "$admin$"});
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -6289,14 +6302,14 @@ public class TestSuite
          Config.priceFloorAdjusted =  2.0f;
          float quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
 
-         System.err.println("buy() - negative prices, at -100% cost");
+         TEST_OUTPUT.println("buy() - negative prices, at -100% cost");
          quantityToTrade = 10;
          quantityWare    = Config.quanHigh[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "testAccount1"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -6306,27 +6319,27 @@ public class TestSuite
             errorFound = true;
          }
          if (money >= testAccount1.getMoney()) {
-            System.err.println("   account funds are " + testAccount1.getMoney() + ", should be greater than " + money);
+            TEST_OUTPUT.println("   account funds are " + testAccount1.getMoney() + ", should be greater than " + money);
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - negative prices, at -50% cost");
+         TEST_OUTPUT.println("buy() - negative prices, at -50% cost");
          quantityToTrade = 20;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f);
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "testAccount1"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -6336,27 +6349,27 @@ public class TestSuite
             errorFound = true;
          }
          if (money >= testAccount1.getMoney()) {
-            System.err.println("   account funds are " + testAccount1.getMoney() + ", should be greater than " + money);
+            TEST_OUTPUT.println("   account funds are " + testAccount1.getMoney() + ", should be greater than " + money);
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - negative prices, at no cost");
+         TEST_OUTPUT.println("buy() - negative prices, at no cost");
          quantityToTrade = 5;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f);
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "testAccount1"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -6366,23 +6379,23 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - negative prices, at 50% cost");
+         TEST_OUTPUT.println("buy() - negative prices, at 50% cost");
          quantityToTrade = 5;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f);
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "testAccount1"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -6392,23 +6405,23 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - negative prices, at no cost");
+         TEST_OUTPUT.println("buy() - negative prices, at no cost");
          quantityToTrade = 10;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f);
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "testAccount1"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -6418,23 +6431,23 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - negative prices, at equilibrium");
+         TEST_OUTPUT.println("buy() - negative prices, at equilibrium");
          quantityToTrade = 9;
          quantityWare    = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "testAccount1"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -6444,23 +6457,23 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - negative prices, overbuying");
+         TEST_OUTPUT.println("buy() - negative prices, overbuying");
          quantityToTrade = 777;
          quantityWare    = Config.quanHigh[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "testAccount1"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -6470,266 +6483,266 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("buy() - acceptable price, (quad4 to quad4), overstocked to overstocked");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad4), overstocked to overstocked");
          quantityToTrade = 12;
          quantityWare    = Config.quanHigh[testWare1.getLevel()] + 10;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "0.0001", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad4 to quad3), overstocked to above equilibrium");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad3), overstocked to above equilibrium");
          quantityToTrade = 395;
          quantityWare    = Config.quanHigh[testWare1.getLevel()] + 10;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "0.5", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad4 to quad2), overstocked to below equilibrium");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad2), overstocked to below equilibrium");
          quantityToTrade = 843;
          quantityWare    = Config.quanHigh[testWare1.getLevel()] + 10;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "1.5", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad4 to quad1), overstocked to understocked");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad1), overstocked to understocked");
          quantityToTrade = 1034;
          quantityWare    = Config.quanHigh[testWare1.getLevel()] + 10;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "3.0", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad3 to quad3), above equilibrium to above equilibrium");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad3 to quad3), above equilibrium to above equilibrium");
          quantityToTrade = 192;
          quantityWare    = 639;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "0.75", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad3 to quad2), above equilibrium to below equilibrium");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad3 to quad2), above equilibrium to below equilibrium");
          quantityToTrade = 416;
          quantityWare    = 639;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "1.25", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad3 to quad1), above equilibrium to understocked");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad3 to quad1), above equilibrium to understocked");
          quantityToTrade = 511;
          quantityWare    = 639;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "1.99", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad2 to quad2), below equilibrium to below equilibrium");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad2 to quad2), below equilibrium to below equilibrium");
          quantityToTrade = 32;
          quantityWare    = 191;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "1.75", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad2 to quad1), below equilibrium to understocked");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad2 to quad1), below equilibrium to understocked");
          quantityToTrade = 191;
          quantityWare    = 191;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "9999", "2.0", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("buy() - acceptable price, (quad2 to quad1), below equilibrium to understocked");
+         TEST_OUTPUT.println("buy() - acceptable price, (quad2 to quad1), below equilibrium to understocked");
          quantityToTrade = 128;
          quantityWare    = 128;
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "2.0", "$admin$"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
-            System.err.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
+            TEST_OUTPUT.println("   purchased quantity: " + (quantityWare - testWare1.getQuantity()));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true));
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade);
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
       }
       catch (Exception e) {
-         System.err.println("buy() - fatal error: " + e);
+         TEST_OUTPUT.println("buy() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -6759,7 +6772,7 @@ public class TestSuite
       float money;
 
       try {
-         System.err.println("sell() - null account ID");
+         TEST_OUTPUT.println("sell() - null account ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, false);
@@ -6772,7 +6785,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("sell() - empty account ID");
+         TEST_OUTPUT.println("sell() - empty account ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, false);
@@ -6785,7 +6798,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("sell() - invalid account ID");
+         TEST_OUTPUT.println("sell() - invalid account ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, false);
@@ -6794,7 +6807,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("sell() - using account without permission");
+         TEST_OUTPUT.println("sell() - using account without permission");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, false);
@@ -6805,11 +6818,11 @@ public class TestSuite
          }
          if (testAccount4.getMoney() != money) {
             errorFound = true;
-            System.err.println("   unexpected account funds: " + testAccount4.getMoney() + ", should be " + money);
+            TEST_OUTPUT.println("   unexpected account funds: " + testAccount4.getMoney() + ", should be " + money);
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - null ware ID");
+         TEST_OUTPUT.println("sell() - null ware ID");
          money = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, null, 1, 0.0f, "testAccount1");
          if (testAccountFields(testAccount1, money, InterfaceTerminal.playername)) {
@@ -6817,7 +6830,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - empty ware ID");
+         TEST_OUTPUT.println("sell() - empty ware ID");
          money = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, "", 1, 0.0f, "testAccount1");
          if (testAccountFields(testAccount1, money, InterfaceTerminal.playername)) {
@@ -6825,7 +6838,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - invalid ware ID");
+         TEST_OUTPUT.println("sell() - invalid ware ID");
          money = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, "invalidWare", 1, 0.0f, "testAccount1");
          if (testAccountFields(testAccount1, money, InterfaceTerminal.playername)) {
@@ -6833,7 +6846,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - selling no quantity of ware");
+         TEST_OUTPUT.println("sell() - selling no quantity of ware");
          InterfaceTerminal.inventory.put("test:material1", 100); // set stock amount to known value
          quantityToTrade = 100;
          quantityWare    = testWare1.getQuantity();
@@ -6849,7 +6862,7 @@ public class TestSuite
          resetTestEnvironment();
          InterfaceTerminal.inventory.put("test:material1", 1024); // reset stock amount for other tests
 
-         System.err.println("sell() - selling negative quantity of ware");
+         TEST_OUTPUT.println("sell() - selling negative quantity of ware");
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, "test:material1", -1, 0.0f, "testAccount1");
@@ -6860,7 +6873,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("sell() - selling ware player does not have");
+         TEST_OUTPUT.println("sell() - selling ware player does not have");
          quantityWare    = testWare2.getQuantity();
          money           = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, "test:material2", 1, 0.0f, "testAccount1");
@@ -6872,7 +6885,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - selling without sufficient stock to fill entire order");
+         TEST_OUTPUT.println("sell() - selling without sufficient stock to fill entire order");
          InterfaceTerminal.inventory.put("test:processed1", 10);    // give player some of the ware to be sold
          quantityToTrade = 10;
          quantityWare    = testWareP1.getQuantity();
@@ -6887,7 +6900,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - selling some of a ware with means to sell more");
+         TEST_OUTPUT.println("sell() - selling some of a ware with means to sell more");
          InterfaceTerminal.inventory.put("test:processed1", 10);    // give player some of the ware to be sold
          quantityToTrade = 8;
          quantityWare    = testWareP1.getQuantity();
@@ -6902,7 +6915,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - selling ware with min price acceptable being NaN");
+         TEST_OUTPUT.println("sell() - selling ware with min price acceptable being NaN");
          InterfaceTerminal.inventory.put("test:material1", 10);    // give player some of a sellable ware
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
@@ -6915,7 +6928,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - selling ware with min price acceptable being too high");
+         TEST_OUTPUT.println("sell() - selling ware with min price acceptable being too high");
          InterfaceTerminal.inventory.put("test:material1", 10);    // give player some of a sellable ware
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
@@ -6928,7 +6941,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - selling ware with min price acceptable being low");
+         TEST_OUTPUT.println("sell() - selling ware with min price acceptable being low");
          InterfaceTerminal.inventory.put("test:material1", 10);    // give player some of a sellable ware
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
@@ -6948,7 +6961,7 @@ public class TestSuite
          // sell() handles vending wares, ensuring stock is increased and accounts are paid
          // when appropriate, not managing the cascading effects of those actions.
 
-         System.err.println("sell() - referencing ware using alias");
+         TEST_OUTPUT.println("sell() - referencing ware using alias");
          InterfaceTerminal.inventory.put("test:material3", 10);    // give player a ware with an alias
          quantityToTrade = 2;
          quantityWare    = testWare3.getQuantity();
@@ -6963,7 +6976,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - null coordinates");
+         TEST_OUTPUT.println("sell() - null coordinates");
          InterfaceTerminal.inventory.put("test:material1", 10);
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
@@ -6977,27 +6990,27 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 5) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 5");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 5");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - invalid coordinates");
+         TEST_OUTPUT.println("sell() - invalid coordinates");
          // note: coordinates below are invalid for the Terminal Interface, but not the Chat Interface
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 10);
          Marketplace.sell(PLAYER_ID, new InterfaceCommand.Coordinates(1, 2, 3, 0), "test:material1", 5, 0.1f, "testAccount1");
-         if (!testBAOS.toString().equals("No inventory was found" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("No inventory was found" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - valid coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - valid coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventoryEast.put("test:material1", 10);
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
@@ -7011,15 +7024,15 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventoryEast.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventoryEast.get("test:material1") != 5) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryEast.get("test:material1") + " test:material1, should contain 5");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryEast.get("test:material1") + " test:material1, should contain 5");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - zeroed coordinates");
+         TEST_OUTPUT.println("sell() - zeroed coordinates");
          InterfaceTerminal.inventory.put("test:material1", 10);
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
@@ -7033,22 +7046,22 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 5) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 5");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 5");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 10);
          quantityWare    = testWare1.getQuantity();
          money           = testAccount4.getMoney();
          Marketplace.sell(InterfaceTerminal.getPlayerIDStatic(null), null, "test:material1", 3, 0.1f, "testAccount4");
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
@@ -7058,41 +7071,41 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 10) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - empty username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 10);
          quantityWare    = testWare1.getQuantity();
          money           = testAccount4.getMoney();
          Marketplace.sell(InterfaceTerminal.getPlayerIDStatic(""), null, "test:material1", 3, 0.1f, null);
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
             errorFound = true;
          }
          if (accounts.containsKey("")) {
-            System.err.println("   account was created when it should not have been");
+            TEST_OUTPUT.println("   account was created when it should not have been");
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 10) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - different username");
+         TEST_OUTPUT.println("sell() - different username");
          InterfaceTerminal.inventory.put("test:material1", 30);
          quantityToTrade = 20;
          quantityWare    = testWare1.getQuantity();
@@ -7106,94 +7119,94 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 10) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
             errorFound = true;
          }
          resetTestEnvironment();
 
          // sell ware_id [quantity] [min_unit_price] [account_id]
-         System.err.println("sell() - request: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(null);
-         if (!testBAOS.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("sell() - request: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{});
-         if (!testBAOS.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("sell() - request: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("sell() - request: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{});
-         if (!testBAOS.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("sell() - request: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "10", "0.1", "testAccount1", "excessArgument", "excessArgument", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: invalid ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: invalid ware ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{"invalidWare", "10"});
-         if (!testBAOS.toString().startsWith("error - ware not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - ware not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: invalid price");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: invalid price");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "10", "invalidPrice", "testAccount1"});
-         if (!testBAOS.toString().startsWith("error - invalid price")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid price")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: invalid account ID");
+         TEST_OUTPUT.println("sell() - request: invalid account ID");
          InterfaceTerminal.inventory.put("test:material1", 20);   // give wares to the player
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "10", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: minimum args");
+         TEST_OUTPUT.println("sell() - request: minimum args");
          InterfaceTerminal.inventory.put("test:material1", 20);   // give wares to the player
          testWare1.setQuantity(256);
          quantityToTrade = 20;
@@ -7204,7 +7217,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: valid quantity");
+         TEST_OUTPUT.println("sell() - request: valid quantity");
          InterfaceTerminal.inventory.put("test:material1", 100);   // give wares to the player
          testWare1.setQuantity(256);
          quantityToTrade = 10;
@@ -7215,7 +7228,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: valid price");
+         TEST_OUTPUT.println("sell() - request: valid price");
          InterfaceTerminal.inventory.put("test:material1", 100);   // give wares to the player
          testWare1.setQuantity(256);
          quantityToTrade = 10;
@@ -7226,7 +7239,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: valid account ID");
+         TEST_OUTPUT.println("sell() - request: valid account ID");
          InterfaceTerminal.inventory.put("test:material1", 100); // give wares to the player
          testWare1.setQuantity(256);
          quantityToTrade = 10;
@@ -7243,7 +7256,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - request: valid price and account ID");
+         TEST_OUTPUT.println("sell() - request: valid price and account ID");
          InterfaceTerminal.inventory.put("test:material1", 100); // give wares to the player
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
@@ -7258,7 +7271,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - request: referencing ware using alias");
+         TEST_OUTPUT.println("sell() - request: referencing ware using alias");
          InterfaceTerminal.inventory.put("minecraft:material4", 100);
          quantityToTrade = 10;
          quantityWare    = testWare4.getQuantity();
@@ -7273,90 +7286,90 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - request: null coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: null coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 20); // give wares to the player
          InterfaceTerminal.serviceRequestSell(new String[]{InterfaceTerminal.playername, null, "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: invalid coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: invalid coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 20); // give wares to the player
          InterfaceTerminal.serviceRequestSell(new String[]{InterfaceTerminal.playername, "invalidCoordinates", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")
+         if (!baosOut.toString().startsWith("error - invalid quantity")
          ) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - request: valid coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: valid coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventoryUp.put("test:material1", 20); // give wares to the player
          InterfaceTerminal.serviceRequestSell(new String[]{InterfaceTerminal.playername, "up", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("Sold 10 test:material1 for $9.93" + System.lineSeparator())
+         if (!baosOut.toString().startsWith("Sold 10 test:material1 for $9.93" + System.lineSeparator())
          ) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (!InterfaceTerminal.inventoryUp.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventoryUp.get("test:material1") != 10) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryUp.get("test:material1") + " test:material1, should contain 10");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryUp.get("test:material1") + " test:material1, should contain 10");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - request: zeroed coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: zeroed coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 20); // give wares to the player
          InterfaceTerminal.serviceRequestSell(new String[]{InterfaceTerminal.playername, "none", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("Sold 10 test:material1 for $9.93" + System.lineSeparator())
+         if (!baosOut.toString().startsWith("Sold 10 test:material1 for $9.93" + System.lineSeparator())
          ) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 10) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 10");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - request: null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 20); // give wares to the player
          InterfaceTerminal.serviceRequestSell(new String[]{null, "none", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sell() - request: empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sell() - request: empty username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 20); // give wares to the player
          InterfaceTerminal.serviceRequestSell(new String[]{"", "none", "test:material1", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sell() - request: different username");
+         TEST_OUTPUT.println("sell() - request: different username");
          InterfaceTerminal.inventory.put("test:material1", 40); // give wares to the player
          quantityToTrade = 20;
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, false);
          money           = testAccount3.getMoney();
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSell(new String[]{"possibleID", "none", "test:material1", String.valueOf(quantityToTrade), "testAccount3"});
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
             errorFound = true;
@@ -7365,22 +7378,22 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 20) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 20");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 20");
             errorFound = true;
          }
-         if (!testBAOS.toString().startsWith("(for possibleID) Sold " + quantityToTrade + " test:material1 for $" + String.format("%.2f", price) + ", sent money to testAccount3" + System.lineSeparator())
+         if (!baosOut.toString().startsWith("(for possibleID) Sold " + quantityToTrade + " test:material1 for $" + String.format("%.2f", price) + ", sent money to testAccount3" + System.lineSeparator())
          ) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // The Terminal interface cannot test selling wares using Forge OreDictionary names
          // since its wares do not use Forge OreDictionary names.
 
-         System.err.println("sell() - request: admin account");
+         TEST_OUTPUT.println("sell() - request: admin account");
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
          InterfaceTerminal.inventory.put("test:material1", quantityToTrade);
@@ -7395,7 +7408,7 @@ public class TestSuite
          Config.priceFloorAdjusted =  2.0f;
          float quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
 
-         System.err.println("sell() - negative prices, at -100% cost");
+         TEST_OUTPUT.println("sell() - negative prices, at -100% cost");
          quantityToTrade = 5;
          quantityWare    = Config.quanHigh[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
@@ -7412,12 +7425,12 @@ public class TestSuite
             errorFound = true;
          }
          if (money <= playerAccount.getMoney()) {
-            System.err.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
+            TEST_OUTPUT.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
             errorFound = true;
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, at -50% cost");
+         TEST_OUTPUT.println("sell() - negative prices, at -50% cost");
          quantityToTrade = 5;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f);
          testWare1.setQuantity(quantityWare);
@@ -7434,12 +7447,12 @@ public class TestSuite
             errorFound = true;
          }
          if (money <= playerAccount.getMoney()) {
-            System.err.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
+            TEST_OUTPUT.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
             errorFound = true;
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, at no cost");
+         TEST_OUTPUT.println("sell() - negative prices, at no cost");
          quantityToTrade = 10;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f);
          testWare1.setQuantity(quantityWare);
@@ -7457,7 +7470,7 @@ public class TestSuite
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, at 50% cost");
+         TEST_OUTPUT.println("sell() - negative prices, at 50% cost");
          quantityToTrade = 15;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f);
          testWare1.setQuantity(quantityWare);
@@ -7475,7 +7488,7 @@ public class TestSuite
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, at equilibrium");
+         TEST_OUTPUT.println("sell() - negative prices, at equilibrium");
          quantityToTrade = 10;
          quantityWare    = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
@@ -7495,7 +7508,7 @@ public class TestSuite
          playerAccount.setMoney(30.0f);
 
          /*
-         System.err.println("sell() - negative prices, overselling, (quad4 to quad4) overstocked to overstocked");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad4 to quad4) overstocked to overstocked");
          quantityToTrade = 30;
          quantityWare    = Config.quanHigh[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
@@ -7509,19 +7522,19 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          if (money <= playerAccount.getMoney()) {
-            System.err.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
+            TEST_OUTPUT.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
             errorFound = true;
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, overselling, (quad3 to quad4) above equilibrium to overstocked");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad3 to quad4) above equilibrium to overstocked");
          quantityToTrade = 30;
          quantityWare    = Config.quanHigh[testWare1.getLevel()] - 20;
          testWare1.setQuantity(quantityWare);
@@ -7535,19 +7548,19 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          if (money <= playerAccount.getMoney()) {
-            System.err.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
+            TEST_OUTPUT.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
             errorFound = true;
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, overselling, (quad3 to quad3) above equilibrium to above equilibrium");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad3 to quad3) above equilibrium to above equilibrium");
          quantityToTrade = 89;
          quantityWare    = Config.quanHigh[testWare1.getLevel()] - 300;
          testWare1.setQuantity(quantityWare);
@@ -7561,19 +7574,19 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          if (money <= playerAccount.getMoney()) {
-            System.err.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
+            TEST_OUTPUT.println("   account funds are " + playerAccount.getMoney() + " should be less than " + money);
             errorFound = true;
          }
          playerAccount.setMoney(203.0f);
 
-         System.err.println("sell() - negative prices, overselling, (quad3 to quad4) above equilibrium to overstocked");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad3 to quad4) above equilibrium to overstocked");
          quantityToTrade = 768;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + 10;
          testWare1.setQuantity(quantityWare);
@@ -7587,15 +7600,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, overselling, (quad2 to quad3) below equilibrium to above equilibrium");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad2 to quad3) below equilibrium to above equilibrium");
          quantityToTrade = 525;
          quantityWare    = Config.quanMid[testWare1.getLevel()] + 10;
          testWare1.setQuantity(quantityWare);
@@ -7609,15 +7622,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          playerAccount.setMoney(203.0f);
 
-         System.err.println("sell() - negative prices, overselling, (quad2 to quad4) below equilibrium to overstocked");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad2 to quad4) below equilibrium to overstocked");
          quantityToTrade = 906;
          quantityWare    = Config.quanLow[testWare1.getLevel()] + 10;
          testWare1.setQuantity(quantityWare);
@@ -7631,15 +7644,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          playerAccount.setMoney(30.0f);
 
-         System.err.println("sell() - negative prices, overselling, (quad1 to quad3) understocked to above equilibrium");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad1 to quad3) understocked to above equilibrium");
          quantityToTrade = 673;
          quantityWare    = Config.quanLow[testWare1.getLevel()] - 10;
          testWare1.setQuantity(quantityWare);
@@ -7653,15 +7666,15 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          playerAccount.setMoney(203.0f);
 
-         System.err.println("sell() - negative prices, overselling, (quad1 to quad4) understocked to overstocked");
+         TEST_OUTPUT.println("sell() - negative prices, overselling, (quad1 to quad4) understocked to overstocked");
          quantityToTrade = 916;
          quantityWare    = Config.quanLow[testWare1.getLevel()] - 10;
          testWare1.setQuantity(quantityWare);
@@ -7675,16 +7688,16 @@ public class TestSuite
             errorFound = true;
          }
          if (testAccountFields(playerAccount, money + price, InterfaceTerminal.playername)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("      remaining money: " + playerAccount.getMoney());
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("      remaining money: " + playerAccount.getMoney());
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          */
          resetTestEnvironment();
 
-         System.err.println("sell() - acceptable price, (quad1 to quad1), understocked to understocked");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad1 to quad1), understocked to understocked");
          quantityToTrade = 64;
          quantityWare    = 64;
          testWare1.setQuantity(quantityWare);
@@ -7695,14 +7708,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "2.0"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad1 to quad2), understocked to below equilibrium");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad1 to quad2), understocked to below equilibrium");
          quantityToTrade = 127;
          quantityWare    = 64;
          testWare1.setQuantity(quantityWare);
@@ -7713,14 +7726,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "1.5"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad1 to quad3), understocked to above equilibrium");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad1 to quad3), understocked to above equilibrium");
          quantityToTrade = 575;
          quantityWare    = 64;
          testWare1.setQuantity(quantityWare);
@@ -7731,14 +7744,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "0.5"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad1 to quad4), understocked to overstocked");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad1 to quad4), understocked to overstocked");
          quantityToTrade = 9999;
          quantityWare    = 64;
          testWare1.setQuantity(quantityWare);
@@ -7749,14 +7762,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "0.0"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad2 to quad2), below equilibrium to below equilibrium");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad2 to quad2), below equilibrium to below equilibrium");
          quantityToTrade = 32;
          quantityWare    = 191;
          testWare1.setQuantity(quantityWare);
@@ -7767,14 +7780,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "1.25"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad2 to quad3), below equilibrium to above equilibrium");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad2 to quad3), below equilibrium to above equilibrium");
          quantityToTrade = 448;
          quantityWare    = 191;
          testWare1.setQuantity(quantityWare);
@@ -7785,14 +7798,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "0.5"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad2 to quad4), below equilibrium to overstocked equilibrium");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad2 to quad4), below equilibrium to overstocked equilibrium");
          quantityToTrade = 831;
          quantityWare    = 191;
          testWare1.setQuantity(quantityWare);
@@ -7803,14 +7816,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "0.0001"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad3 to quad3), above equilibrium to above equilibrium");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad3 to quad3), above equilibrium to above equilibrium");
          quantityToTrade = 192;
          quantityWare    = 639;
          testWare1.setQuantity(quantityWare);
@@ -7821,14 +7834,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "0.25"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad3 to quad4), above equilibrium to overstocked");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad3 to quad4), above equilibrium to overstocked");
          quantityToTrade = 9999;
          quantityWare    = 639;
          testWare1.setQuantity(quantityWare);
@@ -7839,14 +7852,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "0.0"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sell() - acceptable price, (quad4 to quad4), overstocked equilibrium to overstocked");
+         TEST_OUTPUT.println("sell() - acceptable price, (quad4 to quad4), overstocked equilibrium to overstocked");
          quantityToTrade = 9999;
          quantityWare    = 1034;
          testWare1.setQuantity(quantityWare);
@@ -7857,15 +7870,15 @@ public class TestSuite
          InterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "9999", "0.0"});
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
-            System.err.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
-            System.err.println("    expected quantity: " + quantityToTrade);
-            System.err.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
+            TEST_OUTPUT.println("        sold quantity: " + (testWare1.getQuantity() - quantityWare));
+            TEST_OUTPUT.println("    expected quantity: " + quantityToTrade);
+            TEST_OUTPUT.println("     final unit price: " + Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false));
             errorFound = true;
          }
          InterfaceTerminal.inventory.clear();
       }
       catch (Exception e) {
-         System.err.println("sell() - fatal error: " + e);
+         TEST_OUTPUT.println("sell() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -7898,7 +7911,7 @@ public class TestSuite
       float money;
 
       try {
-         System.err.println("sellAll() - null account ID");
+         TEST_OUTPUT.println("sellAll() - null account ID");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -7929,7 +7942,7 @@ public class TestSuite
          resetTestEnvironment();
 
 
-         System.err.println("sellAll() - empty account ID");
+         TEST_OUTPUT.println("sellAll() - empty account ID");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -7960,7 +7973,7 @@ public class TestSuite
          resetTestEnvironment();
 
 
-         System.err.println("sellAll() - invalid account ID");
+         TEST_OUTPUT.println("sellAll() - invalid account ID");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8000,32 +8013,32 @@ public class TestSuite
          // check locked test account
          if (testAccount4.getMoney() != 6.0f) {
             errorFound = true;
-            System.err.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
+            TEST_OUTPUT.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
          }
          // check inventory for first test ware
          if (!InterfaceTerminal.inventory.containsKey("test:material1")
              || InterfaceTerminal.inventory.get("test:material1") != 100) {
             errorFound = true;
             if (!InterfaceTerminal.inventory.containsKey("test:material1"))
-               System.err.println("   test:material1 is missing when it should be in the inventory");
+               TEST_OUTPUT.println("   test:material1 is missing when it should be in the inventory");
             else
-               System.err.println("   test:material1 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material1"));
+               TEST_OUTPUT.println("   test:material1 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material1"));
          }
          // check inventory for second test ware
          if (!InterfaceTerminal.inventory.containsKey("test:material3")
              || InterfaceTerminal.inventory.get("test:material3") != 10) {
             errorFound = true;
             if (!InterfaceTerminal.inventory.containsKey("test:material3"))
-               System.err.println("   test:material3 is missing when it should be in the inventory");
+               TEST_OUTPUT.println("   test:material3 is missing when it should be in the inventory");
             else
-               System.err.println("   test:material3 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material3"));
+               TEST_OUTPUT.println("   test:material3 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material3"));
          }
 
          // reset changed values for next test
          InterfaceTerminal.inventory.clear();
 
 
-         System.err.println("sellAll() - using account without permission");
+         TEST_OUTPUT.println("sellAll() - using account without permission");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8065,32 +8078,32 @@ public class TestSuite
          // check locked test account
          if (testAccount4.getMoney() != 6.0f) {
             errorFound = true;
-            System.err.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
+            TEST_OUTPUT.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
          }
          // check inventory for first test ware
          if (!InterfaceTerminal.inventory.containsKey("test:material1")
              || InterfaceTerminal.inventory.get("test:material1") != 100) {
             errorFound = true;
             if (!InterfaceTerminal.inventory.containsKey("test:material1"))
-               System.err.println("   test:material1 is missing when it should be in the inventory");
+               TEST_OUTPUT.println("   test:material1 is missing when it should be in the inventory");
             else
-               System.err.println("   test:material1 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material1"));
+               TEST_OUTPUT.println("   test:material1 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material1"));
          }
          // check inventory for second test ware
          if (!InterfaceTerminal.inventory.containsKey("test:material3")
              || InterfaceTerminal.inventory.get("test:material3") != 10) {
             errorFound = true;
             if (!InterfaceTerminal.inventory.containsKey("test:material3"))
-               System.err.println("   test:material3 is missing when it should be in the inventory");
+               TEST_OUTPUT.println("   test:material3 is missing when it should be in the inventory");
             else
-               System.err.println("   test:material3 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material3"));
+               TEST_OUTPUT.println("   test:material3 should have 100 stock, has " + InterfaceTerminal.inventory.get("test:material3"));
          }
 
          // reset changed values for next test
          InterfaceTerminal.inventory.clear();
 
 
-         System.err.println("sellAll() - with only valid wares");
+         TEST_OUTPUT.println("sellAll() - with only valid wares");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 20;
@@ -8129,7 +8142,7 @@ public class TestSuite
          resetTestEnvironment();
 
 
-         System.err.println("sellAll() - with both valid and invalid wares");
+         TEST_OUTPUT.println("sellAll() - with both valid and invalid wares");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 20;
@@ -8167,9 +8180,9 @@ public class TestSuite
              || InterfaceTerminal.inventory.get("invalidWare") != 10) {
             errorFound = true;
             if (!InterfaceTerminal.inventory.containsKey("invalidWare"))
-               System.err.println("   invalid ware is missing when it should be in the inventory");
+               TEST_OUTPUT.println("   invalid ware is missing when it should be in the inventory");
             else
-               System.err.println("   invalid ware should have 10 stock, has " + InterfaceTerminal.inventory.get("invalidWare"));
+               TEST_OUTPUT.println("   invalid ware should have 10 stock, has " + InterfaceTerminal.inventory.get("invalidWare"));
          }
          // check test account
          if (testAccountFields(testAccount1, money + price1 + price2 + price3 - (float) 1e-4, InterfaceTerminal.playername)) {
@@ -8177,7 +8190,7 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - null coordinates");
+         TEST_OUTPUT.println("sellAll() - null coordinates");
          quantityToTrade1 = 5;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8201,17 +8214,17 @@ public class TestSuite
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1") &&
              InterfaceTerminal.inventory.get("test:material1") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
             errorFound = true;
          }
          if (InterfaceTerminal.inventory.containsKey("minecraft:material4") &&
              InterfaceTerminal.inventory.get("minecraft:material4") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain 0");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - invalid coordinates");
+         TEST_OUTPUT.println("sellAll() - invalid coordinates");
          quantityToTrade1 = 5;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8222,16 +8235,16 @@ public class TestSuite
          InterfaceTerminal.inventory.put("minecraft:material4", quantityToTrade2);
 
          // note: coordinates below are invalid for the Terminal Interface, but not the Chat Interface
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.sellAll(PLAYER_ID, new InterfaceCommand.Coordinates(1, 2, 3, 0), getFormattedInventory(), "testAccount1");
 
-         if (!testBAOS.toString().equals("No inventory was found" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("No inventory was found" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - valid coordinates");
+         TEST_OUTPUT.println("sellAll() - valid coordinates");
          quantityToTrade1 = 5;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8255,17 +8268,17 @@ public class TestSuite
          }
          if (InterfaceTerminal.inventoryWest.containsKey("test:material1") &&
              InterfaceTerminal.inventoryWest.get("test:material1") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryWest.get("test:material1") + " test:material1, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryWest.get("test:material1") + " test:material1, should contain 0");
             errorFound = true;
          }
          if (InterfaceTerminal.inventoryWest.containsKey("minecraft:material4") &&
              InterfaceTerminal.inventoryWest.get("minecraft:material4") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryWest.get("minecraft:material4") + " minecraft:material4, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryWest.get("minecraft:material4") + " minecraft:material4, should contain 0");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - zeroed coordinates");
+         TEST_OUTPUT.println("sellAll() - zeroed coordinates");
          quantityToTrade1 = 5;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8289,18 +8302,18 @@ public class TestSuite
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1") &&
              InterfaceTerminal.inventory.get("test:material1") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
             errorFound = true;
          }
          if (InterfaceTerminal.inventory.containsKey("minecraft:material4") &&
              InterfaceTerminal.inventory.get("minecraft:material4") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain 0");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - null username");
+         baosOut.reset(); // clear buffer holding console output
          quantityToTrade1 = 5;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8312,8 +8325,8 @@ public class TestSuite
 
          Marketplace.sellAll(InterfaceTerminal.getPlayerIDStatic(null), null, getFormattedInventory(), "testAccount4");
 
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare1)) {
@@ -8326,21 +8339,21 @@ public class TestSuite
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade1) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade1);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade1);
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("minecraft:material4")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("minecraft:material4") != quantityToTrade2) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain " + quantityToTrade2);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain " + quantityToTrade2);
             errorFound = true;
          }
 
-         System.err.println("sellAll() - empty username");
+         TEST_OUTPUT.println("sellAll() - empty username");
          quantityToTrade1 = 5;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8350,11 +8363,11 @@ public class TestSuite
          InterfaceTerminal.inventory.put("test:material1", quantityToTrade1);
          InterfaceTerminal.inventory.put("minecraft:material4", quantityToTrade2);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.sellAll(InterfaceTerminal.getPlayerIDStatic(""), null, getFormattedInventory(), null);
 
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare1)) {
@@ -8364,25 +8377,25 @@ public class TestSuite
             errorFound = true;
          }
          if (accounts.containsKey("")) {
-            System.err.println("   account was created when it should not have been");
+            TEST_OUTPUT.println("   account was created when it should not have been");
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != quantityToTrade1) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade1);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain " + quantityToTrade1);
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("minecraft:material4")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("minecraft:material4") != quantityToTrade2) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain " + quantityToTrade2);
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain " + quantityToTrade2);
             errorFound = true;
          }
 
-         System.err.println("sellAll() - different username");
+         TEST_OUTPUT.println("sellAll() - different username");
          quantityToTrade1 = 5;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8406,62 +8419,62 @@ public class TestSuite
          }
          if (InterfaceTerminal.inventory.containsKey("test:material1") &&
              InterfaceTerminal.inventory.get("test:material1") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
             errorFound = true;
          }
          if (InterfaceTerminal.inventory.containsKey("minecraft:material4") &&
              InterfaceTerminal.inventory.get("minecraft:material4") != 0) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("minecraft:material4") + " minecraft:material4, should contain 0");
             errorFound = true;
          }
          resetTestEnvironment();
 
          // sellall [account_id]
-         System.err.println("sellAll() - request: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(null);
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("sellAll() - request: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("sellAll() - request: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("sellAll() - request: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{InterfaceTerminal.playername, "excessArgument", "excessArgument", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sellAll() - request: invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          // give wares to the player so there is something to sell
          InterfaceTerminal.inventory.put("test:material1", 100);
          InterfaceTerminal.serviceRequestSellAll(new String[]{"invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - request: minimum args");
+         TEST_OUTPUT.println("sellAll() - request: minimum args");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8472,7 +8485,7 @@ public class TestSuite
          InterfaceTerminal.inventory.put("test:material3", quantityToTrade2);
          money           = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{});
 
          // check test results
@@ -8489,13 +8502,13 @@ public class TestSuite
             errorFound = true;
          }
          // check printed statement
-         if (!testBAOS.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - request: valid account ID");
+         TEST_OUTPUT.println("sellAll() - request: valid account ID");
          quantityToTrade1 = 10;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8506,7 +8519,7 @@ public class TestSuite
          InterfaceTerminal.inventory.put("test:material3", quantityToTrade2);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{"testAccount1"});
 
          // check test results
@@ -8523,42 +8536,42 @@ public class TestSuite
             errorFound = true;
          }
          // check printed statement
-         if (!testBAOS.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - request: null coordinates");
+         TEST_OUTPUT.println("sellAll() - request: null coordinates");
          // give wares to the player
          InterfaceTerminal.inventory.put("test:material1", 10);
          InterfaceTerminal.inventory.put("test:material3",  10);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{InterfaceTerminal.playername, null, "testAccount1"});
 
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sellAll() - request: invalid coordinates");
+         TEST_OUTPUT.println("sellAll() - request: invalid coordinates");
          InterfaceTerminal.inventory.put("test:material1", 10);
          InterfaceTerminal.inventory.put("test:material3",  10);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          // give wares to the player
          InterfaceTerminal.serviceRequestSellAll(new String[]{InterfaceTerminal.playername, "invalidCoordinates", "testAccount1"});
 
-         if (!testBAOS.toString().startsWith("error - invalid inventory direction")
+         if (!baosOut.toString().startsWith("error - invalid inventory direction")
          ) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - request: valid coordinates");
+         TEST_OUTPUT.println("sellAll() - request: valid coordinates");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8569,7 +8582,7 @@ public class TestSuite
          InterfaceTerminal.inventoryDown.put("test:material3", quantityToTrade2);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          // give wares to the player
          InterfaceTerminal.serviceRequestSellAll(new String[]{InterfaceTerminal.playername, "down", "testAccount1"});
 
@@ -8587,13 +8600,13 @@ public class TestSuite
             errorFound = true;
          }
          // check printed statement
-         if (!testBAOS.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - request: zeroed coordinates");
+         TEST_OUTPUT.println("sellAll() - request: zeroed coordinates");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8604,7 +8617,7 @@ public class TestSuite
          InterfaceTerminal.inventory.put("test:material3", quantityToTrade2);
          money           = testAccount1.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{InterfaceTerminal.playername, "none", "testAccount1"});
 
          // check test results
@@ -8624,41 +8637,41 @@ public class TestSuite
             resetTestEnvironment();
          }
          // check printed statement
-         if (!testBAOS.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2))) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sellAll() - request: null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: null username");
+         baosOut.reset(); // clear buffer holding console output
          // give wares to the player
          InterfaceTerminal.inventory.put("test:material1", 10);
          InterfaceTerminal.inventory.put("test:material3",  10);
 
          InterfaceTerminal.serviceRequestSellAll(new String[]{null, "none", "testAccount1"});
 
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sellAll() - request: empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: empty username");
+         baosOut.reset(); // clear buffer holding console output
          // give wares to the player
          InterfaceTerminal.inventory.put("test:material1", 10);
          InterfaceTerminal.inventory.put("test:material3",  10);
 
          InterfaceTerminal.serviceRequestSellAll(new String[]{"", "none", "testAccount1"});
 
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - request: different username");
+         TEST_OUTPUT.println("sellAll() - request: different username");
          quantityToTrade1 = 100;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8669,7 +8682,7 @@ public class TestSuite
          InterfaceTerminal.inventory.put("test:material3", quantityToTrade2);
          money           = testAccount3.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{"possibleID", "none", "testAccount3"});
 
          // check test results
@@ -8686,23 +8699,23 @@ public class TestSuite
             errorFound = true;
          }
          // check printed statement
-         if (!testBAOS.toString().startsWith("(for possibleID) Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2) + ", sent money to testAccount3")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("(for possibleID) Sold " + (quantityToTrade1 + quantityToTrade2) + " items for $" + String.format("%.2f", price1 + price2) + ", sent money to testAccount3")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("sellAll() - request: selling no items");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("sellAll() - request: selling no items");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{InterfaceTerminal.playername, "none", "testAccount1"});
 
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("sellAll() - request: admin account");
+         TEST_OUTPUT.println("sellAll() - request: admin account");
          quantityToTrade1 = 10;
          quantityWare1    = testWare1.getQuantity();
          quantityToTrade2 = 10;
@@ -8710,7 +8723,7 @@ public class TestSuite
          InterfaceTerminal.inventory.put("test:material1", quantityToTrade1);
          InterfaceTerminal.inventory.put("test:material3", quantityToTrade2);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSellAll(new String[]{"$admin$"});
 
          // check test results
@@ -8730,7 +8743,7 @@ public class TestSuite
          float quanCeilingFromEquilibrium1 = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
          float quanCeilingFromEquilibrium2 = Config.quanHigh[testWareP1.getLevel()] - Config.quanMid[testWareP1.getLevel()];
 
-         System.err.println("sellAll() - negative prices, at -100% cost");
+         TEST_OUTPUT.println("sellAll() - negative prices, at -100% cost");
          quantityToTrade1 = 10;
          quantityWare1    = Config.quanHigh[testWare1.getLevel()];
          quantityToTrade2 = 10;
@@ -8763,7 +8776,7 @@ public class TestSuite
          testAccount1.setMoney(30.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sellAll() - negative prices, at -50% cost");
+         TEST_OUTPUT.println("sellAll() - negative prices, at -50% cost");
          quantityToTrade1 = 10;
          quantityWare1    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.75f) - 1;
          quantityToTrade2 = 10;
@@ -8796,7 +8809,7 @@ public class TestSuite
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sellAll() - negative prices, at no cost");
+         TEST_OUTPUT.println("sellAll() - negative prices, at no cost");
          quantityToTrade1 = 10;
          quantityWare1    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.50f) - 1;
          quantityToTrade2 = 10;
@@ -8829,7 +8842,7 @@ public class TestSuite
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sellAll() - negative prices, at 50% cost");
+         TEST_OUTPUT.println("sellAll() - negative prices, at 50% cost");
          quantityToTrade1 = 10;
          quantityWare1    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.25f) - 1;
          quantityToTrade2 = 10;
@@ -8862,7 +8875,7 @@ public class TestSuite
          testAccount1.setMoney(10.0f);
          InterfaceTerminal.inventory.clear();
 
-         System.err.println("sellAll() - negative prices, at equilibrium");
+         TEST_OUTPUT.println("sellAll() - negative prices, at equilibrium");
          quantityToTrade1 = 10;
          quantityWare1    = Config.quanMid[testWare1.getLevel()];
          quantityToTrade2 = 10;
@@ -8894,7 +8907,7 @@ public class TestSuite
          }
       }
       catch (Exception e) {
-         System.err.println("sellAll() - fatal error: " + e);
+         TEST_OUTPUT.println("sellAll() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -8931,7 +8944,7 @@ public class TestSuite
       // prepare to check wares
       Ware testWare; // holds ware currently being checked
 
-      System.err.println("testWareIO() - saving to file");
+      TEST_OUTPUT.println("testWareIO() - saving to file");
       Config.filenameWaresSave = "config" + File.separator + "CommandEconomy" + File.separator + "testWaresSaved.txt"; // save wares to test file, don't overwrite any existing save
 
       // try to save to the test file
@@ -8939,18 +8952,18 @@ public class TestSuite
          Marketplace.saveWares();
       }
       catch (Exception e) {
-         System.err.println("   saveWares() should not throw any exception, but it did\n   was saving test wares");
+         TEST_OUTPUT.println("   saveWares() should not throw any exception, but it did\n   was saving test wares");
          e.printStackTrace();
          return false;
       }
 
-      System.err.println("testWareIO() - loading from file");
+      TEST_OUTPUT.println("testWareIO() - loading from file");
       // try to load the test file
       try {
          Marketplace.loadWares();
       }
       catch (Exception e) {
-         System.err.println("testWareIO() - loadWares() should not throw any exception, but it did\n   was loading test wares");
+         TEST_OUTPUT.println("testWareIO() - loadWares() should not throw any exception, but it did\n   was loading test wares");
          e.printStackTrace();
          return false;
       }
@@ -8963,7 +8976,7 @@ public class TestSuite
 
          testWare = wares.get("test:material1");
          if (testWareFields(testWare, WareMaterial.class, "", (byte) 0, 1.0f, 256)) {
-            System.err.println("   test:material1 did not match expected values");
+            TEST_OUTPUT.println("   test:material1 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -8974,7 +8987,7 @@ public class TestSuite
 
          testWare = wares.get("test:material2");
          if (testWareFields(testWare, WareMaterial.class, "", (byte) 1, 27.6f, 5)) {
-            System.err.println("   test:material2 did not match expected values");
+            TEST_OUTPUT.println("   test:material2 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -8985,7 +8998,7 @@ public class TestSuite
 
          testWare = wares.get("test:material3");
          if (testWareFields(testWare, WareMaterial.class, "mat3", (byte) 2, 4.0f, 64)) {
-            System.err.println("   test:material3 did not match expected values");
+            TEST_OUTPUT.println("   test:material3 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -8995,13 +9008,13 @@ public class TestSuite
          }
          if (!wareAliasTranslations.containsKey("mat3") ||
              !wareAliasTranslations.get("mat3").equals("test:material3")) {
-            System.err.println("   test:material3 did not have expected alias");
+            TEST_OUTPUT.println("   test:material3 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("minecraft:material4");
          if (testWareFields(testWare, WareMaterial.class, "material4", (byte) 3, 8.0f, 32)) {
-            System.err.println("   minecraft:material4 did not match expected values");
+            TEST_OUTPUT.println("   minecraft:material4 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("material4");
@@ -9011,13 +9024,13 @@ public class TestSuite
          }
          if (!wareAliasTranslations.containsKey("material4") ||
              !wareAliasTranslations.get("material4").equals("minecraft:material4")) {
-            System.err.println("   minecraft:material4 did not have expected alias");
+            TEST_OUTPUT.println("   minecraft:material4 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("test:untradeable1");
          if (testWareFields(testWare, WareUntradeable.class, "notrade1", (byte) 0, 16.0f, Integer.MAX_VALUE)) {
-            System.err.println("   test:untradeable1 did not match expected values");
+            TEST_OUTPUT.println("   test:untradeable1 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("notrade1");
@@ -9027,13 +9040,13 @@ public class TestSuite
          }
          if (!wareAliasTranslations.containsKey("notrade1") ||
              !wareAliasTranslations.get("notrade1").equals("test:untradeable1")) {
-            System.err.println("   test:untradeable1 did not have expected alias");
+            TEST_OUTPUT.println("   test:untradeable1 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("test:processed1");
          if (testWareFields(testWare, WareProcessed.class, "", (byte) 4, 1.1f, 16)) {
-            System.err.println("   test:processed1 did not match expected values");
+            TEST_OUTPUT.println("   test:processed1 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -9044,7 +9057,7 @@ public class TestSuite
 
          testWare = wares.get("test:processed2");
          if (testWareFields(testWare, WareProcessed.class, "", (byte) 5, 14.3f, 8)) {
-            System.err.println("   test:processed2 did not match expected values");
+            TEST_OUTPUT.println("   test:processed2 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -9055,7 +9068,7 @@ public class TestSuite
 
          testWare = wares.get("test:processed3");
          if (testWareFields(testWare, WareProcessed.class, "", (byte) 3, 1.76f, 32)) {
-            System.err.println("   test:processed3 did not match expected values");
+            TEST_OUTPUT.println("   test:processed3 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -9066,7 +9079,7 @@ public class TestSuite
 
          testWare = wares.get("test:crafted1");
          if (testWareFields(testWare, WareCrafted.class, "craft1", (byte) 1, 19.2f, 128)) {
-            System.err.println("   test:crafted1 did not match expected values");
+            TEST_OUTPUT.println("   test:crafted1 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("craft1");
@@ -9076,13 +9089,13 @@ public class TestSuite
          }
          if (!wareAliasTranslations.containsKey("craft1") ||
              !wareAliasTranslations.get("craft1").equals("test:crafted1")) {
-            System.err.println("   test:crafted1 did not have expected alias");
+            TEST_OUTPUT.println("   test:crafted1 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("test:crafted2");
          if (testWareFields(testWare, WareCrafted.class, "", (byte) 2, 24.24f, 64)) {
-            System.err.println("   test:crafted2 did not match expected values");
+            TEST_OUTPUT.println("   test:crafted2 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -9093,7 +9106,7 @@ public class TestSuite
 
          testWare = wares.get("test:crafted3");
          if (testWareFields(testWare, WareCrafted.class, "", (byte) 3, 2.4f, 32)) {
-            System.err.println("   test:crafted3 did not match expected values");
+            TEST_OUTPUT.println("   test:crafted3 did not match expected values");
             errorFound = true;
             // set up ware appropriately for other tests
             testWare.setAlias("");
@@ -9105,52 +9118,52 @@ public class TestSuite
          // ore names and alternate aliases
          if (!wareAliasTranslations.containsKey("#testName")) {
             errorFound = true;
-            System.err.println("   #testName does not exist, should be mapped to test:material2");
+            TEST_OUTPUT.println("   #testName does not exist, should be mapped to test:material2");
          } else {
             if (!wareAliasTranslations.get("#testName").equals("test:material2")) {
                errorFound = true;
-               System.err.println("   #testName's ware ID is " + wareAliasTranslations.get("#testName") + ", should be test:material2");
+               TEST_OUTPUT.println("   #testName's ware ID is " + wareAliasTranslations.get("#testName") + ", should be test:material2");
             }
          }
          if (!wareAliasTranslations.containsKey("testAlternateAlias")) {
             errorFound = true;
-            System.err.println("   testAlternateAlias does not exist, should be mapped to test:material1");
+            TEST_OUTPUT.println("   testAlternateAlias does not exist, should be mapped to test:material1");
          } else {
             if (!wareAliasTranslations.get("testAlternateAlias").equals("test:material1")) {
                errorFound = true;
-               System.err.println("   testAlternateAlias's ware ID is " + wareAliasTranslations.get("testAlternateAlias") + ", should be test:material1");
+               TEST_OUTPUT.println("   testAlternateAlias's ware ID is " + wareAliasTranslations.get("testAlternateAlias") + ", should be test:material1");
             }
          }
 
          // numerical IDs
          testWare = wares.get("17");
          if (testWareFields(testWare, WareMaterial.class, "wood", (byte) 0, 0.5f, 256)) {
-            System.err.println("   ware #17 did not match expected values");
+            TEST_OUTPUT.println("   ware #17 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("wood") ||
              !wareAliasTranslations.get("wood").equals("17")) {
-            System.err.println("   ware #17 did not have expected alias");
+            TEST_OUTPUT.println("   ware #17 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("58");
          if (testWareFields(testWare, WareCrafted.class, "crafting_table", (byte) 0, 0.6f, 256)) {
-            System.err.println("   ware #58 did not match expected values");
+            TEST_OUTPUT.println("   ware #58 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("crafting_table") ||
              !wareAliasTranslations.get("crafting_table").equals("58")) {
-            System.err.println("   ware #58 did not have expected alias");
+            TEST_OUTPUT.println("   ware #58 did not have expected alias");
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("   fatal error while checking wares: " + e);
+         TEST_OUTPUT.println("   fatal error while checking wares: " + e);
          return false;
       }
 
-      System.err.println("testWareIO() - saving after removing a ware and creating new ones");
+      TEST_OUTPUT.println("testWareIO() - saving after removing a ware and creating new ones");
 
       // remove known ware
       json = wareEntries.get("test:material2");
@@ -9178,27 +9191,27 @@ public class TestSuite
       wareEntries.put("test:untradeable2", json);
 
       if (wares.size() != 15)
-         System.err.println("   warning: total number of wares is expected to be 15, but is " + wares.size());
+         TEST_OUTPUT.println("   warning: total number of wares is expected to be 15, but is " + wares.size());
       if (wareAliasTranslations.size() != 10)
-         System.err.println("   warning: total number of ware aliases is expected to be 10, but is " + wareAliasTranslations.size());
+         TEST_OUTPUT.println("   warning: total number of ware aliases is expected to be 10, but is " + wareAliasTranslations.size());
 
       // try to save to the test file
       try {
          Marketplace.saveWares();
       }
       catch (Exception e) {
-         System.err.println("   saveWares() should not throw any exception, but it did\n   was saving changed test wares");
+         TEST_OUTPUT.println("   saveWares() should not throw any exception, but it did\n   was saving changed test wares");
          e.printStackTrace();
          return false;
       }
 
-      System.err.println("testWareIO() - loading from file");
+      TEST_OUTPUT.println("testWareIO() - loading from file");
       // try to load the test file
       try {
          Marketplace.loadWares();
       }
       catch (Exception e) {
-         System.err.println("testWareIO() - loadWares() should not throw any exception, but it did\n   was loading changed test wares");
+         TEST_OUTPUT.println("testWareIO() - loadWares() should not throw any exception, but it did\n   was loading changed test wares");
          e.printStackTrace();
          return false;
       }
@@ -9207,158 +9220,158 @@ public class TestSuite
       try {
          testWare = wares.get("test:material1");
          if (testWareFields(testWare, WareMaterial.class, "", (byte) 0, 1.0f, 256)) {
-            System.err.println("   test:material1 did not match expected values");
+            TEST_OUTPUT.println("   test:material1 did not match expected values");
             errorFound = true;
          }
 
          // check whether the deleted ware exists
          if (wares.containsKey("test:material2")) {
             errorFound = true;
-            System.err.println("   test:material2 was deleted, but still exists");
+            TEST_OUTPUT.println("   test:material2 was deleted, but still exists");
          }
 
          testWare = wares.get("test:material3");
          if (testWareFields(testWare, WareMaterial.class, "mat3", (byte) 2, 4.0f, 64)) {
-            System.err.println("   test:material3 did not match expected values");
+            TEST_OUTPUT.println("   test:material3 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("mat3") ||
              !wareAliasTranslations.get("mat3").equals("test:material3")) {
-            System.err.println("   test:material3 did not have expected alias");
+            TEST_OUTPUT.println("   test:material3 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("minecraft:material4");
          if (testWareFields(testWare, WareMaterial.class, "material4", (byte) 3, 8.0f, 32)) {
-            System.err.println("   minecraft:material4 did not match expected values");
+            TEST_OUTPUT.println("   minecraft:material4 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("material4") ||
              !wareAliasTranslations.get("material4").equals("minecraft:material4")) {
-            System.err.println("   minecraft:material4 did not have expected alias");
+            TEST_OUTPUT.println("   minecraft:material4 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("test:untradeable1");
          if (testWareFields(testWare, WareUntradeable.class, "notrade1", (byte) 0, 16.0f, Integer.MAX_VALUE)) {
-            System.err.println("   test:untradeable1 did not match expected values");
+            TEST_OUTPUT.println("   test:untradeable1 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("notrade1") ||
              !wareAliasTranslations.get("notrade1").equals("test:untradeable1")) {
-            System.err.println("   test:untradeable1 did not have expected alias");
+            TEST_OUTPUT.println("   test:untradeable1 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("test:processed1");
          if (testWareFields(testWare, WareProcessed.class, "", (byte) 4, 1.1f, 16)) {
-            System.err.println("   test:processed1 did not match expected values");
+            TEST_OUTPUT.println("   test:processed1 did not match expected values");
             errorFound = true;
          }
 
          testWare = wares.get("test:processed2");
          if (testWareFields(testWare, WareProcessed.class, "", (byte) 5, 14.3f, 8)) {
-            System.err.println("   test:processed2 did not match expected values");
+            TEST_OUTPUT.println("   test:processed2 did not match expected values");
             errorFound = true;
          }
 
          testWare = wares.get("test:processed3");
          if (testWareFields(testWare, WareProcessed.class, "", (byte) 3, 1.76f, 32)) {
-            System.err.println("   test:processed3 did not match expected values");
+            TEST_OUTPUT.println("   test:processed3 did not match expected values");
             errorFound = true;
          }
 
          testWare = wares.get("test:crafted1");
          if (testWareFields(testWare, WareCrafted.class, "craft1", (byte) 1, 19.2f, 128)) {
-            System.err.println("   test:crafted1 did not match expected values");
+            TEST_OUTPUT.println("   test:crafted1 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("craft1") ||
              !wareAliasTranslations.get("craft1").equals("test:crafted1")) {
-            System.err.println("   test:crafted1 did not have expected alias");
+            TEST_OUTPUT.println("   test:crafted1 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("test:crafted2");
          if (testWareFields(testWare, WareCrafted.class, "", (byte) 2, 24.24f, 64)) {
-            System.err.println("   test:crafted2 did not match expected values");
+            TEST_OUTPUT.println("   test:crafted2 did not match expected values");
             errorFound = true;
          }
 
          testWare = wares.get("test:crafted3");
          if (testWareFields(testWare, WareCrafted.class, "", (byte) 3, 2.4f, 32)) {
-            System.err.println("   test:crafted3 did not match expected values");
+            TEST_OUTPUT.println("   test:crafted3 did not match expected values");
             errorFound = true;
          }
 
          testWare = wares.get("test:newWare1");
          if (testWareFields(testWare, WareMaterial.class, "brandNewButUnexciting", (byte) 4, 100.0f, 10)) {
-            System.err.println("   test:newWare1 did not match expected values");
+            TEST_OUTPUT.println("   test:newWare1 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("brandNewButUnexciting") ||
              !wareAliasTranslations.get("brandNewButUnexciting").equals("test:newWare1")) {
-            System.err.println("   test:newWare1 did not have expected alias");
+            TEST_OUTPUT.println("   test:newWare1 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("test:newWare2");
          if (testWareFields(testWare, WareCrafted.class, "", (byte) 3, 120.0f, 1)) {
-            System.err.println("   test:newWare2 did not match expected values");
+            TEST_OUTPUT.println("   test:newWare2 did not match expected values");
             errorFound = true;
          }
 
          testWare = wares.get("test:untradeable2");
          if (testWareFields(testWare, WareUntradeable.class, "notrade2", (byte) 0, 9.0f, Integer.MAX_VALUE)) {
-            System.err.println("   test:untradeable2 did not match expected values");
+            TEST_OUTPUT.println("   test:untradeable2 did not match expected values");
             errorFound = true;
          }
 
          // ore names and alternate aliases
          if (!wareAliasTranslations.containsKey("#testName")) {
             errorFound = true;
-            System.err.println("   #testName does not exist, should be mapped to test:material1");
+            TEST_OUTPUT.println("   #testName does not exist, should be mapped to test:material1");
          } else {
             if (!wareAliasTranslations.get("#testName").equals("test:material1")) {
                errorFound = true;
-               System.err.println("   #testName's ware ID is " + wareAliasTranslations.get("#testName") + ", should be test:material1");
+               TEST_OUTPUT.println("   #testName's ware ID is " + wareAliasTranslations.get("#testName") + ", should be test:material1");
             }
          }
          if (!wareAliasTranslations.containsKey("testAlternateAlias")) {
             errorFound = true;
-            System.err.println("   testAlternateAlias does not exist, should be mapped to test:material1");
+            TEST_OUTPUT.println("   testAlternateAlias does not exist, should be mapped to test:material1");
          } else {
             if (!wareAliasTranslations.get("testAlternateAlias").equals("test:material1")) {
                errorFound = true;
-               System.err.println("   testAlternateAlias's ware ID is " + wareAliasTranslations.get("testAlternateAlias") + ", should be test:material1");
+               TEST_OUTPUT.println("   testAlternateAlias's ware ID is " + wareAliasTranslations.get("testAlternateAlias") + ", should be test:material1");
             }
          }
 
          // numerical IDs
          testWare = wares.get("17");
          if (testWareFields(testWare, WareMaterial.class, "wood", (byte) 0, 0.5f, 256)) {
-            System.err.println("   ware #17 did not match expected values");
+            TEST_OUTPUT.println("   ware #17 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("wood") ||
              !wareAliasTranslations.get("wood").equals("17")) {
-            System.err.println("   ware #17 did not have expected alias");
+            TEST_OUTPUT.println("   ware #17 did not have expected alias");
             errorFound = true;
          }
 
          testWare = wares.get("58");
          if (testWareFields(testWare, WareCrafted.class, "crafting_table", (byte) 0, 0.6f, 256)) {
-            System.err.println("   ware #58 did not match expected values");
+            TEST_OUTPUT.println("   ware #58 did not match expected values");
             errorFound = true;
          }
          if (!wareAliasTranslations.containsKey("crafting_table") ||
              !wareAliasTranslations.get("crafting_table").equals("58")) {
-            System.err.println("   ware #58 did not have expected alias");
+            TEST_OUTPUT.println("   ware #58 did not have expected alias");
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("   fatal error while checking changed wares: " + e);
+         TEST_OUTPUT.println("   fatal error while checking changed wares: " + e);
          return false;
       }
 
@@ -9381,15 +9394,15 @@ public class TestSuite
       Config.accountStartingMoney = 10.0f;
 
       // test handling missing file
-      System.err.println("testAccountIO() - handling of missing file");
+      TEST_OUTPUT.println("testAccountIO() - handling of missing file");
       Config.filenameAccounts = "no file here";
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       int numAccounts = accounts.size();
       try {
          Account.loadAccounts();
       }
       catch (Exception e) {
-         System.err.println("   Account.loadAccounts() should not throw any exception, but it did\n   was testing for handling missing file");
+         TEST_OUTPUT.println("   Account.loadAccounts() should not throw any exception, but it did\n   was testing for handling missing file");
          e.printStackTrace();
          return false;
       }
@@ -9399,38 +9412,38 @@ public class TestSuite
       // check local file
       if (fileAccounts.exists()){
          errorFound = true;
-         System.err.println("   \"no file here\" file should not exist in local/world directory");
+         TEST_OUTPUT.println("   \"no file here\" file should not exist in local/world directory");
       }
       // check global file
       fileAccounts = new File("config" + File.separator + Config.filenameAccounts);
       if (fileAccounts.exists()){
          errorFound = true;
-         System.err.println("   \"no file here\" file should not exist in global/config directory");
+         TEST_OUTPUT.println("   \"no file here\" file should not exist in global/config directory");
       }
       if (numAccounts != accounts.size()) {
-         System.err.println("   unexpected number of accounts: " + accounts.size() + ", should be " + numAccounts);
+         TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + numAccounts);
          errorFound = true;
       }
       Config.filenameAccounts = "config" + File.separator + "CommandEconomy" + File.separator + "testAccounts.txt";
 
-      System.err.println("testAccountIO() - saving to file");
+      TEST_OUTPUT.println("testAccountIO() - saving to file");
       // try to save to the test file
       try {
          Account.saveAccounts();
       }
       catch (Exception e) {
-         System.err.println("   Account.saveAccounts() should not throw any exception, but it did\n   was saving test accounts");
+         TEST_OUTPUT.println("   Account.saveAccounts() should not throw any exception, but it did\n   was saving test accounts");
          e.printStackTrace();
          return false;
       }
 
-      System.err.println("testAccountIO() - loading from file");
+      TEST_OUTPUT.println("testAccountIO() - loading from file");
       // try to load the test file
       try {
          Account.loadAccounts();
       }
       catch (Exception e) {
-         System.err.println("testAccountIO() - Account.loadAccounts() should not throw any exception, but it did\n   was loading test accounts");
+         TEST_OUTPUT.println("testAccountIO() - Account.loadAccounts() should not throw any exception, but it did\n   was loading test accounts");
          e.printStackTrace();
          return false;
       }
@@ -9441,87 +9454,87 @@ public class TestSuite
          testAccount1  = accounts.get("testAccount1");
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   testAccount1 had unexpected values");
+            TEST_OUTPUT.println("   testAccount1 had unexpected values");
          }
          // test permissions
          if (testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccount1 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccount1 allows access to an arbitrary player ID when it shouldn't");
          }
 
          // test properties
          testAccount2  = accounts.get("testAccount2");
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   testAccount2 had unexpected values");
+            TEST_OUTPUT.println("   testAccount2 had unexpected values");
          }
          // test permissions
          if (testAccount2.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccount2 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccount2 allows access to an arbitrary player ID when it shouldn't");
          }
 
          // test properties
          testAccount3  = accounts.get("testAccount3");
          if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
             errorFound = true;
-            System.err.println("   testAccount3 had unexpected values");
+            TEST_OUTPUT.println("   testAccount3 had unexpected values");
          }
          // test permissions
          if (testAccount3.hasAccess(PLAYER_ID)) {
             errorFound = true;
-            System.err.println("   testAccount3 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
+            TEST_OUTPUT.println("   testAccount3 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
          }
 
          Account testAccount4  = accounts.get("testAccount4");
          // test properties
          if (testAccount4.getMoney() != 6.0f) {
             errorFound = true;
-            System.err.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
+            TEST_OUTPUT.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
          }
          // test permissions
          if (testAccount4.hasAccess(PLAYER_ID)) {
             errorFound = true;
-            System.err.println("   testAccount4 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
+            TEST_OUTPUT.println("   testAccount4 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
          }
          if (testAccount4.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccount4 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccount4 allows access to an arbitrary player ID when it shouldn't");
          }
 
          // test properties
          playerAccount  = accounts.get(InterfaceTerminal.playername);
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   playerAccount had unexpected values");
+            TEST_OUTPUT.println("   playerAccount had unexpected values");
          }
          // test permissions
          if (playerAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   playerAccount allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   playerAccount allows access to an arbitrary player ID when it shouldn't");
          }
 
          // test properties
          adminAccount  = accounts.get("$admin$");
          if (testAccountFields(adminAccount, Float.POSITIVE_INFINITY, "$admin$")) {
             errorFound = true;
-            System.err.println("   adminAccount had unexpected values");
+            TEST_OUTPUT.println("   adminAccount had unexpected values");
          }
          // test permissions
          if (adminAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   playerAccount allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   playerAccount allows access to an arbitrary player ID when it shouldn't");
          }
 
          if (accounts.size() != 6)
-            System.err.println("   warning: total number of accounts is expected to be 6, but is " + accounts.size());
+            TEST_OUTPUT.println("   warning: total number of accounts is expected to be 6, but is " + accounts.size());
       }
       catch (Exception e) {
-         System.err.println("   fatal error while checking accounts: " + e);
+         TEST_OUTPUT.println("   fatal error while checking accounts: " + e);
          return false;
       }
 
-      System.err.println("testAccountIO() - saving and loading after removing an account and creating new ones");
+      TEST_OUTPUT.println("testAccountIO() - saving and loading after removing an account and creating new ones");
 
       // remove known account
       accounts.remove("testAccount3");
@@ -9537,25 +9550,25 @@ public class TestSuite
       testAccountNew2.grantAccess(null, InterfaceTerminal.getPlayerIDStatic("arbitraryPlayerID3"), null);
 
       if (accounts.size() != 7)
-         System.err.println("   warning: total number of accounts is expected to be 7, but is " + accounts.size());
+         TEST_OUTPUT.println("   warning: total number of accounts is expected to be 7, but is " + accounts.size());
 
       // try to save to the test file
       try {
          Account.saveAccounts();
       }
       catch (Exception e) {
-         System.err.println("   Account.saveAccounts() should not throw any exception, but it did\n   was saving changed test accounts");
+         TEST_OUTPUT.println("   Account.saveAccounts() should not throw any exception, but it did\n   was saving changed test accounts");
          e.printStackTrace();
          return false;
       }
 
-      System.err.println("testAccountIO() - loading from file");
+      TEST_OUTPUT.println("testAccountIO() - loading from file");
       // try to load the test file
       try {
          Account.loadAccounts();
       }
       catch (Exception e) {
-         System.err.println("testAccountIO() - Account.loadAccounts() should not throw any exception, but it did\n   was loading changed test accounts");
+         TEST_OUTPUT.println("testAccountIO() - Account.loadAccounts() should not throw any exception, but it did\n   was loading changed test accounts");
          e.printStackTrace();
          return false;
       }
@@ -9566,19 +9579,19 @@ public class TestSuite
          testAccount1  = accounts.get("testAccount1");
          if (testAccountFields(testAccount1, 10.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   testAccount1 had unexpected values");
+            TEST_OUTPUT.println("   testAccount1 had unexpected values");
          }
          // test permissions
          if (testAccount1.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccount1 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccount1 allows access to an arbitrary player ID when it shouldn't");
          }
 
          // test properties
          testAccount2  = accounts.get("testAccount2");
          if (testAccountFields(testAccount2, 20.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   testAccount2 had unexpected values");
+            TEST_OUTPUT.println("   testAccount2 had unexpected values");
             // set up accounts appropriately for other tests
             testAccount2.setMoney(20.0f);
             testAccount2.grantAccess(PLAYER_ID, PLAYER_ID, InterfaceTerminal.playername);
@@ -9586,96 +9599,96 @@ public class TestSuite
          // test permissions
          if (testAccount2.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccount2 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccount2 allows access to an arbitrary player ID when it shouldn't");
          }
 
          // check whether the deleted account exists
          if (accounts.containsKey("testAccount3")) {
             errorFound = true;
-            System.err.println("   testAccount3 was deleted, but still exists");
+            TEST_OUTPUT.println("   testAccount3 was deleted, but still exists");
          }
 
          // test properties
          testAccount4 = accounts.get("testAccount4");
          if (testAccount4.getMoney() != 6.0f) {
             errorFound = true;
-            System.err.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
+            TEST_OUTPUT.println("   testAccount4's money should be 6.0f, is " + testAccount4.getMoney());
          }
          // test permissions
          if (testAccount4.hasAccess(PLAYER_ID)) {
             errorFound = true;
-            System.err.println("   testAccount4 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
+            TEST_OUTPUT.println("   testAccount4 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
          }
          if (testAccount4.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccount4 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccount4 allows access to an arbitrary player ID when it shouldn't");
          }
 
          // test properties
          playerAccount = accounts.get(InterfaceTerminal.playername);
          if (testAccountFields(playerAccount, 30.0f, InterfaceTerminal.playername)) {
             errorFound = true;
-            System.err.println("   playerAccount had unexpected values");
+            TEST_OUTPUT.println("   playerAccount had unexpected values");
          }
          // test permissions
          if (playerAccount.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   playerAccount allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   playerAccount allows access to an arbitrary player ID when it shouldn't");
          }
 
          Account testAccountNew1 = accounts.get("arbitraryAccountID");
          // test properties
          if (testAccountFields(testAccountNew1, 10.0f, "arbitraryPlayerID")) {
             errorFound = true;
-            System.err.println("   testAccountNew1 had unexpected values");
+            TEST_OUTPUT.println("   testAccountNew1 had unexpected values");
          }
          // test permissions
          if (testAccountNew1.hasAccess(PLAYER_ID)) {
             errorFound = true;
-            System.err.println("   testAccountNew1 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
+            TEST_OUTPUT.println("   testAccountNew1 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
          }
          if (testAccountNew1.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccountNew1 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccountNew1 allows access to an arbitrary player ID when it shouldn't");
          }
 
          testAccountNew2 = accounts.get("arbitraryID");
          // test properties
          if (testAccountFields(testAccountNew2, 42.0f, "arbitraryID")) {
             errorFound = true;
-            System.err.println("   testAccountNew2 had unexpected values");
+            TEST_OUTPUT.println("   testAccountNew2 had unexpected values");
          }
          // test permissions
          if (testAccountNew2.hasAccess(PLAYER_ID)) {
             errorFound = true;
-            System.err.println("   testAccountNew2 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
+            TEST_OUTPUT.println("   testAccountNew2 allows access to the player " + InterfaceTerminal.playername + " when it shouldn't");
          }
          if (testAccountNew2.hasAccess(InterfaceTerminal.getPlayerIDStatic("possibleID"))) {
             errorFound = true;
-            System.err.println("   testAccountNew2 allows access to an arbitrary player ID when it shouldn't");
+            TEST_OUTPUT.println("   testAccountNew2 allows access to an arbitrary player ID when it shouldn't");
          }
          if (!testAccountNew2.hasAccess(InterfaceTerminal.getPlayerIDStatic("arbitraryPlayerID1")) ||
              !testAccountNew2.hasAccess(InterfaceTerminal.getPlayerIDStatic("arbitraryPlayerID2")) ||
              !testAccountNew2.hasAccess(InterfaceTerminal.getPlayerIDStatic("arbitraryPlayerID3"))) {
             errorFound = true;
-            System.err.println("   testAccountNew2 does not allow shared access when it should");
+            TEST_OUTPUT.println("   testAccountNew2 does not allow shared access when it should");
          }
 
          // check account creation counts
          if (Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("arbitraryPlayerID")) != 1) {
             errorFound = true;
-            System.err.println("   arbitraryPlayerID's account creation count is " + Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("arbitraryPlayerID")) + ", should be 1");
+            TEST_OUTPUT.println("   arbitraryPlayerID's account creation count is " + Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("arbitraryPlayerID")) + ", should be 1");
          }
          if (Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("arbitraryID")) != 0) {
             errorFound = true;
-            System.err.println("   arbitraryID's account creation count is " + Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("arbitraryID")) + ", should be 0");
+            TEST_OUTPUT.println("   arbitraryID's account creation count is " + Account.getNumAccountsCreatedByUser(InterfaceTerminal.getPlayerIDStatic("arbitraryID")) + ", should be 0");
          }
 
          if (accounts.size() != 7)
-            System.err.println("   warning: total number of accounts is expected to be 7, but is " + accounts.size());
+            TEST_OUTPUT.println("   warning: total number of accounts is expected to be 7, but is " + accounts.size());
       }
       catch (Exception e) {
-         System.err.println("   fatal error while checking changed accounts: " + e);
+         TEST_OUTPUT.println("   fatal error while checking changed accounts: " + e);
          return false;
       }
 
@@ -9701,490 +9714,490 @@ public class TestSuite
 
       try {
          // check ware_id [quantity]
-         System.err.println("serviceRequests() - check: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(null);
-         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!testBAOS.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"test:material1", "10", "excessArgument", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - check: invalid ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: invalid ware ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"invalidWareID"});
-         if (!testBAOS.toString().equals("error - ware not found: invalidWareID" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - ware not found: invalidWareID" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - check: invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"test:material1", "invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - check: minimum args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: minimum args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"test:material1"});
-         if (!testBAOS.toString().equals("test:material1: $1.00, 256" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:material1: $1.00, 256" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: valid quantity");
+         TEST_OUTPUT.println("serviceRequests() - check: valid quantity");
          quantityToTrade = 10;
          price1          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, true);
          price2          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, false);
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"minecraft:material4", String.valueOf(quantityToTrade)});
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for " + quantityToTrade + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for " + quantityToTrade + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: referencing ware using alias");
+         TEST_OUTPUT.println("serviceRequests() - check: referencing ware using alias");
          quantityToTrade = 10;
          price1          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, true);
          price2          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, false);
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"material4", String.valueOf(quantityToTrade)});
-         if (!testBAOS.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for " + quantityToTrade + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for " + quantityToTrade + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{null, "material4", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: empty username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"", "material4", "10"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: different username");
+         TEST_OUTPUT.println("serviceRequests() - check: different username");
          quantityToTrade = 10;
          price1          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, true);
          price2          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, false);
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"possibleID", "material4", String.valueOf(quantityToTrade)});
-         if (!testBAOS.toString().equals("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for " + quantityToTrade + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for " + quantityToTrade + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: command block variant without permissions");
+         TEST_OUTPUT.println("serviceRequests() - check: command block variant without permissions");
          quantityToTrade = 1;
          price1          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, true);
          price2          = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, false);
          String playernameOrig = InterfaceTerminal.playername;
          InterfaceTerminal.playername = "notAnOp";
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"notAnOp", "material4", String.valueOf(quantityToTrade)});
-         if (!testBAOS.toString().startsWith("material4 (minecraft:material4): $8.00, 32")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("material4 (minecraft:material4): $8.00, 32")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: checking for others without permissions");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: checking for others without permissions");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"possibleID", "material4", String.valueOf(quantityToTrade)});
-         if (!testBAOS.toString().startsWith("You do not have permission to use this command for other players")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("You do not have permission to use this command for other players")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          InterfaceTerminal.playername = playernameOrig;
 
-         System.err.println("serviceRequests() - check: existing Forge OreDictionary Name");
+         TEST_OUTPUT.println("serviceRequests() - check: existing Forge OreDictionary Name");
          wareAliasTranslations.put("#testName", "test:material2");
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"#testName"});
-         if (!testBAOS.toString().equals("test:material2: $55.20, 5" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:material2: $55.20, 5" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - check: nonexistent Forge OreDictionary Name");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - check: nonexistent Forge OreDictionary Name");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"#invalidName"});
-         if (!testBAOS.toString().equals("error - ware not found: #invalidName" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - ware not found: #invalidName" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
          // money [account_id]
-         System.err.println("serviceRequests() - money: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(null);
-         if (!testBAOS.toString().equals("Your account: $30.00" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Your account: $30.00" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - money: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{});
-         if (!testBAOS.toString().equals("Your account: $30.00" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Your account: $30.00" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - money: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{InterfaceTerminal.playername, "testAccount2", "excessArgument"});
-         if (!testBAOS.toString().startsWith("testAccount2: $")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("testAccount2: $")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - money: blank account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: blank account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - money: invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{"invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found: invalidAccount")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found: invalidAccount")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - money: minimum args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: minimum args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{});
-         if (!testBAOS.toString().startsWith("Your account: $")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Your account: $")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - money: valid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: valid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{"testAccount2"});
-         if (!testBAOS.toString().startsWith("testAccount2: $")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("testAccount2: $")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - money: null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{null, "testAccount2"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - money: empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: empty username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{"", "testAccount2"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - money: different username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - money: different username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestMoney(new String[]{"possibleID", "testAccount3"});
-         if (!testBAOS.toString().startsWith("(for possibleID) testAccount3: $")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("(for possibleID) testAccount3: $")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
          // send quantity recipient_account_id [sender_account_id]
-         System.err.println("serviceRequests() - send: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(null);
-         if (!testBAOS.toString().equals("/send <quantity> <recipient_account_id> [sender_account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/send <quantity> <recipient_account_id> [sender_account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - send: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{});
-         if (!testBAOS.toString().equals("/send <quantity> <recipient_account_id> [sender_account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/send <quantity> <recipient_account_id> [sender_account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - send: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - send: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"10.0"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - send: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{InterfaceTerminal.playername, "10.0", "testAccount1", "testAccount2", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"invalidQuantity", "testAccount1"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: invalid sender ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: invalid sender ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"10.0", "testAccount1", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found: invalidAccount")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found: invalidAccount")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: invalid recipient ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: invalid recipient ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"10.0", "invalidAccount", "testAccount2"});
-         if (!testBAOS.toString().startsWith("error - account not found: invalidAccount")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found: invalidAccount")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: minimum args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: minimum args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"10.0", "testAccount1"});
-         if (!testBAOS.toString().startsWith("Successfully transferred $10")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Successfully transferred $10")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: valid sender ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: valid sender ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"5.0", "testAccount1", "testAccount2"});
-         if (!testBAOS.toString().startsWith("Successfully transferred $5")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Successfully transferred $5")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: null username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: null username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{null, "5.0", "testAccount1", "testAccount2"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: empty username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: empty username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"", "5.0", "testAccount1", "testAccount2"});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - send: different username");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - send: different username");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSend(new String[]{"possibleID", "5.0", "testAccount1", "testAccount3"});
-         if (!testBAOS.toString().startsWith("(for possibleID) Successfully transferred $5")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("(for possibleID) Successfully transferred $5")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
          // grantAccess player_id account_id
-         System.err.println("serviceRequests() - grantAccess: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGrantAccess(null);
-         if (!testBAOS.toString().equals("/grantAccess <player_name> <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/grantAccess <player_name> <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - grantAccess: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGrantAccess(new String[]{});
-         if (!testBAOS.toString().equals("/grantAccess <player_name> <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/grantAccess <player_name> <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - grantAccess: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGrantAccess(new String[]{"", ""});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - grantAccess: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - grantAccess: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID", "testAccount1", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - grantAccess: invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - grantAccess: valid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: valid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID", "testAccount1"});
-         if (!testBAOS.toString().startsWith("possibleID may now access testAccount1")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("possibleID may now access testAccount1")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
          // revokeAccess player_id account_id
-         System.err.println("serviceRequests() - revokeAccess: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestRevokeAccess(null);
-         if (!testBAOS.toString().equals("/revokeAccess <player_name> <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/revokeAccess <player_name> <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - revokeAccess: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestRevokeAccess(new String[]{});
-         if (!testBAOS.toString().equals("/revokeAccess <player_name> <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/revokeAccess <player_name> <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - revokeAccess: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestRevokeAccess(new String[]{"", ""});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - revokeAccess: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - revokeAccess: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID", "testAccount1", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - revokeAccess: invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - revokeAccess: valid account ID");
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: valid account ID");
          testAccount1.grantAccess(null, InterfaceTerminal.getPlayerIDStatic("possibleID"), null);
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID", "testAccount1"});
-         if (!testBAOS.toString().startsWith("possibleID may no longer access testAccount1")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("possibleID may no longer access testAccount1")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
@@ -10194,124 +10207,124 @@ public class TestSuite
          Config.filenameWaresSave = "config" + File.separator + "CommandEconomy" + File.separator + "testWaresSaved.txt";
          Config.filenameAccounts = "config" + File.separator + "CommandEconomy" + File.separator + "testAccounts.txt";
 
-         System.err.println("serviceRequests() - save: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - save: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSave(null);
-         if (!testBAOS.toString().equals("Saved the economy" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - save: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - save: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSave(new String[]{});
-         if (!testBAOS.toString().equals("Saved the economy" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - save: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - save: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSave(new String[]{""});
-         if (!testBAOS.toString().equals("Saved the economy" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - save: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - save: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSave(new String[]{"excessArgument"});
-         if (!testBAOS.toString().equals("Saved the economy" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - save: expected usage");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - save: expected usage");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSave(new String[]{});
-         if (!testBAOS.toString().equals("Saved the economy" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // reload (config || wares || accounts || all)
-         System.err.println("serviceRequests() - reload: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(null);
-         if (!testBAOS.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{});
-         if (!testBAOS.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - must provide instructions for reload")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - must provide instructions for reload")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{});
-         if (!testBAOS.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{"wares", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: invalid arg");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: invalid arg");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{"invalidArgument"});
-         if (!testBAOS.toString().startsWith("error - invalid argument")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid argument")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: config");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: config");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
-         if (!testBAOS.toString().equals("Reloaded config." + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Reloaded config." + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: wares");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: wares");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{"wares"});
-         if (!testBAOS.toString().equals("Reloaded wares." + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Reloaded wares." + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: accounts");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: accounts");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{"accounts"});
-         if (!testBAOS.toString().equals("Reloaded accounts." + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Reloaded accounts." + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - reload: total reload");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - reload: total reload");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestReload(new String[]{"all"});
-         if (!testBAOS.toString().equals("Reloaded config, wares, and accounts." + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Reloaded config, wares, and accounts." + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -10320,65 +10333,65 @@ public class TestSuite
          resetTestEnvironment();
 
          // add quantity [account_id]
-         System.err.println("serviceRequests() - add: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - add: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestAdd(null);
-         if (!testBAOS.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - add: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - add: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestAdd(new String[]{});
-         if (!testBAOS.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - add: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - add: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestAdd(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - add: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - add: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestAdd(new String[]{});
-         if (!testBAOS.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - add: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - add: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestAdd(new String[]{"10.0", "testAccount2", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - add: invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - add: invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestAdd(new String[]{"invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - add: invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - add: invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestAdd(new String[]{"10.0", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - add: minimum args");
+         TEST_OUTPUT.println("serviceRequests() - add: minimum args");
          playerAccount.setMoney(30.0f);
          InterfaceTerminal.serviceRequestAdd(new String[]{"10.0"});
          if (testAccountFields(playerAccount, 40.0f, InterfaceTerminal.playername)) {
@@ -10386,7 +10399,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - add: valid account ID");
+         TEST_OUTPUT.println("serviceRequests() - add: valid account ID");
          testAccount2.setMoney(20.0f);
          InterfaceTerminal.serviceRequestAdd(new String[]{"10.0", "testAccount2"});
          if (testAccountFields(testAccount2, 30.0f, InterfaceTerminal.playername)) {
@@ -10395,64 +10408,64 @@ public class TestSuite
          }
 
          // set quantity [account_id]
-         System.err.println("serviceRequests() - set: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - set: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSet(null);
-         if (!testBAOS.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - set: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - set: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSet(new String[]{});
-         if (!testBAOS.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - set: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - set: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSet(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - set: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - set: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSet(new String[]{});
-         if (!testBAOS.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - set: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - set: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSet(new String[]{"10.0", "testAccount2", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - set: invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - set: invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSet(new String[]{"invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - set: invalid account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - set: invalid account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestSet(new String[]{"10.0", "invalidAccount"});
-         if (!testBAOS.toString().startsWith("error - account not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - set: minimum args");
+         TEST_OUTPUT.println("serviceRequests() - set: minimum args");
          playerAccount.setMoney(30.0f);
          InterfaceTerminal.serviceRequestSet(new String[]{"10.0"});
          if (testAccountFields(playerAccount, 10.0f, InterfaceTerminal.playername)) {
@@ -10460,7 +10473,7 @@ public class TestSuite
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - set: valid account ID");
+         TEST_OUTPUT.println("serviceRequests() - set: valid account ID");
          testAccount2.setMoney(20.0f);
          InterfaceTerminal.serviceRequestSet(new String[]{"10.0", "testAccount2"});
          if (testAccountFields(testAccount2, 10.0f, InterfaceTerminal.playername)) {
@@ -10470,335 +10483,335 @@ public class TestSuite
 
          // printMarket
          // don't worry about changing the file written to since it's data is meant to be temporary
-         System.err.println("serviceRequests() - printMarket: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - printMarket: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestPrintMarket(null);
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - printMarket: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - printMarket: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestPrintMarket(new String[]{});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - printMarket: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - printMarket: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestPrintMarket(new String[]{""});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - printMarket: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - printMarket: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestPrintMarket(new String[]{"excessArgument"});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - printMarket: expected usage");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - printMarket: expected usage");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestPrintMarket(new String[]{});
-         if (!testBAOS.toString().isEmpty()) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().isEmpty()) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // inventory
-         System.err.println("serviceRequests() - inventory: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInventory(null);
-         if (!testBAOS.toString().startsWith("Your inventory: ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Your inventory: ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInventory(new String[]{});
-         if (!testBAOS.toString().startsWith("Your inventory: ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Your inventory: ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInventory(new String[]{""});
-         if (!testBAOS.toString().startsWith("Your inventory: ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Your inventory: ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInventory(new String[]{"", "excessArgument"});
-         if (!testBAOS.toString().startsWith("Your inventory: ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Your inventory: ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: expected usage");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: expected usage");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInventory(new String[]{});
-         if (!testBAOS.toString().startsWith("Your inventory: ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Your inventory: ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: invalid coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: invalid coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 10);
          InterfaceTerminal.serviceRequestInventory(new String[]{"invalidCoordinates"});
-         if (!testBAOS.toString().startsWith("error - invalid inventory direction")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid inventory direction")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: zeroed coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: zeroed coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 15);
          InterfaceTerminal.serviceRequestInventory(new String[]{"none"});
-         if (!testBAOS.toString().startsWith("Your inventory: ") ||
-             !testBAOS.toString().contains(" 1. test:material1: 15")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Your inventory: ") ||
+             !baosOut.toString().contains(" 1. test:material1: 15")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: northward coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: northward coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventoryNorth.put("test:material3", 10);
          InterfaceTerminal.serviceRequestInventory(new String[]{"north"});
-         if (!testBAOS.toString().startsWith("Northward inventory: ") ||
-             !testBAOS.toString().contains(" 1. test:material3: 10")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Northward inventory: ") ||
+             !baosOut.toString().contains(" 1. test:material3: 10")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: eastward coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: eastward coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventoryEast.put("minecraft:material4", 10);
          InterfaceTerminal.serviceRequestInventory(new String[]{"east"});
-         if (!testBAOS.toString().startsWith("Eastward inventory: ") ||
-             !testBAOS.toString().contains(" 1. minecraft:material4: 10")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Eastward inventory: ") ||
+             !baosOut.toString().contains(" 1. minecraft:material4: 10")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: westward coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: westward coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventoryWest.put("test:material1", 5);
          InterfaceTerminal.serviceRequestInventory(new String[]{"west"});
-         if (!testBAOS.toString().startsWith("Westward inventory: ") ||
-             !testBAOS.toString().contains(" 1. test:material1: 5")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Westward inventory: ") ||
+             !baosOut.toString().contains(" 1. test:material1: 5")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: southward coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: southward coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventorySouth.put("test:material2", 5);
          InterfaceTerminal.serviceRequestInventory(new String[]{"south"});
-         if (!testBAOS.toString().startsWith("Southward inventory: ") ||
-             !testBAOS.toString().contains(" 1. test:material2: 5")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Southward inventory: ") ||
+             !baosOut.toString().contains(" 1. test:material2: 5")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: upward coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: upward coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventoryUp.put("test:material3", 5);
          InterfaceTerminal.serviceRequestInventory(new String[]{"up"});
-         if (!testBAOS.toString().startsWith("Upward inventory: ") ||
-             !testBAOS.toString().contains(" 1. test:material3: 5")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Upward inventory: ") ||
+             !baosOut.toString().contains(" 1. test:material3: 5")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - inventory: downward coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - inventory: downward coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventoryDown.put("test:material2", 10);
          InterfaceTerminal.serviceRequestInventory(new String[]{"down"});
-         if (!testBAOS.toString().startsWith("Downward inventory: ") ||
-             !testBAOS.toString().contains(" 1. test:material2: 10")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Downward inventory: ") ||
+             !baosOut.toString().contains(" 1. test:material2: 10")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          // give <ware_id> [quantity] [inventory_direction]
-         System.err.println("serviceRequests() - give: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(null);
-         if (!testBAOS.toString().equals("/give <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/give <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{});
-         if (!testBAOS.toString().equals("/give <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/give <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{});
-         if (!testBAOS.toString().equals("/give <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/give <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "10", "excessArgument", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - give: invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity: wrong type")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity: wrong type")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - give: zero quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: zero quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "0"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity: must be greater than zero")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity: must be greater than zero")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - give: negative quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: negative quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "-1"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity: must be greater than zero")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity: must be greater than zero")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - give: with insufficient inventory space");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: with insufficient inventory space");
+         baosOut.reset(); // clear buffer holding console output
          int inventorySpaceOrig = InterfaceTerminal.inventorySpace;
          InterfaceTerminal.inventorySpace = 0; // maximum inventory space is no inventory
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "100"});
          InterfaceTerminal.inventorySpace = inventorySpaceOrig;
-         if (!testBAOS.toString().startsWith("You don't have enough inventory space")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("You don't have enough inventory space")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - give: invalid ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: invalid ware ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{"test:invalidWareID", "10"});
-         if (!testBAOS.toString().equals("You have been given 10 test:invalidWareID" + System.lineSeparator() + "warning - test:invalidWareID is not usable within the marketplace" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You have been given 10 test:invalidWareID" + System.lineSeparator() + "warning - test:invalidWareID is not usable within the marketplace" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
          if (!InterfaceTerminal.inventory.containsKey("test:invalidWareID")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:invalidWareID") != 10) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:invalidWareID") + " test:invalidWareID, should contain 10");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:invalidWareID") + " test:invalidWareID, should contain 10");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: invalid ware alias");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: invalid ware alias");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{"invalidWareAlias", "5"});
-         if (!testBAOS.toString().equals("You have been given 5 invalidWareAlias" + System.lineSeparator() + "warning - invalidWareAlias is not usable within the marketplace" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You have been given 5 invalidWareAlias" + System.lineSeparator() + "warning - invalidWareAlias is not usable within the marketplace" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (!InterfaceTerminal.inventory.containsKey("invalidWareAlias")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("invalidWareAlias") != 5) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("invalidWareAlias") + " invalidWareAlias, should contain 5");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("invalidWareAlias") + " invalidWareAlias, should contain 5");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("serviceRequests() - give: valid ware ID");
+         TEST_OUTPUT.println("serviceRequests() - give: valid ware ID");
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1"});
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 1) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 1");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 1");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: valid ware alias");
+         TEST_OUTPUT.println("serviceRequests() - give: valid ware alias");
          InterfaceTerminal.serviceRequestGive(new String[]{"mat3"});
          if (!InterfaceTerminal.inventory.containsKey("test:material3")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material3") != 1) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material3") + " test:material3, should contain 1");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material3") + " test:material3, should contain 1");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("serviceRequests() - give: invalid coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - give: invalid coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "invalidCoordinates"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: valid coordinates");
+         TEST_OUTPUT.println("serviceRequests() - give: valid coordinates");
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "down"});
          if (!InterfaceTerminal.inventoryDown.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventoryDown.get("test:material1") != 1) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryDown.get("test:material1") + " test:material1, should contain 1");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryDown.get("test:material1") + " test:material1, should contain 1");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: zeroed coordinates");
+         TEST_OUTPUT.println("serviceRequests() - give: zeroed coordinates");
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "none"});
          if (!InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:material1") != 1) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 1");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 1");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - give: quantity and coordinates");
+         TEST_OUTPUT.println("serviceRequests() - give: quantity and coordinates");
          InterfaceTerminal.serviceRequestGive(new String[]{"test:material1", "10", "up"});
          if (!InterfaceTerminal.inventoryUp.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventoryUp.get("test:material1") != 10) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryUp.get("test:material1") + " test:material1, should contain 10");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryUp.get("test:material1") + " test:material1, should contain 10");
             errorFound = true;
          }
 
@@ -10807,219 +10820,219 @@ public class TestSuite
          resetTestEnvironment();
 
          // take <ware_id> [quantity] [inventory_direction]
-         System.err.println("serviceRequests() - take: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - take: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(null);
-         if (!testBAOS.toString().equals("/take <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/take <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - take: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(new String[]{});
-         if (!testBAOS.toString().equals("/take <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/take <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - take: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - take: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(new String[]{});
-         if (!testBAOS.toString().equals("/take <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/take <ware_id> [quantity] [inventory_direction]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - take: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "10", "excessArgument", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - take: invalid quantity");
+         TEST_OUTPUT.println("serviceRequests() - take: invalid quantity");
          InterfaceTerminal.inventory.put("test:material1", 10); // give the player some wares
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity: wrong type")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity: wrong type")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - take: zero quantity");
+         TEST_OUTPUT.println("serviceRequests() - take: zero quantity");
          InterfaceTerminal.inventory.put("test:material1", 10); // give the player some wares
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "0"});
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory contains ware when it should not");
+            TEST_OUTPUT.println("   inventory contains ware when it should not");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: negative quantity");
+         TEST_OUTPUT.println("serviceRequests() - take: negative quantity");
          InterfaceTerminal.inventory.put("test:material1", 10); // give the player some wares
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "-1"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity: must be greater than zero")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity: must be greater than zero")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - take: excessive quantity");
+         TEST_OUTPUT.println("serviceRequests() - take: excessive quantity");
          InterfaceTerminal.inventory.put("test:material1", 10); // give the player some wares
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "100"});
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory contains ware when it should not");
+            TEST_OUTPUT.println("   inventory contains ware when it should not");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: unowned ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - take: unowned ware ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestTake(new String[]{"unownedWareID"});
-         if (!testBAOS.toString().startsWith("error - ware not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - ware not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("serviceRequests() - take: invalid ware ID");
+         TEST_OUTPUT.println("serviceRequests() - take: invalid ware ID");
          InterfaceTerminal.inventory.put("test:invalidWareID", 100); // give the player some non-marketplace-compatible wares
          InterfaceTerminal.serviceRequestTake(new String[]{"test:invalidWareID", "10"});
          if (!InterfaceTerminal.inventory.containsKey("test:invalidWareID")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("test:invalidWareID") != 90) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:invalidWareID") + " test:invalidWareID, should contain 90");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:invalidWareID") + " test:invalidWareID, should contain 90");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: invalid ware alias");
+         TEST_OUTPUT.println("serviceRequests() - take: invalid ware alias");
          InterfaceTerminal.inventory.put("invalidWareAlias", 10); // give the player some non-marketplace-compatible wares
          InterfaceTerminal.serviceRequestTake(new String[]{"invalidWareAlias", "5"});
          if (!InterfaceTerminal.inventory.containsKey("invalidWareAlias")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventory.get("invalidWareAlias") != 5) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("invalidWareAlias") + " invalidWareAlias, should contain 5");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("invalidWareAlias") + " invalidWareAlias, should contain 5");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: valid ware ID");
+         TEST_OUTPUT.println("serviceRequests() - take: valid ware ID");
          InterfaceTerminal.inventory.put("test:material1", 10); // give the player some wares
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1"});
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory contains ware when it should not");
+            TEST_OUTPUT.println("   inventory contains ware when it should not");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: valid ware alias");
+         TEST_OUTPUT.println("serviceRequests() - take: valid ware alias");
          InterfaceTerminal.inventory.put("test:material3", 10); // give the player some wares
          InterfaceTerminal.serviceRequestTake(new String[]{"mat3"});
          if (InterfaceTerminal.inventory.containsKey("test:material3")) {
-            System.err.println("   inventory contains ware when it should not");
+            TEST_OUTPUT.println("   inventory contains ware when it should not");
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("serviceRequests() - take: invalid coordinates");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - take: invalid coordinates");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.inventory.put("test:material1", 10); // give the player some wares
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "invalidCoordinates"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: valid coordinates");
+         TEST_OUTPUT.println("serviceRequests() - take: valid coordinates");
          InterfaceTerminal.inventoryDown.put("test:material1", 10);
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "down"});
          if (InterfaceTerminal.inventoryDown.containsKey("test:material1")) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryDown.get("test:material1") + " test:material1, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryDown.get("test:material1") + " test:material1, should contain 0");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: zeroed coordinates");
+         TEST_OUTPUT.println("serviceRequests() - take: zeroed coordinates");
          InterfaceTerminal.inventory.put("test:material1", 10);
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "none"});
          if (InterfaceTerminal.inventory.containsKey("test:material1")) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventory.get("test:material1") + " test:material1, should contain 0");
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - take: quantity and coordinates");
+         TEST_OUTPUT.println("serviceRequests() - take: quantity and coordinates");
          InterfaceTerminal.inventoryUp.put("test:material1", 10);
          InterfaceTerminal.serviceRequestTake(new String[]{"test:material1", "5", "up"});
          if (!InterfaceTerminal.inventoryUp.containsKey("test:material1")) {
-            System.err.println("   inventory does not contain expected ware");
+            TEST_OUTPUT.println("   inventory does not contain expected ware");
             errorFound = true;
          } else if (InterfaceTerminal.inventoryUp.get("test:material1") != 5) {
-            System.err.println("   inventory contains " + InterfaceTerminal.inventoryUp.get("test:material1") + " test:material1, should contain 5");
+            TEST_OUTPUT.println("   inventory contains " + InterfaceTerminal.inventoryUp.get("test:material1") + " test:material1, should contain 5");
             errorFound = true;
          }
 
          // changeName playername
-         System.err.println("serviceRequests() - changeName: null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - changeName: null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeName(null);
-         if (!testBAOS.toString().equals("/changeName <player_name>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/changeName <player_name>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - changeName: empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - changeName: empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeName(new String[]{});
-         if (!testBAOS.toString().equals("/changeName <player_name>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/changeName <player_name>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - changeName: blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - changeName: blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeName(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - must provide name or ID")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - must provide name or ID")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - changeName: too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - changeName: too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeName(new String[]{});
-         if (!testBAOS.toString().equals("/changeName <player_name>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/changeName <player_name>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - changeName: too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - changeName: too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeName(new String[]{"possibleID", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("serviceRequests() - changeName: valid args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("serviceRequests() - changeName: valid args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeName(new String[]{"John Doe"});
-         if (!testBAOS.toString().equals("Your name is now John Doe.\nYour old name was John_Doe." + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Your name is now John Doe.\nYour old name was John_Doe." + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          InterfaceTerminal.playername = "John_Doe";
       }
       catch (Exception e) {
-         System.err.println("serviceRequests() - fatal error: " + e);
+         TEST_OUTPUT.println("serviceRequests() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -11041,66 +11054,66 @@ public class TestSuite
 
       try {
          // create account_id
-         System.err.println("create() - null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("create() - null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCreate(null);
-         if (!testBAOS.toString().equals("/create <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/create <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("create() - empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("create() - empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCreate(new String[]{});
-         if (!testBAOS.toString().equals("/create <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/create <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("create() - blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("create() - blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCreate(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - must provide account ID")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - must provide account ID")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("create() - too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("create() - too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCreate(new String[]{});
-         if (!testBAOS.toString().equals("/create <account_id>" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/create <account_id>" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("create() - too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("create() - too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCreate(new String[]{"possibleAccount", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("create() - existing account ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("create() - existing account ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCreate(new String[]{"testAccount1"});
-         if (!testBAOS.toString().startsWith("error - account already exists")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - account already exists")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("create() - valid account ID");
+         TEST_OUTPUT.println("create() - valid account ID");
          InterfaceTerminal.serviceRequestCreate(new String[]{"possibleAccount"});
          if (!accounts.containsKey("possibleAccount")) {
-            System.err.println("   failed to create account");
+            TEST_OUTPUT.println("   failed to create account");
             errorFound = true;
             resetTestEnvironment();
          }
       }
       catch (Exception e) {
-         System.err.println("create() - fatal error: " + e);
+         TEST_OUTPUT.println("create() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -11124,148 +11137,148 @@ public class TestSuite
       try {
          InterfaceTerminal.ops.add(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername));
 
-         System.err.println("changeStock() - null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeStock(null);
-         if (!testBAOS.toString().startsWith("/changeStock <ware_id> (<quantity> | equilibrium | overstocked | understocked)")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("/changeStock <ware_id> (<quantity> | equilibrium | overstocked | understocked)")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("changeStock() - empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeStock(new String[]{});
-         if (!testBAOS.toString().startsWith("/changeStock <ware_id> (<quantity> | equilibrium | overstocked | understocked)")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("/changeStock <ware_id> (<quantity> | equilibrium | overstocked | understocked)")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("changeStock() - blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("changeStock() - too few args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - too few args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeStock(new String[]{""});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("changeStock() - too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"", "", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("changeStock() - invalid ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - invalid ware ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"invalidWare", "0"});
-         if (!testBAOS.toString().startsWith("error - ware not found")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - ware not found")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("changeStock() - invalid quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - invalid quantity");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material1", "invalidQuantity"});
-         if (!testBAOS.toString().startsWith("error - invalid quantity")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - invalid quantity")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("changeStock() - zero quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - zero quantity");
+         baosOut.reset(); // clear buffer holding console output
          int quantity = testWare1.getQuantity();
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material1", "0"});
-         if (!testBAOS.toString().startsWith("test:material1's stock is now " + quantity)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("test:material1's stock is now " + quantity)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (quantity != testWare1.getQuantity()) {
-            System.err.println("   unexpected ware stock: " + testWare1.getQuantity() + ", should be " + quantity);
+            TEST_OUTPUT.println("   unexpected ware stock: " + testWare1.getQuantity() + ", should be " + quantity);
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("changeStock() - negative quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - negative quantity");
+         baosOut.reset(); // clear buffer holding console output
          quantity = testWare3.getQuantity() - 10;
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material3", "-10"});
-         if (!testBAOS.toString().startsWith("test:material3's stock is now " + quantity)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("test:material3's stock is now " + quantity)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (quantity != testWare3.getQuantity()) {
-            System.err.println("   unexpected ware stock: " + testWare3.getQuantity() + ", should be " + quantity);
+            TEST_OUTPUT.println("   unexpected ware stock: " + testWare3.getQuantity() + ", should be " + quantity);
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("changeStock() - positive quantity");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - positive quantity");
+         baosOut.reset(); // clear buffer holding console output
          quantity = testWareP1.getQuantity() + 100;
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:processed1", "100"});
-         if (!testBAOS.toString().startsWith("test:processed1's stock is now " + quantity)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("test:processed1's stock is now " + quantity)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (quantity != testWareP1.getQuantity()) {
-            System.err.println("   unexpected ware stock: " + testWareP1.getQuantity() + ", should be " + quantity);
+            TEST_OUTPUT.println("   unexpected ware stock: " + testWareP1.getQuantity() + ", should be " + quantity);
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("changeStock() - equilibrium");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - equilibrium");
+         baosOut.reset(); // clear buffer holding console output
          quantity = Config.quanMid[testWare4.getLevel()];
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"minecraft:material4", "equilibrium"});
-         if (!testBAOS.toString().startsWith("minecraft:material4's stock is now " + quantity)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("minecraft:material4's stock is now " + quantity)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (quantity != testWare4.getQuantity()) {
-            System.err.println("   unexpected ware stock: " + testWare4.getQuantity() + ", should be " + quantity);
+            TEST_OUTPUT.println("   unexpected ware stock: " + testWare4.getQuantity() + ", should be " + quantity);
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("changeStock() - overstocked");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - overstocked");
+         baosOut.reset(); // clear buffer holding console output
          quantity = Config.quanHigh[testWare1.getLevel()];
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material1", "overstocked"});
-         if (!testBAOS.toString().startsWith("test:material1's stock is now " + quantity)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("test:material1's stock is now " + quantity)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (quantity != testWare1.getQuantity()) {
-            System.err.println("   unexpected ware stock: " + testWare1.getQuantity() + ", should be " + quantity);
+            TEST_OUTPUT.println("   unexpected ware stock: " + testWare1.getQuantity() + ", should be " + quantity);
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("changeStock() - understocked");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("changeStock() - understocked");
+         baosOut.reset(); // clear buffer holding console output
          quantity = Config.quanLow[testWare3.getLevel()];
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material3", "understocked"});
-         if (!testBAOS.toString().startsWith("test:material3's stock is now " + quantity)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("test:material3's stock is now " + quantity)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (quantity != testWare3.getQuantity()) {
-            System.err.println("   unexpected ware stock: " + testWare3.getQuantity() + ", should be " + quantity);
+            TEST_OUTPUT.println("   unexpected ware stock: " + testWare3.getQuantity() + ", should be " + quantity);
             errorFound = true;
             resetTestEnvironment();
          }
       }
       catch (Exception e) {
-         System.err.println("changeStock() - fatal error: " + e);
+         TEST_OUTPUT.println("changeStock() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -11394,13 +11407,13 @@ public class TestSuite
          timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
          aiHandler     = (AIHandler) fTimerTask.get(null);
 
-         System.err.println("AI - missing file");
+         TEST_OUTPUT.println("AI - missing file");
          // initialize AI
          try {
             aiHandler.run(); // process command to load
          }
          catch (Exception e) {
-            System.err.println("   startOrReconfigAI() should not throw any exception, but it did while loading missing AI professions file");
+            TEST_OUTPUT.println("   startOrReconfigAI() should not throw any exception, but it did while loading missing AI professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -11408,19 +11421,19 @@ public class TestSuite
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions != null) {
-            System.err.println("   professions were loaded when they shouldn't have been");
+            TEST_OUTPUT.println("   professions were loaded when they shouldn't have been");
             professions = null;
             errorFound = true;
          }
          activeAI = (AI[]) fActiveAI.get(null);
          if (activeAI != null) {
-            System.err.println("   activeAI were loaded when they shouldn't have been");
+            TEST_OUTPUT.println("   activeAI were loaded when they shouldn't have been");
             activeAI = null;
             errorFound = true;
          }
 
 
-         System.err.println("AI - empty file");
+         TEST_OUTPUT.println("AI - empty file");
          // create test AI professions file
          try {
             // open the config file for AI professions, create it if it doesn't exist
@@ -11434,7 +11447,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to create test AI professions file");
+            TEST_OUTPUT.println("   unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -11445,7 +11458,7 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did while loading test professions file");
+            TEST_OUTPUT.println("   load() should not throw any exception, but it did while loading test professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -11453,19 +11466,19 @@ public class TestSuite
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions != null) {
-            System.err.println("   professions were loaded when they shouldn't have been");
+            TEST_OUTPUT.println("   professions were loaded when they shouldn't have been");
             professions = null;
             errorFound = true;
          }
          activeAI = (AI[]) fActiveAI.get(null);
          if (activeAI != null) {
-            System.err.println("   activeAI were loaded when they shouldn't have been");
+            TEST_OUTPUT.println("   activeAI were loaded when they shouldn't have been");
             activeAI = null;
             errorFound = true;
          }
 
 
-         System.err.println("AI - loading valid and invalid professions");
+         TEST_OUTPUT.println("AI - loading valid and invalid professions");
          // create test AI professions file
          try {
             // open the config file for AI professions, create it if it doesn't exist
@@ -11490,16 +11503,13 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to create test AI professions file");
+            TEST_OUTPUT.println("   unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
 
          // prepare to check for printed error messages
-         PrintStream originalStream = System.err;
-         PrintStream testStream     = new PrintStream(testBAOS);
-         System.setErr(testStream);
-         testBAOS.reset();
+         baosErr.reset();
 
          // try to load the test file
          try {
@@ -11507,33 +11517,32 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did while loading test professions file");
+            TEST_OUTPUT.println("   load() should not throw any exception, but it did while loading test professions file");
             e.printStackTrace();
             errorFound = true;
          }
 
          // stop checking for printed error messages
-         System.err.flush();
-         System.setErr(originalStream);
+         streamErrorsProgram.flush();
 
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions == null) {
-            System.err.println("   AI professions should have loaded, but professions is null");
+            TEST_OUTPUT.println("   AI professions should have loaded, but professions is null");
             errorFound = true;
          } else if (professions.size() != 2) {
-            System.err.println("   AI professions loaded: " + professions.size() + ", should be 2");
+            TEST_OUTPUT.println("   AI professions loaded: " + professions.size() + ", should be 2");
             errorFound = true;
          }
 
          // check error messages
-         if (!testBAOS.toString().startsWith(CommandEconomy.ERROR_AI_PREFS_MISMATCH_PRO) ||
-            !testBAOS.toString().contains("test:crafted2")) {
-            System.err.println("   unexpected error output: " + testBAOS.toString());
+         if (!baosErr.toString().startsWith(CommandEconomy.ERROR_AI_PREFS_MISMATCH_PRO) ||
+            !baosErr.toString().contains("test:crafted2")) {
+            TEST_OUTPUT.println("   unexpected error output: " + baosErr.toString());
             errorFound = true;
          }
 
-         System.err.println("AI - loading professions with invalid wares");
+         TEST_OUTPUT.println("AI - loading professions with invalid wares");
          // create test AI professions file
          try {
             // open the config file for AI professions, create it if it doesn't exist
@@ -11557,7 +11566,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to create test AI professions file");
+            TEST_OUTPUT.println("   unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -11568,7 +11577,7 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did while loading test professions file");
+            TEST_OUTPUT.println("   load() should not throw any exception, but it did while loading test professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -11576,12 +11585,12 @@ public class TestSuite
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions == null) {
-            System.err.println("   AI professions should have loaded, but professions is null");
+            TEST_OUTPUT.println("   AI professions should have loaded, but professions is null");
             errorFound = true;
          } else {
             // check total size
             if (professions.size() != 2) {
-               System.err.println("   AI professions loaded: " + professions.size() + ", should be 2");
+               TEST_OUTPUT.println("   AI professions loaded: " + professions.size() + ", should be 2");
                errorFound = true;
             }
 
@@ -11594,47 +11603,47 @@ public class TestSuite
 
                // check saved ware IDs
                if (purchasablesIDs == null) {
-                  System.err.println("   AI profession with preferences - purchasablesIDs were not loaded");
+                  TEST_OUTPUT.println("   AI profession with preferences - purchasablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (purchasablesIDs.length > 0) {
                      if (!purchasablesIDs[0].equals("test:material1")) {
-                        System.err.println("   AI profession with preferences - unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:material1");
+                        TEST_OUTPUT.println("   AI profession with preferences - unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:material1");
                         errorFound = true;
                      }
 
                      if (purchasablesIDs.length > 1) {
                         if (!purchasablesIDs[0].equals("invalidWareAlias")) {
-                           System.err.println("   AI profession with preferences - unexpected purchasablesIDs[1]: " + purchasablesIDs[1] + ", should be invalidWareAlias");
+                           TEST_OUTPUT.println("   AI profession with preferences - unexpected purchasablesIDs[1]: " + purchasablesIDs[1] + ", should be invalidWareAlias");
                            errorFound = true;
                         }
                      }
                      else {
-                        System.err.println("   AI profession with preferences - purchasablesIDs length is 1, should be 2");
+                        TEST_OUTPUT.println("   AI profession with preferences - purchasablesIDs length is 1, should be 2");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   AI profession with preferences - purchasablesIDs length is 0, should be 2");
+                     TEST_OUTPUT.println("   AI profession with preferences - purchasablesIDs length is 0, should be 2");
                      errorFound = true;
                   }
                }
 
                // check loaded wares
                if (purchasables == null) {
-                  System.err.println("   AI profession with preferences - purchasables were not loaded");
+                  TEST_OUTPUT.println("   AI profession with preferences - purchasables were not loaded");
                   errorFound = true;
                }
                else {
                   if (purchasables.length != 1) {
                      if (purchasablesIDs[0] != testWare1.getWareID()) {
-                        System.err.println("   AI profession with preferences - unexpected purchasables[0]: " + purchasables[0] + ", should be test:material1");
+                        TEST_OUTPUT.println("   AI profession with preferences - unexpected purchasables[0]: " + purchasables[0] + ", should be test:material1");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   AI profession with preferences - purchasables length is " + purchasables.length + ", should be 1");
+                     TEST_OUTPUT.println("   AI profession with preferences - purchasables length is " + purchasables.length + ", should be 1");
                      errorFound = true;
                   }
                }
@@ -11642,7 +11651,7 @@ public class TestSuite
          }
 
 
-         System.err.println("AI - purchases");
+         TEST_OUTPUT.println("AI - purchases");
          quantityToTrade1 = (int) (Config.quanMid[testWare1.getLevel()] * Config.aiTradeQuantityPercent);
          quantityWare1    = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
@@ -11651,7 +11660,7 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
 
@@ -11669,15 +11678,15 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWareC1 (test #2): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1 (test #2): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
             errorFound = true;
          }
 
-         System.err.println("AI - sales");
+         TEST_OUTPUT.println("AI - sales");
          quantityToTrade1 = 0;
          quantityToTrade2 = (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
          quantityWare1    = 0; // overstock to avoid selling anything
@@ -11689,11 +11698,11 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWareC1 (test #1): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1 (test #1): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
             errorFound = true;
          }
 
@@ -11711,19 +11720,19 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWare3.getQuantity() != quantityWare2 - quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWare3 (test #2): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWare3 (test #2): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
             errorFound = true;
          }
          if (testWareC2.getQuantity() != quantityWare3 + quantityToTrade3) {
-            System.err.println("   unexpected quantity for testWareC2 (test #2): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC2 (test #2): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
             errorFound = true;
          }
 
-         System.err.println("AI - trade decisions, supply and demand");
+         TEST_OUTPUT.println("AI - trade decisions, supply and demand");
          quantityToTrade1 = 0;
          quantityToTrade2 = (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
          quantityWare1    = Config.quanMid[testWare2.getLevel()];
@@ -11735,11 +11744,11 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWareC1 (test #1): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1 (test #1): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
             errorFound = true;
          }
 
@@ -11754,15 +11763,15 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare2 (test #2): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWareC1 (test #2): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1 (test #2): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
             errorFound = true;
          }
 
-         System.err.println("AI - trade decisions, preferences");
+         TEST_OUTPUT.println("AI - trade decisions, preferences");
          // when everything is at equilibrium, choose the most preferred ware
          quantityToTrade1 = 0;
          quantityToTrade2 = 0;
@@ -11778,15 +11787,15 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare1 (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare1 (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWare3.getQuantity() != quantityWare2 - quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWare3 (test #1): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWare3 (test #1): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
             errorFound = true;
          }
          if (testWareC2.getQuantity() != quantityWare3 + quantityToTrade3) {
-            System.err.println("   unexpected quantity for testWareC2 (test #1): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC2 (test #1): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
             errorFound = true;
          }
 
@@ -11805,15 +11814,15 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWare3.getQuantity() != quantityWare2 - quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWare3 (test #2): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWare3 (test #2): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
             errorFound = true;
          }
          if (testWareC2.getQuantity() != quantityWare3 + quantityToTrade3) {
-            System.err.println("   unexpected quantity for testWareC2 (test #2): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC2 (test #2): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
             errorFound = true;
          }
 
@@ -11833,19 +11842,19 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare1 (test #3): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare1 (test #3): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWare3.getQuantity() != quantityWare2 - quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWare3 (test #3): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWare3 (test #3): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
             errorFound = true;
          }
          if (testWareC2.getQuantity() != quantityWare3 + quantityToTrade3) {
-            System.err.println("   unexpected quantity for testWareC2 (test #3): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC2 (test #3): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
             errorFound = true;
          }
 
-         System.err.println("AI - trade decisions, multiple, one ware");
+         TEST_OUTPUT.println("AI - trade decisions, multiple, one ware");
          quantityToTrade1 = ((int) (Config.quanMid[testWare1.getLevel()] * Config.aiTradeQuantityPercent)) * 5;
          quantityWare1    = Config.quanMid[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
@@ -11860,7 +11869,7 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
 
@@ -11890,11 +11899,11 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
 
-         System.err.println("AI - trade decisions, multiple, multiple wares");
+         TEST_OUTPUT.println("AI - trade decisions, multiple, multiple wares");
          // testAI2 buys testWare2 and sells testWareC1
          // Since both are at equilibrium and testAI2 should make three trade decisions,
          // testAI2 should buy twice and sell once.
@@ -11913,11 +11922,11 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare2.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare2 (test #1): " + testWare2.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWareC1.getQuantity() != quantityWare2 + quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWareC1 (test #1): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1 (test #1): " + testWareC1.getQuantity() + ", should be " + (quantityWare2 + quantityToTrade2));
             errorFound = true;
          }
 
@@ -11939,19 +11948,19 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity for testWare1 (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
          if (testWare3.getQuantity() != quantityWare2 - quantityToTrade2) {
-            System.err.println("   unexpected quantity for testWare3 (test #2): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
+            TEST_OUTPUT.println("   unexpected quantity for testWare3 (test #2): " + testWare3.getQuantity() + ", should be " + (quantityWare2 - quantityToTrade2));
             errorFound = true;
          }
          if (testWareC2.getQuantity() != quantityWare3 + quantityToTrade3) {
-            System.err.println("   unexpected quantity for testWareC2 (test #2): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
+            TEST_OUTPUT.println("   unexpected quantity for testWareC2 (test #2): " + testWareC2.getQuantity() + ", should be " + (quantityWare3 + quantityToTrade3));
             errorFound = true;
          }
 
-         System.err.println("AI - reloading professions");
+         TEST_OUTPUT.println("AI - reloading professions");
          // set state to known values
          // create test AI professions file
          try {
@@ -11971,7 +11980,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   (initial setup) unable to create test AI professions file");
+            TEST_OUTPUT.println("   (initial setup) unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -11989,7 +11998,7 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   (initial setup) load() should not throw any exception, but it did while loading test professions file");
+            TEST_OUTPUT.println("   (initial setup) load() should not throw any exception, but it did while loading test professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -11997,7 +12006,7 @@ public class TestSuite
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions == null) {
-            System.err.println("   (initial setup) AI profession should have loaded, but professions is null");
+            TEST_OUTPUT.println("   (initial setup) AI profession should have loaded, but professions is null");
             errorFound = true;
          } else {
             // check AI profession's wares
@@ -12009,41 +12018,41 @@ public class TestSuite
 
                // check saved ware IDs for buying
                if (purchasablesIDs == null) {
-                  System.err.println("   (initial setup) purchasablesIDs were not loaded");
+                  TEST_OUTPUT.println("   (initial setup) purchasablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (purchasablesIDs.length == 1) {
                      if (!purchasablesIDs[0].equals("test:material1")) {
-                        System.err.println("   (initial setup) unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:material1");
+                        TEST_OUTPUT.println("   (initial setup) unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:material1");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   (initial setup) purchasablesIDs length is " + purchasablesIDs.length + ", should be 1");
+                     TEST_OUTPUT.println("   (initial setup) purchasablesIDs length is " + purchasablesIDs.length + ", should be 1");
                      errorFound = true;
                   }
                }
 
                // check saved ware IDs for selling
                if (sellablesIDs == null) {
-                  System.err.println("   (initial setup) sellablesIDs were not loaded");
+                  TEST_OUTPUT.println("   (initial setup) sellablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (sellablesIDs.length == 1) {
                      if (!sellablesIDs[0].equals("test:material2")) {
-                        System.err.println("   (initial setup) unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:material2");
+                        TEST_OUTPUT.println("   (initial setup) unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:material2");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   (initial setup) sellablesIDs length is " + sellablesIDs.length + ", should be 1");
+                     TEST_OUTPUT.println("   (initial setup) sellablesIDs length is " + sellablesIDs.length + ", should be 1");
                      errorFound = true;
                   }
                }
             } else {
-               System.err.println("   (initial setup) AI profession was not loaded when it should have been");
+               TEST_OUTPUT.println("   (initial setup) AI profession was not loaded when it should have been");
                errorFound = true;
             }
          }
@@ -12068,7 +12077,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   (changed values) unable to create test AI professions file");
+            TEST_OUTPUT.println("   (changed values) unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -12086,7 +12095,7 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   (changed values) load() should not throw any exception, but it did while loading test professions file");
+            TEST_OUTPUT.println("   (changed values) load() should not throw any exception, but it did while loading test professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12094,7 +12103,7 @@ public class TestSuite
          // check loaded AI information
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (professions == null) {
-            System.err.println("   (changed values) AI profession should have loaded, but professions is null");
+            TEST_OUTPUT.println("   (changed values) AI profession should have loaded, but professions is null");
             errorFound = true;
          } else {
             // check AI profession's wares
@@ -12106,58 +12115,58 @@ public class TestSuite
 
                // check saved ware IDs for buying
                if (purchasablesIDs == null) {
-                  System.err.println("   (changed values) purchasablesIDs were not loaded");
+                  TEST_OUTPUT.println("   (changed values) purchasablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (purchasablesIDs.length == 2) {
                      if (!purchasablesIDs[0].equals("test:processed1")) {
-                        System.err.println("   (changed values) unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:processed1");
+                        TEST_OUTPUT.println("   (changed values) unexpected purchasablesIDs[0]: " + purchasablesIDs[0] + ", should be test:processed1");
                         errorFound = true;
                      }
                      if (!purchasablesIDs[1].equals("material4")) {
-                        System.err.println("   (changed values) unexpected purchasablesIDs[1]: " + purchasablesIDs[1] + ", should be material4");
+                        TEST_OUTPUT.println("   (changed values) unexpected purchasablesIDs[1]: " + purchasablesIDs[1] + ", should be material4");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   (changed values) purchasablesIDs length is " + purchasablesIDs.length + ", should be 2");
+                     TEST_OUTPUT.println("   (changed values) purchasablesIDs length is " + purchasablesIDs.length + ", should be 2");
                      errorFound = true;
                   }
                }
 
                // check saved ware IDs for selling
                if (sellablesIDs == null) {
-                  System.err.println("   (changed values) sellablesIDs were not loaded");
+                  TEST_OUTPUT.println("   (changed values) sellablesIDs were not loaded");
                   errorFound = true;
                }
                else {
                   if (sellablesIDs.length == 3) {
                      if (!sellablesIDs[0].equals("test:crafted3")) {
-                        System.err.println("   (changed values) unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:crafted3");
+                        TEST_OUTPUT.println("   (changed values) unexpected sellablesIDs[0]: " + sellablesIDs[0] + ", should be test:crafted3");
                         errorFound = true;
                      }
                      if (!sellablesIDs[1].equals("test:material1")) {
-                        System.err.println("   (changed values) unexpected sellablesIDs[1]: " + sellablesIDs[1] + ", should be test:material1");
+                        TEST_OUTPUT.println("   (changed values) unexpected sellablesIDs[1]: " + sellablesIDs[1] + ", should be test:material1");
                         errorFound = true;
                      }
                      if (!sellablesIDs[2].equals("test:processed1")) {
-                        System.err.println("   (changed values) unexpected sellablesIDs[2]: " + sellablesIDs[2] + ", should be test:processed1");
+                        TEST_OUTPUT.println("   (changed values) unexpected sellablesIDs[2]: " + sellablesIDs[2] + ", should be test:processed1");
                         errorFound = true;
                      }
                   }
                   else {
-                     System.err.println("   (changed values) sellablesIDs length is " + sellablesIDs.length + ", should be 3");
+                     TEST_OUTPUT.println("   (changed values) sellablesIDs length is " + sellablesIDs.length + ", should be 3");
                      errorFound = true;
                   }
                }
             } else {
-               System.err.println("   (changed values) AI profession was not loaded when it should have been");
+               TEST_OUTPUT.println("   (changed values) AI profession was not loaded when it should have been");
                errorFound = true;
             }
          }
 
-         System.err.println("AI - reloading trading frequency");
+         TEST_OUTPUT.println("AI - reloading trading frequency");
          // set up config file to known value
          fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
@@ -12175,7 +12184,7 @@ public class TestSuite
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did");
+            TEST_OUTPUT.println("   load() should not throw any exception, but it did");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12183,7 +12192,7 @@ public class TestSuite
          // check trade frequency
          tradeFrequency = (long) fTradeFrequency.get(null);
          if (tradeFrequency != 6000000L) { // 60000 ms per min.
-            System.err.println("   unexpected frequency (test #1): " + tradeFrequency + ", should be 6000000");
+            TEST_OUTPUT.println("   unexpected frequency (test #1): " + tradeFrequency + ", should be 6000000");
             errorFound = true;
          }
 
@@ -12204,7 +12213,7 @@ public class TestSuite
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
          } 
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did");
+            TEST_OUTPUT.println("   load() should not throw any exception, but it did");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12212,11 +12221,11 @@ public class TestSuite
          // check trade frequency
          tradeFrequency = (long) fTradeFrequency.get(null);
          if (tradeFrequency != 7407360000L) { // 60000 ms per min.
-            System.err.println("   unexpected frequency (test #2): " + tradeFrequency + ", should be 7407360000");
+            TEST_OUTPUT.println("   unexpected frequency (test #2): " + tradeFrequency + ", should be 7407360000");
             errorFound = true;
          }
 
-         System.err.println("AI - reloading trading quantity");
+         TEST_OUTPUT.println("AI - reloading trading quantity");
          // create a dummy AI so the thread does not shut down due to a lack of active AI
          try {
             // open the config file for AI professions, create it if it doesn't exist
@@ -12235,7 +12244,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   (changed values) unable to create test AI professions file");
+            TEST_OUTPUT.println("   (changed values) unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -12275,7 +12284,7 @@ public class TestSuite
             aiHandler.run(); // recalculation
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did");
+            TEST_OUTPUT.println("   load() should not throw any exception, but it did");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12285,7 +12294,7 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity (test #1): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
 
@@ -12320,7 +12329,7 @@ public class TestSuite
             aiHandler.run(); // recalculation
          }
          catch (Exception e) {
-            System.err.println("   load() should not throw any exception, but it did");
+            TEST_OUTPUT.println("   load() should not throw any exception, but it did");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12330,11 +12339,11 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          if (testWare1.getQuantity() != quantityWare1 - quantityToTrade1) {
-            System.err.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
+            TEST_OUTPUT.println("   unexpected quantity (test #2): " + testWare1.getQuantity() + ", should be " + (quantityWare1 - quantityToTrade1));
             errorFound = true;
          }
 
-         System.err.println("AI - reloading active AI");
+         TEST_OUTPUT.println("AI - reloading active AI");
          // create several different professions to choose from
          try {
             // open the config file for AI professions, create it if it doesn't exist
@@ -12359,7 +12368,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   (changed values) unable to create test AI professions file");
+            TEST_OUTPUT.println("   (changed values) unable to create test AI professions file");
             e.printStackTrace();
             return false;
          }
@@ -12383,7 +12392,7 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   run() should not throw any exception, but it did");
+            TEST_OUTPUT.println("   run() should not throw any exception, but it did");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12392,23 +12401,23 @@ public class TestSuite
          activeAI = (AI[]) fActiveAI.get(null);
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (activeAI == null) {
-            System.err.println("   AI should have been activated, but activeAI is null");
+            TEST_OUTPUT.println("   AI should have been activated, but activeAI is null");
             errorFound = true;
          } else if (activeAI.length != 2) {
-            System.err.println("   AI activated loaded: " + activeAI.length + ", should be 2");
+            TEST_OUTPUT.println("   AI activated loaded: " + activeAI.length + ", should be 2");
             errorFound = true;
          } else {
             // check whether first AI is active
             ai = professions.get("possibleAI1"); // grab AI reference to compare against
             if (activeAI[0] != ai && activeAI[1] != ai) {
-               System.err.println("   possibleAI1 is not active when it should be");
+               TEST_OUTPUT.println("   possibleAI1 is not active when it should be");
                errorFound = true;
             }
 
             // check whether second AI is active
             ai = professions.get("possibleAI2"); // grab AI reference to compare against
             if (activeAI[0] != ai && activeAI[1] != ai) {
-               System.err.println("   possibleAI2 is not active when it should be");
+               TEST_OUTPUT.println("   possibleAI2 is not active when it should be");
                errorFound = true;
             }
          }
@@ -12433,7 +12442,7 @@ public class TestSuite
             aiHandler.run();
          }
          catch (Exception e) {
-            System.err.println("   run() should not throw any exception, but it did");
+            TEST_OUTPUT.println("   run() should not throw any exception, but it did");
             e.printStackTrace();
             errorFound = true;
          }
@@ -12442,21 +12451,21 @@ public class TestSuite
          activeAI = (AI[]) fActiveAI.get(null);
          professions = (HashMap<String, AI>) fProfessions.get(null);
          if (activeAI == null) {
-            System.err.println("   AI should have been activated, but activeAI is null");
+            TEST_OUTPUT.println("   AI should have been activated, but activeAI is null");
             errorFound = true;
          } else if (activeAI.length != 1) {
-            System.err.println("   AI activated loaded: " + activeAI.length + ", should be 1");
+            TEST_OUTPUT.println("   AI activated loaded: " + activeAI.length + ", should be 1");
             errorFound = true;
          } else {
             // check whether first AI is active
             ai = professions.get("possibleAI3"); // grab AI reference to compare against
             if (activeAI[0] != ai) {
-               System.err.println("   possibleAI3 is not active when it should be");
+               TEST_OUTPUT.println("   possibleAI3 is not active when it should be");
                errorFound = true;
             }
          }
 
-         System.err.println("AI - toggling feature by reloading configuration");
+         TEST_OUTPUT.println("AI - toggling feature by reloading configuration");
          // write to config file to turn off feature
          fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
@@ -12475,7 +12484,7 @@ public class TestSuite
          // check whether the feature is disabled
          timerAITrades = (Timer) fTimer.get(null);
          if (timerAITrades != null) {
-            System.err.println("   feature did not turn off when it should have");
+            TEST_OUTPUT.println("   feature did not turn off when it should have");
             errorFound = true;
          }
 
@@ -12497,12 +12506,12 @@ public class TestSuite
          // check whether the feature is enabled
          timerAITrades = (Timer) fTimer.get(null);
          if (timerAITrades == null) {
-            System.err.println("   feature did not turn on when it should have");
+            TEST_OUTPUT.println("   feature did not turn on when it should have");
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("AI - fatal error: " + e);
+         TEST_OUTPUT.println("AI - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -12533,59 +12542,59 @@ public class TestSuite
 
          // investmentCostIsAMultOfAvgPrice == false; cost per hierarchy level = current market price * hierarchy level * Config.investmentCostPerHierarchyLevel
 
-         System.err.println("invest() - when disabled");
+         TEST_OUTPUT.println("invest() - when disabled");
          Config.investmentCostPerHierarchyLevel = 0.0f;
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
-         if (!testBAOS.toString().equals("error - investments are disabled" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - investments are disabled" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          resetTestEnvironment();
 
-         System.err.println("invest() - null input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("invest() - null input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(null);
-         if (!testBAOS.toString().equals("/invest <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/invest <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("invest() - empty input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("invest() - empty input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{});
-         if (!testBAOS.toString().equals("/invest <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("/invest <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("invest() - blank input");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("invest() - blank input");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"", ""});
-         if (!testBAOS.toString().startsWith("error - zero-length arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("invest() - too many args");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("invest() - too many args");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material1", "excessArgument", "excessArgument", "excessArgument"});
-         if (!testBAOS.toString().startsWith("error - wrong number of arguments")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("invest() - invalid ware ID");
-         testBAOS.reset(); // clear buffer holding console output
+         TEST_OUTPUT.println("invest() - invalid ware ID");
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"invalidWareID"});
-         if (!testBAOS.toString().equals("error - ware not found: invalidWareID" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("error - ware not found: invalidWareID" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
          }
 
-         System.err.println("invest() - insufficient funds");
+         TEST_OUTPUT.println("invest() - insufficient funds");
          wareLevel    = testWare2.getLevel();
          wareQuantity = testWare2.getQuantity();
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12593,12 +12602,12 @@ public class TestSuite
          money        = 1.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2"});
          InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
 
-         if (!testBAOS.toString().equals("test:material2 investment price is " + CommandEconomy.truncatePrice(price) + "; use /invest yes [max_price_acceptable] [account_id] to accept" + System.lineSeparator() + "You do not have enough money" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:material2 investment price is " + CommandEconomy.truncatePrice(price) + "; use /invest yes [max_price_acceptable] [account_id] to accept" + System.lineSeparator() + "You do not have enough money" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare2, WareMaterial.class, "", wareLevel, 27.6f, wareQuantity)) {
@@ -12609,22 +12618,22 @@ public class TestSuite
          }
          resetTestEnvironment();
 
-         System.err.println("invest() - ware at lowest level");
+         TEST_OUTPUT.println("invest() - ware at lowest level");
          wareLevel    = testWare1.getLevel();
          wareQuantity = testWare1.getQuantity();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material1"});
 
-         if (!testBAOS.toString().equals("test:material1 is already as plentiful as possible" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:material1 is already as plentiful as possible" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", wareLevel, 1.0f, wareQuantity)) {
             errorFound = true;
          }
 
-         System.err.println("invest() - equilibrium: raw material");
+         TEST_OUTPUT.println("invest() - equilibrium: raw material");
          wareLevel    = testWare2.getLevel();
          wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12642,7 +12651,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - equilibrium: processed ware");
+         TEST_OUTPUT.println("invest() - equilibrium: processed ware");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12660,7 +12669,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - understocked");
+         TEST_OUTPUT.println("invest() - understocked");
          wareLevel    = testWare3.getLevel();
          wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
          testWare3.setQuantity(1); // set stock to be low
@@ -12679,7 +12688,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - overstocked");
+         TEST_OUTPUT.println("invest() - overstocked");
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1] + 10;
          testWare4.setQuantity(wareQuantity); // set stock to be high
@@ -12700,17 +12709,17 @@ public class TestSuite
 
          resetTestEnvironment();
 
-         System.err.println("invest() - excessively overstocked");
+         TEST_OUTPUT.println("invest() - excessively overstocked");
          wareLevel    = testWare4.getLevel();
          wareQuantity = 999999999;
          testWare4.setQuantity(wareQuantity); // set stock to be excessively high
          money        = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
 
-         if (!testBAOS.toString().equals("material4 is already plentiful" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4 is already plentiful" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", wareLevel, 8.0f, wareQuantity)) {
@@ -12720,7 +12729,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - non-personal account: generating offer");
+         TEST_OUTPUT.println("invest() - non-personal account: generating offer");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12738,7 +12747,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - non-personal account: accepting offer");
+         TEST_OUTPUT.println("invest() - non-personal account: accepting offer");
          wareLevel    = testWare3.getLevel();
          wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material3", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12756,7 +12765,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - non-personal account: generating and accepting offer");
+         TEST_OUTPUT.println("invest() - non-personal account: generating and accepting offer");
          wareLevel    = testWare2.getLevel();
          wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12780,18 +12789,18 @@ public class TestSuite
 
          resetTestEnvironment();
 
-         System.err.println("invest() - non-personal account: inaccessible");
+         TEST_OUTPUT.println("invest() - non-personal account: inaccessible");
          money        = 1000000.0f;
          testAccount4.setMoney(money);
          wareLevel    = testWare2.getLevel();
          wareQuantity = testWare2.getQuantity();
 
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:material2", "testAccount4"});
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
 
-         if (!testBAOS.toString().equals("You don't have permission to access testAccount4" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You don't have permission to access testAccount4" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare2, WareMaterial.class, "", (byte) wareLevel, 27.6f, wareQuantity)) {
@@ -12801,7 +12810,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - maximum price acceptable: insufficient");
+         TEST_OUTPUT.println("invest() - maximum price acceptable: insufficient");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel()];
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12809,11 +12818,11 @@ public class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"test:processed1", String.valueOf(price - 100.0f)});
 
-         if (!testBAOS.toString().equals("test:processed1 investment price is " + CommandEconomy.truncatePrice(price) + "; use /invest yes [max_price_acceptable] [account_id] to accept" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:processed1 investment price is " + CommandEconomy.truncatePrice(price) + "; use /invest yes [max_price_acceptable] [account_id] to accept" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) wareLevel, 1.1f, wareQuantity)) {
@@ -12825,7 +12834,7 @@ public class TestSuite
 
          resetTestEnvironment();
 
-         System.err.println("invest() - maximum price acceptable: sufficient");
+         TEST_OUTPUT.println("invest() - maximum price acceptable: sufficient");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
          price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
@@ -12842,17 +12851,17 @@ public class TestSuite
             errorFound = true;
          }
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
 
-         if (!testBAOS.toString().equals("You don't have any pending investment offers" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You don't have any pending investment offers" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          resetTestEnvironment();
 
-         System.err.println("invest() - charging according to market's current average price");
+         TEST_OUTPUT.println("invest() - charging according to market's current average price");
          Config.investmentCostIsAMultOfAvgPrice = true;
          Config.investmentCostPerHierarchyLevel = 2.0f;
          wareLevel    = testWare4.getLevel();
@@ -12872,30 +12881,30 @@ public class TestSuite
             errorFound = true;
          }
 
-         System.err.println("invest() - accepting nonexistent offer");
+         TEST_OUTPUT.println("invest() - accepting nonexistent offer");
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
 
-         if (!testBAOS.toString().equals("You don't have any pending investment offers" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("You don't have any pending investment offers" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          resetTestEnvironment();
 
-         System.err.println("invest() - accepting offer after price lowered");
+         TEST_OUTPUT.println("invest() - accepting offer after price lowered");
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1];
          testWare4.setQuantity(Config.quanLow[testWare4.getLevel()]); // ensure ware's stock is low so price is high
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
 
-         if (!testBAOS.toString().startsWith("material4 investment price is ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("material4 investment price is ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -12903,11 +12912,11 @@ public class TestSuite
          price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
 
-         if (!testBAOS.toString().equals("material4's supply and demand has increased" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("material4's supply and demand has increased" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
@@ -12919,7 +12928,7 @@ public class TestSuite
 
          resetTestEnvironment();
 
-         System.err.println("invest() - accepting offer after price rose slightly");
+         TEST_OUTPUT.println("invest() - accepting offer after price rose slightly");
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1];
          money        = 1000000.0f;
@@ -12942,7 +12951,7 @@ public class TestSuite
 
          resetTestEnvironment();
 
-         System.err.println("invest() - accepting offer after price rose greatly");
+         TEST_OUTPUT.println("invest() - accepting offer after price rose greatly");
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.quanLow[testWare4.getLevel()];
          testWare4.setQuantity(Config.startQuanBase[testWare4.getLevel()]); // ensure ware's stock is normal so price is normal
@@ -12965,7 +12974,7 @@ public class TestSuite
          }
       }
       catch (Exception e) {
-         System.err.println("invest() - fatal error: " + e);
+         TEST_OUTPUT.println("invest() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -13000,7 +13009,7 @@ public class TestSuite
       Ware  testComponent3;
 
       try {
-         System.err.println("linked prices - lowering price at equilibrium");
+         TEST_OUTPUT.println("linked prices - lowering price at equilibrium");
          priceMult          = 0.625f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13011,11 +13020,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13033,11 +13042,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13045,7 +13054,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - lowering price when above equilibrium");
+         TEST_OUTPUT.println("linked prices - lowering price when above equilibrium");
          priceMult          = 0.625f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13057,11 +13066,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13080,11 +13089,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13092,7 +13101,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - lowering price when below equilibrium");
+         TEST_OUTPUT.println("linked prices - lowering price when below equilibrium");
          priceMult          = 0.625f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13104,11 +13113,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13126,11 +13135,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13138,7 +13147,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - raising price at equilibrium");
+         TEST_OUTPUT.println("linked prices - raising price at equilibrium");
          priceMult          = 1.375f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13149,11 +13158,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13172,11 +13181,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13184,7 +13193,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - raising price when above equilibrium");
+         TEST_OUTPUT.println("linked prices - raising price when above equilibrium");
          priceMult          = 1.375f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13196,11 +13205,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13218,11 +13227,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13230,7 +13239,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - raising price when below equilibrium");
+         TEST_OUTPUT.println("linked prices - raising price when below equilibrium");
          priceMult          = 1.375f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13242,11 +13251,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13264,11 +13273,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13276,7 +13285,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - free components");
+         TEST_OUTPUT.println("linked prices - free components");
          priceMult          = 0.25f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13287,11 +13296,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13309,11 +13318,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13321,7 +13330,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - expensive components");
+         TEST_OUTPUT.println("linked prices - expensive components");
          priceMult          = 1.75f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
@@ -13333,11 +13342,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13356,11 +13365,11 @@ public class TestSuite
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13368,7 +13377,7 @@ public class TestSuite
          testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
 
-         System.err.println("linked prices - one free component");
+         TEST_OUTPUT.println("linked prices - one free component");
          priceMult          = 0.7692308f;
          testWare           = testWareP2;
          testComponent1     = testWare1;
@@ -13386,11 +13395,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13417,11 +13426,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13445,11 +13454,11 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13472,11 +13481,11 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13485,7 +13494,7 @@ public class TestSuite
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
          testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
 
-         System.err.println("linked prices - one expensive component");
+         TEST_OUTPUT.println("linked prices - one expensive component");
          priceMult          = 1.2307692f;
          testWare           = testWareP2;
          testComponent1     = testWare1;
@@ -13503,11 +13512,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13534,11 +13543,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13562,11 +13571,11 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13589,11 +13598,11 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13602,7 +13611,7 @@ public class TestSuite
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
          testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
 
-         System.err.println("linked prices - equilibrium price smaller than base price");
+         TEST_OUTPUT.println("linked prices - equilibrium price smaller than base price");
          Config.priceMult = 0.5f; // lowers all prices
          priceMult          = 0.7692308f;
          testWare           = testWareP2;
@@ -13621,11 +13630,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13652,11 +13661,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13680,11 +13689,11 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13707,11 +13716,11 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13720,7 +13729,7 @@ public class TestSuite
          testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
          testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
 
-         System.err.println("linked prices - equilibrium price larger than base price");
+         TEST_OUTPUT.println("linked prices - equilibrium price larger than base price");
          Config.priceMult = 2.0f; // raises all prices
          priceMult          = 0.7692308f;
          testWare           = testWareP2;
@@ -13739,11 +13748,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13770,11 +13779,11 @@ public class TestSuite
          testComponent3.setQuantity(quantityComponent3);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13798,11 +13807,11 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13825,16 +13834,16 @@ public class TestSuite
          testComponent2.setQuantity(quantityComponent2);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            System.err.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
+            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
          if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            System.err.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("linked prices - fatal error: " + e);
+         TEST_OUTPUT.println("linked prices - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -13879,18 +13888,18 @@ public class TestSuite
          // testWareC2: testWare1, testWareC1
          // testWareC3: testWare4
 
-         System.err.println("manufacturing contracts - when disabled and out-of-stock");
+         TEST_OUTPUT.println("manufacturing contracts - when disabled and out-of-stock");
          quantityToTrade = 1;
          quantityWare1   = 0;
          testWareC1.setQuantity(quantityWare1);
          money           = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted1", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare1)) {
-            System.err.println("   affected ware: testWareC1");
+            TEST_OUTPUT.println("   affected ware: testWareC1");
             errorFound = true;
          }
          // check account funds
@@ -13898,8 +13907,8 @@ public class TestSuite
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().equals("Market is out of test:crafted1" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Market is out of test:crafted1" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -13910,16 +13919,16 @@ public class TestSuite
          quantityWare2   = testWare4.getQuantity();
          money           = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted3", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC3, WareCrafted.class, "", (byte) 3, 2.4f, quantityWare1)) {
-            System.err.println("   affected ware: testWareC3");
+            TEST_OUTPUT.println("   affected ware: testWareC3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare2)) {
-            System.err.println("   affected ware: testWare4");
+            TEST_OUTPUT.println("   affected ware: testWare4");
             errorFound = true;
          }
          // check account funds
@@ -13927,8 +13936,8 @@ public class TestSuite
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().equals("Market is out of test:crafted3" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Market is out of test:crafted3" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -13936,18 +13945,18 @@ public class TestSuite
          Config.buyingOutOfStockWaresAllowed   = true;
          Config.buyingOutOfStockWaresPriceMult = 1.10f; // explicitly set to known value
 
-         System.err.println("manufacturing contracts - when enabled and unused");
+         TEST_OUTPUT.println("manufacturing contracts - when enabled and unused");
          quantityToTrade = 1;
          quantityWare1   = 0;
          testWareC1.setQuantity(quantityWare1);
          money           = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted1", quantityToTrade, 0.0f, null, false);
 
          // check ware properties
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare1)) {
-            System.err.println("   affected ware: testWareC1");
+            TEST_OUTPUT.println("   affected ware: testWareC1");
             errorFound = true;
          }
          // check account funds
@@ -13955,8 +13964,8 @@ public class TestSuite
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().equals("Market is out of test:crafted1" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Market is out of test:crafted1" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -13967,16 +13976,16 @@ public class TestSuite
          quantityWare2   = testWare4.getQuantity();
          money           = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted3", quantityToTrade, 0.0f, null, false);
 
          // check ware properties
          if (testWareFields(testWareC3, WareCrafted.class, "", (byte) 3, 2.4f, quantityWare1)) {
-            System.err.println("   affected ware: testWareC3");
+            TEST_OUTPUT.println("   affected ware: testWareC3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare2)) {
-            System.err.println("   affected ware: testWare4");
+            TEST_OUTPUT.println("   affected ware: testWare4");
             errorFound = true;
          }
          // check account funds
@@ -13984,17 +13993,17 @@ public class TestSuite
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().equals("Market is out of test:crafted3" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Market is out of test:crafted3" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - untradeable ware");
+         TEST_OUTPUT.println("manufacturing contracts - untradeable ware");
          quantityToTrade = 1;
          quantityWare1   = Integer.MAX_VALUE;
          money           = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:untradeable1", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
@@ -14006,18 +14015,18 @@ public class TestSuite
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().equals("test:untradeable1 is not for sale in that form" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("test:untradeable1 is not for sale in that form" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - non-manufactured ware, out-of-stock");
+         TEST_OUTPUT.println("manufacturing contracts - non-manufactured ware, out-of-stock");
          quantityToTrade = 1;
          quantityWare1   = 0;
          testWare1.setQuantity(quantityWare1);
          money           = playerAccount.getMoney();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:material1", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
@@ -14029,12 +14038,12 @@ public class TestSuite
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().equals("Market is out of test:material1" + System.lineSeparator())) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals("Market is out of test:material1" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock: untradeable component");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: untradeable component");
          quantityToTrade = 1;
          quantityWare1   = 0;
          testWareC1.setQuantity(quantityWare1);
@@ -14044,7 +14053,7 @@ public class TestSuite
          money           = 100.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted1", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
@@ -14053,17 +14062,17 @@ public class TestSuite
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock: material components");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: material components");
          quantityToTrade = 1;
          quantityWare1   = 0;
          quantityWare2   = Config.quanMid[testWare1.getLevel()];
@@ -14083,39 +14092,39 @@ public class TestSuite
          money           = 100.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:processed2", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareP2, WareProcessed.class, "", (byte) 5, 14.3f, quantityWare1)) {
-            System.err.println("   affected ware: testWareP2");
+            TEST_OUTPUT.println("   affected ware: testWareP2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade)) {
-            System.err.println("   affected ware: testWare1");
+            TEST_OUTPUT.println("   affected ware: testWare1");
             errorFound = true;
          }
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare3 - quantityToTrade)) {
-            System.err.println("   affected ware: testWare3");
+            TEST_OUTPUT.println("   affected ware: testWare3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare4 - quantityToTrade)) {
-            System.err.println("   affected ware: testWare4");
+            TEST_OUTPUT.println("   affected ware: testWare4");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock: manufactured component");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: manufactured component");
          quantityToTrade = 1;
          quantityWare1   = 0;
          quantityWare2   = Config.quanMid[testWare1.getLevel()];
@@ -14132,35 +14141,35 @@ public class TestSuite
          money           = 100.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted2", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC2, WareCrafted.class, "", (byte) 2, 24.24f, quantityWare1)) {
-            System.err.println("   affected ware: testWareC2");
+            TEST_OUTPUT.println("   affected ware: testWareC2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade)) {
-            System.err.println("   affected ware: testWare1");
+            TEST_OUTPUT.println("   affected ware: testWare1");
             errorFound = true;
          }
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare3 - quantityToTrade)) {
-            System.err.println("   affected ware: testWareC1");
+            TEST_OUTPUT.println("   affected ware: testWareC1");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: untradeable component");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: untradeable component");
          quantityToTrade = 32;
          quantityWare1   = 0;
          testWareC1.setQuantity(quantityWare1);
@@ -14172,23 +14181,23 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted1", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare1)) {
-            System.err.println("   affected ware (test #1): testWareC1");
+            TEST_OUTPUT.println("   affected ware (test #1): testWareC1");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #1): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #1): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
-            System.err.println("   unexpected console output (test #1): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #1): " + baosOut.toString());
             errorFound = true;
          }
 
@@ -14204,27 +14213,27 @@ public class TestSuite
          money           = 10000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted1", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare1)) {
-            System.err.println("   affected ware (test #2): testWareC1");
+            TEST_OUTPUT.println("   affected ware (test #2): testWareC1");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
-            System.err.println("   unexpected console output (test #2): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #2): " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: material components");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: material components");
          quantityToTrade = 16;
          quantityWare1   = 0;
          quantityWare2   = Config.quanMid[testWare1.getLevel()];
@@ -14244,35 +14253,35 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:processed2", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareP2, WareProcessed.class, "", (byte) 5, 14.3f, quantityWare1)) {
-            System.err.println("   affected ware (test #1): testWareP2");
+            TEST_OUTPUT.println("   affected ware (test #1): testWareP2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade)) {
-            System.err.println("   affected ware (test #1): testWare1");
+            TEST_OUTPUT.println("   affected ware (test #1): testWare1");
             errorFound = true;
          }
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare3 - quantityToTrade)) {
-            System.err.println("   affected ware (test #1): testWare3");
+            TEST_OUTPUT.println("   affected ware (test #1): testWare3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare4 - quantityToTrade)) {
-            System.err.println("   affected ware (test #1): testWare4");
+            TEST_OUTPUT.println("   affected ware (test #1): testWare4");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #1): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #1): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
-            System.err.println("   unexpected console output (test #1): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #1): " + baosOut.toString());
             errorFound = true;
          }
 
@@ -14289,31 +14298,31 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted3", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC3, WareCrafted.class, "", (byte) 3, 2.4f, quantityWare1)) {
-            System.err.println("   affected ware (test #2): testWareC3");
+            TEST_OUTPUT.println("   affected ware (test #2): testWareC3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare2 - (quantityToTrade / 4))) {
-            System.err.println("   affected ware (test #2): testWare4");
+            TEST_OUTPUT.println("   affected ware (test #2): testWare4");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted3 for ")) {
-            System.err.println("   unexpected console output (test #2): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted3 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #2): " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: manufactured components");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: manufactured components");
          quantityToTrade = 4;
          quantityWare1   = 0;
          quantityWare2   = Config.quanMid[testWare1.getLevel()];
@@ -14330,31 +14339,31 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted2", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC2, WareCrafted.class, "", (byte) 2, 24.24f, quantityWare1)) {
-            System.err.println("   affected ware (test #1): testWareC2");
+            TEST_OUTPUT.println("   affected ware (test #1): testWareC2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade)) {
-            System.err.println("   affected ware (test #1): testWare1");
+            TEST_OUTPUT.println("   affected ware (test #1): testWare1");
             errorFound = true;
          }
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare3 - quantityToTrade)) {
-            System.err.println("   affected ware (test #1): testWareC1");
+            TEST_OUTPUT.println("   affected ware (test #1): testWareC1");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #1): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #1): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
-            System.err.println("   unexpected console output (test #1): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #1): " + baosOut.toString());
             errorFound = true;
          }
 
@@ -14375,35 +14384,35 @@ public class TestSuite
          money           = 10000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted2", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC2, WareCrafted.class, "", (byte) 2, 24.24f, quantityWare1)) {
-            System.err.println("   affected ware (test #2): testWareC2");
+            TEST_OUTPUT.println("   affected ware (test #2): testWareC2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade)) {
-            System.err.println("   affected ware (test #2): testWare1");
+            TEST_OUTPUT.println("   affected ware (test #2): testWare1");
             errorFound = true;
          }
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare3 - quantityToTrade)) {
-            System.err.println("   affected ware (test #2): testWareC1");
+            TEST_OUTPUT.println("   affected ware (test #2): testWareC1");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
-            System.err.println("   unexpected console output (test #2): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #2): " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, low in stock: untradeable component");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: untradeable component");
          quantityToTrade = 10;
          quantityWare1   = 5;
          testWareC1.setQuantity(quantityWare1);
@@ -14416,7 +14425,7 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted1", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
@@ -14425,17 +14434,17 @@ public class TestSuite
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " craft1 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, low in stock: material components");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: material components");
          quantityToTrade = 16;
          quantityWare1   = 4;
          quantityWare2   = Config.quanMid[testWare1.getLevel()];
@@ -14456,24 +14465,24 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:processed2", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareP2, WareProcessed.class, "", (byte) 5, 14.3f, 0)) {
-            System.err.println("   affected ware: testWareP2");
+            TEST_OUTPUT.println("   affected ware: testWareP2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade + quantityWare1)) {
-            System.err.println("   affected ware: testWare1");
+            TEST_OUTPUT.println("   affected ware: testWare1");
             errorFound = true;
          }
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare3 - quantityToTrade + quantityWare1)) {
-            System.err.println("   affected ware: testWare3");
+            TEST_OUTPUT.println("   affected ware: testWare3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare4 - quantityToTrade + quantityWare1)) {
-            System.err.println("   affected ware: testWare4");
+            TEST_OUTPUT.println("   affected ware: testWare4");
             errorFound = true;
          }
          // check account funds
@@ -14481,12 +14490,12 @@ public class TestSuite
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, low in stock: manufactured component");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: manufactured component");
          quantityToTrade = 32;
          quantityWare1   = 24;
          quantityWare2   = Config.quanMid[testWare1.getLevel()];
@@ -14504,35 +14513,35 @@ public class TestSuite
          money           = 2000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted2", quantityToTrade, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC2, WareCrafted.class, "", (byte) 2, 24.24f, 0)) {
-            System.err.println("   affected ware: testWareC2");
+            TEST_OUTPUT.println("   affected ware: testWareC2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade + quantityWare1)) {
-            System.err.println("   affected ware: testWare1");
+            TEST_OUTPUT.println("   affected ware: testWare1");
             errorFound = true;
          }
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, quantityWare3 - quantityToTrade + quantityWare1)) {
-            System.err.println("   affected ware: testWareC1");
+            TEST_OUTPUT.println("   affected ware: testWareC1");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock: components low in stock");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: components low in stock");
          quantityToTrade = 8;
          quantityWare1   = 0;
          quantityWare2   = quantityToTrade;
@@ -14552,35 +14561,35 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:processed2", quantityToTrade * 2, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareP2, WareProcessed.class, "", (byte) 5, 14.3f, quantityWare1)) {
-            System.err.println("   affected ware: testWareP2");
+            TEST_OUTPUT.println("   affected ware: testWareP2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2 - quantityToTrade)) {
-            System.err.println("   affected ware: testWare1");
+            TEST_OUTPUT.println("   affected ware: testWare1");
             errorFound = true;
          }
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare3 - quantityToTrade)) {
-            System.err.println("   affected ware: testWare3");
+            TEST_OUTPUT.println("   affected ware: testWare3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare4 - quantityToTrade)) {
-            System.err.println("   affected ware: testWare4");
+            TEST_OUTPUT.println("   affected ware: testWare4");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:processed2 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
@@ -14597,27 +14606,27 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted3", quantityToTrade * 2, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC3, WareCrafted.class, "", (byte) 3, 2.4f, quantityWare1)) {
-            System.err.println("   affected ware (test #2): testWareC3");
+            TEST_OUTPUT.println("   affected ware (test #2): testWareC3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, 0)) {
-            System.err.println("   affected ware (test #2): testWare4");
+            TEST_OUTPUT.println("   affected ware (test #2): testWare4");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #2): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted3 for ")) {
-            System.err.println("   unexpected console output (test #2): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted3 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #2): " + baosOut.toString());
             errorFound = true;
          }
 
@@ -14640,35 +14649,35 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted4", quantityToTrade * 2, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC4, WareCrafted.class, "", (byte) 3, testWareC4.getBasePrice(), 0)) {
-            System.err.println("   affected ware (test #3): testWareC4");
+            TEST_OUTPUT.println("   affected ware (test #3): testWareC4");
             errorFound = true;
          }
          if (testWareFields(testWareC3, WareCrafted.class, "", (byte) 3, 2.4f, 0)) {
-            System.err.println("   affected ware (test #3): testWareC3");
+            TEST_OUTPUT.println("   affected ware (test #3): testWareC3");
             errorFound = true;
          }
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare3)) {
-            System.err.println("   affected ware (test #3): testWare4");
+            TEST_OUTPUT.println("   affected ware (test #3): testWare4");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price (test #3): " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price (test #3): " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted4 for ")) {
-            System.err.println("   unexpected console output (test #3): " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted4 for ")) {
+            TEST_OUTPUT.println("   unexpected console output (test #3): " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware, out-of-stock: same component used multiple times");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: same component used multiple times");
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
          // create a new ware with a component whose component has limited stock
          Ware testWareC5 = new WareCrafted(new String[]{"test:material1", "test:material1", "test:material1", "test:material2"}, "test:crafted5", "", 32, 4, (byte) 3);
@@ -14693,35 +14702,35 @@ public class TestSuite
          money           = 1000.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, ware1.getWareID(), quantityToTrade * 2, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC5, WareCrafted.class, "", (byte) 3, testWareC5.getBasePrice(), 0)) {
-            System.err.println("   affected ware: testWareC5");
+            TEST_OUTPUT.println("   affected ware: testWareC5");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, 0)) {
-            System.err.println("   affected ware: testWare1");
+            TEST_OUTPUT.println("   affected ware: testWare1");
             errorFound = true;
          }
          if (testWareFields(testWare2, WareMaterial.class, "", (byte) 1, 27.6f, quantityWare3 / 2)) {
-            System.err.println("   affected ware: testWare2");
+            TEST_OUTPUT.println("   affected ware: testWare2");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money - price, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Bought " + quantityToTrade + " test:crafted5 for ")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Bought " + quantityToTrade + " test:crafted5 for ")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - manufactured ware and components out-of-stock");
+         TEST_OUTPUT.println("manufacturing contracts - manufactured ware and components out-of-stock");
          quantityToTrade = 0;
          quantityWare1   = 0;
          quantityWare2   = Config.quanMid[testWare1.getLevel()];
@@ -14732,35 +14741,35 @@ public class TestSuite
          money           = 100.0f;
          playerAccount.setMoney(money);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          Marketplace.buy(PLAYER_ID, null, "test:crafted2", 10, 0.0f, null, true);
 
          // check ware properties
          if (testWareFields(testWareC2, WareCrafted.class, "", (byte) 2, 24.24f, quantityWare1)) {
-            System.err.println("   affected ware: testWareC2");
+            TEST_OUTPUT.println("   affected ware: testWareC2");
             errorFound = true;
          }
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare2)) {
-            System.err.println("   affected ware: testWare1");
+            TEST_OUTPUT.println("   affected ware: testWare1");
             errorFound = true;
          }
          if (testWareFields(testWareC1, WareCrafted.class, "craft1", (byte) 1, 19.2f, 0)) {
-            System.err.println("   affected ware: testWareC1");
+            TEST_OUTPUT.println("   affected ware: testWareC1");
             errorFound = true;
          }
          // check account funds
          if (testAccountFields(playerAccount, money, InterfaceTerminal.playername)) {
-            System.err.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
+            TEST_OUTPUT.println("   unexpected price: " + (money - playerAccount.getMoney()) + ", should be " + price +
                                "\n      diff: " + (money - playerAccount.getMoney() - price));
             errorFound = true;
          }
          // check console output
-         if (!testBAOS.toString().startsWith("Market is out of test:crafted2")) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().startsWith("Market is out of test:crafted2")) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - buy: minimum args");
+         TEST_OUTPUT.println("manufacturing contracts - buy: minimum args");
          ware1           = testWareC3;
          ware2           = testWare4;
          quantityToTrade = 1;
@@ -14773,16 +14782,16 @@ public class TestSuite
                            * Config.buyingOutOfStockWaresPriceMult;
          expectedOutput  = "Bought " + quantityToTrade  + " " + ware1.getWareID() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - buy: no inventory space");
+         TEST_OUTPUT.println("manufacturing contracts - buy: no inventory space");
          int inventorySpaceOrig = InterfaceTerminal.inventorySpace;
          InterfaceTerminal.inventorySpace = 0; // maximum inventory space is no inventory
          ware1           = testWareC3;
@@ -14794,12 +14803,12 @@ public class TestSuite
          ware2.setQuantity(quantityWare2);
          expectedOutput  = CommandEconomy.MSG_INVENTORY_NO_SPACE + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
@@ -14807,7 +14816,7 @@ public class TestSuite
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
          playerAccount.setMoney(1000.0f);
 
-         System.err.println("manufacturing contracts - buy: low in inventory space");
+         TEST_OUTPUT.println("manufacturing contracts - buy: low in inventory space");
          InterfaceTerminal.inventory.clear();  // reset free inventory space to known value - empty
          InterfaceTerminal.inventorySpace = 1; // maximum inventory space is 64 items
          ware1           = testWareC3;
@@ -14822,32 +14831,32 @@ public class TestSuite
                            * Config.buyingOutOfStockWaresPriceMult;
          expectedOutput  = "Bought " + quantityToTrade  + " " + ware1.getWareID() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade * 2), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
          InterfaceTerminal.inventorySpace = inventorySpaceOrig; // reset maximum inventory space
 
-         System.err.println("manufacturing contracts - buy: non-manufactured ware");
+         TEST_OUTPUT.println("manufacturing contracts - buy: non-manufactured ware");
          ware1           = testWare1;
          quantityToTrade = 1;
          price           = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, true);
          expectedOutput  = "Bought " + quantityToTrade  + " " + ware1.getWareID() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - buy: max price acceptable, too low");
+         TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable, too low");
          ware1           = testWareC3;
          quantityToTrade = 1;
          quantityWare1   = Config.quanMid[ware1.getLevel()];
@@ -14855,15 +14864,15 @@ public class TestSuite
          price           = 0.01f;
          expectedOutput  = "";
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), String.valueOf(price), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - buy: max price acceptable, sufficient");
+         TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable, sufficient");
          ware1           = testWareC2;
          ware2           = testWare1;
          ware3           = testWareC1;
@@ -14880,16 +14889,16 @@ public class TestSuite
                            * Config.buyingOutOfStockWaresPriceMult;
          expectedOutput  = "Bought " + quantityToTrade + " " + ware1.getWareID() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), "999999", "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - buy: account ID");
+         TEST_OUTPUT.println("manufacturing contracts - buy: account ID");
          ware1           = testWareP2;
          ware2           = testWare1;
          ware3           = testWare3;
@@ -14911,16 +14920,16 @@ public class TestSuite
          expectedOutput  = "Bought " + quantityToTrade + " " + ware1.getWareID() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from testAccount1" + System.lineSeparator();
          testAccount1.setMoney(1000.0f);
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), "testAccount1", "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - buy: max price acceptable and account ID");
+         TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable and account ID");
          ware1           = testWareC1;
          ware2           = testWareU1;
          quantityToTrade = 1;
@@ -14931,31 +14940,31 @@ public class TestSuite
                            * Config.buyingOutOfStockWaresPriceMult;
          expectedOutput  = "Bought " + quantityToTrade + " " + ware1.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from testAccount1" + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{ware1.getWareID(), String.valueOf(quantityToTrade), "999999", "testAccount1", "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - check: non-manufactured ware");
+         TEST_OUTPUT.println("manufacturing contracts - check: non-manufactured ware");
          ware1           = testWare1;
          quantityToTrade = 1;
          price           = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, true);
          expectedOutput  = ware1.getWareID() + ": " + CommandEconomy.PRICE_FORMAT.format(price) + ", " + ware1.getQuantity() + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - check: minimum args");
+         TEST_OUTPUT.println("manufacturing contracts - check: minimum args");
          ware1           = testWareP1;
          quantityToTrade = 1;
          quantityWare1   = Config.quanMid[ware1.getLevel()];
@@ -14963,16 +14972,16 @@ public class TestSuite
          price           = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, true);
          expectedOutput  = ware1.getWareID() + ": " + CommandEconomy.PRICE_FORMAT.format(price) + ", " + ware1.getQuantity() + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - check: minimum args, ware out of stock");
+         TEST_OUTPUT.println("manufacturing contracts - check: minimum args, ware out of stock");
          ware1           = testWareP1;
          ware2           = testWare1;
          quantityToTrade = 1;
@@ -14985,16 +14994,16 @@ public class TestSuite
                            * Config.buyingOutOfStockWaresPriceMult;
          expectedOutput  = ware1.getWareID() + ": " + CommandEconomy.PRICE_FORMAT.format(price) + ", " + ware1.getQuantity() + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - check: specified quantity, ware out of stock");
+         TEST_OUTPUT.println("manufacturing contracts - check: specified quantity, ware out of stock");
          ware1           = testWareC1;
          ware2           = testWareU1;
          quantityToTrade = 10;
@@ -15011,16 +15020,16 @@ public class TestSuite
                            + "   for " + quantityToTrade + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuying)
                            + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSelling) + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), Integer.toString(quantityToTrade), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
 
-         System.err.println("manufacturing contracts - check: specified quantity, ware low in stock");
+         TEST_OUTPUT.println("manufacturing contracts - check: specified quantity, ware low in stock");
          ware1           = testWareC1;
          ware2           = testWareU1;
          quantityToTrade = 10;
@@ -15036,17 +15045,17 @@ public class TestSuite
                            + "   for " + quantityToTrade + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuying)
                            + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSelling) + System.lineSeparator();
 
-         testBAOS.reset(); // clear buffer holding console output
+         baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), Integer.toString(quantityToTrade), "&craft"});
 
-         if (!testBAOS.toString().equals(expectedOutput)) {
-            System.err.println("   unexpected console output: " + testBAOS.toString());
-            System.err.println("   expected: " + expectedOutput);
+         if (!baosOut.toString().equals(expectedOutput)) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+            TEST_OUTPUT.println("   expected: " + expectedOutput);
             errorFound = true;
          }
       }
       catch (Exception e) {
-         System.err.println("testManufacturingContracts() - fatal error: " + e);
+         TEST_OUTPUT.println("testManufacturingContracts() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
@@ -15109,7 +15118,7 @@ public class TestSuite
       expectedMoney                = CommandEconomy.truncatePrice(accountMoney - price - fee);
 
       // test as normal
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       if (!shouldOverorder) {
          Marketplace.buy(PLAYER_ID, null, ware.getWareID(), quantityToTrade, 0.0f, null);
       }
@@ -15122,14 +15131,14 @@ public class TestSuite
 
       // check ware properties
       if (ware.getQuantity() != quantityWare - quantityToTrade) {
-         System.err.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
+         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
                             ", should be " + (quantityWare - quantityToTrade));
          errorFound = true;
       }
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < playerAccount.getMoney() ||
           playerAccount.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected account money" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + expectedMoney +
                             "\n      price + fee charged: " + (accountMoney - playerAccount.getMoney()) +
                             "\n      price expected:      " + price +
                             "\n      diff:                " + (accountMoney - playerAccount.getMoney() - price) +
@@ -15137,11 +15146,11 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (fee != 0.0f && !testBAOS.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      if (fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if (fee == 0.0f && testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      } else if (fee == 0.0f && baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
 
@@ -15236,7 +15245,7 @@ public class TestSuite
       if (expectedMoney < 0.0f) // if negative fees should not be paid
          expectedMoney = accountMoney;
 
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       Marketplace.buy(PLAYER_ID, null, ware.getWareID(), quantityToTrade, 0.0f, CommandEconomy.ACCOUNT_ADMIN);
 
       // check account existence
@@ -15245,22 +15254,22 @@ public class TestSuite
 
          // if the account still doesn't exist
          if (account == null) {
-            System.err.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
+            TEST_OUTPUT.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
             return true;
          }
       }
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < account.getMoney() ||
           account.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
                             "\n      fee charged:  " + (account.getMoney() - accountMoney) +
                             "\n      fee expected: " + fee);
          errorFound = true;
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output: " + testBAOS.toString());
+          baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
 
@@ -15331,7 +15340,7 @@ public class TestSuite
          expectedMoney             = CommandEconomy.truncatePrice(accountMoney + price - fee);
 
       // test as normal
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       if (!shouldOverorder) {
          Marketplace.sell(PLAYER_ID, null, ware.getWareID(), quantityToTrade, 0.1f, null);
       }
@@ -15344,14 +15353,14 @@ public class TestSuite
 
       // check ware properties
       if (isProfitable && ware.getQuantity() != quantityWare + quantityToTrade) {
-         System.err.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
+         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
                             ", should be " + (quantityWare + quantityToTrade));
          errorFound = true;
       }
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < playerAccount.getMoney() ||
           playerAccount.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected account money" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + expectedMoney +
                             "\n      price - fee paid: " + (playerAccount.getMoney() - accountMoney) +
                             "\n      price expected:   " + price +
                             "\n      diff:             " + (playerAccount.getMoney() - accountMoney - price) +
@@ -15359,11 +15368,11 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (isProfitable && fee != 0.0f && !testBAOS.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      if (isProfitable && fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if ((!isProfitable || fee == 0.0f) && testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
 
@@ -15443,7 +15452,7 @@ public class TestSuite
       if (expectedMoney < 0.0f) // if negative fees should not be paid
          expectedMoney = accountMoney;
 
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       Marketplace.sell(PLAYER_ID, null, ware.getWareID(), quantityToTrade, 0.1f, null);
 
       // check account existence
@@ -15452,22 +15461,22 @@ public class TestSuite
 
          // if the account still doesn't exist
          if (account == null) {
-            System.err.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
+            TEST_OUTPUT.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
             return true;
          }
       }
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < account.getMoney() ||
           account.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
                             "\n      fee charged:  " + (account.getMoney() - accountMoney) +
                             "\n      fee expected: " + fee);
          errorFound = true;
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output: " + testBAOS.toString());
+          baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
 
@@ -15587,20 +15596,20 @@ public class TestSuite
          expectedMoney             = CommandEconomy.truncatePrice(priceTotal - fee);
 
       // run the test
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       Marketplace.sellAll(PLAYER_ID, null, getFormattedInventory(), null);
 
       // check ware properties
       if (quantityWare1 != 0) {
          if (sellWare1) {
             if (ware1.getQuantity() != quantityWare1 + quantityToTrade1) {
-               System.err.println("   unexpected quantity for " + ware1.getWareID() + testIdentifier + ": " + ware1.getQuantity() +
+               TEST_OUTPUT.println("   unexpected quantity for " + ware1.getWareID() + testIdentifier + ": " + ware1.getQuantity() +
                                   ", should be " + (quantityWare1 + quantityToTrade1));
                errorFound = true;
             }
          } else {
             if (ware1.getQuantity() != quantityWare1) {
-               System.err.println("   unexpected quantity for " + ware1.getWareID() + testIdentifier + ": " + ware1.getQuantity() +
+               TEST_OUTPUT.println("   unexpected quantity for " + ware1.getWareID() + testIdentifier + ": " + ware1.getQuantity() +
                                   ", should be " + quantityWare1);
                errorFound = true;
             }
@@ -15609,13 +15618,13 @@ public class TestSuite
       if (quantityWare2 != 0) {
          if (sellWare2) {
             if (ware2.getQuantity() != quantityWare2 + quantityToTrade2) {
-               System.err.println("   unexpected quantity for " + ware2.getWareID() + testIdentifier + ": " + ware2.getQuantity() +
+               TEST_OUTPUT.println("   unexpected quantity for " + ware2.getWareID() + testIdentifier + ": " + ware2.getQuantity() +
                                   ", should be " + (quantityWare2 + quantityToTrade2));
                errorFound = true;
             }
          } else {
             if (ware2.getQuantity() != quantityWare2) {
-               System.err.println("   unexpected quantity for " + ware2.getWareID() + testIdentifier + ": " + ware2.getQuantity() +
+               TEST_OUTPUT.println("   unexpected quantity for " + ware2.getWareID() + testIdentifier + ": " + ware2.getQuantity() +
                                   ", should be " + quantityWare2);
                errorFound = true;
             }
@@ -15624,13 +15633,13 @@ public class TestSuite
       if (quantityWare3 != 0) {
          if (sellWare3) {
             if (ware3.getQuantity() != quantityWare3 + quantityToTrade3) {
-               System.err.println("   unexpected quantity for " + ware3.getWareID() + testIdentifier + ": " + ware3.getQuantity() +
+               TEST_OUTPUT.println("   unexpected quantity for " + ware3.getWareID() + testIdentifier + ": " + ware3.getQuantity() +
                                   ", should be " + (quantityWare3 + quantityToTrade3));
                errorFound = true;
             }
          } else {
             if (ware3.getQuantity() != quantityWare3) {
-               System.err.println("   unexpected quantity for " + ware3.getWareID() + testIdentifier + ": " + ware3.getQuantity() +
+               TEST_OUTPUT.println("   unexpected quantity for " + ware3.getWareID() + testIdentifier + ": " + ware3.getQuantity() +
                                   ", should be " + quantityWare3);
                errorFound = true;
             }
@@ -15639,7 +15648,7 @@ public class TestSuite
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < playerAccount.getMoney() ||
           playerAccount.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected account money" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + expectedMoney +
                             "\n      price paid:     " + (playerAccount.getMoney()) +
                             "\n      price expected: " + priceTotal +
                             "\n      price diff:     " + (playerAccount.getMoney() - priceTotal) +
@@ -15647,11 +15656,11 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (isProfitable && fee != 0.0f && !testBAOS.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      if (isProfitable && fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if ((!isProfitable || fee == 0.0f) && testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
 
@@ -15728,7 +15737,7 @@ public class TestSuite
       if (expectedMoney < 0.0f) // if negative fees should not be paid
          expectedMoney = accountMoney;
 
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       Marketplace.sellAll(PLAYER_ID, null, getFormattedInventory(), null);
 
       // check account existence
@@ -15737,22 +15746,22 @@ public class TestSuite
 
          // if the account still doesn't exist
          if (account == null) {
-            System.err.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
+            TEST_OUTPUT.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
             return true;
          }
       }
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < account.getMoney() ||
           account.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
                             "\n      fee charged:  " + (account.getMoney() - accountMoney) +
                             "\n      fee expected: " + fee);
          errorFound = true;
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output: " + testBAOS.toString());
+          baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
 
@@ -15814,13 +15823,13 @@ public class TestSuite
          recipientsMoney          += quantityToTransfer;
 
       // run the test
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       InterfaceTerminal.serviceRequestSend(new String[]{Float.toString(quantityToTransfer), recipientID, senderID});
 
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < sender.getMoney() ||
           sender.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected sender money" + testIdentifier + ": " + sender.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected sender money" + testIdentifier + ": " + sender.getMoney() + ", should be " + expectedMoney +
                             "\n      transfer - fee paid: " + (sendersMoney - sender.getMoney()) +
                             "\n      transfer expected:   " + quantityToTransfer +
                             "\n      diff:                " + (sendersMoney - sender.getMoney() - quantityToTransfer) +
@@ -15829,7 +15838,7 @@ public class TestSuite
       }
       if (recipientsMoney + FLOAT_COMPARE_PRECISION < recipient.getMoney() ||
           recipient.getMoney() < recipientsMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected recipient money" + testIdentifier + ": " + recipient.getMoney() + ", should be " + recipientsMoney +
+         TEST_OUTPUT.println("   unexpected recipient money" + testIdentifier + ": " + recipient.getMoney() + ", should be " + recipientsMoney +
                             "\n      recipient diff:      " + (recipientsMoney - recipient.getMoney()) +
                             "\n      transfer - fee paid: " + (sendersMoney - sender.getMoney()) +
                             "\n      transfer expected:   " + quantityToTransfer +
@@ -15838,11 +15847,11 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (fee != 0.0f && !testBAOS.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      if (fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if (fee == 0.0f && testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output" + testIdentifier + ": " + testBAOS.toString());
+      } else if (fee == 0.0f && baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
 
@@ -15897,7 +15906,7 @@ public class TestSuite
          expectedMoney    = accountMoney;
 
       // run the test
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       InterfaceTerminal.serviceRequestSend(new String[]{Float.toString(quantityToTransfer), recipientID, senderID});
 
       // check account existence
@@ -15906,22 +15915,22 @@ public class TestSuite
 
          // if the account still doesn't exist
          if (account == null) {
-            System.err.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
+            TEST_OUTPUT.println("   account not found" + testIdentifier + ": " + Config.transactionFeesAccount);
             return true;
          }
       }
       // check account funds
       if (expectedMoney + FLOAT_COMPARE_PRECISION < account.getMoney() ||
           account.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         System.err.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
                             "\n      fee charged:  " + (account.getMoney() - accountMoney) +
                             "\n      fee expected: " + fee);
          errorFound = true;
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          testBAOS.toString().contains("   Transaction fee applied: ")) {
-         System.err.println("   unexpected console output: " + testBAOS.toString());
+          baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
 
@@ -16051,13 +16060,13 @@ public class TestSuite
       expectedOutput = wareName + warePrice + wareQuantity + orderPrices + damagedPrice + System.lineSeparator();
 
       // run the test
-      testBAOS.reset(); // clear buffer holding console output
+      baosOut.reset(); // clear buffer holding console output
       Marketplace.check(PLAYER_ID, WARE_ID, quantity, percentWorth, false);
 
       // check console output
-      if (!testBAOS.toString().equals(expectedOutput)) {
-         System.err.println(testIdentifier +
-                            "   unexpected console output: " + testBAOS.toString() +
+      if (!baosOut.toString().equals(expectedOutput)) {
+         TEST_OUTPUT.println(testIdentifier +
+                            "   unexpected console output: " + baosOut.toString() +
                             "     expected console output: " + expectedOutput);
          errorFound = true;
       }
@@ -16090,15 +16099,15 @@ public class TestSuite
       accountFeeCollection.setMoney(Float.POSITIVE_INFINITY);
 
       try {
-         System.err.println("transaction fees - buy(): when disabled");
+         TEST_OUTPUT.println("transaction fees - buy(): when disabled");
          Config.transactionFeeSelling = 1.10f;
          Config.transactionFeeSending = 0.10f;
          errorFound |= testTransActFeeBuy(testWare1, 16, 0.00f, 0);
 
-         System.err.println("transaction fees - buy(): when enabled");
+         TEST_OUTPUT.println("transaction fees - buy(): when enabled");
          errorFound |= testTransActFeeBuy(testWare2, 8, 1.10f, 0);
 
-         System.err.println("transaction fees - buy(): zero rates");
+         TEST_OUTPUT.println("transaction fees - buy(): zero rates");
          Config.transactionFeeBuyingIsMult = true;
          errorFound |= testTransActFeeBuy(testWare1, Config.quanMid[testWare1.getLevel()],
                                           16, 0.0f, 17.0f, 1, true, false);
@@ -16107,21 +16116,21 @@ public class TestSuite
          errorFound |= testTransActFeeBuy(testWare4, Config.quanMid[testWare4.getLevel()],
                                           1, 0.0f, testWare4.getBasePrice(), 2, true, false);
 
-         System.err.println("transaction fees - buy(): flat rates, positive");
+         TEST_OUTPUT.println("transaction fees - buy(): flat rates, positive");
          errorFound |= testTransActFeeBuy(testWare2, 48, 10.00f, 1);
 
          errorFound |= testTransActFeeBuy(testWare3, 4, 100.00f, 2);
 
          errorFound |= testTransActFeeBuy(testWareC1, 12, 128.00f, 3);
 
-         System.err.println("transaction fees - buy(): flat rates, negative");
+         TEST_OUTPUT.println("transaction fees - buy(): flat rates, negative");
          errorFound |= testTransActFeeBuy(testWareC2, 12, -50.00f, 1);
 
          errorFound |= testTransActFeeBuy(testWareC2, 24, -124.50f, 2);
 
          errorFound |= testTransActFeeBuy(testWareP2, 7, -0.86f, 3);
 
-         System.err.println("transaction fees - buy(): percent rates, positive");
+         TEST_OUTPUT.println("transaction fees - buy(): percent rates, positive");
          Config.transactionFeeBuyingIsMult = true;
          errorFound |= testTransActFeeBuy(testWareP1, 14, 0.10f, 1);
 
@@ -16129,14 +16138,14 @@ public class TestSuite
 
          errorFound |= testTransActFeeBuy(testWare1, 5, 1.00f, 3);
 
-         System.err.println("transaction fees - buy(): percent rates, negative");
+         TEST_OUTPUT.println("transaction fees - buy(): percent rates, negative");
          errorFound |= testTransActFeeBuy(testWareP1, 5, -0.10f, 1);
 
          errorFound |= testTransActFeeBuy(testWare2, 6, -0.50f, 2);
 
          errorFound |= testTransActFeeBuy(testWareC1, 74, -0.24f, 3);
 
-         System.err.println("transaction fees - buy(): funds checking includes fees, positive");
+         TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, positive");
          errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           10, 1.00f, 0.0f, 1, true, true);
 
@@ -16144,7 +16153,7 @@ public class TestSuite
          errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           10, 10.00f, 0.0f, 2, true, true);
 
-         System.err.println("transaction fees - buy(): funds checking includes fees, negative");
+         TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, negative");
          Config.transactionFeeBuyingIsMult = true;
          errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           10, -0.10f, 0.0f, 1, true, true);
@@ -16153,7 +16162,7 @@ public class TestSuite
          errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           10, -5.00f, 0.0f, 2, true, true);
 
-         System.err.println("transaction fees - buy(): funds checking includes fees, extremely negative");
+         TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, extremely negative");
          Config.transactionFeeBuyingIsMult = true;
          errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           64, -1.00f, 0.0f, 1, true, false);
@@ -16162,7 +16171,7 @@ public class TestSuite
          errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           10, testWareC1.getBasePrice() * -11.0f, 0.0f, 2, true, false);
 
-         System.err.println("transaction fees - buy(): fee account doesn't exist");
+         TEST_OUTPUT.println("transaction fees - buy(): fee account doesn't exist");
          Config.transactionFeesAccount = "transactionFeeCollectionBuy";
 
          // ensure account does not exist
@@ -16189,7 +16198,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to change test config file");
+            TEST_OUTPUT.println("   unable to change test config file");
             e.printStackTrace();
          }
 
@@ -16202,33 +16211,33 @@ public class TestSuite
          // check account existence
          account1 = Account.getAccount(Config.transactionFeesAccount);
          if (account1 == null) {
-            System.err.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
             errorFound = true;
          }
 
          // check account properties   
          else {
             if (account1.getOwner() != null) {
-               System.err.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
 
-         System.err.println("transaction fees - buy(): fee account, positive rates");
+         TEST_OUTPUT.println("transaction fees - buy(): fee account, positive rates");
          errorFound |= testTransActFeeBuyAccount(testWare4,   10, 0.87f,    0.0f, 1, true);
 
          errorFound |= testTransActFeeBuyAccount(testWare1,   99, 1.00f,  1000.0f, 2, true);
 
          errorFound |= testTransActFeeBuyAccount(testWare1, 256, 2.14f, 10000.0f, 3, true);
 
-         System.err.println("transaction fees - buy(): fee account, negative rates");
+         TEST_OUTPUT.println("transaction fees - buy(): fee account, negative rates");
          errorFound |= testTransActFeeBuyAccount(testWare3,    2, -0.12f,   100.0f, 1, true);
 
          errorFound |= testTransActFeeBuyAccount(testWare1,   17, -0.23f,   100.0f, 2, true);
 
          errorFound |= testTransActFeeBuyAccount(testWareC2, 64, -1.50f, 10000.0f, 3, true);
 
-         System.err.println("transaction fees - buy(): fee account funds too low to pay negative rate");
+         TEST_OUTPUT.println("transaction fees - buy(): fee account funds too low to pay negative rate");
          errorFound |= testTransActFeeBuyAccount(testWareC1, 10, -0.10f, 10.0f, 1, true);
 
          Config.transactionFeeBuyingIsMult = false;
@@ -16240,16 +16249,16 @@ public class TestSuite
          // ensure fee collection account has sufficient wealth to pay negative fees
          accountFeeCollection.setMoney(Float.POSITIVE_INFINITY);
 
-         System.err.println("transaction fees - sell(): when disabled");
+         TEST_OUTPUT.println("transaction fees - sell(): when disabled");
          Config.transactionFeeSellingIsMult = true;
          Config.transactionFeeBuying        = 0.05f;
          Config.transactionFeeSending       = 0.02f;
          errorFound |= testTransActFeeSell(testWare3, 15, 0.00f, 0);
 
-         System.err.println("transaction fees - sell(): when enabled");
+         TEST_OUTPUT.println("transaction fees - sell(): when enabled");
          errorFound |= testTransActFeeSell(testWare3, 15, 0.75f, 0);
 
-         System.err.println("transaction fees - sell(): zero rates");
+         TEST_OUTPUT.println("transaction fees - sell(): zero rates");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSell(testWare1, Config.quanMid[testWare1.getLevel()],
                                            16, 0.0f, 0.0f, 1, true, false);
@@ -16258,7 +16267,7 @@ public class TestSuite
          errorFound |= testTransActFeeSell(testWare4, Config.quanMid[testWare4.getLevel()],
                                            Config.quanMid[testWare4.getLevel()], 0.0f, 0.0f, 2, true, false);
 
-         System.err.println("transaction fees - sell(): flat rates, positive");
+         TEST_OUTPUT.println("transaction fees - sell(): flat rates, positive");
          Config.transactionFeeSellingIsMult = false;
          errorFound |= testTransActFeeSell(testWare2, 48, 10.00f, 1);
 
@@ -16266,14 +16275,14 @@ public class TestSuite
 
          errorFound |= testTransActFeeSell(testWareC1, 12, 128.00f, 3);
 
-         System.err.println("transaction fees - sell(): flat rates, negative");
+         TEST_OUTPUT.println("transaction fees - sell(): flat rates, negative");
          errorFound |= testTransActFeeSell(testWareC2, 12, -50.00f, 1);
 
          errorFound |= testTransActFeeSell(testWareC2, 24, -124.50f, 2);
 
          errorFound |= testTransActFeeSell(testWareP2, 7, -0.86f, 3);
 
-         System.err.println("transaction fees - sell(): percent rates, positive");
+         TEST_OUTPUT.println("transaction fees - sell(): percent rates, positive");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSell(testWareP1, 14, 0.10f, 1);
 
@@ -16281,14 +16290,14 @@ public class TestSuite
 
          errorFound |= testTransActFeeSell(testWare1, 5, 0.95f, 3);
 
-         System.err.println("transaction fees - sell(): percent rates, negative");
+         TEST_OUTPUT.println("transaction fees - sell(): percent rates, negative");
          errorFound |= testTransActFeeSell(testWareP1, 5, -0.10f, 1);
 
          errorFound |= testTransActFeeSell(testWare2, 6, -0.50f, 2);
 
          errorFound |= testTransActFeeSell(testWareC1, 74, -0.24f, 3);
 
-         System.err.println("transaction fees - sell(): funds checking includes fees, positive");
+         TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, positive");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                            Config.quanMid[testWareC1.getLevel()] / 2,
@@ -16303,7 +16312,7 @@ public class TestSuite
                                            Config.quanMid[testWareC1.getLevel()] / 2,
                                            10000.00f, 0.0f, 3, true, true);
 
-         System.err.println("transaction fees - sell(): funds checking includes fees, negative");
+         TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, negative");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSell(testWareC1, 300, 300,
                                            -0.10f, 0.0f, 1, true, false);
@@ -16312,7 +16321,7 @@ public class TestSuite
          errorFound |= testTransActFeeSell(testWareC1, 300, 300,
                                            -10.00f, 0.0f, 2, true, false);
 
-         System.err.println("transaction fees - sell(): funds checking includes fees, extremely negative");
+         TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, extremely negative");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           64, -1.00f, 0.0f, 1, true, false);
@@ -16321,7 +16330,7 @@ public class TestSuite
          errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           64, -(testWareC1.getBasePrice() * 2.0f), 0.0f, 2, true, false);
 
-         System.err.println("transaction fees - sell(): fee account doesn't exist");
+         TEST_OUTPUT.println("transaction fees - sell(): fee account doesn't exist");
          Config.transactionFeesAccount = "transactionFeeCollectionSell";
 
          // ensure account does not exist
@@ -16348,7 +16357,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to change test config file");
+            TEST_OUTPUT.println("   unable to change test config file");
             e.printStackTrace();
          }
 
@@ -16361,33 +16370,33 @@ public class TestSuite
          // check account existence
          account1 = Account.getAccount(Config.transactionFeesAccount);
          if (account1 == null) {
-            System.err.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
             errorFound = true;
          }
 
          // check account properties   
          else {
             if (account1.getOwner() != null) {
-               System.err.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
 
-         System.err.println("transaction fees - sell(): fee account, positive rates");
+         TEST_OUTPUT.println("transaction fees - sell(): fee account, positive rates");
          errorFound |= testTransActFeeSellAccount(testWare4,   10, 0.87f,    0.0f, 1, true);
 
          errorFound |= testTransActFeeSellAccount(testWare1,   99, 0.95f,  1000.0f, 2, true);
 
          errorFound |= testTransActFeeSellAccount(testWare1, 256, 0.14f, 10000.0f, 3, true);
 
-         System.err.println("transaction fees - sell(): fee account, negative rates");
+         TEST_OUTPUT.println("transaction fees - sell(): fee account, negative rates");
          errorFound |= testTransActFeeSellAccount(testWare3,    2, -0.12f,   100.0f, 1, true);
 
          errorFound |= testTransActFeeSellAccount(testWare1,   17, -0.23f,   100.0f, 2, true);
 
          errorFound |= testTransActFeeSellAccount(testWareC2, 147, -1.50f, 10000.0f, 3, true);
 
-         System.err.println("transaction fees - sell(): fee account funds too low to pay negative rate");
+         TEST_OUTPUT.println("transaction fees - sell(): fee account funds too low to pay negative rate");
          errorFound |= testTransActFeeSellAccount(testWareC1, 10, -0.10f, 10.0f, 1, true);
 
          Config.transactionFeeSellingIsMult= false;
@@ -16397,18 +16406,18 @@ public class TestSuite
          // ensure fee collection account has sufficient wealth to pay negative fees
          accountFeeCollection.setMoney(Float.POSITIVE_INFINITY);
 
-         System.err.println("transaction fees - sellall(): when disabled");
+         TEST_OUTPUT.println("transaction fees - sellall(): when disabled");
          Config.transactionFeeSellingIsMult = true;
          Config.transactionFeeBuying        = 0.05f;
          Config.transactionFeeSending       = 0.02f;
          errorFound |= testTransActFeeSellAll(testWare1, testWare2, testWare3,
                                               100, 10, 1, 0.00f, 0, false);
 
-         System.err.println("transaction fees - sellall(): when enabled");
+         TEST_OUTPUT.println("transaction fees - sellall(): when enabled");
          errorFound |= testTransActFeeSellAll(testWare1, testWare2, testWare3,
                                               100, 10, 1, 0.10f, 0, false);
 
-         System.err.println("transaction fees - sellall(): zero rates");
+         TEST_OUTPUT.println("transaction fees - sellall(): zero rates");
          errorFound |= testTransActFeeSellAll(testWareC1, testWare4, testWareP1,
                                               32, 16, 8, 0.0f, 1, true);
 
@@ -16416,7 +16425,7 @@ public class TestSuite
          errorFound |= testTransActFeeSellAll(testWareC1, testWare4, testWareP1,
                                               32, 16, 8, 0.0f, 2, true);
 
-         System.err.println("transaction fees - sellall(): flat rates, positive");
+         TEST_OUTPUT.println("transaction fees - sellall(): flat rates, positive");
          errorFound |= testTransActFeeSellAll(testWare2, testWareP2, null,
                                               50, 25, 0, 10.0f, 1, true);
 
@@ -16426,7 +16435,7 @@ public class TestSuite
          errorFound |= testTransActFeeSellAll(testWare4, testWareC1, testWareP2,
                                               4, 2, 1, 5.0f, 3, true);
 
-         System.err.println("transaction fees - sellall(): flat rates, negative");
+         TEST_OUTPUT.println("transaction fees - sellall(): flat rates, negative");
          errorFound |= testTransActFeeSellAll(testWareC3, testWareP1, null,
                                               32, 16, 8, -10.0f, 1, true);
 
@@ -16436,7 +16445,7 @@ public class TestSuite
          errorFound |= testTransActFeeSellAll(testWare4, testWareC1, testWareP2,
                                               20, 10, 40, -123.456f, 3, true);
 
-         System.err.println("transaction fees - sellall(): percent rates, positive");
+         TEST_OUTPUT.println("transaction fees - sellall(): percent rates, positive");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSellAll(testWare2, testWareP2, null,
                                               50, 25, 0, 0.50f, 1, true);
@@ -16447,7 +16456,7 @@ public class TestSuite
          errorFound |= testTransActFeeSellAll(testWare4, testWareC1, testWareP2,
                                               4, 2, 1, 0.16f, 3, true);
 
-         System.err.println("transaction fees - sellall(): percent rates, negative");
+         TEST_OUTPUT.println("transaction fees - sellall(): percent rates, negative");
          errorFound |= testTransActFeeSellAll(testWareC3, testWareP1, null,
                                               32, 16, 8, -0.10f, 1, true);
 
@@ -16457,7 +16466,7 @@ public class TestSuite
          errorFound |= testTransActFeeSellAll(testWare4, testWareC1, testWareP2,
                                               20, 10, 40, -0.25f, 3, true);
 
-         System.err.println("transaction fees - sellall(): funds checking includes fees, positive");
+         TEST_OUTPUT.println("transaction fees - sellall(): funds checking includes fees, positive");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSellAll(testWare1, testWare2, testWare3,
                                               300, 200, 100,
@@ -16468,7 +16477,7 @@ public class TestSuite
                                               300, 200, 100,
                                               10.0f, 2, true);
 
-         System.err.println("transaction fees - sellall(): funds checking includes fees, negative");
+         TEST_OUTPUT.println("transaction fees - sellall(): funds checking includes fees, negative");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSellAll(testWare1, testWare2, testWare3,
                                               300, 200, 100,
@@ -16479,7 +16488,7 @@ public class TestSuite
                                               300, 200, 100,
                                               -10.0f, 2, true);
 
-         System.err.println("transaction fees - sellall(): funds checking includes fees, extremely negative");
+         TEST_OUTPUT.println("transaction fees - sellall(): funds checking includes fees, extremely negative");
          Config.transactionFeeSellingIsMult = true;
          errorFound |= testTransActFeeSellAll(testWare1, testWare2, testWare3,
                                               300, 200, 100,
@@ -16490,7 +16499,7 @@ public class TestSuite
                                               300, 200, 100,
                                               -100.0f, 2, true);
 
-         System.err.println("transaction fees - sellall(): fee account doesn't exist");
+         TEST_OUTPUT.println("transaction fees - sellall(): fee account doesn't exist");
          Config.transactionFeesAccount = "transactionFeeCollectionSellAll";
 
          // ensure account does not exist
@@ -16517,7 +16526,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to change test config file");
+            TEST_OUTPUT.println("   unable to change test config file");
             e.printStackTrace();
          }
 
@@ -16531,19 +16540,19 @@ public class TestSuite
          // check account existence
          account1 = Account.getAccount(Config.transactionFeesAccount);
          if (account1 == null) {
-            System.err.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
             errorFound = true;
          }
 
          // check account properties   
          else {
             if (account1.getOwner() != null) {
-               System.err.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
 
-         System.err.println("transaction fees - sellall(): fee account, positive rates");
+         TEST_OUTPUT.println("transaction fees - sellall(): fee account, positive rates");
          errorFound |= testTransActFeeSellAllAccount(testWareC3, testWare2, 20, 200,
                                                      0.10f, 0.0f, 1, true);
 
@@ -16553,7 +16562,7 @@ public class TestSuite
          errorFound |= testTransActFeeSellAllAccount(testWare3, testWareP2, 64, 12,
                                                      0.015f, 1.0f, 3, true);
 
-         System.err.println("transaction fees - sellall(): fee account, negative rates");
+         TEST_OUTPUT.println("transaction fees - sellall(): fee account, negative rates");
          errorFound |= testTransActFeeSellAllAccount(testWareC1, testWareP2, 8, 12,
                                                      -0.24f, 1000.0f, 1, true);
 
@@ -16563,7 +16572,7 @@ public class TestSuite
          errorFound |= testTransActFeeSellAllAccount(testWareP1, testWare4, 3, 4,
                                                      -0.95f, 100.0f, 3, true);
 
-         System.err.println("transaction fees - sellall(): fee account funds too low to pay negative rate");
+         TEST_OUTPUT.println("transaction fees - sellall(): fee account funds too low to pay negative rate");
          errorFound |= testTransActFeeSellAllAccount(testWare1, null, 100, 0,
                                                      -0.10f, 5.0f, 1, true);
 
@@ -16577,22 +16586,22 @@ public class TestSuite
          // ensure fee collection account has sufficient wealth to pay negative fees
          accountFeeCollection.setMoney(Float.POSITIVE_INFINITY);
 
-         System.err.println("transaction fees - sendMoney(): when disabled");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): when disabled");
          Config.transactionFeeSendingIsMult = true;
          Config.transactionFeeBuying        = 0.05f;
          Config.transactionFeeSelling       = 1.00f;
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 100.0f, 0.00f, 0, false);
 
-         System.err.println("transaction fees - sendMoney(): when enabled");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): when enabled");
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 1000.0f, 0.10f, 0, false);
 
-         System.err.println("transaction fees - sendMoney(): zero rates");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): zero rates");
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 100.0f, 0.0f, 0, false);
 
-         System.err.println("transaction fees - sendMoney(): flat rates, positive");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): flat rates, positive");
          Config.transactionFeeSendingIsMult = false;
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 1000.0f, 100.0f, 1, true);
@@ -16603,7 +16612,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount3",
                                                 10.0f, 20.0f, 1.0f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): flat rates, negative");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): flat rates, negative");
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 1000.0f, -100.0f, 1, true);
 
@@ -16613,7 +16622,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount3",
                                                 10.0f, 20.0f, -1.0f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): percent rates, positive");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): percent rates, positive");
          Config.transactionFeeSendingIsMult = true;
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 1000.0f, 1.0f, 1, true);
@@ -16624,7 +16633,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount3",
                                                 10.0f, 20.0f, 0.1f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): percent rates, negative");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): percent rates, negative");
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 1000.0f, -1.0f, 1, true);
 
@@ -16634,7 +16643,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount3",
                                                 10.0f, 20.0f, -0.1f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): funds checking includes fees, positive");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): funds checking includes fees, positive");
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 100.0f, 100.0f, 0.10f, 1, true);
 
@@ -16644,7 +16653,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney("testAccount1", "testAccount2",
                                                 1000.0f, 1199.0f, 0.20f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): funds checking includes fees, negative");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): funds checking includes fees, negative");
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount4",
                                                 100.0f, 50.0f, -1.00f, 1, true);
 
@@ -16654,7 +16663,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney("testAccount1", "testAccount2",
                                                 1000.0f, 950.0f, -0.20f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): funds checking includes fees, extremely negative");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): funds checking includes fees, extremely negative");
          errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
                                                 1000.0f, 0.0f, -1.00f, 1, true);
 
@@ -16664,7 +16673,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney("testAccount1", InterfaceTerminal.playername,
                                                 10.0f, 0.0f, -100.00f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): fee account doesn't exist");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): fee account doesn't exist");
          Config.transactionFeesAccount = "transactionFeeCollectionSend";
 
          // ensure account does not exist
@@ -16691,7 +16700,7 @@ public class TestSuite
             // close the file
             fileWriter.close();
          } catch (Exception e) {
-            System.err.println("   unable to change test config file");
+            TEST_OUTPUT.println("   unable to change test config file");
             e.printStackTrace();
          }
 
@@ -16705,19 +16714,19 @@ public class TestSuite
          // check account existence
          account1 = Account.getAccount(Config.transactionFeesAccount);
          if (account1 == null) {
-            System.err.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
             errorFound = true;
          }
 
          // check account properties   
          else {
             if (account1.getOwner() != null) {
-               System.err.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
 
-         System.err.println("transaction fees - sendMoney(): fee account, positive rates");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): fee account, positive rates");
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount2",
                                                        128.0f, 0.50f, 0.0f, 1, true);
 
@@ -16727,7 +16736,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount3",
                                                        10.0f, 1.00f, 1000.0f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): fee account, negative rates");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): fee account, negative rates");
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount2",
                                                        128.0f, -0.50f, 128.0f, 1, true);
 
@@ -16737,7 +16746,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount3",
                                                        10.0f, -1.00f, 100.0f, 3, true);
 
-         System.err.println("transaction fees - sendMoney(): fee account funds too low to pay negative rate");
+         TEST_OUTPUT.println("transaction fees - sendMoney(): fee account funds too low to pay negative rate");
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount2",
                                                        128.0f, -0.50f, 32.0f, 1, true);
 
@@ -16747,7 +16756,7 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount3",
                                                        10.0f, -1.00f, 9.0f, 3, true);
 
-         System.err.println("transaction fees - check(): when disabled");
+         TEST_OUTPUT.println("transaction fees - check(): when disabled");
          Config.transactionFeeBuyingIsMult  = true;
          Config.transactionFeeSellingIsMult = true;
          Config.transactionFeeSendingIsMult = true;
@@ -16755,45 +16764,45 @@ public class TestSuite
 
          errorFound |= testTransActFeeCheck(testWare1, 2, 0.00f, 0.00f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): when enabled");
+         TEST_OUTPUT.println("transaction fees - check(): when enabled");
          errorFound |= testTransActFeeCheck(testWare1, 2, 0.10f, 0.10f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): when disabled for buying");
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for buying");
          errorFound |= testTransActFeeCheck(testWare1, 2, 0.00f, 0.10f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): when disabled for selling");
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for selling");
          errorFound |= testTransActFeeCheck(testWare1, 2, 0.10f, 0.00f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): zero rates");
+         TEST_OUTPUT.println("transaction fees - check(): zero rates");
          errorFound |= testTransActFeeCheck(testWare1, 2, 0.0f, 0.0f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): flat rates, positive");
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, positive");
          Config.transactionFeeBuyingIsMult  = false;
          Config.transactionFeeSellingIsMult = false;
 
          errorFound |= testTransActFeeCheck(testWare1, 2, 1.00f, 1.00f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): flat rates, negative");
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, negative");
          errorFound |= testTransActFeeCheck(testWare1, 2, -0.10f, -0.10f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): flat rates, extremely negative");
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, extremely negative");
          errorFound |= testTransActFeeCheck(testWare1, 2, -1.00f, -1.00f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): percent rates, positive");
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, positive");
          Config.transactionFeeBuyingIsMult  = false;
          Config.transactionFeeSellingIsMult = false;
 
          errorFound |= testTransActFeeCheck(testWare1, 2, 0.10f, 0.10f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): percent rates, negative");
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, negative");
          errorFound |= testTransActFeeCheck(testWare1, 2, -0.10f, -0.10f, 1.00f, 0, false);
 
-         System.err.println("transaction fees - check(): percent rates, extremely negative");
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, extremely negative");
          errorFound |= testTransActFeeCheck(testWare1, 2, -2.56f, -2.56f, 1.00f, 0, false);
       }
       catch (Exception e) {
          Config.chargeTransactionFees = false;
-         System.err.println("testTransactionFees() - fatal error: " + e);
+         TEST_OUTPUT.println("testTransactionFees() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }
