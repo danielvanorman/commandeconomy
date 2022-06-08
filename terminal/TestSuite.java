@@ -16215,13 +16215,77 @@ public class TestSuite
             errorFound = true;
          }
 
-         // check account properties   
+         // check account properties
          else {
             if (account1.getOwner() != null) {
                TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
+
+         TEST_OUTPUT.println("transaction fees - buy(): fee account changed");
+         Config.transactionFeesShouldPutFeesIntoAccount = true;
+         account1 = Account.getAccount(Config.transactionFeesAccount);
+         Config.transactionFeesAccount                  = "newTransactionFeeCollectionBuy";
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+
+         // ensure account does not exist
+         if (account2 != null)
+            Account.deleteAccount(Config.transactionFeesAccount, account2.getOwner());
+
+         // create test config file
+         try {
+            // open the save file for config, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+
+            // write test wares file
+            fileWriter.write(
+               "// warning: this file may be cleared and overwritten by the program\n\n" +
+               "chargeTransactionFees  = true\n" +
+               "transactionFeesAccount = " + Config.transactionFeesAccount + "\n" +
+               "accountStartingMoney   = 0.0\n"  +
+               "disableAutoSaving      = true\n" +
+               "crossWorldMarketplace  = true\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to change test config file");
+            e.printStackTrace();
+         }
+
+         // reload config
+         Config.loadConfig();
+
+         // run test
+         errorFound |= testTransActFeeBuy(testWare1, 10, 0.10f, 0);
+
+         // check account existence
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+         if (account2 == null) {
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            errorFound = true;
+         }
+
+         // check account properties
+         else {
+            if (account2.getOwner() != null) {
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account2.getOwner().toString());
+               errorFound = true;
+            }
+         }
+
+         // reset test environment in case
+         // reloading configuration made unexpected changes
+         resetTestEnvironment();
+         Config.chargeTransactionFees                   = true;
+         Config.transactionFeesShouldPutFeesIntoAccount = true;
+
+         // ensure fee collection account exists
+         accountFeeCollection = Account.getAccount(Config.transactionFeesAccount);
+         if (accountFeeCollection == null)
+            accountFeeCollection = Account.makeAccount(Config.transactionFeesAccount, null);
 
          TEST_OUTPUT.println("transaction fees - buy(): fee account, positive rates");
          errorFound |= testTransActFeeBuyAccount(testWare4,   10, 0.87f,    0.0f, 1, true);
@@ -16374,13 +16438,77 @@ public class TestSuite
             errorFound = true;
          }
 
-         // check account properties   
+         // check account properties
          else {
             if (account1.getOwner() != null) {
                TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
+
+         TEST_OUTPUT.println("transaction fees - sell(): fee account changed");
+         Config.transactionFeesShouldPutFeesIntoAccount = true;
+         account1 = Account.getAccount(Config.transactionFeesAccount);
+         Config.transactionFeesAccount                  = "newTransactionFeeCollectionSell";
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+
+         // ensure account does not exist
+         if (account2 != null)
+            Account.deleteAccount(Config.transactionFeesAccount, account2.getOwner());
+
+         // create test config file
+         try {
+            // open the save file for config, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+
+            // write test wares file
+            fileWriter.write(
+               "// warning: this file may be cleared and overwritten by the program\n\n" +
+               "chargeTransactionFees  = true\n" +
+               "transactionFeesAccount = " + Config.transactionFeesAccount + "\n" +
+               "accountStartingMoney   = 0.0\n"  +
+               "disableAutoSaving      = true\n" +
+               "crossWorldMarketplace  = true\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to change test config file");
+            e.printStackTrace();
+         }
+
+         // reload config
+         Config.loadConfig();
+
+         // run test
+         errorFound |= testTransActFeeSell(testWare1, 10, 0.10f, 0);
+
+         // check account existence
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+         if (account2 == null) {
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            errorFound = true;
+         }
+
+         // check account properties
+         else {
+            if (account2.getOwner() != null) {
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account2.getOwner().toString());
+               errorFound = true;
+            }
+         }
+
+         // reset test environment in case
+         // reloading configuration made unexpected changes
+         resetTestEnvironment();
+         Config.chargeTransactionFees                   = true;
+         Config.transactionFeesShouldPutFeesIntoAccount = true;
+
+         // ensure fee collection account exists
+         accountFeeCollection = Account.getAccount(Config.transactionFeesAccount);
+         if (accountFeeCollection == null)
+            accountFeeCollection = Account.makeAccount(Config.transactionFeesAccount, null);
 
          TEST_OUTPUT.println("transaction fees - sell(): fee account, positive rates");
          errorFound |= testTransActFeeSellAccount(testWare4,   10, 0.87f,    0.0f, 1, true);
@@ -16544,13 +16672,78 @@ public class TestSuite
             errorFound = true;
          }
 
-         // check account properties   
+         // check account properties
          else {
             if (account1.getOwner() != null) {
                TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
+
+         TEST_OUTPUT.println("transaction fees - sellall(): fee account changed");
+         account1 = Account.getAccount(Config.transactionFeesAccount);
+         Config.transactionFeesAccount = "newTransactionFeeCollectionSellAll";
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+
+         // ensure account does not exist
+         if (account2 != null)
+            Account.deleteAccount(Config.transactionFeesAccount, account2.getOwner());
+
+         // create test config file
+         try {
+            // open the save file for config, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+
+            // write test wares file
+            fileWriter.write(
+               "// warning: this file may be cleared and overwritten by the program\n\n" +
+               "chargeTransactionFees  = true\n" +
+               "transactionFeesShouldPutFeesIntoAccount = true\n" +
+               "transactionFeesAccount = " + Config.transactionFeesAccount + "\n" +
+               "accountStartingMoney   = 0.0\n"  +
+               "disableAutoSaving      = true\n" +
+               "crossWorldMarketplace  = true\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to change test config file");
+            e.printStackTrace();
+         }
+
+         // reload config
+         Config.loadConfig();
+
+         // run test
+         errorFound |= testTransActFeeSellAllAccount(testWareC2, testWareP1, 10, 10,
+                                                     0.10f, 0.0f, 0, false);
+
+         // check account existence
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+         if (account2 == null) {
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            errorFound = true;
+         }
+
+         // check account properties
+         else {
+            if (account2.getOwner() != null) {
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account2.getOwner().toString());
+               errorFound = true;
+            }
+         }
+
+         // reset test environment in case
+         // reloading configuration made unexpected changes
+         resetTestEnvironment();
+         Config.chargeTransactionFees                   = true;
+         Config.transactionFeesShouldPutFeesIntoAccount = true;
+
+         // ensure fee collection account exists
+         accountFeeCollection = Account.getAccount(Config.transactionFeesAccount);
+         if (accountFeeCollection == null)
+            accountFeeCollection = Account.makeAccount(Config.transactionFeesAccount, null);
 
          TEST_OUTPUT.println("transaction fees - sellall(): fee account, positive rates");
          errorFound |= testTransActFeeSellAllAccount(testWareC3, testWare2, 20, 200,
@@ -16718,13 +16911,78 @@ public class TestSuite
             errorFound = true;
          }
 
-         // check account properties   
+         // check account properties
          else {
             if (account1.getOwner() != null) {
                TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account1.getOwner().toString());
                errorFound = true;
             }
          }
+
+         TEST_OUTPUT.println("transaction fees - sendMoney(): fee account changed");
+         Config.transactionFeesShouldPutFeesIntoAccount = true;
+         account1 = Account.getAccount(Config.transactionFeesAccount);
+         Config.transactionFeesAccount                  = "newTransactionFeeCollectionSend";
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+
+         // ensure account does not exist
+         if (account2 != null)
+            Account.deleteAccount(Config.transactionFeesAccount, account2.getOwner());
+
+         // create test config file
+         try {
+            // open the save file for config, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+
+            // write test wares file
+            fileWriter.write(
+               "// warning: this file may be cleared and overwritten by the program\n\n" +
+               "chargeTransactionFees  = true\n" +
+               "transactionFeesAccount = " + Config.transactionFeesAccount + "\n" +
+               "accountStartingMoney   = 0.0\n"  +
+               "disableAutoSaving      = true\n" +
+               "crossWorldMarketplace  = true\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to change test config file");
+            e.printStackTrace();
+         }
+
+         // reload config
+         Config.loadConfig();
+
+         // run test
+         errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
+                                                10.0f, 100.0f, 1.00f, 0, false);
+
+         // check account existence
+         account2 = Account.getAccount(Config.transactionFeesAccount);
+         if (account2 == null) {
+            TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should exist when it does not");
+            errorFound = true;
+         }
+
+         // check account properties
+         else {
+            if (account2.getOwner() != null) {
+               TEST_OUTPUT.println("   account " + Config.transactionFeesAccount + " should be inaccessible, is owned by " + account2.getOwner().toString());
+               errorFound = true;
+            }
+         }
+
+         // reset test environment in case
+         // reloading configuration made unexpected changes
+         resetTestEnvironment();
+         Config.chargeTransactionFees                   = true;
+         Config.transactionFeesShouldPutFeesIntoAccount = true;
+
+         // ensure fee collection account exists
+         accountFeeCollection = Account.getAccount(Config.transactionFeesAccount);
+         if (accountFeeCollection == null)
+            accountFeeCollection = Account.makeAccount(Config.transactionFeesAccount, null);
 
          TEST_OUTPUT.println("transaction fees - sendMoney(): fee account, positive rates");
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount2",
@@ -16756,49 +17014,220 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoneyAccount("testAccount1", "testAccount3",
                                                        10.0f, -1.00f, 9.0f, 3, true);
 
-         TEST_OUTPUT.println("transaction fees - check(): when disabled");
+         TEST_OUTPUT.println("transaction fees - check(): when disabled, without alias, singular quantity");
          Config.transactionFeeBuyingIsMult  = true;
          Config.transactionFeeSellingIsMult = true;
          Config.transactionFeeSendingIsMult = true;
          Config.transactionFeeSending       = 0.02f;
 
-         errorFound |= testTransActFeeCheck(testWare1, 2, 0.00f, 0.00f, 1.00f, 0, false);
+         errorFound |= testTransActFeeCheck(testWare1, 0, 0.00f, 0.00f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): when enabled");
-         errorFound |= testTransActFeeCheck(testWare1, 2, 0.10f, 0.10f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): when disabled, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, 0.00f, 0.00f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): when disabled for buying");
-         errorFound |= testTransActFeeCheck(testWare1, 2, 0.00f, 0.10f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): when disabled, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 0.00f, 0.00f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): when disabled for selling");
-         errorFound |= testTransActFeeCheck(testWare1, 2, 0.10f, 0.00f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): when disabled, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, 0.00f, 0.00f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): zero rates");
-         errorFound |= testTransActFeeCheck(testWare1, 2, 0.0f, 0.0f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): when enabled, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, 0.10f, 0.10f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): flat rates, positive");
+         TEST_OUTPUT.println("transaction fees - check(): when enabled, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, 0.10f, 0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when enabled, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 0.10f, 0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when enabled, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, 0.10f, 0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for buying, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, 0.00f, 0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for buying, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, 0.00f, 0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for buying, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 0.00f, 0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for buying, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, 0.00f, 0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for selling, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, 0.10f, 0.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for selling, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, 0.10f, 0.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for selling, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 0.10f, 0.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): when disabled for selling, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, 0.10f, 0.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): zero rates, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, 0.0f, 0.0f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): zero rates, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, 0.0f, 0.0f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): zero rates, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 0.0f, 0.0f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): zero rates, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, 0.0f, 0.0f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, positive, without alias, singular quantity");
          Config.transactionFeeBuyingIsMult  = false;
          Config.transactionFeeSellingIsMult = false;
 
-         errorFound |= testTransActFeeCheck(testWare1, 2, 1.00f, 1.00f, 1.00f, 0, false);
+         errorFound |= testTransActFeeCheck(testWare1, 0, 1.00f, 1.00f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): flat rates, negative");
-         errorFound |= testTransActFeeCheck(testWare1, 2, -0.10f, -0.10f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, positive, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, 10.10f, 10.10f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): flat rates, extremely negative");
-         errorFound |= testTransActFeeCheck(testWare1, 2, -1.00f, -1.00f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, positive, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 100.00f, 100.00f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): percent rates, positive");
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, positive, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, 123.456f, 123.456f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, negative, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, -0.10f, -0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, negative, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, -10.10f, -10.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, negative, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, -100.00f, -100.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, negative, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, -123.456f, -123.456f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, extremely negative, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, -1.00f, -1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, extremely negative, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, -(testWare2.getBasePrice() * 20.0f), -(testWare2.getBasePrice() * 20.0f), 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, extremely negative, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, -100.00f, -100.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): flat rates, extremely negative, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, -655.36f, -655.36f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, positive, without alias, singular quantity");
          Config.transactionFeeBuyingIsMult  = false;
          Config.transactionFeeSellingIsMult = false;
 
-         errorFound |= testTransActFeeCheck(testWare1, 2, 0.10f, 0.10f, 1.00f, 0, false);
+         errorFound |= testTransActFeeCheck(testWare1, 0, 0.10f, 0.10f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): percent rates, negative");
-         errorFound |= testTransActFeeCheck(testWare1, 2, -0.10f, -0.10f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, positive, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, 1.28f, 1.28f, 1.00f, 0, false);
 
-         TEST_OUTPUT.println("transaction fees - check(): percent rates, extremely negative");
-         errorFound |= testTransActFeeCheck(testWare1, 2, -2.56f, -2.56f, 1.00f, 0, false);
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, positive, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 1.00f, 1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, positive, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, 10.00f, 10.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, negative, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, -0.10f, -0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, negative, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, -0.128f, -0.128f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, negative, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, -0.10f, -0.10f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, negative, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, -0.50f, -0.50f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, extremely negative, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, -2.56f, -2.56f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, extremely negative, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 10, -1.00f, -1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, extremely negative, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, -2.00f, -2.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): percent rates, extremely negative, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 10, -11.00f, -11.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, no quantity specified, without alias, singular quantity");
+         Config.priceBuyUpchargeMult = 2.0f;
+
+         errorFound |= testTransActFeeCheck(testWare1, 0, 1.00f, 1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, positive rate, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 0, 1.00f, 1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, negative rate, without alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 1, -0.50f, -0.50f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, positive rate, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 0, 1.00f, 1.00f, 1.00f, 1, true);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, negative rate, with alias, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 1, -11.00f, -11.00f, 1.00f, 2, true);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, positive rate, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 10, 1.00f, 1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, negative rate, without alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare2, 100, -0.50f, -0.50f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, positive rate, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare3, 10, 1.00f, 1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): buying upcharge, negative rate, with alias, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare4, 100, -11.00f, -11.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, zero rate, singular quantity");
+         Config.priceBuyUpchargeMult = 1.0f;
+         errorFound |= testTransActFeeCheck(testWareU1, 1, 0.00f, 0.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, positive rate, singular quantity");
+         errorFound |= testTransActFeeCheck(testWareU1, 1, 1.00f, 1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, negative rate, singular quantity");
+         errorFound |= testTransActFeeCheck(testWareU1, 1, -0.50f, -0.50f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, zero rate, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWareU1, 100, 0.00f, 0.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, positive rate, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWareU1, 100, 1.00f, 1.00f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, negative rate, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWareU1, 100, -0.50f, -0.50f, 1.00f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, damaged, singular quantity");
+         errorFound |= testTransActFeeCheck(testWareU1, 1, 1.00f, 1.00f, 0.10f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): untradeable ware, damaged, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWareU1, 100, -0.50f, -0.50f, 0.10f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): damaged ware, zero rate, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 1, 0.00f, 0.00f, 0.10f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): damaged ware, positive rate, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 1, 1.00f, 1.00f, 0.50f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): damaged ware, negative rate, singular quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 1, -0.50f, -0.50f, 0.50f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): damaged ware, zero rate, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 1000, 0.00f, 0.00f, 0.25f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): damaged ware, positive rate, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 100, 9.00f, 9.00f, 0.01f, 0, false);
+
+         TEST_OUTPUT.println("transaction fees - check(): damaged ware, negative rate, multiple quantity");
+         errorFound |= testTransActFeeCheck(testWare1, 10, -11.00f, -11.00f, 0.10f, 0, false);
       }
       catch (Exception e) {
          Config.chargeTransactionFees = false;
