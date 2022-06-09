@@ -1451,6 +1451,27 @@ public class Marketplace {
       // if the ware isn't free, figure out how much is affordable
       float price          = getPrice(playerID, wareID, quantityToBuy, true);
       float moneyAvailable = account.getMoney();
+
+      // if there are transaction fees,
+      // adjust available funds to account for them
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeBuying != 0.0f) {
+         // if transaction fee is a multiplier,
+         // adjust available funds, assuming all will be spent
+
+         // if the fee is negative,
+         // increase funds
+            // if the negative fee is a percentage,
+            // find how much cost could be covered
+
+            // grab fee collection account
+
+            // if nonexistent, create the fee collection account
+
+            // adjust player's funds
+
+      }
+
       if (price > moneyAvailable && price > 0.0f) {
          quantityToBuy = getPurchasableQuantity(ware, moneyAvailable);
          price = getPrice(playerID, wareID, quantityToBuy, true);
@@ -1556,6 +1577,18 @@ public class Marketplace {
          else
             Config.commandInterface.printToUser(playerID, "Bought " + quantityToBuy + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from " + accountID);
       }
+
+      // pay the transaction fee
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeBuying != 0.0f) {
+         // check whether a fee collection account should be used
+
+         // pay the fee
+         // Account.depositTransactionFee(fee)
+
+         // report fee payment
+      }
+
       return;
    }
 
@@ -1661,6 +1694,15 @@ public class Marketplace {
             quantityToSell = quantity;
       }
 
+      // if transaction fees are used,
+      // check whether profit will be made
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeSelling > 0.0f) {
+         // calculate potential income and fee
+
+         // if selling is guaranteed to lose money, don't sell
+      }
+
       // sell the ware
       waresFound.removeFirst(); // remove the total quantity entry
       float[] salesResults = sellStock(playerID, coordinates, waresFound, quantityToSell, minUnitPrice);
@@ -1687,6 +1729,18 @@ public class Marketplace {
          else
             Config.commandInterface.printToUser(playerID, "Sold " + quantitySold + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
       }
+
+      // pay the transaction fee
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeSelling != 0.0f) {
+         // check whether a fee collection account should be used
+
+         // pay the fee
+         // Account.depositTransactionFee(fee)
+
+         // report fee payment
+      }
+
       return;
    }
 
@@ -1726,6 +1780,9 @@ public class Marketplace {
          }
       }
 
+      // if transaction fees are used,
+      // check whether profit will be made
+
       // sell everything sellable
       float[] salesResults = sellStock(playerID, coordinates, inventory, 0, 0.0001f);
 
@@ -1743,6 +1800,20 @@ public class Marketplace {
          Config.commandInterface.printToUser(playerID, "Sold " + (int) salesResults[1] + " items for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]));
       else
          Config.commandInterface.printToUser(playerID, "Sold " + (int) salesResults[1] + " items for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
+
+      // pay the transaction fee
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeSelling != 0.0f) {
+         // find fee's charge
+
+         // check whether a fee collection account should be used
+
+         // pay the fee
+         // Account.depositTransactionFee(fee)
+
+         // report fee payment
+      }
+
       return;
    }
 
@@ -1773,6 +1844,9 @@ public class Marketplace {
       int    quantityLeftover = 1;        // the stock's quantity if all quantity to be removed is taken from it
       int    quantityToBeSold = quantity; // how much quantity still needs to be sold
       int    quantitySold     = 0;        // how much quantity has been sold
+      float  fee              = 0.0f;     // transaction fee to be paid, if any
+
+      final boolean SHOULD_PAY_TRANSACT_FEE = Config.chargeTransactionFees && Config.transactionFeeSelling != 0.0f; // whether a transaction fee should be paid
 
       // loop through wares owned and get prices according to quality
       for (Stock stock : stocks) {
@@ -1788,6 +1862,9 @@ public class Marketplace {
          price = CommandEconomy.truncatePrice(price);
          if (price < minUnitPrice)
             continue;
+
+         // if transaction fees are used,
+         // check whether profit will be made
 
          // try to sell the ware
          try {
@@ -1958,6 +2035,11 @@ public class Marketplace {
       // if a specific quantity is specified,
       // print prices for buying and selling
       else {
+         // if necessary, include transaction fees
+         // if (Config.chargeTransactionFees)
+
+         // no fees == proceed as normal
+         // else
          Config.commandInterface.printToUser(playerID, "   for " + quantity
             + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, true, shouldManufacture))
             + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, false, false)));
@@ -1998,6 +2080,11 @@ public class Marketplace {
 
       // use percent worth to give price if player sells
       if (percentWorth != 1.0f) {
+         // if necessary, include transaction fee
+         // if (Config.chargeTransactionFees)
+
+         // no fees == proceed as normal
+         // else
          if (quantity < 2)
             Config.commandInterface.printToUser(playerID, "   for held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, ware.getWareID(), 1, false) * percentWorth));
          else

@@ -712,7 +712,12 @@ public class Account {
          // don't print an error for trying to transfer $0, just ignore it
          return;
 
-      // check if sender is able to send the desired quantity
+      // check if sender is able to
+      // send the desired quantity and pay the transaction fee
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeSending != 0.0f) {
+         // stop if there isn't enough money
+      }
       if (money < quantity) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY);
          return;
@@ -781,6 +786,16 @@ public class Account {
             else
                Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received $" + quantity + " in " + recipientID + " from " + senderID);
          }
+      }
+
+      // pay the transaction fee
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeSending != 0.0f) {
+         // check whether a fee collection account should be used
+
+         // pay the fee
+
+         // report fee payment
       }
 
       // mark the new account as needing to be saved
@@ -1226,5 +1241,22 @@ public class Account {
     */
    public static void releaseMutex() {
       doNotAdjustAccounts = false;
+   }
+
+   /**
+    * Places a transaction fee into the appropriate fee collection account.
+    * <p>
+    * Complexity: O(1)
+    * @param fee transaction fee to be paid
+    */
+   public static void depositTransactionFee(float fee) {
+      // grab fee collection account
+
+      // if nonexistent, create the fee collection account
+
+      // if the fee is negative,
+      // only paid it if it is affordable
+
+      // deposit the transaction fee
    }
 };
