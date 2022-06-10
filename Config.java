@@ -261,6 +261,16 @@ public class Config
             buyingOutOfStockWaresPriceMult = value;
             break;
 
+         case "transactionFeeBuying":
+            transactionFeeBuying = value;
+            break;
+         case "transactionFeeSelling":
+            transactionFeeSelling = value;
+            break;
+         case "transactionFeeSending":
+            transactionFeeSending = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -340,6 +350,22 @@ public class Config
             buyingOutOfStockWaresAllowed = value;
             break;
 
+         case "chargeTransactionFees":
+            chargeTransactionFees = value;
+            break;
+         case "transactionFeeBuyingIsMult":
+            transactionFeeBuyingIsMult = value;
+            break;
+         case "transactionFeeSellingIsMult":
+            transactionFeeSellingIsMult = value;
+            break;
+         case "transactionFeeSendingIsMult":
+            transactionFeeSendingIsMult = value;
+            break;
+         case "transactionFeesShouldPutFeesIntoAccount":
+            transactionFeesShouldPutFeesIntoAccount = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
       }
@@ -370,6 +396,10 @@ public class Config
 
          case "filenameAIProfessions":
             filenameNoPathAIProfessions = value;
+            break;
+
+         case "transactionFeesAccount":
+            transactionFeesAccount = value;
             break;
 
          default:
@@ -649,6 +679,17 @@ public class Config
       // manufacturing contracts
       buyingOutOfStockWaresAllowed   = true;
       buyingOutOfStockWaresPriceMult = 0.10f;
+
+      // transaction fees
+      chargeTransactionFees       = false;
+      transactionFeeBuying        = 0.05f;
+      transactionFeeBuyingIsMult  = true;
+      transactionFeeSelling       = 0.00f;
+      transactionFeeSellingIsMult = true;
+      transactionFeeSending       = 0.02f;
+      transactionFeeSendingIsMult = true;
+      transactionFeesShouldPutFeesIntoAccount = true;
+      transactionFeesAccount      = CommandEconomy.TRANSACT_FEE_COLLECTION;
    }
 
    /**

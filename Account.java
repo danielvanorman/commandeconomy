@@ -712,15 +712,27 @@ public class Account {
          // don't print an error for trying to transfer $0, just ignore it
          return;
 
-      // check if sender is able to
+      // check if there is enough money to
       // send the desired quantity and pay the transaction fee
+      float fee = 0.0f;
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSending != 0.0f) {
+         // find fee's charge
+         fee = Config.transactionFeeSending;
+         if (Config.transactionFeeSendingIsMult)
+            fee *= quantity;
+
          // stop if there isn't enough money
-      }
-      if (money < quantity) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY);
-         return;
+         if (money + canNegativeFeeBePaid(fee) < quantity + fee) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY_FEE);
+            return;
+         }
+      } else {
+         // check if sender is able to send the desired quantity
+         if (money < quantity) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY);
+            return;
+         }
       }
 
       // check if recipient id is empty
@@ -792,10 +804,17 @@ public class Account {
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSending != 0.0f) {
          // check whether a fee collection account should be used
+         if (Config.transactionFeesShouldPutFeesIntoAccount)
+            // if the fee is negative and unaffordable, don't pay it
+            if (depositTransactionFee(fee))
+               return;
 
          // pay the fee
+         waitForMutex(); // check if another thread is adjusting accounts' properties
+         money -= fee;
 
          // report fee payment
+         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       // mark the new account as needing to be saved
@@ -1244,19 +1263,63 @@ public class Account {
    }
 
    /**
+    * When negative fees are used, returns the amount of a negative fee
+    * the fee collection account will pay not out due to constrained funds.
+    * <p>
+    * Complexity: O(1)
+    * @param fee transaction fee to be paid
+    * @return if negative fee can be paid, returns 0; if unpayable, returns the input
+    */
+   public static float canNegativeFeeBePaid(float fee) {
+      // if the fee isn't negative, nothing has to be paid out
+      if (fee >= 0.0f)
+         return 0.0f;
+
+      // validate fee collection account's ID
+      if (Config.transactionFeesAccount == null || Config.transactionFeesAccount.isEmpty())
+         Config.transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
+
+      // grab fee collection account
+      Account feeCollectionAccount = Account.getAccount(Config.transactionFeesAccount);
+
+      // if nonexistent, create the fee collection account
+      if (feeCollectionAccount == null)
+         feeCollectionAccount = Account.makeAccount(Config.transactionFeesAccount, null);
+
+      // check whether the fee is affordable
+      if (feeCollectionAccount.getMoney() + fee < 0.0f)
+         return fee;
+      else
+         return 0.0f;
+   }
+
+   /**
     * Places a transaction fee into the appropriate fee collection account.
     * <p>
     * Complexity: O(1)
     * @param fee transaction fee to be paid
+    * @return whether the fee was deposited unsuccessfully; useful if a negative fee is unpaid
     */
-   public static void depositTransactionFee(float fee) {
+   public static boolean depositTransactionFee(float fee) {
+      // validate fee collection account's ID
+      if (Config.transactionFeesAccount == null || Config.transactionFeesAccount.isEmpty())
+         Config.transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
+
       // grab fee collection account
+      Account feeCollectionAccount = Account.getAccount(Config.transactionFeesAccount);
 
       // if nonexistent, create the fee collection account
+      if (feeCollectionAccount == null)
+         feeCollectionAccount = Account.makeAccount(Config.transactionFeesAccount, null);
 
       // if the fee is negative,
       // only paid it if it is affordable
+      if (fee < 0.0f)
+         if (feeCollectionAccount.getMoney() + fee < 0.0f)
+            return true;
 
       // deposit the transaction fee
+      feeCollectionAccount.addMoney(fee);
+      return false;
    }
 };

@@ -1444,11 +1444,10 @@ public class Marketplace {
 
       // if quantity exceeds inventory space, only buy enough to fill inventory
       inventorySpaceAvailable *= Config.commandInterface.getStackSize(wareID); // how many more items may be held
-      if (quantityToBuy > inventorySpaceAvailable) {
+      if (quantityToBuy > inventorySpaceAvailable)
          quantityToBuy = inventorySpaceAvailable;
-      }
 
-      // if the ware isn't free, figure out how much is affordable
+      // get ware's price and player's funds to figure out how much is affordable
       float price          = getPrice(playerID, wareID, quantityToBuy, true);
       float moneyAvailable = account.getMoney();
 
@@ -1458,20 +1457,44 @@ public class Marketplace {
           Config.transactionFeeBuying != 0.0f) {
          // if transaction fee is a multiplier,
          // adjust available funds, assuming all will be spent
+         if (Config.transactionFeeBuyingIsMult)
+            moneyAvailable /= (1.0f + Config.transactionFeeBuying);
+         else
+            moneyAvailable -= Config.transactionFeeBuying;
 
-         // if the fee is negative,
-         // increase funds
+         // if the fee is negative, only adjust as much as
+         // the fee collection account will cover
+         if (Config.transactionFeeBuying < 0.0f &&
+             Account.canNegativeFeeBePaid(moneyAvailable - account.getMoney()) != 0.0f) {
             // if the negative fee is a percentage,
             // find how much cost could be covered
+            if (Config.transactionFeeBuyingIsMult) {
+               // validate fee collection account's ID
+               if (Config.transactionFeesAccount == null || Config.transactionFeesAccount.isEmpty())
+                  Config.transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
 
-            // grab fee collection account
+               // grab fee collection account
+               Account feeCollectionAccount = Account.getAccount(Config.transactionFeesAccount);
 
-            // if nonexistent, create the fee collection account
+               // if nonexistent, create the fee collection account
+               if (feeCollectionAccount == null)
+                  feeCollectionAccount = Account.makeAccount(Config.transactionFeesAccount, null);
 
-            // adjust player's funds
+               // adjust player's funds by
+               // fee collection account's maximum coverage
+               moneyAvailable = account.getMoney() +
+                                (feeCollectionAccount.getMoney() *
+                                 (1.0f + Config.transactionFeeBuying));
+            }
 
+            // if the negative fee is flat,
+            // simply reset the player's funds
+            else
+               moneyAvailable = account.getMoney();
+         }
       }
 
+      // if the ware isn't free, figure out how much is affordable
       if (price > moneyAvailable && price > 0.0f) {
          quantityToBuy = getPurchasableQuantity(ware, moneyAvailable);
          price = getPrice(playerID, wareID, quantityToBuy, true);
@@ -1581,12 +1604,22 @@ public class Marketplace {
       // pay the transaction fee
       if (Config.chargeTransactionFees &&
           Config.transactionFeeBuying != 0.0f) {
+         // find fee's charge
+         float fee = Config.transactionFeeBuying;
+         if (Config.transactionFeeBuyingIsMult)
+            fee *= price;
+
          // check whether a fee collection account should be used
+         if (Config.transactionFeesShouldPutFeesIntoAccount)
+            // if the fee is negative and unaffordable, don't pay it
+            if (Account.depositTransactionFee(fee))
+               return;
 
          // pay the fee
-         // Account.depositTransactionFee(fee)
+         account.subtractMoney(fee);
 
          // report fee payment
+         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       return;
@@ -1697,10 +1730,19 @@ public class Marketplace {
       // if transaction fees are used,
       // check whether profit will be made
       if (Config.chargeTransactionFees &&
-          Config.transactionFeeSelling > 0.0f) {
+          Config.transactionFeeSelling > 0.0f &&
+          minUnitPrice >= 0.0f) {
          // calculate potential income and fee
+         float price = getPrice(null, wareID, quantityToSell, false);
+         float fee   = Config.transactionFeeSelling;
+         if (Config.transactionFeeSellingIsMult)
+            fee *= price;
 
          // if selling is guaranteed to lose money, don't sell
+         if (price - fee + Account.canNegativeFeeBePaid(fee) <= 0.0f) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
+            return;
+         }
       }
 
       // sell the ware
@@ -1733,12 +1775,22 @@ public class Marketplace {
       // pay the transaction fee
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSelling != 0.0f) {
+         // find fee's charge
+         float fee = Config.transactionFeeSelling;
+         if (Config.transactionFeeSellingIsMult)
+            fee *= salesResults[0];
+
          // check whether a fee collection account should be used
+         if (Config.transactionFeesShouldPutFeesIntoAccount)
+            // if the fee is negative and unaffordable, don't pay it
+            if (Account.depositTransactionFee(fee))
+               return;
 
          // pay the fee
-         // Account.depositTransactionFee(fee)
+         account.subtractMoney(fee);
 
          // report fee payment
+         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       return;
@@ -1782,6 +1834,12 @@ public class Marketplace {
 
       // if transaction fees are used,
       // check whether profit will be made
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeSellingIsMult &&
+          Config.transactionFeeSelling >= 1.0f) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
+         return;
+      }
 
       // sell everything sellable
       float[] salesResults = sellStock(playerID, coordinates, inventory, 0, 0.0001f);
@@ -1805,13 +1863,21 @@ public class Marketplace {
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSelling != 0.0f) {
          // find fee's charge
+         float fee = Config.transactionFeeSelling;
+         if (Config.transactionFeeSellingIsMult)
+            fee *= salesResults[0];
 
          // check whether a fee collection account should be used
+         if (Config.transactionFeesShouldPutFeesIntoAccount)
+            // if the fee is negative and unaffordable, don't pay it
+            if (Account.depositTransactionFee(fee))
+               return;
 
          // pay the fee
-         // Account.depositTransactionFee(fee)
+         account.subtractMoney(fee);
 
          // report fee payment
+         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       return;
@@ -1822,7 +1888,9 @@ public class Marketplace {
     * tallies up money gained from selling those wares
     * as well as the total quantity of wares sold.
     * <p>
-    * Complexity: O(n)<br>
+    * Complexity:<br>
+    * O(n) without flat selling transaction fee<br>
+    * O(n^2) with flat selling transaction fee
     * @param playerID     user responsible for the trade
     * @param coordinates  where wares may be found
     * @param stocks       wares to be sold and their information
@@ -1836,6 +1904,14 @@ public class Marketplace {
           quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
          return null;
 
+      // if a flat fee should be used,
+      // call on another function to handle it
+      if (Config.chargeTransactionFees &&
+          !Config.transactionFeeSellingIsMult &&
+          Config.transactionFeeSelling > 0.0f) {
+         return sellStockFlatFee(playerID, coordinates, stocks, quantity, minUnitPrice);
+      }
+
       // set up variables
       String translatedID;
       Ware   ware;                        // ware currently being sold
@@ -1844,9 +1920,6 @@ public class Marketplace {
       int    quantityLeftover = 1;        // the stock's quantity if all quantity to be removed is taken from it
       int    quantityToBeSold = quantity; // how much quantity still needs to be sold
       int    quantitySold     = 0;        // how much quantity has been sold
-      float  fee              = 0.0f;     // transaction fee to be paid, if any
-
-      final boolean SHOULD_PAY_TRANSACT_FEE = Config.chargeTransactionFees && Config.transactionFeeSelling != 0.0f; // whether a transaction fee should be paid
 
       // loop through wares owned and get prices according to quality
       for (Stock stock : stocks) {
@@ -1862,9 +1935,6 @@ public class Marketplace {
          price = CommandEconomy.truncatePrice(price);
          if (price < minUnitPrice)
             continue;
-
-         // if transaction fees are used,
-         // check whether profit will be made
 
          // try to sell the ware
          try {
@@ -1926,6 +1996,189 @@ public class Marketplace {
             // don't return, keep trying to sell wares and pay the player
          }
       }
+      // truncate to reduce error
+      totalEarnings = CommandEconomy.truncatePrice(totalEarnings);
+
+      // return total money gained and total quantity sold
+      return new float[]{totalEarnings, (float) quantitySold};
+   }
+
+   /**
+    * Removes wares from a player's inventory and
+    * tallies up money gained from selling those wares
+    * as well as the total quantity of wares sold.
+    * <p>
+    * If a flat transaction fee is used, then processing is delayed
+    * until it is known whether the fee to be charged
+    * still allows the transaction to profitable.
+    * <p>
+    * Complexity: O(n^2)
+    * @param playerID     user responsible for the trade
+    * @param coordinates  where wares may be found
+    * @param stocks       wares to be sold and their information
+    * @param quantity     how much wares should be sold; 0 means sell everything
+    * @param minUnitPrice stop selling if unit price is below this amount
+    * @return total money from selling wares and the quantity sold
+    */
+   protected static float[] sellStockFlatFee(UUID playerID, InterfaceCommand.Coordinates coordinates,
+                                             LinkedList<Stock> stocks, int quantity, float minUnitPrice) {
+      if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
+          quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
+         return null;
+
+      // set up variables
+      String translatedID;
+      Ware   ware;                        // ware currently being sold
+      float  totalEarnings    = 0.0f;
+      float  price;                       // value of the ware being processed
+      int    quantityLeftover = 1;        // the stock's quantity if all quantity to be removed is taken from it
+      int    quantityToBeSold = quantity; // how much quantity still needs to be sold
+      int    quantitySold     = 0;        // how much quantity has been sold
+
+      // if a flat transaction fee is used,
+      // ensure the transaction is profitable
+      boolean           isProfitable = false; // whether the transaction is profitable despite the fee
+      LinkedList<Stock> unsoldStocks = new LinkedList<Stock>(); // holds wares to be sold if the transaction turns out to be profitable
+
+      // loop through wares owned and get prices according to quality
+      for (Stock stock : stocks) {
+         // grab the ware to be used
+         ware = translateAndGrab(stock.wareID);
+         // if ware is not in the market, stop
+         if (ware == null)
+            continue;
+         translatedID = ware.getWareID();
+
+         // if the price isn't high enough, stop
+         price = getPrice(playerID, translatedID, 1, false) * stock.percentWorth;
+         price = CommandEconomy.truncatePrice(price);
+         if (price < minUnitPrice)
+            continue;
+
+         // try to sell the ware
+         try {
+            if (quantity == 0) {
+               // get the money
+               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth;
+
+               // check whether the transaction became profitable
+               isProfitable = totalEarnings > Config.transactionFeeSelling;
+
+               // if the transaction is profitable,
+               // sell the ware
+               if (isProfitable) {
+                  // take the ware
+                  Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
+                  quantitySold += stock.quantity;
+
+                  // add quantity sold to the marketplace
+                  waitForMutex(); // check if another thread is adjusting wares' properties
+                  ware.addQuantity(stock.quantity);
+               }
+
+               // hold off taking the ware until it is known
+               // whether the transaction is profitable
+               else
+                  unsoldStocks.add(stock);
+
+               continue;
+            }
+
+            // find how much can be sold
+            quantityLeftover = stock.quantity - quantityToBeSold;
+
+            // if the current stock has more than enough quantity, take from it
+            // otherwise, remove it
+            if (quantityLeftover > 0) {
+               // get the money
+               totalEarnings += getPrice(playerID, translatedID, quantityToBeSold, false) * stock.percentWorth;
+
+               // check whether the transaction became profitable
+               isProfitable = totalEarnings > Config.transactionFeeSelling;
+
+               // if the transaction is profitable,
+               // sell the ware
+               if (isProfitable) {
+                  // take the ware
+                  Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, quantityToBeSold);
+                  quantitySold += quantityToBeSold;
+
+                  // add quantity sold to the marketplace
+                  waitForMutex(); // check if another thread is adjusting wares' properties
+                  ware.addQuantity(quantityToBeSold);
+               }
+
+               // hold off taking the ware until it is known
+               // whether the transaction is profitable
+               else {
+                  stock.quantity = quantityToBeSold;
+                  unsoldStocks.add(stock);
+               }
+
+               break;
+            } else {
+               // get the money
+               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth;
+
+               // update remainder needing to be sold
+               quantityToBeSold = (-1 * quantityLeftover);
+
+               // check whether the transaction became profitable
+               isProfitable = totalEarnings > Config.transactionFeeSelling;
+
+               // if the transaction is profitable,
+               // sell the ware
+               if (isProfitable) {
+                  // take the ware
+                  Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
+                  quantitySold += stock.quantity;
+
+                  // add quantity sold to the marketplace
+                  waitForMutex(); // check if another thread is adjusting wares' properties
+                  ware.addQuantity(stock.quantity);
+               }
+
+               // hold off taking the ware until it is known
+               // whether the transaction is profitable
+               else {
+                  unsoldStocks.add(stock);
+               }
+
+               // if enough quantity has been sold,
+               // stop searching for more
+               if (quantityToBeSold == 0)
+                  break;
+            }
+         } catch (Exception e) {
+            Config.commandInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
+            e.printStackTrace();
+            // don't return, keep trying to sell wares and pay the player
+         }
+      }
+
+      // check whether any goods should be sold now that
+      // it is known whether the transaction is profitable
+      if (isProfitable && unsoldStocks.size() > 0) {
+         // sell each stack of unsold wares
+         for (Stock stock : unsoldStocks) {
+            // take the ware
+            Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
+            quantitySold += stock.quantity;
+
+            // add quantity sold to the marketplace
+            ware = translateAndGrab(stock.wareID);
+            waitForMutex(); // check if another thread is adjusting wares' properties
+            ware.addQuantity(stock.quantity);
+         }
+      }
+
+      // if the transaction is not profitable,
+      // don't process it
+      else if (!isProfitable) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
+         return new float[]{0.0f, 0.0f};
+      }
+
       // truncate to reduce error
       totalEarnings = CommandEconomy.truncatePrice(totalEarnings);
 
@@ -2036,13 +2289,37 @@ public class Marketplace {
       // print prices for buying and selling
       else {
          // if necessary, include transaction fees
-         // if (Config.chargeTransactionFees)
+         if (Config.chargeTransactionFees) {
+            // find buying price + fee
+            float priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture);
+            if (Config.transactionFeeBuying != 0.00f) {
+               if (Config.transactionFeeBuyingIsMult)
+                  priceBuy += priceBuy * Config.transactionFeeBuying;
+               else
+                  priceBuy += Config.transactionFeeBuying;
+            }
+
+            // find selling price + fee
+            float priceSell = getPrice(playerID, wareID, quantity, false, false);
+            if (Config.transactionFeeSelling != 0.00f) {
+               if (Config.transactionFeeSellingIsMult)
+                  priceSell -= priceSell * Config.transactionFeeSelling;
+               else
+                  priceSell -= Config.transactionFeeSelling;
+            }
+
+            // report prices
+            Config.commandInterface.printToUser(playerID, "   for " + quantity
+               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
+               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
+         }
 
          // no fees == proceed as normal
-         // else
-         Config.commandInterface.printToUser(playerID, "   for " + quantity
-            + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, true, shouldManufacture))
-            + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, false, false)));
+         else {
+            Config.commandInterface.printToUser(playerID, "   for " + quantity
+               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, true, shouldManufacture))
+               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, false, false)));
+         }
       }
 
       return;
@@ -2080,16 +2357,45 @@ public class Marketplace {
 
       // use percent worth to give price if player sells
       if (percentWorth != 1.0f) {
-         // if necessary, include transaction fee
-         // if (Config.chargeTransactionFees)
+         float priceSell;
 
-         // no fees == proceed as normal
-         // else
-         if (quantity < 2)
-            Config.commandInterface.printToUser(playerID, "   for held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, ware.getWareID(), 1, false) * percentWorth));
-         else
+         if (quantity < 2) {
+            // find selling price
+            priceSell = getPrice(playerID, ware.getWareID(), 1, false) * percentWorth;
+
+            // if necessary, include transaction fee
+            if (Config.chargeTransactionFees) {
+               // add on fee
+               if (Config.transactionFeeSelling != 0.00f) {
+                  if (Config.transactionFeeSellingIsMult)
+                     priceSell -= priceSell * Config.transactionFeeSelling;
+                  else
+                     priceSell -= Config.transactionFeeSelling;
+               }
+            }
+
+            // report price
+            Config.commandInterface.printToUser(playerID, "   for held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
+         }
+         else {
+            // find selling price
+            priceSell = getPrice(playerID, ware.getWareID(), quantity, false) * percentWorth;
+
+            // if necessary, include transaction fee
+            if (Config.chargeTransactionFees) {
+               // add on fee
+               if (Config.transactionFeeSelling != 0.00f) {
+                  if (Config.transactionFeeSellingIsMult)
+                     priceSell -= priceSell * Config.transactionFeeSelling;
+                  else
+                     priceSell -= Config.transactionFeeSelling;
+               }
+            }
+
+            // report price
             Config.commandInterface.printToUser(playerID, "   for " + quantity
-            + " of held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, ware.getWareID(), quantity, false) * percentWorth));
+            + " of held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
+         }
       }
       return;
    }
