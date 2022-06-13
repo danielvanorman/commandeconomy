@@ -6296,6 +6296,44 @@ public class TestSuite
             errorFound = true;
          }
 
+         TEST_OUTPUT.println("buy() - insufficient money with specified price");
+         quantityToTrade = 10;
+         quantityWare    = testWare1.getQuantity();
+         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         money           = price + FLOAT_COMPARE_PRECISION;
+         playerAccount.setMoney(money);
+
+         baosOut.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade * 2), "100"});
+
+         if (testWare1.getQuantity() != quantityWare - quantityToTrade) {
+            TEST_OUTPUT.println("   unexpected quantity: " + testWare1.getQuantity() + ", should be " + (quantityWare - quantityToTrade));
+            errorFound = true;
+         }
+         if (playerAccount.getMoney() != money - price) {
+            errorFound = true;
+            TEST_OUTPUT.println("   unexpected account funds: " + playerAccount.getMoney() + ", should be " + (money - price));
+         }
+
+         TEST_OUTPUT.println("buy() - insufficient money with specified price and account");
+         quantityToTrade = 8;
+         quantityWare    = testWare1.getQuantity();
+         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         money           = price + FLOAT_COMPARE_PRECISION;
+         playerAccount.setMoney(money);
+
+         baosOut.reset(); // clear buffer holding console output
+         InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade * 2), "10", InterfaceTerminal.playername});
+
+         if (testWare1.getQuantity() != quantityWare - quantityToTrade) {
+            TEST_OUTPUT.println("   unexpected quantity: " + testWare1.getQuantity() + ", should be " + (quantityWare - quantityToTrade));
+            errorFound = true;
+         }
+         if (playerAccount.getMoney() != money - price) {
+            errorFound = true;
+            TEST_OUTPUT.println("   unexpected account funds: " + playerAccount.getMoney() + ", should be " + (money - price));
+         }
+
          // prepare for next tests
          resetTestEnvironment();
          Config.priceFloor         = -1.0f;
