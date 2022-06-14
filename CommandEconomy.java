@@ -164,7 +164,7 @@ public class CommandEconomy {
    /** title case name for presentation */
    public static final String NAME    = "Command Economy";
    /** version of this mod */
-   public static final String VERSION = "0.6.5";
+   public static final String VERSION = "0.6.6";
 
    /** used to format currency before displaying */
    public static final DecimalFormat PRICE_FORMAT = new DecimalFormat("$###,##0.00");
@@ -486,6 +486,28 @@ public class CommandEconomy {
    public final static String MSG_INVEST_QUAN_HIGH    = " is already plentiful";
    public final static String MSG_INVEST_FAILED       = " cannot be invested in";
    public final static String MSG_INVEST_SUCCESS      = "'s supply and demand has increased";
+
+   // random events
+   public final static String ERROR_FILE_RANDOM_EVENTS_INVALID      = "error - random events JSON file is improperly formatted: ";
+   public final static String ERROR_FILE_RANDOM_EVENTS_PARSING      = "error - could not parse random events JSON file: ";
+   public final static String ERROR_RANDOM_EVENTS_SLEEP             = "error - random events: failure while waiting for the next event to occur, ";
+
+   public final static String WARN_RANDOM_EVENTS_NONE_LOADED        = "warning - no random events were loaded";
+
+   public final static String MSG_RANDOM_EVENT_DESC                 = System.lineSeparator() + "   event's description: ";
+   public final static String MSG_RANDOM_EVENTS_CHANGES             = System.lineSeparator() + "   magnitudes must be: -3, -2, -1, 1, 2, or 3";
+
+   public final static String ERROR_RANDOM_EVENT_DESC_MISSING       = "error - random event is missing an event description";
+   public final static String ERROR_RANDOM_EVENT_MAGNITUDES_MISSING = "error - random event is missing changeMagnitudes; events must affect at least one ware";
+   public final static String ERROR_RANDOM_EVENT_MAGNITUDES_BLANK   = "error - random event has no changeMagnitudes entries; events must affect at least one ware";
+   public final static String ERROR_RANDOM_EVENT_MAGNITUDES_INVALID = "error - random event's changeMagnitudes entry is invalid: ";
+   public final static String ERROR_RANDOM_EVENT_WARES_MISSING      = "error - random event is missing changedWaresIDs; events must affect at least one ware";
+   public final static String ERROR_RANDOM_EVENT_WARES_BLANK        = "error - random event has no changedWaresIDs entries; events must affect at least one ware";
+   public final static String ERROR_RANDOM_EVENT_WARES_INVALID      = "error - random event is using invalid ware ID or alias" + System.lineSeparator();
+   public final static String ERROR_RANDOM_EVENT_WARES_INVALID_LIST = System.lineSeparator() + "Invalid IDs: ";
+   public final static String ERROR_RANDOM_EVENT_WARES_NO_VALID     = "error - random event lacks valid wares";
+   public final static String ERROR_RANDOM_EVENT_CHANGES_MISMATCH   = "error - random event's changeMagnitudes and changedWaresIDs are not the same size; the number of magnitudes for affecting wares must match the number of ware affected";
+   public final static String ERROR_RANDOM_EVENT_CHANGES_MISSING    = "error - random event does not affect any wares";
 
    // Terminal interface
    public final static String CMD_OP                = "op";

@@ -49,6 +49,8 @@ public class Config
    private   static String filenameNoPathAccounts      = "accounts.txt";
    /** contains possible AI, the wares they may trade, and their preferences */
    protected static String filenameNoPathAIProfessions = "aiProfessions.json";
+   /** contains accounts usable within the marketplace */
+   protected static String filenameNoPathRandomEvents  = "randomEvents.json";
 
    /** contains settings for customizing the marketplace */
    public static String  filenameConfig        = "CommandEconomy" + File.separator + "config.txt";
@@ -62,6 +64,8 @@ public class Config
    public static String  filenameMarket        = "config" + File.separator + "CommandEconomy" + File.separator + "market.txt";
    /** contains possible AI, the wares they may trade, and their preferences */
    public static String  filenameAIProfessions = "CommandEconomy" + File.separator + "aiProfessions.json";
+   /** contains accounts usable within the marketplace */
+   public static String  filenameRandomEvents  = "CommandEconomy" + File.separator + "randomEvents.json";
    /** if true, load global save files instead of local */
    public static boolean crossWorldMarketplace = false;
 
@@ -181,6 +185,24 @@ public class Config
    protected static boolean transactionFeesShouldPutFeesIntoAccount = true;
    /** the account which transaction fees are paid to */
    protected static String transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
+
+   // random events
+   /** if true, periodic events will summon or destroy wares' quantities for sale */
+   public static boolean randomEvents = false;
+   /** how often random events should occur on average */
+   public static int randomEventsFrequency = 60;
+   /** percentage for how much events' occurrences may drift from the average */
+   public static float randomEventsVariance = 0.25f;
+   /** how much a small change in a ware's quantity for sale should be */
+   public static float randomEventsSmallChange  = 0.05f;
+   /** how much a medium change in a ware's quantity for sale should be */
+   public static float randomEventsMediumChange = 0.10f;
+   /** how much a large change in a ware's quantity for sale should be */
+   public static float randomEventsLargeChange  = 0.15f;
+   /** if true, random events' changes in quantities for sale are percentages of equilibrium quantity */
+   public static boolean randomEventsAreChangesPercents = true;
+   /** if true, random events display ware IDs affected by a recent event */
+   public static boolean randomEventsPrintChanges = false;
 
    /**
     * Sets a config option to a given value or prints an error.
