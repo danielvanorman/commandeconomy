@@ -416,6 +416,14 @@ public class TestSuite
          failedTests += "   transaction fees\n";
       }
 
+      // test events which affect wares' quantities for sale
+      if (testRandomEvents())
+         System.err.println("test passed - random events\n");
+      else {
+         System.err.println("test failed - random events\n");
+         failedTests += "   random events\n";
+      }
+
       // teardown testing environment
       // restore file names
       Config.filenameWares     = "config" + File.separator + "CommandEconomy" + File.separator + "wares.txt";
@@ -17274,6 +17282,831 @@ public class TestSuite
          return false;
       }
       Config.chargeTransactionFees = false;
+
+      return !errorFound;
+   }
+
+   /**
+    * Tests events which affect wares' quantities for sale.
+    *
+    * @return whether random events passed all test cases
+    */
+   private static boolean testRandomEvents() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+      Config.randomEvents = true;
+      Config.randomEventsFrequency = 999999999;
+      Config.randomEventsVariance = 0.0f;
+
+      // track changes to variables
+      RandomEvents.RandomEvent[] randomEvents;
+      RandomEvents.RandomEvent testEvent1;
+      RandomEvents.RandomEvent testEvent2;
+      RandomEvents.RandomEvent testEvent3;
+      String descriptionScenario1;
+      String descriptionScenario2;
+      String descriptionScenario3;
+      String descriptionWareChanges1;
+      String descriptionWareChanges2;
+      String descriptionWareChanges3;
+      int quantityWare1;
+      int quantityWare2;
+      int quantityWare3;
+      int quantityWare4;
+
+      try {
+         // grab references to variables
+         Field fRandomEvents = RandomEvents.RandomEvent.class.getDeclaredField("randomEvents");
+         fRandomEvents.setAccessible(true);
+         randomEvents = (RandomEvents.RandomEvent[]) fRandomEvents.get(null);
+
+         TEST_OUTPUT.println("random events - handling missing events file");
+         Config.filenameRandomEvents = "CommandEconomy" + File.separator + "tempRandomEvents.json";
+         try {
+            RandomEvents.loadRandomEvents();
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading missing events file");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // check handling of missing file
+         File fileRandomEvents = new File("config" + File.separator + Config.filenameRandomEvents);
+         if (!fileRandomEvents.exists()){
+            errorFound = true;
+            TEST_OUTPUT.println("   default events file failed to be created");
+         } else {
+            fileRandomEvents.delete();
+         }
+
+         // check loaded random events
+         if (randomEvents != null) {
+            TEST_OUTPUT.println("   randomEvents were loaded when they shouldn't have been");
+            randomEvents = null;
+            errorFound = true;
+         }
+
+
+         TEST_OUTPUT.println("random events - handling misformatted file");
+         // create test events file
+         try {
+            // open the save file for events, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+
+            // write test events file
+            fileWriter.write(
+               "The formatting of this file isn't even close to JSON formatting."
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to create test events file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+         try {
+            RandomEvents.loadRandomEvents();
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // check loaded random events
+         if (randomEvents != null) {
+            TEST_OUTPUT.println("   randomEvents were loaded when they shouldn't have been");
+            randomEvents = null;
+            errorFound = true;
+         }
+
+
+         TEST_OUTPUT.println("random events - handling when no events are loaded");
+         // create test events file
+         try {
+            // open the save file for events, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+
+            // write test events file
+            fileWriter.write(
+               ""
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to create test events file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+         try {
+            RandomEvents.loadRandomEvents();
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // check loaded random events
+         if (randomEvents != null) {
+            TEST_OUTPUT.println("   randomEvents were loaded when they shouldn't have been");
+            randomEvents = null;
+            errorFound = true;
+         }
+
+
+         TEST_OUTPUT.println("random events - loading valid and invalid random events");
+         // create test events file
+         try {
+            // open the save file for events, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+
+            // write test events file
+            fileWriter.write(
+               "{\"randomEvents\" : [\n" +
+               "  {\"description\":\"This test event is perfectly fine.\",\"changedWaresIDs\":[\"test:material3\",\"test:crafted2\"],\"changeMagnitudes\":[3,-2]},\n" +
+               "  {\"description\":\"This test event has too few magnitudes.\",\"changedWaresIDs\":[\"test:material1\",\"test:material2\"],\"changeMagnitudes\":[1]},\n" +
+               "  {\"description\":\"This test event has too many magnitudes.\",\"changedWaresIDs\":[\"test:crafted1\"],\"changeMagnitudes\":[-1, 2]},\n" +
+               "  {\"description\":\"This test event doesn't have any magnitudes.\",\"changedWaresIDs\":[\"test:processed2\"]\n" +
+               "  {\"description\":\"This test event doesn't affect any wares, yet has magnitudes.\",\"changeMagnitudes\":[3, 3]},\n" +
+               "  {\"description\":\"This test event is also perfectly fine.\",\"changedWaresIDs\":[\"test:processed1\"],\"changeMagnitudes\":[-1]}\n" +
+               "]}"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to create test events file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+         try {
+            RandomEvents.loadRandomEvents();
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // check loaded random events
+         if (randomEvents == null) {
+            TEST_OUTPUT.println("   random events should have loaded, but randomEvents is null");
+            errorFound = true;
+         } else if (randomEvents.length != 2) {
+            TEST_OUTPUT.println("   random events loaded: " + randomEvents.length + ", should be 2");
+            errorFound = true;
+         }
+
+
+         TEST_OUTPUT.println("random events - loading random events referring to invalid ware IDs");
+         // create test events file
+         try {
+            // open the save file for events, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+
+            // write test events file
+            fileWriter.write(
+               "{\"randomEvents\" : [\n" +
+               "  {\"description\":\"This is a test event.\",\"changedWaresIDs\":[\"test:material3\",\"test:invalidWareID\"],\"changeMagnitudes\":[3,-2]},\n" +
+               "  {\"description\":\"This is also a test event.\",\"changedWaresIDs\":[\"test:anotherInvalidWareID\"],\"changeMagnitudes\":[-1]},\n" +
+               "  {\"description\":\"This is yet another test event.\",\"changedWaresIDs\":[\"test:yetAnotherInvalidWareID\",\"minecraft:material4\"],\"changeMagnitudes\":[1,-2]},\n" +
+               "  {\"description\":\"This is the third-to-last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:secondToLastInvalidWareID\",\"test:crafted2\"],\"changeMagnitudes\":[2,-3]},\n" +
+               "  {\"description\":\"This test event was included to ensure untradeable wares are being checked for.\",\"changedWaresIDs\":[\"test:untradeable1\"],\"changeMagnitudes\":[2]},\n" +
+               "  {\"description\":\"This is the last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:lastInvalidWareID\",\"test:untradeable1\",\"test:material1\"],\"changeMagnitudes\":[1,-1,2]}\n" +
+               "]}"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to create test events file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+         try {
+            RandomEvents.loadRandomEvents();
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            e.printStackTrace();
+            errorFound = true;
+         }
+
+         // check loaded random events
+         if (randomEvents == null) {
+            TEST_OUTPUT.println("   random events should have loaded, but randomEvents is null");
+            errorFound = true;
+         } else if (randomEvents.length != 3) {
+            TEST_OUTPUT.println("   random events loaded: " + randomEvents.length + ", should be 3");
+            errorFound = true;
+         }
+
+
+         TEST_OUTPUT.println("random events - loading only valid random events");
+         // create test events file
+         try {
+            // open the save file for events, create it if it doesn't exist
+            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+
+            // write test events file
+            fileWriter.write(
+               "{\"randomEvents\" : [\n" +
+               "  {\"description\":\"This is the first test event description.\",\"changedWaresIDs\":[\"test:material1\",\"test:material2\"],\"changeMagnitudes\":[1,2]},\n" +
+               "  {\"description\":\"This is the second test event description.\",\"changedWaresIDs\":[\"test:crafted1\"],\"changeMagnitudes\":[-1]},\n" +
+               "  {\"description\":\"This is the third test event description.\",\"changedWaresIDs\":[\"test:processed2\"],\"changeMagnitudes\":[3]}\n" +
+               "]}"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to create test events file");
+            e.printStackTrace();
+            return false;
+         }
+
+         // try to load the test file
+         try {
+            RandomEvents.loadRandomEvents();
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            e.printStackTrace();
+            errorFound = false;
+         }
+
+         // check loaded random events
+         if (randomEvents == null) {
+            TEST_OUTPUT.println("   random events should have loaded, but randomEvents is null");
+            errorFound = true;
+         } else if (randomEvents.length != 3) {
+            TEST_OUTPUT.println("   random events loaded: " + randomEvents.length + ", should be 3");
+            errorFound = true;
+         }
+
+
+         // set up test environment
+         // grab the RandomEvents.RandomEvent constructor
+         Method randomEvent = RandomEvents.RandomEvent.class.getConstructor();
+         randomEvent.setAccessible(true);
+         Object   requiredObject  = null;
+         Object[] requiredObjects = null;
+
+         // initialize events
+         testEvent1 = randomEvent.invoke(requiredObject, requiredObjects);
+         testEvent2 = randomEvent.invoke(requiredObject, requiredObjects);
+         testEvent3 = randomEvent.invoke(requiredObject, requiredObjects);
+
+         // accessible event properties
+         Field fDescription       = RandomEvents.RandomEvent.getDeclaredField("description");
+         Field fChangedWaresIDs   = RandomEvents.RandomEvent.getDeclaredField("changedWaresIDs");
+         Field fChangedMagnitudes = RandomEvents.RandomEvent.getDeclaredField("changeMagnitudes");
+         fDescription.setAccessible(true);
+         fChangedWaresIDs.setAccessible(true);
+         fChangedMagnitudes.setAccessible(true);
+
+         // set event properties
+         fDescription.set(testEvent1, "This is the first test event description.");
+         fDescription.set(testEvent2, "This is the second test event description.");
+         fDescription.set(testEvent3, "This is the third test event description.");
+         fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
+         fChangedWaresIDs.set(testEvent2, new String[]{"test:crafted1"});
+         fChangedWaresIDs.set(testEvent3, new String[]{"test:processed2"});
+         fChangedMagnitudes.set(testEvent1, new int[]{1, 2});
+         fChangedMagnitudes.set(testEvent2, new int[]{-1});
+         fChangedMagnitudes.set(testEvent3, new int[]{3});
+
+         // grab the RandomEvents.RandomEvent loader/validator
+         Method randomEventLoad = RandomEvents.RandomEvent.class.getDeclaredMethod("load");
+         randomEvent.setAccessible(true);
+         requiredObject  = null;
+         requiredObjects = null;
+
+         // finish setting up events
+         randomEventLoad.invoke(testEvent1, requiredObjects);
+         randomEventLoad.invoke(testEvent2, requiredObjects);
+         randomEventLoad.invoke(testEvent3, requiredObjects);
+
+         // grab the RandomEvents.RandomEvent event firer
+         Method randomEventFire = RandomEvents.RandomEvent.class.getDeclaredMethod("fire");
+         randomEventFire.setAccessible(true);
+
+
+         TEST_OUTPUT.println("random events - printing scenarios only");
+         Config.randomEventsPrintChanges = false;
+         descriptionScenario1 = "This is the first test event description." + System.lineSeparator();
+         descriptionScenario2 = "This is the second test event description." + System.lineSeparator();
+         descriptionScenario3 = "This is the third test event description." + System.lineSeparator();
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent1, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario1)) {
+            TEST_OUTPUT.println("    unexpected scenario for test event 1: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent2, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario2)) {
+            TEST_OUTPUT.println("    unexpected scenario for test event 2: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario3)) {
+            TEST_OUTPUT.println("    unexpected scenario for test event 3: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - printing scenarios and ware changes");
+         Config.randomEventsPrintChanges = true;
+
+         //   +++ --> \u001b[1m\u001b[32m
+         //    ++ --> \u001b[32m
+         //     + --> \u001b[32;1m
+         //     - --> \u001b[31;1m
+         //    -- --> \u001b[31m
+         //   --- --> \u001b[1m\u001b[31m
+         // reset --> \u001b[0m
+
+         descriptionWareChanges1 = "\u001b[32;1m+++test:material1\u001b[0m\n\u001b[32m++test:material2\u001b[0m" + System.lineSeparator();
+         descriptionWareChanges2 = "\u001b[31;1m-test:crafted1\u001b[0m" + System.lineSeparator();
+         descriptionWareChanges3 = "\u001b[1m\u001b[32mtest:processed2\u001b[0m" + System.lineSeparator();
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent1, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario1 + descriptionWareChanges1)) {
+            TEST_OUTPUT.println("    unexpected descriptions for test event 1: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent2, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario2 + descriptionWareChanges2)) {
+            TEST_OUTPUT.println("    unexpected descriptions for test event 2: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario3 + descriptionWareChanges3)) {
+            TEST_OUTPUT.println("    unexpected descriptions for test event 3: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - toggling printing scenarios only by reloading configuration");
+         // turn printing changes off
+         Config.randomEventsPrintChanges = true;
+
+         Config.filenameConfig = "CommandEconomy" + File.separator + "testConfig.txt";
+         FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEventsPrintChanges = false\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // test printing after disabling printing changes
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent1, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario1)) {
+            TEST_OUTPUT.println("    unexpected scenario for test event 1: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent2, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario2)) {
+            TEST_OUTPUT.println("    unexpected scenario for test event 2: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario3)) {
+            TEST_OUTPUT.println("    unexpected scenario for test event 3: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         // turn printing changes on
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEventsPrintChanges = true\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // test printing after enabling printing changes
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent1, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario1 + descriptionWareChanges1)) {
+            TEST_OUTPUT.println("    unexpected descriptions for test event 1: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent2, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario2 + descriptionWareChanges2)) {
+            TEST_OUTPUT.println("    unexpected descriptions for test event 2: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         baosOut.reset(); // clear buffer holding console output
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         if (!baosOut.toString().equals(descriptionScenario3 + descriptionWareChanges3)) {
+            TEST_OUTPUT.println("    unexpected descriptions for test event 3: " + baosOut.toString());
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - positive flat rate for ware changes");
+         // set up ware changes
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEventsAreChangesPercents = false\n" +
+            "randomEventsLargeChange = 15\n" +
+            "randomEventsMediumChange = 10\n" +
+            "randomEventsSmallChange = 5\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // set up expected results
+         quantityWare1 = testWare1.getQuantity() + 5;
+         quantityWare2 = testWare2.getQuantity() + 10;
+         quantityWare3 = testWareC1.getQuantity() - 5;
+         quantityWare4 = testWareP2.getQuantity() + 15;
+
+         // fire events
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         // test quantities
+         if (testWare1.getQuantity() != quantityWare1) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare1: " + testWare1.getQuantity() + ", should be " + quantityWare1);
+            errorFound = true;
+         }
+         if (testWare2.getQuantity() != quantityWare2) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare2: " + testWare2.getQuantity() + ", should be " + quantityWare2);
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() != quantityWare3) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be " + quantityWare3);
+            errorFound = true;
+         }
+         if (testWareP2.getQuantity() != quantityWare4) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be " + quantityWare4);
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - negative flat rate for ware changes");
+         // set up ware changes
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEventsAreChangesPercents = false\n" +
+            "randomEventsLargeChange = -4\n" +
+            "randomEventsMediumChange = -8\n" +
+            "randomEventsSmallChange = -16\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // set up expected results
+         quantityWare1 = testWare1.getQuantity() - 16;
+         quantityWare2 = testWare2.getQuantity() - 8;
+         quantityWare3 = testWareC1.getQuantity() + 16;
+         quantityWare4 = testWareP2.getQuantity() - 4;
+
+         // fire events
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         // test quantities
+         if (testWare1.getQuantity() != quantityWare1) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare1: " + testWare1.getQuantity() + ", should be " + quantityWare1);
+            errorFound = true;
+         }
+         if (testWare2.getQuantity() != quantityWare2) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare2: " + testWare2.getQuantity() + ", should be " + quantityWare2);
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() != quantityWare3) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be " + quantityWare3);
+            errorFound = true;
+         }
+         if (testWareP2.getQuantity() != quantityWare4) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be " + quantityWare4);
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - positive percentage rate for ware changes");
+         // set up ware changes
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEventsAreChangesPercents = true\n" +
+            "randomEventsLargeChange = 0.30\n" +
+            "randomEventsMediumChange = 0.20\n" +
+            "randomEventsSmallChange = 0.10\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // set up expected results
+         quantityWare1 = testWare1.getQuantity() + (int) (Config.quanMid[testWare1.getLevel()] * 0.10f);
+         quantityWare2 = testWare2.getQuantity() + (int) (Config.quanMid[testWare2.getLevel()] * 0.20f);
+         quantityWare3 = testWareC1.getQuantity() - (int) (Config.quanMid[testWareC1.getLevel()] * 0.10f);
+         quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanMid[testWareP2.getLevel()] * 0.30f);
+
+         // fire events
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         // test quantities
+         if (testWare1.getQuantity() != quantityWare1) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare1: " + testWare1.getQuantity() + ", should be " + quantityWare1);
+            errorFound = true;
+         }
+         if (testWare2.getQuantity() != quantityWare2) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare2: " + testWare2.getQuantity() + ", should be " + quantityWare2);
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() != quantityWare3) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be " + quantityWare3);
+            errorFound = true;
+         }
+         if (testWareP2.getQuantity() != quantityWare4) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be " + quantityWare4);
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - negative percentage rate for ware changes");
+         // set up ware changes
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEventsAreChangesPercents = true\n" +
+            "randomEventsLargeChange = -0.08\n" +
+            "randomEventsMediumChange = -0.16\n" +
+            "randomEventsSmallChange = -0.32\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // set up expected results
+         quantityWare1 = testWare1.getQuantity() - (int) (Config.quanMid[testWare1.getLevel()] * 0.08f);
+         quantityWare2 = testWare2.getQuantity() - (int) (Config.quanMid[testWare2.getLevel()] * 0.16f);
+         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.08f);
+         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.32f);
+
+         // fire events
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         // test quantities
+         if (testWare1.getQuantity() != quantityWare1) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare1: " + testWare1.getQuantity() + ", should be " + quantityWare1);
+            errorFound = true;
+         }
+         if (testWare2.getQuantity() != quantityWare2) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare2: " + testWare2.getQuantity() + ", should be " + quantityWare2);
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() != quantityWare3) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be " + quantityWare3);
+            errorFound = true;
+         }
+         if (testWareP2.getQuantity() != quantityWare4) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be " + quantityWare4);
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - handling reloading wares");
+         // set test wares to equilibrium
+         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()]);
+         testWare2.setQuantity(Config.quanMid[testWare2.getLevel()]);
+         testWareC1.setQuantity(Config.quanMid[testWareC1.getLevel()]);
+         testWareP2.setQuantity(Config.quanMid[testWareP2.getLevel()]);
+
+         // save wares to write current state to file
+         Marketplace.saveWares();
+
+         // set up expected end results
+         quantityWare1 = testWare1.getQuantity() - (int) (Config.quanMid[testWare1.getLevel()] * 0.08f);
+         quantityWare2 = testWare2.getQuantity() - (int) (Config.quanMid[testWare2.getLevel()] * 0.16f);
+         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.08f);
+         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.32f);
+
+         // trigger events twice to change current state
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         // ensure ware quantities have changed
+         if (testWare1.getQuantity() >= quantityWare1) {
+            TEST_OUTPUT.println("   (before reload) unexpected quantity for testWare1: " + testWare1.getQuantity() + ", should be less than " + quantityWare1);
+            errorFound = true;
+         }
+         if (testWare2.getQuantity() >= quantityWare2) {
+            TEST_OUTPUT.println("   (before reload) unexpected quantity for testWare2: " + testWare2.getQuantity() + ", should be less than " + quantityWare2);
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() <= quantityWare3) {
+            TEST_OUTPUT.println("   (before reload) unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be greater than " + quantityWare3);
+            errorFound = true;
+         }
+         if (testWare1.getQuantity() >= quantityWare1) {
+            TEST_OUTPUT.println("   (before reload) unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be less than " + quantityWare4);
+            errorFound = true;
+         }
+
+         // reload wares to reset to equilibrium
+         Marketplace.loadWares();
+
+         // trigger events once to test relinking
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         // relink wares
+         testWare1  = wares.get("test:material1");
+         testWare2  = wares.get("test:material2");
+         testWareC1 = wares.get("test:crafted1");
+         testWareP2 = wares.get("test:processed2");
+
+         // check ware quantities
+         if (testWare1.getQuantity() != quantityWare1) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare1: " + testWare1.getQuantity() + ", should be " + quantityWare1);
+            errorFound = true;
+         }
+         if (testWare2.getQuantity() != quantityWare2) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare2: " + testWare2.getQuantity() + ", should be " + quantityWare2);
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() != quantityWare3) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be " + quantityWare3);
+            errorFound = true;
+         }
+         if (testWareP2.getQuantity() != quantityWare4) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be " + quantityWare4);
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - handling reloading configuration with changed marketplace settings");
+         // set up ware changes
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "quanMid = 192, 96, 48, 24,12, 6\n" +
+            "randomEventsAreChangesPercents = true\n" +
+            "randomEventsLargeChange = 0.30\n" +
+            "randomEventsMediumChange = 0.20\n" +
+            "randomEventsSmallChange = 0.10\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // paranoidly check changing equilibrium quantity
+         if (Config.quanMid[0] != 192 || Config.quanMid[1] != 96 || Config.quanMid[2] != 48 ||
+            Config.quanMid[3] != 24 || Config.quanMid[4] != 12 || Config.quanMid[5] != 6) {
+            TEST_OUTPUT.println("   failed to change configuration settings!");
+            errorFound = true;
+         }
+
+         // set up expected results
+         quantityWare1 = testWare1.getQuantity() + (int) (Config.quanMid[testWare1.getLevel()] * 0.10f);
+         quantityWare2 = testWare2.getQuantity() + (int) (Config.quanMid[testWare2.getLevel()] * 0.20f);
+         quantityWare3 = testWareC1.getQuantity() - (int) (Config.quanMid[testWareC1.getLevel()] * 0.10f);
+         quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanMid[testWareP2.getLevel()] * 0.30f);
+
+         // fire events
+         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent3, requiredObjects);
+
+         // test quantities
+         if (testWare1.getQuantity() != quantityWare1) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare1: " + testWare1.getQuantity() + ", should be " + quantityWare1);
+            errorFound = true;
+         }
+         if (testWare2.getQuantity() != quantityWare2) {
+            TEST_OUTPUT.println("   unexpected quantity for testWare2: " + testWare2.getQuantity() + ", should be " + quantityWare2);
+            errorFound = true;
+         }
+         if (testWareC1.getQuantity() != quantityWare3) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be " + quantityWare3);
+            errorFound = true;
+         }
+         if (testWareP2.getQuantity() != quantityWare4) {
+            TEST_OUTPUT.println("   unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be " + quantityWare4);
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("random events - toggling feature by reloading configuration");
+         Field testTimer = RandomEvents.RandomEvent.class.getDeclaredField("timerRandomEvents");
+         testTimer.setAccessible(true);
+         Timer timerRandomEvents = (Timer) testTimer.get(null);
+
+         // Make sure the feature is off.
+         if (timerRandomEvents != null) {
+            timerRandomEvents.cancel();
+            timerRandomEvents = null;
+            TEST_OUTPUT.println("   warning - timer was not null when it should have been");
+         }
+
+         // write to config file to turn on feature
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 9999\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         // attempt to turn on the feature by reloading config
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // check whether the feature is enabled
+         timerRandomEvents = (Timer) testTimer.get(null);
+         if (timerRandomEvents == null) {
+            TEST_OUTPUT.println("   feature did not turn on when it should have");
+            errorFound = true;
+         }
+
+         // write to config file to turn off feature
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEvents = false\n" +
+            "randomEventsFrequency = 9999\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         // attempt to turn on the feature by reloading config
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // check whether the feature is disabled
+         timerRandomEvents = (Timer) testTimer.get(null);
+         if (timerRandomEvents != null) {
+            TEST_OUTPUT.println("   feature did not turn off when it should have");
+            errorFound = true;
+         }
+      }
+      catch (Exception e) {
+         TEST_OUTPUT.println("random events - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
 
       return !errorFound;
    }
