@@ -398,7 +398,7 @@ public class RandomEvents extends TimerTask {
     * @version %I%, %G%
     * @since   2022-06-11
     */
-   protected class RandomEvent
+   private class RandomEvent
    {
       // INSTANCE VARIABLES
       /**

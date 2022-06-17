@@ -16,6 +16,7 @@ import java.lang.StringBuilder;       // for faster saving, so the same line ent
 import java.util.Timer;               // for automatically rebalancing the marketplace
 import java.util.UUID;                // for more securely tracking users internally
 import java.lang.Math;                // for calculating appropriate account funds
+import java.util.concurrent.ArrayBlockingQueue; // for testing random events
 
 /**
  * Checks functionality and fault-tolerance of the Terminal Interface.
@@ -17291,59 +17292,82 @@ public class TestSuite
     *
     * @return whether random events passed all test cases
     */
+   @SuppressWarnings("unchecked") // for grabbing RandomEvents' private queue
    private static boolean testRandomEvents() {
       // use a flag to signal at least one error being found
       boolean errorFound = false;
 
       // ensure testing environment is properly set up
       resetTestEnvironment();
-      Config.randomEvents = true;
+      Config.randomEvents          = true;
       Config.randomEventsFrequency = 999999999;
-      Config.randomEventsVariance = 0.0f;
+      Config.randomEventsVariance  = 0.0f;
+      Config.filenameRandomEvents  = "config" + File.separator + "CommandEconomy" + File.separator + "testRandomEvents.json";
+      File       fileRandomEvents  = new File(Config.filenameRandomEvents);
+      FileWriter fileWriter;
+
+      // prepare to grab internal variables
+      Field fRandomEvents;
+      Field fTimer;
+      Field fTimerTask;
+      Field fDescription; // for accessing event properties
+      Field fChangedWaresIDs;
+      Field fChangedMagnitudes;
+      Field fChangeMagnitudesCurrent;
+      Field fQueue;
 
       // track changes to variables
-      RandomEvents.RandomEvent[] randomEvents;
-      RandomEvents.RandomEvent testEvent1;
-      RandomEvents.RandomEvent testEvent2;
-      RandomEvents.RandomEvent testEvent3;
-      String descriptionScenario1;
-      String descriptionScenario2;
-      String descriptionScenario3;
-      String descriptionWareChanges1;
-      String descriptionWareChanges2;
-      String descriptionWareChanges3;
-      int quantityWare1;
-      int quantityWare2;
-      int quantityWare3;
-      int quantityWare4;
+      Timer        timerRandomEvents;
+      RandomEvents timerTaskRandomEvents;
+      Object[]     randomEvents;
+      Object       testEvent1;
+      Object       testEvent2;
+      Object       testEvent3;
+      String       descriptionScenario1;
+      String       descriptionScenario2;
+      String       descriptionScenario3;
+      String       descriptionWareChanges1;
+      String       descriptionWareChanges2;
+      String       descriptionWareChanges3;
+      int          quantityWare1;
+      int          quantityWare2;
+      int          quantityWare3;
+      int          quantityWare4;
+      ArrayBlockingQueue<RandomEvents.QueueCommands> queue;
+
+      // ensure events file doesn't affect next test run
+      if (fileRandomEvents.exists())
+         fileRandomEvents.delete();
 
       try {
-         // grab references to variables
-         Field fRandomEvents = RandomEvents.RandomEvent.class.getDeclaredField("randomEvents");
+         // grab references to attributes
+         fRandomEvents = RandomEvents.class.getDeclaredField("randomEvents");
          fRandomEvents.setAccessible(true);
-         randomEvents = (RandomEvents.RandomEvent[]) fRandomEvents.get(null);
+
+         fTimerTask = RandomEvents.class.getDeclaredField("timerTaskRandomEvents");
+         fTimerTask.setAccessible(true);
+
+         // first call performs preliminary set up
+         RandomEvents.startOrReconfigRandomEvents();
+
 
          TEST_OUTPUT.println("random events - handling missing events file");
-         Config.filenameRandomEvents = "CommandEconomy" + File.separator + "tempRandomEvents.json";
+         // initialize random events
          try {
-            RandomEvents.loadRandomEvents();
+            RandomEvents.startOrReconfigRandomEvents();
          }
          catch (Exception e) {
-            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading missing events file");
+            TEST_OUTPUT.println("   startOrReconfigRandomEvents() should not throw any exception, but it did while loading missing events file");
             e.printStackTrace();
             errorFound = true;
          }
 
-         // check handling of missing file
-         File fileRandomEvents = new File("config" + File.separator + Config.filenameRandomEvents);
-         if (!fileRandomEvents.exists()){
-            errorFound = true;
-            TEST_OUTPUT.println("   default events file failed to be created");
-         } else {
-            fileRandomEvents.delete();
-         }
+         // run once to finish configuration
+         timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
+         timerTaskRandomEvents.run();
 
          // check loaded random events
+         randomEvents = (Object[]) fRandomEvents.get(null);
          if (randomEvents != null) {
             TEST_OUTPUT.println("   randomEvents were loaded when they shouldn't have been");
             randomEvents = null;
@@ -17355,7 +17379,7 @@ public class TestSuite
          // create test events file
          try {
             // open the save file for events, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+            fileWriter = new FileWriter(Config.filenameRandomEvents);
 
             // write test events file
             fileWriter.write(
@@ -17373,6 +17397,7 @@ public class TestSuite
          // try to load the test file
          try {
             RandomEvents.loadRandomEvents();
+            timerTaskRandomEvents.run();
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
@@ -17381,6 +17406,7 @@ public class TestSuite
          }
 
          // check loaded random events
+         randomEvents = (Object[]) fRandomEvents.get(null);
          if (randomEvents != null) {
             TEST_OUTPUT.println("   randomEvents were loaded when they shouldn't have been");
             randomEvents = null;
@@ -17392,7 +17418,7 @@ public class TestSuite
          // create test events file
          try {
             // open the save file for events, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+            fileWriter = new FileWriter(Config.filenameRandomEvents);
 
             // write test events file
             fileWriter.write(
@@ -17410,6 +17436,7 @@ public class TestSuite
          // try to load the test file
          try {
             RandomEvents.loadRandomEvents();
+            timerTaskRandomEvents.run();
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
@@ -17418,6 +17445,7 @@ public class TestSuite
          }
 
          // check loaded random events
+         randomEvents = (Object[]) fRandomEvents.get(null);
          if (randomEvents != null) {
             TEST_OUTPUT.println("   randomEvents were loaded when they shouldn't have been");
             randomEvents = null;
@@ -17429,18 +17457,27 @@ public class TestSuite
          // create test events file
          try {
             // open the save file for events, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+            fileWriter = new FileWriter(Config.filenameRandomEvents);
 
             // write test events file
             fileWriter.write(
-               "{\"randomEvents\" : [\n" +
-               "  {\"description\":\"This test event is perfectly fine.\",\"changedWaresIDs\":[\"test:material3\",\"test:crafted2\"],\"changeMagnitudes\":[3,-2]},\n" +
-               "  {\"description\":\"This test event has too few magnitudes.\",\"changedWaresIDs\":[\"test:material1\",\"test:material2\"],\"changeMagnitudes\":[1]},\n" +
-               "  {\"description\":\"This test event has too many magnitudes.\",\"changedWaresIDs\":[\"test:crafted1\"],\"changeMagnitudes\":[-1, 2]},\n" +
-               "  {\"description\":\"This test event doesn't have any magnitudes.\",\"changedWaresIDs\":[\"test:processed2\"]\n" +
-               "  {\"description\":\"This test event doesn't affect any wares, yet has magnitudes.\",\"changeMagnitudes\":[3, 3]},\n" +
-               "  {\"description\":\"This test event is also perfectly fine.\",\"changedWaresIDs\":[\"test:processed1\"],\"changeMagnitudes\":[-1]}\n" +
-               "]}"
+               "[{\n" +
+               "\"description\": \"This test event is perfectly fine.\",\n" +
+               "\"changedWaresIDs\": [\"test:material3\", \"test:crafted2\"],\n" +
+               "\"changeMagnitudes\": [3, -2]},{\n" +
+               "\"description\": \"This test event has too few magnitudes.\",\n" +
+               "\"changedWaresIDs\": [\"test:material1\", \"test:material2\"],\n" +
+               "\"changeMagnitudes\": [1]},{\n" +
+               "\"description\": \"This test event has too many magnitudes.\",\n" +
+               "\"changedWaresIDs\": [\"test:crafted1\"],\n" +
+               "\"changeMagnitudes\": [-1, 2]},{\n" +
+               "\"description\": \"This test event doesn't have any magnitudes.\",\n" +
+               "\"changedWaresIDs\": [\"test:processed2\"]},{\n" +
+               "\"description\": \"This test event doesn't affect any wares, yet has magnitudes.\",\n" +
+               "\"changeMagnitudes\": [3, 3]},{\n" +
+               "\"description\": \"This test event is also perfectly fine.\",\n" +
+               "\"changedWaresIDs\": [\"test:processed1\"],\n" +
+               "\"changeMagnitudes\": [-1]}]\n"
             );
 
             // close the file
@@ -17454,6 +17491,7 @@ public class TestSuite
          // try to load the test file
          try {
             RandomEvents.loadRandomEvents();
+            timerTaskRandomEvents.run();
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
@@ -17462,6 +17500,7 @@ public class TestSuite
          }
 
          // check loaded random events
+         randomEvents = (Object[]) fRandomEvents.get(null);
          if (randomEvents == null) {
             TEST_OUTPUT.println("   random events should have loaded, but randomEvents is null");
             errorFound = true;
@@ -17475,18 +17514,18 @@ public class TestSuite
          // create test events file
          try {
             // open the save file for events, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+            fileWriter = new FileWriter(Config.filenameRandomEvents);
 
             // write test events file
             fileWriter.write(
-               "{\"randomEvents\" : [\n" +
+               "[\n" +
                "  {\"description\":\"This is a test event.\",\"changedWaresIDs\":[\"test:material3\",\"test:invalidWareID\"],\"changeMagnitudes\":[3,-2]},\n" +
                "  {\"description\":\"This is also a test event.\",\"changedWaresIDs\":[\"test:anotherInvalidWareID\"],\"changeMagnitudes\":[-1]},\n" +
                "  {\"description\":\"This is yet another test event.\",\"changedWaresIDs\":[\"test:yetAnotherInvalidWareID\",\"minecraft:material4\"],\"changeMagnitudes\":[1,-2]},\n" +
                "  {\"description\":\"This is the third-to-last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:secondToLastInvalidWareID\",\"test:crafted2\"],\"changeMagnitudes\":[2,-3]},\n" +
                "  {\"description\":\"This test event was included to ensure untradeable wares are being checked for.\",\"changedWaresIDs\":[\"test:untradeable1\"],\"changeMagnitudes\":[2]},\n" +
                "  {\"description\":\"This is the last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:lastInvalidWareID\",\"test:untradeable1\",\"test:material1\"],\"changeMagnitudes\":[1,-1,2]}\n" +
-               "]}"
+               "]"
             );
 
             // close the file
@@ -17500,6 +17539,7 @@ public class TestSuite
          // try to load the test file
          try {
             RandomEvents.loadRandomEvents();
+            timerTaskRandomEvents.run();
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
@@ -17508,11 +17548,12 @@ public class TestSuite
          }
 
          // check loaded random events
+         randomEvents = (Object[]) fRandomEvents.get(null);
          if (randomEvents == null) {
             TEST_OUTPUT.println("   random events should have loaded, but randomEvents is null");
             errorFound = true;
-         } else if (randomEvents.length != 3) {
-            TEST_OUTPUT.println("   random events loaded: " + randomEvents.length + ", should be 3");
+         } else if (randomEvents.length != 4) {
+            TEST_OUTPUT.println("   random events loaded: " + randomEvents.length + ", should be 4");
             errorFound = true;
          }
 
@@ -17521,15 +17562,15 @@ public class TestSuite
          // create test events file
          try {
             // open the save file for events, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameRandomEvents);
+            fileWriter = new FileWriter(Config.filenameRandomEvents);
 
             // write test events file
             fileWriter.write(
-               "{\"randomEvents\" : [\n" +
+               "[\n" +
                "  {\"description\":\"This is the first test event description.\",\"changedWaresIDs\":[\"test:material1\",\"test:material2\"],\"changeMagnitudes\":[1,2]},\n" +
                "  {\"description\":\"This is the second test event description.\",\"changedWaresIDs\":[\"test:crafted1\"],\"changeMagnitudes\":[-1]},\n" +
                "  {\"description\":\"This is the third test event description.\",\"changedWaresIDs\":[\"test:processed2\"],\"changeMagnitudes\":[3]}\n" +
-               "]}"
+               "]"
             );
 
             // close the file
@@ -17543,14 +17584,16 @@ public class TestSuite
          // try to load the test file
          try {
             RandomEvents.loadRandomEvents();
+            timerTaskRandomEvents.run();
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
             e.printStackTrace();
-            errorFound = false;
+            errorFound = true;
          }
 
          // check loaded random events
+         randomEvents = (Object[]) fRandomEvents.get(null);
          if (randomEvents == null) {
             TEST_OUTPUT.println("   random events should have loaded, but randomEvents is null");
             errorFound = true;
@@ -17561,21 +17604,20 @@ public class TestSuite
 
 
          // set up test environment
-         // grab the RandomEvents.RandomEvent constructor
-         Method randomEvent = RandomEvents.RandomEvent.class.getConstructor();
-         randomEvent.setAccessible(true);
-         Object   requiredObject  = null;
-         Object[] requiredObjects = null;
+         // grab the RandomEvent constructor
+         Class<?> randomEventClass = RandomEvents.class.getDeclaredClasses()[0];
+         Constructor<?> constructor = randomEventClass.getDeclaredConstructors()[0];
+         constructor.setAccessible(true);
 
          // initialize events
-         testEvent1 = randomEvent.invoke(requiredObject, requiredObjects);
-         testEvent2 = randomEvent.invoke(requiredObject, requiredObjects);
-         testEvent3 = randomEvent.invoke(requiredObject, requiredObjects);
+         testEvent1 = constructor.newInstance(timerTaskRandomEvents);
+         testEvent2 = constructor.newInstance(timerTaskRandomEvents);
+         testEvent3 = constructor.newInstance(timerTaskRandomEvents);
 
-         // accessible event properties
-         Field fDescription       = RandomEvents.RandomEvent.getDeclaredField("description");
-         Field fChangedWaresIDs   = RandomEvents.RandomEvent.getDeclaredField("changedWaresIDs");
-         Field fChangedMagnitudes = RandomEvents.RandomEvent.getDeclaredField("changeMagnitudes");
+         // access event properties
+         fDescription       = randomEventClass.getDeclaredField("description");
+         fChangedWaresIDs   = randomEventClass.getDeclaredField("changedWaresIDs");
+         fChangedMagnitudes = randomEventClass.getDeclaredField("changeMagnitudes");
          fDescription.setAccessible(true);
          fChangedWaresIDs.setAccessible(true);
          fChangedMagnitudes.setAccessible(true);
@@ -17591,19 +17633,19 @@ public class TestSuite
          fChangedMagnitudes.set(testEvent2, new int[]{-1});
          fChangedMagnitudes.set(testEvent3, new int[]{3});
 
-         // grab the RandomEvents.RandomEvent loader/validator
-         Method randomEventLoad = RandomEvents.RandomEvent.class.getDeclaredMethod("load");
-         randomEvent.setAccessible(true);
-         requiredObject  = null;
-         requiredObjects = null;
+         // grab the RandomEvent loader/validator
+         Method randomEventLoad = randomEventClass.getDeclaredMethod("load");
+         randomEventLoad.setAccessible(true);
+         Object   requiredObject  = null;
+         Object[] requiredObjects = null;
 
          // finish setting up events
          randomEventLoad.invoke(testEvent1, requiredObjects);
          randomEventLoad.invoke(testEvent2, requiredObjects);
          randomEventLoad.invoke(testEvent3, requiredObjects);
 
-         // grab the RandomEvents.RandomEvent event firer
-         Method randomEventFire = RandomEvents.RandomEvent.class.getDeclaredMethod("fire");
+         // grab the RandomEvent event firer
+         Method randomEventFire = randomEventClass.getDeclaredMethod("fire");
          randomEventFire.setAccessible(true);
 
 
@@ -17638,7 +17680,29 @@ public class TestSuite
          }
 
          TEST_OUTPUT.println("random events - printing scenarios and ware changes");
-         Config.randomEventsPrintChanges = true;
+         Config.randomEventsPrintChanges = true; // enable printing ware changes
+
+         // grab events from thread
+         randomEvents = (Object[]) fRandomEvents.get(null);
+         testEvent1 = randomEvents[0];
+         testEvent2 = randomEvents[1];
+         testEvent3 = randomEvents[2];
+
+         // set event properties
+         fDescription.set(testEvent1, "This is the first test event description.");
+         fDescription.set(testEvent2, "This is the second test event description.");
+         fDescription.set(testEvent3, "This is the third test event description.");
+         fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
+         fChangedWaresIDs.set(testEvent2, new String[]{"test:crafted1", "test:material3"});
+         fChangedWaresIDs.set(testEvent3, new String[]{"test:processed2", "minecraft:material4"});
+         fChangedMagnitudes.set(testEvent1, new int[]{3, 2});
+         fChangedMagnitudes.set(testEvent2, new int[]{-1, -1});
+         fChangedMagnitudes.set(testEvent3, new int[]{1, 1});
+
+         // generate messages for ware changes
+         RandomEvents.reloadWares();
+         RandomEvents.generateWareChangeDescriptions();
+         timerTaskRandomEvents.run();
 
          //   +++ --> \u001b[1m\u001b[32m
          //    ++ --> \u001b[32m
@@ -17646,11 +17710,11 @@ public class TestSuite
          //     - --> \u001b[31;1m
          //    -- --> \u001b[31m
          //   --- --> \u001b[1m\u001b[31m
-         // reset --> \u001b[0m
+         // reset --> \u001b[0m\n
 
-         descriptionWareChanges1 = "\u001b[32;1m+++test:material1\u001b[0m\n\u001b[32m++test:material2\u001b[0m" + System.lineSeparator();
-         descriptionWareChanges2 = "\u001b[31;1m-test:crafted1\u001b[0m" + System.lineSeparator();
-         descriptionWareChanges3 = "\u001b[1m\u001b[32mtest:processed2\u001b[0m" + System.lineSeparator();
+         descriptionWareChanges1 = "\u001b[1m\u001b[32m+++test:material1\u001b[0m\n\u001b[32m++test:material2\u001b[0m\n" + System.lineSeparator();
+         descriptionWareChanges2 = "\u001b[31;1m-craft1, mat3\u001b[0m\n" + System.lineSeparator();
+         descriptionWareChanges3 = "\u001b[32;1m+test:processed2, material4\u001b[0m\n" + System.lineSeparator();
 
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent1, requiredObjects);
@@ -17681,16 +17745,23 @@ public class TestSuite
          Config.randomEventsPrintChanges = true;
 
          Config.filenameConfig = "CommandEconomy" + File.separator + "testConfig.txt";
-         FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsPrintChanges = false\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 99999\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
 
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // grab the new timertask since frequency was changed
+         timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
+
+         timerTaskRandomEvents.run();
 
          // test printing after disabling printing changes
          baosOut.reset(); // clear buffer holding console output
@@ -17718,15 +17789,19 @@ public class TestSuite
          }
 
          // turn printing changes on
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsPrintChanges = true\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 99999\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
 
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         timerTaskRandomEvents.run();
 
          // test printing after enabling printing changes
          baosOut.reset(); // clear buffer holding console output
@@ -17753,25 +17828,58 @@ public class TestSuite
             errorFound = true;
          }
 
+
+         // prepare for next test by grabbing random events requests queue
+         // to know when to check values
+         fQueue = RandomEvents.class.getDeclaredField("queue");
+         fQueue.setAccessible(true);
+         queue  = (ArrayBlockingQueue<RandomEvents.QueueCommands>) fQueue.get(null);
+
+         // set events to known values
+         testEvent1 = constructor.newInstance(timerTaskRandomEvents);
+         testEvent2 = constructor.newInstance(timerTaskRandomEvents);
+         testEvent3 = constructor.newInstance(timerTaskRandomEvents);
+
+         // set event properties
+         fDescription.set(testEvent1, "This is the first test event description.");
+         fDescription.set(testEvent2, "This is the second test event description.");
+         fDescription.set(testEvent3, "This is the third test event description.");
+         fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
+         fChangedWaresIDs.set(testEvent2, new String[]{"test:crafted1"});
+         fChangedWaresIDs.set(testEvent3, new String[]{"test:processed2"});
+         fChangedMagnitudes.set(testEvent1, new int[]{1, 2});
+         fChangedMagnitudes.set(testEvent2, new int[]{-1});
+         fChangedMagnitudes.set(testEvent3, new int[]{3});
+
+         // finish setting up events
+         randomEventLoad.invoke(testEvent1, requiredObjects);
+         randomEventLoad.invoke(testEvent2, requiredObjects);
+         randomEventLoad.invoke(testEvent3, requiredObjects);
+
+
          TEST_OUTPUT.println("random events - positive flat rate for ware changes");
          // set up ware changes
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = false\n" +
             "randomEventsLargeChange = 15\n" +
             "randomEventsMediumChange = 10\n" +
             "randomEventsSmallChange = 5\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 99999\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         timerTaskRandomEvents.run();
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity() + 5;
-         quantityWare2 = testWare2.getQuantity() + 10;
-         quantityWare3 = testWareC1.getQuantity() - 5;
-         quantityWare4 = testWareP2.getQuantity() + 15;
+         quantityWare1 = testWare1.getQuantity() + (int) (5.0f / Config.quanMid[2] * Config.quanMid[testWare1.getLevel()]);
+         quantityWare2 = testWare2.getQuantity() + (int) (10.0f / Config.quanMid[2] * Config.quanMid[testWare2.getLevel()]);
+         quantityWare3 = testWareC1.getQuantity() - (int) (5.0f / Config.quanMid[2] * Config.quanMid[testWareC1.getLevel()]);
+         quantityWare4 = testWareP2.getQuantity() + (int) (15.0f / Config.quanMid[2] * Config.quanMid[testWareP2.getLevel()]);
 
          // fire events
          randomEventFire.invoke(testEvent1, requiredObjects);
@@ -17798,23 +17906,27 @@ public class TestSuite
 
          TEST_OUTPUT.println("random events - negative flat rate for ware changes");
          // set up ware changes
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = false\n" +
             "randomEventsLargeChange = -4\n" +
             "randomEventsMediumChange = -8\n" +
             "randomEventsSmallChange = -16\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 99999\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         timerTaskRandomEvents.run();
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity() - 16;
-         quantityWare2 = testWare2.getQuantity() - 8;
-         quantityWare3 = testWareC1.getQuantity() + 16;
-         quantityWare4 = testWareP2.getQuantity() - 4;
+         quantityWare1 = testWare1.getQuantity() - (int) (16.0f / Config.quanMid[2] * Config.quanMid[testWare1.getLevel()]);
+         quantityWare2 = testWare2.getQuantity() - (int) (8.0f / Config.quanMid[2] * Config.quanMid[testWare2.getLevel()]);
+         quantityWare3 = testWareC1.getQuantity() + (int) (16.0f / Config.quanMid[2] * Config.quanMid[testWareC1.getLevel()]);
+         quantityWare4 = testWareP2.getQuantity() - (int) (4.0f / Config.quanMid[2] * Config.quanMid[testWareP2.getLevel()]);
 
          // fire events
          randomEventFire.invoke(testEvent1, requiredObjects);
@@ -17841,17 +17953,21 @@ public class TestSuite
 
          TEST_OUTPUT.println("random events - positive percentage rate for ware changes");
          // set up ware changes
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = true\n" +
             "randomEventsLargeChange = 0.30\n" +
             "randomEventsMediumChange = 0.20\n" +
             "randomEventsSmallChange = 0.10\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 99999\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         timerTaskRandomEvents.run();
 
          // set up expected results
          quantityWare1 = testWare1.getQuantity() + (int) (Config.quanMid[testWare1.getLevel()] * 0.10f);
@@ -17884,23 +18000,27 @@ public class TestSuite
 
          TEST_OUTPUT.println("random events - negative percentage rate for ware changes");
          // set up ware changes
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = true\n" +
             "randomEventsLargeChange = -0.08\n" +
             "randomEventsMediumChange = -0.16\n" +
             "randomEventsSmallChange = -0.32\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 99999\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         timerTaskRandomEvents.run();
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity() - (int) (Config.quanMid[testWare1.getLevel()] * 0.08f);
-         quantityWare2 = testWare2.getQuantity() - (int) (Config.quanMid[testWare2.getLevel()] * 0.16f);
-         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.08f);
-         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.32f);
+         quantityWare1 = testWare1.getQuantity()  - (int) (Config.quanMid[testWare1.getLevel()]  * 0.32f);
+         quantityWare2 = testWare2.getQuantity()  - (int) (Config.quanMid[testWare2.getLevel()]  * 0.16f);
+         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.32);
+         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.08f);
 
          // fire events
          randomEventFire.invoke(testEvent1, requiredObjects);
@@ -17925,7 +18045,7 @@ public class TestSuite
             errorFound = true;
          }
 
-         TEST_OUTPUT.println("random events - handling reloading wares");
+         TEST_OUTPUT.println("random events - reloading wares");
          // set test wares to equilibrium
          testWare1.setQuantity(Config.quanMid[testWare1.getLevel()]);
          testWare2.setQuantity(Config.quanMid[testWare2.getLevel()]);
@@ -17933,15 +18053,24 @@ public class TestSuite
          testWareP2.setQuantity(Config.quanMid[testWareP2.getLevel()]);
 
          // save wares to write current state to file
+         Config.filenameWaresSave = "config" + File.separator + "CommandEconomy" + File.separator + "testWaresSaved.txt"; // don't overwrite user saves
          Marketplace.saveWares();
 
          // set up expected end results
-         quantityWare1 = testWare1.getQuantity() - (int) (Config.quanMid[testWare1.getLevel()] * 0.08f);
-         quantityWare2 = testWare2.getQuantity() - (int) (Config.quanMid[testWare2.getLevel()] * 0.16f);
-         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.08f);
-         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.32f);
+         quantityWare1 = testWare1.getQuantity()  - (int) (Config.quanMid[testWare1.getLevel()]  * 0.32f);
+         quantityWare2 = testWare2.getQuantity()  - (int) (Config.quanMid[testWare2.getLevel()]  * 0.16f);
+         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.32);
+         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.08f);
 
-         // trigger events twice to change current state
+         // add test events to random events array
+         fRandomEvents.set(requiredObject, Array.newInstance(fRandomEvents.getType().getComponentType(), 3));
+         fRandomEvents.setAccessible(true);
+         randomEvents    = (Object[]) fRandomEvents.get(null);
+         randomEvents[0] = testEvent1;
+         randomEvents[1] = testEvent2;
+         randomEvents[2] = testEvent3;
+
+         // trigger events twice to greatly change current state
          randomEventFire.invoke(testEvent1, requiredObjects);
          randomEventFire.invoke(testEvent1, requiredObjects);
          randomEventFire.invoke(testEvent2, requiredObjects);
@@ -17967,8 +18096,21 @@ public class TestSuite
             errorFound = true;
          }
 
+         // prevent any randomly selected random events from messing up data
+         fChangedMagnitudes.setAccessible(true);
+         fChangedMagnitudes.set(testEvent1, new int[]{0, 0});
+         fChangedMagnitudes.set(testEvent2, new int[]{0});
+         fChangedMagnitudes.set(testEvent3, new int[]{0});
+
          // reload wares to reset to equilibrium
          Marketplace.loadWares();
+         timerTaskRandomEvents.run();
+
+         // restore event magnitudes
+         fChangeMagnitudesCurrent = randomEventClass.getDeclaredField("changeMagnitudesCurrent");
+         fChangeMagnitudesCurrent.set(testEvent1, new int[]{1, 2});
+         fChangeMagnitudesCurrent.set(testEvent2, new int[]{-1});
+         fChangeMagnitudesCurrent.set(testEvent3, new int[]{3});
 
          // trigger events once to test relinking
          randomEventFire.invoke(testEvent1, requiredObjects);
@@ -17999,8 +18141,9 @@ public class TestSuite
             errorFound = true;
          }
 
-         TEST_OUTPUT.println("random events - handling reloading configuration with changed marketplace settings");
+         TEST_OUTPUT.println("random events - reloading with changed marketplace settings");
          // set up ware changes
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "quanMid = 192, 96, 48, 24,12, 6\n" +
@@ -18008,11 +18151,14 @@ public class TestSuite
             "randomEventsLargeChange = 0.30\n" +
             "randomEventsMediumChange = 0.20\n" +
             "randomEventsSmallChange = 0.10\n" +
+            "randomEvents = true\n" +
+            "randomEventsFrequency = 99999\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         timerTaskRandomEvents.run();
 
          // paranoidly check changing equilibrium quantity
          if (Config.quanMid[0] != 192 || Config.quanMid[1] != 96 || Config.quanMid[2] != 48 ||
@@ -18051,18 +18197,33 @@ public class TestSuite
          }
 
          TEST_OUTPUT.println("random events - toggling feature by reloading configuration");
-         Field testTimer = RandomEvents.RandomEvent.class.getDeclaredField("timerRandomEvents");
-         testTimer.setAccessible(true);
-         Timer timerRandomEvents = (Timer) testTimer.get(null);
+         fTimer = RandomEvents.class.getDeclaredField("timerRandomEvents");
+         fTimer.setAccessible(true);
+         timerRandomEvents = (Timer) fTimer.get(null);
 
-         // Make sure the feature is off.
+         // write to config file to turn off feature
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "randomEvents = false\n" +
+            "randomEventsFrequency = 9999\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         // attempt to turn off the feature by reloading config
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // check whether the feature is disabled
+         timerRandomEvents = (Timer) fTimer.get(null);
          if (timerRandomEvents != null) {
-            timerRandomEvents.cancel();
-            timerRandomEvents = null;
-            TEST_OUTPUT.println("   warning - timer was not null when it should have been");
+            TEST_OUTPUT.println("   feature did not turn off when it should have");
+            errorFound = true;
          }
 
          // write to config file to turn on feature
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEvents = true\n" +
@@ -18076,13 +18237,14 @@ public class TestSuite
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
 
          // check whether the feature is enabled
-         timerRandomEvents = (Timer) testTimer.get(null);
+         timerRandomEvents = (Timer) fTimer.get(null);
          if (timerRandomEvents == null) {
             TEST_OUTPUT.println("   feature did not turn on when it should have");
             errorFound = true;
          }
 
-         // write to config file to turn off feature
+         // turn off feature before exiting
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEvents = false\n" +
@@ -18091,16 +18253,7 @@ public class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-
-         // attempt to turn on the feature by reloading config
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
-
-         // check whether the feature is disabled
-         timerRandomEvents = (Timer) testTimer.get(null);
-         if (timerRandomEvents != null) {
-            TEST_OUTPUT.println("   feature did not turn off when it should have");
-            errorFound = true;
-         }
       }
       catch (Exception e) {
          TEST_OUTPUT.println("random events - fatal error: " + e);
