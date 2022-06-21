@@ -17396,7 +17396,7 @@ public class TestSuite
 
          // try to load the test file
          try {
-            RandomEvents.loadRandomEvents();
+            RandomEvents.load();
             timerTaskRandomEvents.run();
          }
          catch (Exception e) {
@@ -17435,7 +17435,7 @@ public class TestSuite
 
          // try to load the test file
          try {
-            RandomEvents.loadRandomEvents();
+            RandomEvents.load();
             timerTaskRandomEvents.run();
          }
          catch (Exception e) {
@@ -17490,7 +17490,7 @@ public class TestSuite
 
          // try to load the test file
          try {
-            RandomEvents.loadRandomEvents();
+            RandomEvents.load();
             timerTaskRandomEvents.run();
          }
          catch (Exception e) {
@@ -17538,7 +17538,7 @@ public class TestSuite
 
          // try to load the test file
          try {
-            RandomEvents.loadRandomEvents();
+            RandomEvents.load();
             timerTaskRandomEvents.run();
          }
          catch (Exception e) {
@@ -17583,7 +17583,7 @@ public class TestSuite
 
          // try to load the test file
          try {
-            RandomEvents.loadRandomEvents();
+            RandomEvents.load();
             timerTaskRandomEvents.run();
          }
          catch (Exception e) {

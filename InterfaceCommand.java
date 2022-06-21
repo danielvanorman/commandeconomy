@@ -169,6 +169,13 @@ public interface InterfaceCommand
    public void printToUser(UUID playerID, String message);
 
    /**
+    * Forwards a message to all users.
+    *
+    * @param message what to tell the users
+    */
+   public void printToAllUsers(String message);
+
+   /**
     * Forwards an error message to the specified user.
     *
     * @param playerID who to give the message to

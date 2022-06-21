@@ -9,6 +9,7 @@ import com.google.gson.JsonSyntaxException;     // for more specific error messa
 import java.util.Timer;                         // for triggering events periodically and on a separate thread
 import java.util.TimerTask;                     // for disabling random events mid-execution
 import java.util.concurrent.ArrayBlockingQueue; // for communication between the main thread and the thread handling random events
+import java.lang.StringBuilder;                 // for generating ware change descriptions
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequency and decisions
 
 /**
@@ -26,123 +27,112 @@ import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequen
 @SuppressWarnings("deprecation") // unfortunately, Minecraft 1.12.2's gson requires a JSONParser object
 public class RandomEvents extends TimerTask {
    // STATIC VARIABLES
+   // events
    /** how much to adjust when an event greatly affects a ware */
-   private static int[] quanChangeLarge;
+   static int[] quanChangeLarge  = null;
    /** how much to adjust when an event moderately affects a ware */
-   private static int[] quanChangeMedium;
+   static int[] quanChangeMedium = null;
    /** how much to adjust when an event slightly affects a ware */
-   private static int[] quanChangeSmall;
+   static int[] quanChangeSmall  = null;
    /** events which might occur */
-   private static RandomEvent[] randomEvents;
+   static RandomEvent[] randomEvents = null;
 
+   // thread management
    /** manages thread triggering random events */
-   private static Timer timerRandomEvents;
-   /** triggers random events */
-   private static RandomEvents timerTaskRandomEvents;
+   static Timer timerRandomEvents = null;
+   /** handles random events */
+   static RandomEvents timerTaskRandomEvents = null;
    /** used to monitor a timer interval for configuration changes */
-   private static long oldFrequency = 0L;
+   static long oldFrequency = 0L;
+   /** used to monitor changes in quantity change percentages for configuration changes */
+   static float[] oldQuantityChangePercents =null;
    /** used to signal what should be reloaded or recalculated */
    enum QueueCommands {
       LOAD,
       CALC_TRADE_QUANTITIES,
-      RELOAD_WARES
+      RELOAD_WARES,
+      GEN_WARE_DESCS
    }
    /** used to signal thread to reload or recalculate variables */
-   private static ArrayBlockingQueue<QueueCommands> queue = null;
-
-   /** color code for positive, large changes in ware's quantities */
-   private static final String PREFIX_POS_LARGE  = "\u001b[1m\u001b[32m+++";
-   /** color code for positive, medium changes in ware's quantities */
-   private static final String PREFIX_POS_MEDIUM = "\u001b[32m++";
-   /** color code for positive, small changes in ware's quantities */
-   private static final String PREFIX_POS_SMALL  = "\u001b[32;1m+";
-   /** color code for negative, large changes in ware's quantities */
-   private static final String PREFIX_NEG_LARGE  = "\u001b[1m\u001b[31m---";
-   /** color code for negative, medium changes in ware's quantities */
-   private static final String PREFIX_NEG_MEDIUM = "\u001b[31m--";
-   /** color code for negative, small changes in ware's quantities */
-   private static final String PREFIX_NEG_SMALL  = "\u001b[31;1m-";
-   /** code for resetting color codes */
-   private static final String POSTFIX           = "\u001b[0m\n";
+   static ArrayBlockingQueue<QueueCommands> queue = null;
 
    // INSTANCE VARIABLES
    /** whether the task should continue running */
    public transient volatile boolean stop = false;
 
-   /** what to print when the event occurs */
-   String description = "";
-   /** announcement for which wares were affected */
-   transient String changedWaresDescriptions = "";
-   /** which ids of wares are affected */
-   String[] changedWaresIDs = null;
-   /** which wares are affected */
-   transient Ware[] changedWares = null;
-   /**
-    * How much each ware is affected.
-    * Valid entries are:<br>
-    * +/-3: Positive/negative large change<br>
-    * +/-2: Positive/negative medium change<br>
-    * +/-1: Positive/negative small change
-    */
-   int[] changeMagnitudes = null;
-
    // STATIC METHODS
    /**
     * Prepares for using random events.
     * <p>
+    * This method sends a request to the thread handling random events
+    * to perform a given task before firing the next random event.
+    * There is no guarantee for when the task will be completed.
+    * <p>
     * Complexity: O(n), where n is events to load
     */
-   public static void loadRandomEvents() { return; }
+   public static void load() {
+      if (queue == null)
+         return;
+
+      queue.add(QueueCommands.LOAD);
+   }
 
    /**
     * Recalculates events' effects on quantities available for sale
     * according to configuration settings.
     * <p>
+    * This method sends a request to the thread handling random events
+    * to perform a given task before firing the next random event.
+    * There is no guarantee for when the task will be completed.
+    * <p>
     * Complexity: O(1)
     */
-   public static void calcQuantityChanges() { return; }
+   public static void calcQuantityChanges() {
+      if (queue == null)
+         return;
+
+      queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
+   }
 
    /**
     * Relinks random events to wares they affect.
     * Necessary if wares are reloaded.
     * <p>
+    * This method sends a request to the thread handling random events
+    * to perform a given task before firing the next random event.
+    * There is no guarantee for when the task will be completed.
+    * <p>
     * Complexity: O(n*m)<br>
     * where n is the number of random events<br>
     * where m is the number of affected wares
     */
-   public static void reloadWares() { return; }
+   public static void reloadWares() {
+      if (queue == null)
+         return;
+
+      queue.add(QueueCommands.RELOAD_WARES);
+   }
 
    /**
-    * Generates descriptions for affected wares if they haven't been generated already.
-    * Necessary if printing wares' changes was initially disabled,
+    * Generates descriptions stating which wares are affected by events,
+    * if they haven't been generated already.
+    * This is necessary if printing wares' changes was initially disabled,
     * then was enabled by reloading configuration.
+    * <p>
+    * This method sends a request to the thread handling random events
+    * to perform a given task before firing the next random event.
+    * There is no guarantee for when the task will be completed.
     * <p>
     * Complexity: O(n*m) or O(1)<br>
     * where n is the number of random events<br>
     * where m is the number of affected wares
     */
-   public static void generateWareChangeDescriptions() { return; }
+   public static void generateWareChangeDescriptions() {
+      if (queue == null)
+         return;
 
-   /**
-    * Randomly selects an event and makes it happen.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void fireEvent() { return; }
-
-   /**
-    * Makes random events start occurring.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void enableRandomEvents() { return; }
-
-   /**
-    * Makes random events stop occurring.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void disableRandomEvents() { return; }
+      queue.add(QueueCommands.GEN_WARE_DESCS);
+   }
 
    /**
     * Spawns and handles a thread for handling random events.
@@ -170,6 +160,9 @@ public class RandomEvents extends TimerTask {
             // exit to delay setting up until the marketplace is set up
             return;
          }
+
+         // if necessary, recalculate change amounts for quantities
+         // float[] oldQuantityChangePercents
 
          // start random events
          if (timerRandomEvents == null ) {
@@ -250,7 +243,7 @@ public class RandomEvents extends TimerTask {
       // attempt to read file
       try {
          fileReader = new FileReader(fileRandomEvents);
-         randomEvents = gson.fromJson(fileReader, RandomEvent[].class);
+         // To-Do: Read the file to fill randomEvents
          fileReader.close();
       }
       catch (JsonSyntaxException e) {
@@ -274,15 +267,19 @@ public class RandomEvents extends TimerTask {
          } catch (Exception e) { }
    
          Config.commandInterface.printToConsole(CommandEconomy.WARN_RANDOM_EVENTS_NONE_LOADED);
+         endRandomEvents();
          return;
       }
 
       // validate random events
+         // if the random event fails to load,
+         // remove the entry
 
       // check whether any events were loaded
       if (randomEvents.length <= 0) {
          randomEvents = null; // disable random events
          Config.commandInterface.printToConsole(CommandEconomy.WARN_RANDOM_EVENTS_NONE_LOADED);
+         endRandomEvents();
          return;
       }
 
@@ -298,7 +295,16 @@ public class RandomEvents extends TimerTask {
     * Complexity: O(1)
     */
    private static void calcQuantityChangesPrivate() {
-      return;
+      // if necessary, initialize arrays
+      if (quanChangeLarge == null) {
+         quanChangeLarge  = new int[6];
+         quanChangeMedium = new int[6];
+         quanChangeSmall  = new int[6];
+      }
+
+      // initialize percentage variables
+
+      // calculate change amounts
    }
 
    /**
@@ -313,7 +319,8 @@ public class RandomEvents extends TimerTask {
       if (randomEvents == null)
          return;
 
-      return;
+      // reload wares for each random event
+         // if an error is found, don't use that random event
    }
 
    /**
@@ -332,7 +339,10 @@ public class RandomEvents extends TimerTask {
           randomEvents == null)
          return;
 
-      return;
+      // generate descriptions
+      for (RandomEvent randomEvent : randomEvents) {
+         randomEvent.generateWareChangeDescriptions();
+      }
    }
 
    // INSTANCE METHODS
@@ -377,6 +387,11 @@ public class RandomEvents extends TimerTask {
             // recalc quantities
             case RELOAD_WARES:
                calcQuantityChangesPrivate();
+               break;
+
+            // generate ware descriptions
+            case GEN_WARE_DESCS:
+               generateWareChangeDescriptionsPrivate();
          }
       }
 
@@ -388,7 +403,14 @@ public class RandomEvents extends TimerTask {
       if (randomEvents == null)
          return;
 
-      return;
+      // randomly select an event and make it happen
+
+      // determine how long to wait until the next event
+      if (Config.randomEventsVariance != 0.0f) {
+         // randomize wait time based on configured variance
+
+         // wait a random amount of time before the next event
+      }
    }
 
    /**
@@ -400,6 +422,46 @@ public class RandomEvents extends TimerTask {
     */
    private class RandomEvent
    {
+      // STATIC VARIABLES
+      // +++ --> Dark Green
+      //  ++ --> Green
+      //   + --> Light Green or Italicized Green
+      // --- --> Dark Red
+      //  -- --> Red
+      //   - --> Light Red or Italicized Red
+
+      // Terminal Interface
+      /** color code for positive, large changes in ware's quantities */
+      private static final String PREFIX_POS_LARGE  = "\033[1m\033[32m+++";
+      /** color code for positive, medium changes in ware's quantities */
+      private static final String PREFIX_POS_MEDIUM = "\033[32m++";
+      /** color code for positive, small changes in ware's quantities */
+      private static final String PREFIX_POS_SMALL  = "\033[32;1m+";
+      /** color code for negative, large changes in ware's quantities */
+      private static final String PREFIX_NEG_LARGE  = "\033[1m\033[31m---";
+      /** color code for negative, medium changes in ware's quantities */
+      private static final String PREFIX_NEG_MEDIUM = "\033[31m--";
+      /** color code for negative, small changes in ware's quantities */
+      private static final String PREFIX_NEG_SMALL  = "\033[31;1m-";
+      /** code for resetting color codes */
+      private static final String POSTFIX           = "\033[0m\n";
+
+      // Minecraft Interface
+      /** color code for positive, large changes in ware's quantities */
+      //private static final String PREFIX_POS_LARGE  = "§2+++";
+      /** color code for positive, medium changes in ware's quantities */
+      //private static final String PREFIX_POS_MEDIUM = "§a++";
+      /** color code for positive, small changes in ware's quantities */
+      //private static final String PREFIX_POS_SMALL  = "§a§o+";
+      /** color code for negative, large changes in ware's quantities */
+      //private static final String PREFIX_NEG_LARGE  = "§4---";
+      /** color code for negative, medium changes in ware's quantities */
+      //private static final String PREFIX_NEG_MEDIUM = "§c--";
+      /** color code for negative, small changes in ware's quantities */
+      //private static final String PREFIX_NEG_SMALL  = "§c§o-";
+      /** code for resetting color codes */
+      //private static final String POSTFIX           = "§r\n";
+
       // INSTANCE VARIABLES
       /**
        * What to print when the event occurs.
@@ -438,21 +500,143 @@ public class RandomEvents extends TimerTask {
        * Prepares and checks the event's data, correcting errors where possible.
        * <p>
        * Complexity: O(n), where n is wares affected by the event
+       * @return <code>true</code> if an error was detected and loading failed
        */
-      private void load() { return; }
+      public boolean load() {
+         // validate description
+         if (description == null || description.isEmpty()) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_DESC_MISSING);
+            return true;
+         }
+
+         // validate effects
+         // check whether magnitudes were loaded
+         if (changeMagnitudes == null) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+            return true;
+         }
+
+         // check whether magnitudes entries were loaded
+         int sizeChangeMagnitudes = changeMagnitudes.length;
+         if (sizeChangeMagnitudes == 0) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+            return true;
+         }
+
+         // check whether magnitude entries are valid
+         for (int i = 0; i < sizeChangeMagnitudes; i++) {
+            if (changeMagnitudes[i] < -3 || changeMagnitudes[i] == 0 || changeMagnitudes[i] > 3) {
+               Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_INVALID + changeMagnitudes[i] + CommandEconomy.MSG_RANDOM_EVENTS_CHANGES + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+               return true;
+            }
+         }
+
+         // validate ware IDs
+         // check whether ware IDs were loaded
+         if (changedWaresIDs == null) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+            return true;
+         }
+
+         // check whether ware ID entries were loaded
+         int sizeChangedWaresIDs = changedWaresIDs.length;
+         if (sizeChangedWaresIDs == 0) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+            return true;
+         }
+
+         // check whether the is a magnitude for every ware ID
+         if (sizeChangedWaresIDs != sizeChangeMagnitudes) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_CHANGES_MISMATCH + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+            return true;
+         }
+
+         // load wares
+         return reloadWares();
+      }
 
       /**
        * Prints the event's description and adjusts wares' quantities for sale.
        * <p>
        * Complexity: O(n^2), where n is characters in the event's description
        */
-      private void fire() { return; }
+      public void fire() {
+         // change wares' quantities for sale
+
+         // print scenario description
+         // Config.commandInterface.printToAllUsers(description);
+
+         // print effects on wares
+      }
 
       /**
        * Relinks affected wares with the marketplace's wares.
        * <p>
        * Complexity: O(n), where n is wares affected by the event
+       * @return <code>true</code> if no wares were loaded
        */
-      private void reloadWares() { return; }
+      public boolean reloadWares() {
+         // if wares cannot be loaded, flag an error
+         if (changedWaresIDs == null || changedWaresIDs.length == 0) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_CHANGES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+            return true;
+         }
+
+         // try to grab each ware
+            // ware = Marketplace.translateAndGrab(changedWaresIDs[i]);
+
+            // if the ware is not fine, record it
+            /*
+               // if enabled, print which scenario is using an invalid ware ID
+               if (Config.randomEventsReportInvalidWares && !foundInvalidEntry)
+                  System.err.print(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID +
+                                   CommandEconomy.MSG_RANDOM_EVENT_DESC + description + CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
+
+               // if enabled, report invalid IDs
+               if (Config.randomEventsReportInvalidWares)
+                  System.err.print(changedWaresIDs[i] + ", ");
+            */
+
+         // check whether any wares were loaded
+         /*
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_NO_VALID + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
+            return true;
+            */
+
+         // report that no errors were found
+         return false;
+      }
+
+      /**
+       * Generates descriptions stating which wares are affected by events.
+       * <p>
+       * Complexity: O(n),where n is the number of affected wares
+       */
+      public void generateWareChangeDescriptions() {
+         // if wares cannot be parsed, there is nothing to do
+         if (changedWares == null || changedWares.length == 0 ||
+             changeMagnitudesCurrent == null || changeMagnitudesCurrent.length == 0 ||
+             changedWares.length != changeMagnitudesCurrent.length)
+            return;
+
+         // prepare a buffer for each change order of magnitude
+         // eliminates the needs for ware changes to be sorted
+         StringBuilder descriptionPosLarge  = new StringBuilder(PREFIX_POS_LARGE);
+         StringBuilder descriptionPosMedium = new StringBuilder(PREFIX_POS_MEDIUM);
+         StringBuilder descriptionPosSmall  = new StringBuilder(PREFIX_POS_SMALL);
+         StringBuilder descriptionNegLarge  = new StringBuilder(PREFIX_NEG_LARGE);
+         StringBuilder descriptionNegMedium = new StringBuilder(PREFIX_NEG_MEDIUM);
+         StringBuilder descriptionNegSmall  = new StringBuilder(PREFIX_NEG_SMALL);
+
+         // use changes' magnitudes to
+         // determine how to format descriptions
+            // add to buffer corresponding to change's magnitude
+
+         // generate overall description by combining buffers
+         // add each buffer if it has any entries
+         // also, remove trailing comma and space
+
+         // reduce size to as much as is needed
+      }
    };
 };

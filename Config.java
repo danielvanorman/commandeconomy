@@ -203,6 +203,8 @@ public class Config
    public static boolean randomEventsAreChangesPercents = true;
    /** if true, random events display ware IDs affected by a recent event */
    public static boolean randomEventsPrintChanges = false;
+   /** whether to print warnings for events' ware IDs or aliases not found within the marketplace */
+   public static boolean randomEventsReportInvalidWares = false;
 
    /**
     * Sets a config option to a given value or prints an error.
