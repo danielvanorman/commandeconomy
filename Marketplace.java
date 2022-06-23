@@ -1736,7 +1736,7 @@ public class Marketplace {
       // if transaction fees are used,
       // check whether profit will be made
       if (Config.chargeTransactionFees &&
-          Config.transactionFeeSelling > 0.0f &&
+          Config.transactionFeeSelling != 0.0f &&
           minUnitPrice >= 0.0f) {
          // calculate potential income and fee
          float price = getPrice(null, wareID, quantityToSell, false);
@@ -1745,7 +1745,8 @@ public class Marketplace {
             fee *= price;
 
          // if selling is guaranteed to lose money, don't sell
-         if (price - fee + Account.canNegativeFeeBePaid(fee) <= 0.0f) {
+         if (fee != 0.0f && // if the fee is zero, it cannot incur costs
+             price - fee + Account.canNegativeFeeBePaid(fee) <= 0.0f) {
             Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
             return;
          }
@@ -1783,8 +1784,13 @@ public class Marketplace {
           Config.transactionFeeSelling != 0.0f) {
          // find fee's charge
          float fee = Config.transactionFeeSelling;
-         if (Config.transactionFeeSellingIsMult)
+         if (Config.transactionFeeSellingIsMult) {
             fee *= salesResults[0];
+
+            // stop if the fee is zero
+            if (fee == 0.0f)
+               return;
+         }
 
          // check whether a fee collection account should be used
          if (Config.transactionFeesShouldPutFeesIntoAccount)
@@ -2068,7 +2074,7 @@ public class Marketplace {
                totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth;
 
                // check whether the transaction became profitable
-               isProfitable = totalEarnings > Config.transactionFeeSelling;
+               isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
 
                // if the transaction is profitable,
                // sell the ware
@@ -2100,7 +2106,7 @@ public class Marketplace {
                totalEarnings += getPrice(playerID, translatedID, quantityToBeSold, false) * stock.percentWorth;
 
                // check whether the transaction became profitable
-               isProfitable = totalEarnings > Config.transactionFeeSelling;
+               isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
 
                // if the transaction is profitable,
                // sell the ware
@@ -2130,7 +2136,7 @@ public class Marketplace {
                quantityToBeSold = (-1 * quantityLeftover);
 
                // check whether the transaction became profitable
-               isProfitable = totalEarnings > Config.transactionFeeSelling;
+               isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
 
                // if the transaction is profitable,
                // sell the ware

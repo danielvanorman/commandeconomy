@@ -15449,13 +15449,121 @@ public class TestSuite
    }
 
    /**
+    * Evaluates whether a transaction fee outputted the correct error message
+    * for a typical case of selling something.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware                  the ware to be sold
+    * @param quantityWare          what to set the ware's quantity available for sale to
+    * @param quantityToTrade       how much of the ware to sell
+    * @param quantityToOffer       how much of the ware to try to sell
+    * @param minUnitPrice          seller's minimum acceptable unit price
+    * @param transactionFeesAmount transaction fee rate to charge
+    * @param testNumber            test number to use when printing errors
+    * @param printTestNumber       whether to print test numbers
+    * @return true if an error was discovered
+    */
+   private static boolean testTransActFeeSellErrorMsgs(Ware ware, int quantityWare,
+                                                       int quantityToTrade, int quantityToOffer,
+                                                       float minUnitPrice, float transactionFeesAmount,
+                                                       int testNumber, boolean printTestNumber) {
+      String  testIdentifier;     // can be added to printed errors to differentiate between tests
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      float   price;               // how much traded wares should cost
+      float   fee;                 // transaction fee to be paid
+      boolean isProfitable = true; // whether selling will make the seller money
+
+      if (printTestNumber)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test conditions
+      Config.transactionFeeSelling = transactionFeesAmount;
+      ware.setQuantity(quantityWare);
+      InterfaceTerminal.inventory.clear();
+      InterfaceTerminal.inventory.put(ware.getWareID(), quantityToOffer);
+
+      // set up test oracles
+      Config.chargeTransactionFees = false;  // calculate transaction price and fee separately
+      price                        = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, false);
+      Config.chargeTransactionFees = true;
+      if (Config.transactionFeeSelling != 0.00f) { // only expect a fee if feature is enabled
+         fee                       = Config.transactionFeeSelling;
+         if (Config.transactionFeeSellingIsMult)       // if fee is a multiplier rather than a flat rate
+            fee                   *= price;
+         fee                       = CommandEconomy.truncatePrice(fee); // avoid precision errors using truncation
+      }
+      else
+         fee                       = 0.0f;
+      isProfitable                 = price - fee > 0.0f || minUnitPrice < 0.0f; // if a negative price is acceptable, then no profit is acceptable
+
+      // test as normal
+      baosOut.reset(); // clear buffer holding console output
+      Marketplace.sell(PLAYER_ID, null, ware.getWareID(), quantityToOffer, minUnitPrice, null);
+
+      // check ware properties
+      if (ware.getQuantity() != quantityWare + quantityToTrade) {
+         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
+                            ", should be " + (quantityWare + quantityToTrade));
+         errorFound = true;
+      }
+      // check console output
+      // check whether transaction applied message should be and is included
+      if (isProfitable && fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
+                             "   expected: \"Transaction fee applied\"");
+         errorFound = true;
+      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains("   Transaction fee applied: ")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
+                             "   unexpected: \"Transaction fee applied\"");
+         errorFound = true;
+      }
+
+      // check whether the appropriate message is given if the ware is free
+      if (!isProfitable) {
+         // if the transaction fee makes the ware unprofitable, say so
+         if (fee > 0.0f) {
+            if (!baosOut.toString().contains("Transaction fee is too high to make a profit")) {
+               TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
+                                   "   expected: \"Transaction fee is too high to make a profit\"");
+               errorFound = true;
+            }
+         }
+
+         // if the transaction is unprofitable and not because of the fee,
+         // don't blame the fee
+         else {
+            if (baosOut.toString().contains("Transaction fee is too high to make a profit")) {
+               TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
+                                    "   unexpected: \"Transaction fee is too high to make a profit\"");
+               errorFound = true;
+            }
+         }
+      }
+
+      // check for loss warnings when accepting losses
+      else {
+         if (baosOut.toString().contains("Transaction fee is too high to make a profit")) {
+            TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
+                                 "   unexpected: \"Transaction fee is too high to make a profit\"");
+            errorFound = true;
+         }
+      }
+
+      return errorFound;
+   }
+
+   /**
     * Evaluates whether a transaction fee was deposited
     * into the fee collection account correctly.
     * Prints errors, if found.
     * <p>
     * Complexity: O(1)
     * @param ware                  the ware to be purchased
-    * @param quantityToTrade       how much of the ware to purchase
+    * @param quantityToTrade       how much of the ware to sell
     * @param transactionFeesAmount transaction fee rate to charge
     * @param accountMoney          how much money the fee collection account should start with
     * @param testNumber            test number to use when printing errors
@@ -16576,6 +16684,43 @@ public class TestSuite
 
          Config.transactionFeeSellingIsMult= false;
          errorFound |= testTransActFeeSellAccount(testWareC1, 10, -11.0f, 10.0f, 2, true);
+
+         TEST_OUTPUT.println("transaction fees - sell(): $0.00 wares, percent rates, positive rates");
+         Config.transactionFeeSellingIsMult = true;
+         errorFound |= testTransActFeeSellErrorMsgs(testWare1,  10000,   1,   1, 0.0f, 0.90f, 1, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareC1, 10000,  10,  10, 0.0f, 1.20f, 2, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareP1, 10000, 100, 100, 0.0f, 0.10f, 3, true);
+
+         TEST_OUTPUT.println("transaction fees - sell(): $0.00 wares, percent rates, negative rates");
+         errorFound |= testTransActFeeSellErrorMsgs(testWare1,  10000,   1,   1, 0.0f, -0.90f, 1, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareC1, 10000,  10,  10, 0.0f, -1.20f, 2, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareP1, 10000, 100, 100, 0.0f, -0.10f, 3, true);
+
+         TEST_OUTPUT.println("transaction fees - sell(): $0.00 wares, flat rates, positive rates");
+         Config.transactionFeeSellingIsMult = false;
+         errorFound |= testTransActFeeSellErrorMsgs(testWare1,  10000,   0,   1, 0.0f, 0.90f, 1, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareC1, 10000,   0,  10, 0.0f, 1.20f, 2, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareP1, 10000,   0, 100, 0.0f, 0.10f, 3, true);
+
+         TEST_OUTPUT.println("transaction fees - sell(): $0.00 wares, flat rates, positive rates, negative acceptable price");
+         errorFound |= testTransActFeeSellErrorMsgs(testWare1,  10000,   1,   1, -100.0f, 0.90f, 1, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareC1, 10000,  10,  10, -100.0f, 1.20f, 2, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareP1, 10000, 100, 100, -100.0f, 0.10f, 3, true);
+
+         TEST_OUTPUT.println("transaction fees - sell(): $0.00 wares, flat rates, negative rates");
+         errorFound |= testTransActFeeSellErrorMsgs(testWare1,  10000,   1,   1, 0.0f, -0.90f, 1, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareC1, 10000,  10,  10, 0.0f, -1.20f, 2, true);
+
+         errorFound |= testTransActFeeSellErrorMsgs(testWareP1, 10000, 100, 100, 0.0f, -0.10f, 3, true);
 
 
          // ensure fee collection account has sufficient wealth to pay negative fees
