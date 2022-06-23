@@ -49,7 +49,7 @@ public class Config
    private   static String filenameNoPathAccounts      = "accounts.txt";
    /** contains possible AI, the wares they may trade, and their preferences */
    protected static String filenameNoPathAIProfessions = "aiProfessions.json";
-   /** contains accounts usable within the marketplace */
+   /** contains potential events affecting the marketplace */
    protected static String filenameNoPathRandomEvents  = "randomEvents.json";
 
    /** contains settings for customizing the marketplace */
@@ -64,7 +64,7 @@ public class Config
    public static String  filenameMarket        = "config" + File.separator + "CommandEconomy" + File.separator + "market.txt";
    /** contains possible AI, the wares they may trade, and their preferences */
    public static String  filenameAIProfessions = "CommandEconomy" + File.separator + "aiProfessions.json";
-   /** contains accounts usable within the marketplace */
+   /** contains potential events affecting the marketplace */
    public static String  filenameRandomEvents  = "CommandEconomy" + File.separator + "randomEvents.json";
    /** if true, load global save files instead of local */
    public static boolean crossWorldMarketplace = false;
@@ -295,6 +295,29 @@ public class Config
             transactionFeeSending = value;
             break;
 
+         case "randomEventsFrequency":
+            if (value < 0.0f)
+               value = -value;
+            randomEventsFrequency = (int) value * 60000;  // 60000 milliseconds per minute
+            break;
+         case "randomEventsVariance":
+            if (value < 0.0f)
+               value = -value;
+            if (value >  1.0f)
+               randomEventsVariance = 1.0f;
+            else
+               randomEventsVariance = value;
+            break;
+         case "randomEventsSmallChange":
+            randomEventsSmallChange = value;
+            break;
+         case "randomEventsMediumChange":
+            randomEventsMediumChange = value;
+            break;
+         case "randomEventsLargeChange":
+            randomEventsLargeChange = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -390,6 +413,16 @@ public class Config
             transactionFeesShouldPutFeesIntoAccount = value;
             break;
 
+         case "randomEvents":
+            randomEvents = value;
+            break;
+         case "randomEventsAreChangesPercents":
+            randomEventsAreChangesPercents = value;
+            break;
+         case "randomEventsPrintChanges":
+            randomEventsPrintChanges = value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
       }
@@ -424,6 +457,10 @@ public class Config
 
          case "transactionFeesAccount":
             transactionFeesAccount = value;
+            break;
+
+         case "filenameRandomEvents":
+            filenameNoPathRandomEvents = value;
             break;
 
          default:
@@ -468,6 +505,7 @@ public class Config
       String  oldFilenameNoPathWaresSave     = filenameNoPathWaresSave;
       String  oldFilenameNoPathAccounts      = filenameNoPathAccounts;
       String  oldFilenameNoPathAIProfessions = filenameNoPathAIProfessions;
+      String  oldFilenameNoPathRandomEvents  = filenameNoPathRandomEvents;
 
       // track changes to equilibrium quantities
       // for features depending on equilibriums
@@ -589,8 +627,9 @@ public class Config
       boolean regenWaresSave     = !oldFilenameNoPathWaresSave.equals(filenameWares);
       boolean regenAccounts      = !oldFilenameNoPathAccounts.equals(filenameWares);
       boolean regenAIProfessions = !oldFilenameNoPathAIProfessions.equals(filenameWares);
+      boolean regenRandomEvents  = !oldFilenameNoPathRandomEvents.equals(filenameWares);
       // check whether file paths need to be regenerated
-      if (regenWares || regenWaresSave || regenAccounts || regenAIProfessions ||
+      if (regenWares || regenWaresSave || regenAccounts || regenAIProfessions || regenRandomEvents ||
           oldCrossWorldMarketplace != crossWorldMarketplace) {
          if (crossWorldMarketplace)
             path = "config" + File.separator + "CommandEconomy" + File.separator;
@@ -605,6 +644,8 @@ public class Config
             filenameAccounts      = path + filenameNoPathAccounts;
          if (regenAIProfessions)
             filenameAIProfessions = path + filenameNoPathAIProfessions;
+         if (regenRandomEvents)
+            filenameRandomEvents  = path + filenameNoPathRandomEvents;
       }
 
       // check for changes to equilibrium quantities
@@ -621,7 +662,13 @@ public class Config
       if (equilibriumChanged) {
          // if AI is enabled,
          // calculate trade amounts
-         AIHandler.calcTradeQuantities();
+         if (enableAI)
+            AIHandler.calcTradeQuantities();
+
+         // if random events are enabled,
+         // calculate changes for wares' quantities for sale
+         if (randomEvents)
+             RandomEvents.calcQuantityChanges();
       }
 
       // if the price floor is higher than the price ceiling, swap them
@@ -714,6 +761,16 @@ public class Config
       transactionFeeSendingIsMult = true;
       transactionFeesShouldPutFeesIntoAccount = true;
       transactionFeesAccount      = CommandEconomy.TRANSACT_FEE_COLLECTION;
+
+      // random events
+      randomEvents                   = false;
+      randomEventsFrequency          = 60;
+      randomEventsVariance           = 0.25f;
+      randomEventsSmallChange        = 0.05f;
+      randomEventsMediumChange       = 0.10f;
+      randomEventsLargeChange        = 0.15f;
+      randomEventsAreChangesPercents = true;
+      randomEventsPrintChanges       = false;
    }
 
    /**

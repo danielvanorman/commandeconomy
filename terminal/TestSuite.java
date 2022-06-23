@@ -419,9 +419,9 @@ public class TestSuite
 
       // test events which affect wares' quantities for sale
       if (testRandomEvents())
-         System.err.println("test passed - random events\n");
+         TEST_OUTPUT.println("test passed - random events\n");
       else {
-         System.err.println("test failed - random events\n");
+         TEST_OUTPUT.println("test failed - random events\n");
          failedTests += "   random events\n";
       }
 
@@ -17390,7 +17390,9 @@ public class TestSuite
             fileWriter.close();
          } catch (Exception e) {
             TEST_OUTPUT.println("   unable to create test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             return false;
          }
 
@@ -17429,9 +17431,15 @@ public class TestSuite
             fileWriter.close();
          } catch (Exception e) {
             TEST_OUTPUT.println("   unable to create test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             return false;
          }
+
+         // ensure thread reference is current
+         RandomEvents.startOrReconfigRandomEvents();
+         timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
 
          // try to load the test file
          try {
@@ -17440,7 +17448,9 @@ public class TestSuite
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             errorFound = true;
          }
 
@@ -17484,9 +17494,15 @@ public class TestSuite
             fileWriter.close();
          } catch (Exception e) {
             TEST_OUTPUT.println("   unable to create test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             return false;
          }
+
+         // ensure thread reference is current
+         RandomEvents.startOrReconfigRandomEvents();
+         timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
 
          // try to load the test file
          try {
@@ -17495,7 +17511,9 @@ public class TestSuite
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             errorFound = true;
          }
 
@@ -17532,7 +17550,9 @@ public class TestSuite
             fileWriter.close();
          } catch (Exception e) {
             TEST_OUTPUT.println("   unable to create test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             return false;
          }
 
@@ -17543,7 +17563,9 @@ public class TestSuite
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             errorFound = true;
          }
 
@@ -17577,7 +17599,9 @@ public class TestSuite
             fileWriter.close();
          } catch (Exception e) {
             TEST_OUTPUT.println("   unable to create test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             return false;
          }
 
@@ -17588,7 +17612,9 @@ public class TestSuite
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             errorFound = true;
          }
 
@@ -17601,7 +17627,6 @@ public class TestSuite
             TEST_OUTPUT.println("   random events loaded: " + randomEvents.length + ", should be 3");
             errorFound = true;
          }
-
 
          // set up test environment
          // grab the RandomEvent constructor
@@ -17755,13 +17780,10 @@ public class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
 
          // grab the new timertask since frequency was changed
          timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
-
-         timerTaskRandomEvents.run();
 
          // test printing after disabling printing changes
          baosOut.reset(); // clear buffer holding console output
@@ -17799,9 +17821,7 @@ public class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
-         timerTaskRandomEvents.run();
 
          // test printing after enabling printing changes
          baosOut.reset(); // clear buffer holding console output
@@ -17827,7 +17847,6 @@ public class TestSuite
             TEST_OUTPUT.println("    unexpected descriptions for test event 3: " + baosOut.toString());
             errorFound = true;
          }
-
 
          // prepare for next test by grabbing random events requests queue
          // to know when to check values
@@ -17873,6 +17892,7 @@ public class TestSuite
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         fRandomEvents.set(requiredObject, null); // prevent firing an event immediately, then hanging while waiting for randomEventsFrequency minutes to pass
          timerTaskRandomEvents.run();
 
          // set up expected results
@@ -18104,7 +18124,9 @@ public class TestSuite
 
          // reload wares to reset to equilibrium
          Marketplace.loadWares();
+         Config.randomEventsFrequency = 1; // prevent hanging
          timerTaskRandomEvents.run();
+         Config.randomEventsFrequency = 99999; // prevent thread from interfering
 
          // restore event magnitudes
          fChangeMagnitudesCurrent = randomEventClass.getDeclaredField("changeMagnitudesCurrent");
@@ -18158,7 +18180,9 @@ public class TestSuite
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         Config.randomEventsFrequency = 1; // prevent hanging
          timerTaskRandomEvents.run();
+         Config.randomEventsFrequency = 99999; // prevent thread from interfering
 
          // paranoidly check changing equilibrium quantity
          if (Config.quanMid[0] != 192 || Config.quanMid[1] != 96 || Config.quanMid[2] != 48 ||
@@ -18257,7 +18281,9 @@ public class TestSuite
       }
       catch (Exception e) {
          TEST_OUTPUT.println("random events - fatal error: " + e);
+         baosErr.reset();
          e.printStackTrace();
+         TEST_OUTPUT.println(baosErr.toString());
          return false;
       }
 

@@ -9,7 +9,7 @@ import com.google.gson.JsonSyntaxException;     // for more specific error messa
 import java.util.Timer;                         // for triggering events periodically and on a separate thread
 import java.util.TimerTask;                     // for disabling random events mid-execution
 import java.util.concurrent.ArrayBlockingQueue; // for communication between the main thread and the thread handling random events
-import java.lang.StringBuilder;                 // for generating ware change descriptions
+import java.lang.StringBuilder;                 // for generating ware change descriptions and reporting invalid ware IDs
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequency and decisions
 
 /**
@@ -157,22 +157,41 @@ public class RandomEvents extends TimerTask {
             queue.add(QueueCommands.LOAD);
             queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
 
+            // record change amounts for quantities for the first time
+            if (oldQuantityChangePercents == null) {
+               oldQuantityChangePercents    = new float[3];
+               oldQuantityChangePercents[0] = Config.randomEventsSmallChange;
+               oldQuantityChangePercents[1] = Config.randomEventsMediumChange;
+               oldQuantityChangePercents[2] = Config.randomEventsLargeChange;
+            }
+
             // exit to delay setting up until the marketplace is set up
             return;
          }
 
          // if necessary, recalculate change amounts for quantities
-         // float[] oldQuantityChangePercents
+         if (oldQuantityChangePercents != null &&
+             (oldQuantityChangePercents[0] != Config.randomEventsSmallChange  ||
+              oldQuantityChangePercents[1] != Config.randomEventsMediumChange ||
+              oldQuantityChangePercents[2] != Config.randomEventsLargeChange)) {
+            queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
+
+            // record quantity change amounts to monitor for changes
+            oldQuantityChangePercents    = new float[3];
+            oldQuantityChangePercents[0] = Config.randomEventsSmallChange;
+            oldQuantityChangePercents[1] = Config.randomEventsMediumChange;
+            oldQuantityChangePercents[2] = Config.randomEventsLargeChange;
+         }
 
          // start random events
-         if (timerRandomEvents == null ) {
+         if (timerRandomEvents == null) {
             // initialize timer objects
             timerRandomEvents     = new Timer(true);
             timerTaskRandomEvents = new RandomEvents();
 
             // initialize random events
             timerRandomEvents.scheduleAtFixedRate(timerTaskRandomEvents, (long) 0, newFrequency);
-         } 
+         }
 
          // reload random events
          else if (oldFrequency != newFrequency) {
@@ -243,7 +262,7 @@ public class RandomEvents extends TimerTask {
       // attempt to read file
       try {
          fileReader = new FileReader(fileRandomEvents);
-         // To-Do: Read the file to fill randomEvents
+         randomEvents = gson.fromJson(fileReader, RandomEvent[].class);
          fileReader.close();
       }
       catch (JsonSyntaxException e) {
@@ -265,15 +284,46 @@ public class RandomEvents extends TimerTask {
             if (fileReader != null)
                fileReader.close();
          } catch (Exception e) { }
-   
+
          Config.commandInterface.printToConsole(CommandEconomy.WARN_RANDOM_EVENTS_NONE_LOADED);
          endRandomEvents();
          return;
       }
 
       // validate random events
+      int size = randomEvents.length;
+      int nullEntries = 0; // how many random events failed to load
+      RandomEvent[] compressedRandomEvents = new RandomEvent[size]; // eases copying events to an array without any null entries
+      int compressedIndex = 0;
+      for (int i = 0; i < size; i++) {
          // if the random event fails to load,
          // remove the entry
+         if (randomEvents[i].load()) {
+            randomEvents[i] = null;
+            nullEntries++;
+            // an error message has already been printed
+         }
+
+         // if the entry is valid,
+         // save it in the next null entry of an array
+         else {
+            compressedRandomEvents[compressedIndex] = randomEvents[i];
+            compressedIndex++;
+         }
+      }
+
+      // if necessary, resize the random events array
+      if (nullEntries > 0) {
+         // change pointer to prevent allocating a third array
+         randomEvents = compressedRandomEvents;
+
+         // copy event references to appropriately-sized array
+         compressedRandomEvents = new RandomEvent[size - nullEntries];
+         System.arraycopy(randomEvents, 0, compressedRandomEvents, 0, size - nullEntries);
+
+         // replace old array with new
+         randomEvents = compressedRandomEvents;
+      }
 
       // check whether any events were loaded
       if (randomEvents.length <= 0) {
@@ -303,8 +353,23 @@ public class RandomEvents extends TimerTask {
       }
 
       // initialize percentage variables
+      float changePercentLarge  = Config.randomEventsLargeChange;
+      float changePercentMedium = Config.randomEventsMediumChange;
+      float changePercentSmall  = Config.randomEventsSmallChange;
+
+      // if necessary, convert flat rate to percentage
+      if (!Config.randomEventsAreChangesPercents) {
+         changePercentLarge  /= Config.quanMid[2];
+         changePercentMedium /= Config.quanMid[2];
+         changePercentSmall  /= Config.quanMid[2];
+      }
 
       // calculate change amounts
+      for (int i = 0; i < 6; i++) {
+         quanChangeLarge[i]  = (int) (changePercentLarge  * Config.quanMid[i]);
+         quanChangeMedium[i] = (int) (changePercentMedium * Config.quanMid[i]);
+         quanChangeSmall[i]  = (int) (changePercentSmall  * Config.quanMid[i]);
+      }
    }
 
    /**
@@ -319,8 +384,32 @@ public class RandomEvents extends TimerTask {
       if (randomEvents == null)
          return;
 
+      // track whether any events failed to reload
+      int invalidEvents = 0;
+
       // reload wares for each random event
+      for (RandomEvent randomEvent : randomEvents) {
          // if an error is found, don't use that random event
+         if (randomEvent.reloadWares()) {
+            randomEvent = null;
+            invalidEvents++;
+         }
+      }
+
+      // check whether the array holding random event references should be resized
+      if (invalidEvents > 0) {
+         RandomEvent[] newRandomEvents = new RandomEvent[randomEvents.length - invalidEvents];
+
+         int index = 0;
+         for (RandomEvent randomEvent : randomEvents) {
+            if (randomEvent != null) {
+               newRandomEvents[index] = randomEvent;
+               index++;
+            }
+         }
+
+         randomEvents = newRandomEvents;
+      }
    }
 
    /**
@@ -379,14 +468,14 @@ public class RandomEvents extends TimerTask {
                loadRandomEventsPrivate();
                return;
 
-            // reload wares
+            // recalc quantities
             case CALC_TRADE_QUANTITIES:
-               reloadWaresPrivate();
+               calcQuantityChangesPrivate();
                break;
 
-            // recalc quantities
+            // reload wares
             case RELOAD_WARES:
-               calcQuantityChangesPrivate();
+               reloadWaresPrivate();
                break;
 
             // generate ware descriptions
@@ -404,12 +493,21 @@ public class RandomEvents extends TimerTask {
          return;
 
       // randomly select an event and make it happen
+      randomEvents[ThreadLocalRandom.current().nextInt(randomEvents.length)].fire();
 
       // determine how long to wait until the next event
       if (Config.randomEventsVariance != 0.0f) {
          // randomize wait time based on configured variance
+         long additionalWaitTime = ThreadLocalRandom.current().nextLong(
+            (long) (Config.randomEventsFrequency * (1.0f - Config.randomEventsVariance)),
+            (long) (Config.randomEventsFrequency * (1.0f + Config.randomEventsVariance)));
 
          // wait a random amount of time before the next event
+         try {
+            Thread.sleep(additionalWaitTime);
+         } catch (Exception e) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENTS_SLEEP + e);
+         }
       }
    }
 
@@ -561,12 +659,54 @@ public class RandomEvents extends TimerTask {
        * Complexity: O(n^2), where n is characters in the event's description
        */
       public void fire() {
+         int  size = changedWares.length; // how many wares should be affected
+         Ware ware;                       // current ware being affected
+
          // change wares' quantities for sale
+         Marketplace.acquireMutex(); // check if another thread is adjusting wares' properties
+         for (int i = 0; i < size; i++) {
+            ware = changedWares[i];
+
+            switch (changeMagnitudesCurrent[i]) {
+               case  3:
+                  ware.addQuantity(quanChangeLarge[ware.getLevel()]);
+                  break;
+
+               case  2:
+                  ware.addQuantity(quanChangeMedium[ware.getLevel()]);
+                  break;
+
+               case  1:
+                  ware.addQuantity(quanChangeSmall[ware.getLevel()]);
+                  break;
+
+               case -3:
+                  ware.subtractQuantity(quanChangeLarge[ware.getLevel()]);
+                  break;
+
+               case -2:
+                  ware.subtractQuantity(quanChangeMedium[ware.getLevel()]);
+                  break;
+
+               case -1:
+                  ware.subtractQuantity(quanChangeSmall[ware.getLevel()]);
+                  break;
+
+               default:
+                  break; // this line should never be reached
+            }
+         }
+
+         // allow other threads to adjust wares' properties
+         Marketplace.releaseMutex();
 
          // print scenario description
-         // Config.commandInterface.printToAllUsers(description);
+         Config.commandInterface.printToAllUsers(description);
 
          // print effects on wares
+         if (Config.randomEventsPrintChanges && descriptionChangedWares != null) {
+            Config.commandInterface.printToAllUsers(descriptionChangedWares.toString());
+         }
       }
 
       /**
@@ -582,26 +722,69 @@ public class RandomEvents extends TimerTask {
             return true;
          }
 
-         // try to grab each ware
-            // ware = Marketplace.translateAndGrab(changedWaresIDs[i]);
+         // prepare to load wares
+         int     size                    = changedWaresIDs.length; // how many ware IDs should be processed
+                 changedWares            = new Ware[size];         // holds affected ware references
+                 changeMagnitudesCurrent = new int[size];          // holds how much each ware should be changed
+         boolean foundInvalidEntry       = false;                  // whether a ware ID is unusable
+         int     changedWaresIndex       = 0;                      // eases shrinking the array holding ware references
+         Ware    ware;                                             // holds ware reference before adding to array
+         StringBuilder invalidWareIDs    = null;                   // if reporting is enabled, prepares invalid ware IDs and aliases before printing them
 
+         // grab each ware's latest reference
+         for (int i = 0; i < size; i++) {
+            ware = Marketplace.translateAndGrab(changedWaresIDs[i]);
+
+            // if the ware is fine, use it
+            if (ware != null && !(ware instanceof WareUntradeable)) {
+               changedWares[changedWaresIndex] = ware;                           // move ware reference into correct location
+               changeMagnitudesCurrent[changedWaresIndex] = changeMagnitudes[i]; // move change magnitude into corresponding location
+               changedWaresIndex++;
+            }
             // if the ware is not fine, record it
-            /*
+            else {
                // if enabled, print which scenario is using an invalid ware ID
-               if (Config.randomEventsReportInvalidWares && !foundInvalidEntry)
-                  System.err.print(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID +
-                                   CommandEconomy.MSG_RANDOM_EVENT_DESC + description + CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
+               if (Config.randomEventsReportInvalidWares && !foundInvalidEntry) {
+                  // allocate space for holding invalid ware IDs before printing
+                  if (invalidWareIDs == null)
+                     invalidWareIDs = new StringBuilder();
+
+                  // prepare front matter for reporting the event's invalid IDs
+                  invalidWareIDs.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID +
+                                        CommandEconomy.MSG_RANDOM_EVENT_DESC + description +
+                                        CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
+               }
+
+               // flag that at least one invalid entry has been found
+               foundInvalidEntry = true;
 
                // if enabled, report invalid IDs
                if (Config.randomEventsReportInvalidWares)
-                  System.err.print(changedWaresIDs[i] + ", ");
-            */
+                  invalidWareIDs.append(changedWaresIDs[i] + ", ");
+            }
+         }
 
          // check whether any wares were loaded
-         /*
+         if (changedWaresIndex == 0) {
             Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_NO_VALID + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
             return true;
-            */
+         }
+
+         // check whether the arrays holding ware data should be resized
+         // and whether invalid ware IDs should be printed
+         if (foundInvalidEntry) {
+            Ware[] newChangedWares     = new Ware[changedWaresIndex];
+            int[]  newChangeMagnitudes = new int[changedWaresIndex];
+            System.arraycopy(changedWares, 0, newChangedWares, 0, changedWaresIndex);
+            System.arraycopy(changeMagnitudesCurrent, 0, newChangeMagnitudes, 0, changedWaresIndex);
+            changedWares               = newChangedWares;
+            changeMagnitudesCurrent    = newChangeMagnitudes;
+
+            // check whether invalid ware IDs should be printed
+            if (Config.randomEventsReportInvalidWares) {
+               Config.commandInterface.printToConsole(invalidWareIDs.substring(0, invalidWareIDs.length() - 2)); // remove the trailing comma and space
+            }
+         }
 
          // report that no errors were found
          return false;
@@ -619,8 +802,16 @@ public class RandomEvents extends TimerTask {
              changedWares.length != changeMagnitudesCurrent.length)
             return;
 
+         // initialize variables
+         // holds current change's level of effect
+         int  changeMagnitude = 0;
+         // holds current change's affected ware
+         Ware changedWare     = null;
+         // holds how many wares should be parsed
+         int  size            = changedWares.length;
+
          // prepare a buffer for each change order of magnitude
-         // eliminates the needs for ware changes to be sorted
+         // to eliminate the needs for ware changes to be sorted
          StringBuilder descriptionPosLarge  = new StringBuilder(PREFIX_POS_LARGE);
          StringBuilder descriptionPosMedium = new StringBuilder(PREFIX_POS_MEDIUM);
          StringBuilder descriptionPosSmall  = new StringBuilder(PREFIX_POS_SMALL);
@@ -630,13 +821,105 @@ public class RandomEvents extends TimerTask {
 
          // use changes' magnitudes to
          // determine how to format descriptions
+         for (int i = 0; i < size; i++) {
+            // grab change information
+            changedWare     = changedWares[i];
+            changeMagnitude = changeMagnitudesCurrent[i];
+
             // add to buffer corresponding to change's magnitude
+            switch(changeMagnitude) {
+               case 3:
+                  if (changedWare.getAlias() != null)
+                     descriptionPosLarge.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionPosLarge.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case 2:
+                  if (changedWare.getAlias() != null)
+                     descriptionPosMedium.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionPosMedium.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case 1:
+                  if (changedWare.getAlias() != null)
+                     descriptionPosSmall.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionPosSmall.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case -3:
+                  if (changedWare.getAlias() != null)
+                     descriptionNegLarge.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionNegLarge.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case -2:
+                  if (changedWare.getAlias() != null)
+                     descriptionNegMedium.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionNegMedium.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case -1:
+                  if (changedWare.getAlias() != null)
+                     descriptionNegSmall.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionNegSmall.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               default:
+                  // validation function should catch and handle invalid magnitudes
+                  break;
+            }
+         }
+
+         // allocate memory for overall description
+         if (descriptionChangedWares == null) {
+            descriptionChangedWares = new StringBuilder(
+               descriptionPosLarge.length()  + descriptionPosMedium.length() +
+               descriptionPosSmall.length()  + descriptionNegLarge.length()  +
+               descriptionNegMedium.length() + descriptionNegSmall.length());
+         } else {
+            descriptionChangedWares.setLength(0); // clear contents
+            descriptionChangedWares.ensureCapacity(
+               descriptionPosLarge.length()  + descriptionPosMedium.length() +
+               descriptionPosSmall.length()  + descriptionNegLarge.length()  +
+               descriptionNegMedium.length() + descriptionNegSmall.length());
+         }
 
          // generate overall description by combining buffers
          // add each buffer if it has any entries
          // also, remove trailing comma and space
+         if (descriptionPosLarge.length() != PREFIX_POS_LARGE.length()) {
+            descriptionPosLarge.setLength(descriptionPosLarge.length() - 2); // remove trailing comma and space
+            descriptionChangedWares.append(descriptionPosLarge).append(POSTFIX);
+         }
+         if (descriptionPosMedium.length() != PREFIX_POS_MEDIUM.length()) {
+            descriptionPosMedium.setLength(descriptionPosMedium.length() - 2);
+            descriptionChangedWares.append(descriptionPosMedium).append(POSTFIX);
+         }
+         if (descriptionPosSmall.length() != PREFIX_POS_SMALL.length()) {
+            descriptionPosSmall.setLength(descriptionPosSmall.length() - 2);
+            descriptionChangedWares.append(descriptionPosSmall).append(POSTFIX);
+         }
+         if (descriptionNegLarge.length() != PREFIX_NEG_LARGE.length()) {
+            descriptionNegLarge.setLength(descriptionNegLarge.length() - 2);
+            descriptionChangedWares.append(descriptionNegLarge).append(POSTFIX);
+         }
+         if (descriptionNegMedium.length() != PREFIX_NEG_MEDIUM.length()) {
+            descriptionNegMedium.setLength(descriptionNegMedium.length() - 2);
+            descriptionChangedWares.append(descriptionNegMedium).append(POSTFIX);
+         }
+         if (descriptionNegSmall.length() != PREFIX_NEG_SMALL.length()) {
+            descriptionNegSmall.setLength(descriptionNegSmall.length() - 2);
+            descriptionChangedWares.append(descriptionNegSmall).append(POSTFIX);
+         }
 
          // reduce size to as much as is needed
+         descriptionChangedWares.trimToSize();
       }
    };
 };

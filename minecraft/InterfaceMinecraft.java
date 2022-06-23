@@ -838,6 +838,22 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
 
    /**
+    * Forwards a message to all users.
+    *
+    * @param message what to tell the users
+    */
+   public void printToAllUsers(String message) {
+      if (message  == null || message.isEmpty())
+         return;
+
+      TextComponentString formattedMessage = new TextComponentString(message);
+
+      // print to all players currently online
+      for (EntityPlayer user : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayers())
+         user.sendMessage(formattedMessage);
+   }
+
+   /**
     * Forwards an message to a given user.
     *
     * @param player  who to give the message to
