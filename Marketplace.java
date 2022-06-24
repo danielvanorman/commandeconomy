@@ -1625,7 +1625,7 @@ public class Marketplace {
          account.subtractMoney(fee);
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.commandInterface.printToUser(playerID, Config.transactionFeeBuyingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       return;
@@ -1802,7 +1802,7 @@ public class Marketplace {
          account.subtractMoney(fee);
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.commandInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       return;
@@ -1889,7 +1889,7 @@ public class Marketplace {
          account.subtractMoney(fee);
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.commandInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       return;

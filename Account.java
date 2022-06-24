@@ -814,7 +814,7 @@ public class Account {
          money -= fee;
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.commandInterface.printToUser(playerID, Config.transactionFeeSendingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       // mark the new account as needing to be saved

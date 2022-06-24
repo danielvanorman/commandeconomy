@@ -15193,10 +15193,10 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+      if (fee != 0.0f && !baosOut.toString().contains(Config.transactionFeeBuyingMsg + CommandEconomy.PRICE_FORMAT.format(fee))) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if (fee == 0.0f && baosOut.toString().contains("   Transaction fee applied: ")) {
+      } else if (fee == 0.0f && baosOut.toString().contains(Config.transactionFeeBuyingMsg)) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
@@ -15315,7 +15315,7 @@ public class TestSuite
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          baosOut.toString().contains("   Transaction fee applied: ")) {
+          baosOut.toString().contains(Config.transactionFeeBuyingMsg)) {
          TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
@@ -15415,10 +15415,10 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (isProfitable && fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+      if (isProfitable && fee != 0.0f && !baosOut.toString().contains(Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee))) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains("   Transaction fee applied: ")) {
+      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains(Config.transactionFeeSellingMsg)) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
@@ -15512,11 +15512,11 @@ public class TestSuite
       }
       // check console output
       // check whether transaction applied message should be and is included
-      if (isProfitable && fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+      if (isProfitable && fee != 0.0f && !baosOut.toString().contains(Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee))) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
                              "   expected: \"Transaction fee applied\"");
          errorFound = true;
-      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains("   Transaction fee applied: ")) {
+      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains(Config.transactionFeeSellingMsg)) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
                              "   unexpected: \"Transaction fee applied\"");
          errorFound = true;
@@ -15630,7 +15630,7 @@ public class TestSuite
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          baosOut.toString().contains("   Transaction fee applied: ")) {
+          baosOut.toString().contains(Config.transactionFeeSellingMsg)) {
          TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
@@ -15811,10 +15811,10 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (isProfitable && fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+      if (isProfitable && fee != 0.0f && !baosOut.toString().contains(Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee))) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains("   Transaction fee applied: ")) {
+      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains(Config.transactionFeeSellingMsg)) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
@@ -15915,7 +15915,7 @@ public class TestSuite
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          baosOut.toString().contains("   Transaction fee applied: ")) {
+          baosOut.toString().contains(Config.transactionFeeSellingMsg)) {
          TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
@@ -16002,10 +16002,10 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (fee != 0.0f && !baosOut.toString().contains("   Transaction fee applied: " + CommandEconomy.PRICE_FORMAT.format(fee))) {
+      if (fee != 0.0f && !baosOut.toString().contains(Config.transactionFeeSendingMsg + CommandEconomy.PRICE_FORMAT.format(fee))) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if (fee == 0.0f && baosOut.toString().contains("   Transaction fee applied: ")) {
+      } else if (fee == 0.0f && baosOut.toString().contains(Config.transactionFeeSendingMsg)) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
@@ -16084,7 +16084,7 @@ public class TestSuite
       }
       // check console output
       if (expectedMoney == accountMoney && // if negative fee is unpaid, don't display a message
-          baosOut.toString().contains("   Transaction fee applied: ")) {
+          baosOut.toString().contains(Config.transactionFeeSendingMsg)) {
          TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
       }
@@ -16241,6 +16241,7 @@ public class TestSuite
       // ensure testing environment is properly set up
       resetTestEnvironment();
       Config.chargeTransactionFees = true;
+      FileWriter fileWriter;
 
       // track changes to variables
       Account accountFeeCollection;
@@ -16326,6 +16327,46 @@ public class TestSuite
          errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           10, testWareC1.getBasePrice() * -11.0f, 0.0f, 2, true, false);
 
+         TEST_OUTPUT.println("transaction fees - buy(): changing fee applied message");
+         // create test config file
+         try {
+            // open the save file for config, create it if it doesn't exist
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+
+            // write test wares file
+            fileWriter.write(
+               "// warning: this file may be cleared and overwritten by the program\n\n" +
+               "chargeTransactionFees      = true\n" +
+               "transactionFeeBuyingIsMult = true\n" +
+               "transactionFeeBuyingMsg    = Sales tax: \n" +
+               "disableAutoSaving          = true\n" +
+               "crossWorldMarketplace      = true\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to change test config file");
+            e.printStackTrace();
+         }
+
+         // reload config
+         Config.loadConfig();
+
+         errorFound |= testTransActFeeBuy(testWareP1, 14, 0.10f, 1);
+
+         errorFound |= testTransActFeeBuy(testWare3, 13, 0.50f, 2);
+
+         errorFound |= testTransActFeeBuy(testWare1, 5, 1.00f, 3);
+
+         TEST_OUTPUT.println("transaction fees - buy(): restoring fee applied message");
+         Config.transactionFeeBuyingMsg    = "   Transaction fee applied: ";
+         errorFound |= testTransActFeeBuy(testWareP1, 14, 0.10f, 1);
+
+         errorFound |= testTransActFeeBuy(testWare3, 13, 0.50f, 2);
+
+         errorFound |= testTransActFeeBuy(testWare1, 5, 1.00f, 3);
+
          TEST_OUTPUT.println("transaction fees - buy(): fee account doesn't exist");
          Config.transactionFeesAccount = "transactionFeeCollectionBuy";
 
@@ -16337,7 +16378,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(
@@ -16391,7 +16432,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(
@@ -16549,6 +16590,46 @@ public class TestSuite
          errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
                                           64, -(testWareC1.getBasePrice() * 2.0f), 0.0f, 2, true, false);
 
+         TEST_OUTPUT.println("transaction fees - sell(): changing fee applied message");
+         // create test config file
+         try {
+            // open the save file for config, create it if it doesn't exist
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+
+            // write test wares file
+            fileWriter.write(
+               "// warning: this file may be cleared and overwritten by the program\n\n" +
+               "chargeTransactionFees       = true\n" +
+               "transactionFeeSellingIsMult = true\n" +
+               "transactionFeeSellingMsg    = Income tax: \n" +
+               "disableAutoSaving           = true\n" +
+               "crossWorldMarketplace       = true\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to change test config file");
+            e.printStackTrace();
+         }
+
+         // reload config
+         Config.loadConfig();
+
+         errorFound |= testTransActFeeSell(testWareP1, 14, 0.10f, 1);
+
+         errorFound |= testTransActFeeSell(testWare3, 13, 0.50f, 2);
+
+         errorFound |= testTransActFeeSell(testWare1, 5, 0.95f, 3);
+
+         TEST_OUTPUT.println("transaction fees - sell(): restoring fee applied message");
+         Config.transactionFeeSellingMsg    = "   Transaction fee applied: ";
+         errorFound |= testTransActFeeSell(testWareP1, 14, 0.10f, 1);
+
+         errorFound |= testTransActFeeSell(testWare3, 13, 0.50f, 2);
+
+         errorFound |= testTransActFeeSell(testWare1, 5, 0.95f, 3);
+
          TEST_OUTPUT.println("transaction fees - sell(): fee account doesn't exist");
          Config.transactionFeesAccount = "transactionFeeCollectionSell";
 
@@ -16560,7 +16641,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(
@@ -16614,7 +16695,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(
@@ -16830,7 +16911,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(
@@ -16884,7 +16965,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(
@@ -17058,6 +17139,53 @@ public class TestSuite
          errorFound |= testTransActFeeSendMoney("testAccount1", InterfaceTerminal.playername,
                                                 10.0f, 0.0f, -100.00f, 3, true);
 
+         TEST_OUTPUT.println("transaction fees - sendMoney(): changing fee applied message");
+         // create test config file
+         try {
+            // open the save file for config, create it if it doesn't exist
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+
+            // write test wares file
+            fileWriter.write(
+               "// warning: this file may be cleared and overwritten by the program\n\n" +
+               "chargeTransactionFees       = true\n" +
+               "transactionFeeSendingIsMult = true\n" +
+               "transactionFeeSendingMsg    = Transfer fee: \n" +
+               "disableAutoSaving           = true\n" +
+               "crossWorldMarketplace       = true\n"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to change test config file");
+            e.printStackTrace();
+         }
+
+         // reload config
+         Config.loadConfig();
+
+         errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
+                                                100.0f, 1000.0f, 1.0f, 1, true);
+
+         errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount2",
+                                                64.0f, 128.0f, 0.5f, 2, true);
+
+         errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount3",
+                                                10.0f, 20.0f, 0.1f, 3, true);
+
+         TEST_OUTPUT.println("transaction fees - sendMoney(): restoring fee applied message");
+         Config.transactionFeeSendingMsg    = "   Transaction fee applied: ";
+
+         errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount1",
+                                                100.0f, 1000.0f, 1.0f, 1, true);
+
+         errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount2",
+                                                64.0f, 128.0f, 0.5f, 2, true);
+
+         errorFound |= testTransActFeeSendMoney(InterfaceTerminal.playername, "testAccount3",
+                                                10.0f, 20.0f, 0.1f, 3, true);
+
          TEST_OUTPUT.println("transaction fees - sendMoney(): fee account doesn't exist");
          Config.transactionFeesAccount = "transactionFeeCollectionSend";
 
@@ -17069,7 +17197,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(
@@ -17124,7 +17252,7 @@ public class TestSuite
          // create test config file
          try {
             // open the save file for config, create it if it doesn't exist
-            FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+            fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
 
             // write test wares file
             fileWriter.write(

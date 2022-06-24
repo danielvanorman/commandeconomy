@@ -164,27 +164,34 @@ public class Config
    protected static float buyingOutOfStockWaresPriceMult = 1.10f;
 
    // transaction fees
+   // transaction fees
    /** whether or not to charge for buying, selling, and possibly sending */
    protected static boolean chargeTransactionFees = false;
+   /** what to say when telling users a fee for purchasing has been applied */
+   protected static String transactionFeeBuyingMsg = CommandEconomy.MSG_TRANSACT_FEE;
+   /** what to say when telling users a fee for selling has been applied */
+   protected static String transactionFeeSellingMsg = CommandEconomy.MSG_TRANSACT_FEE;
+   /** what to say when telling users a fee for transferring has been applied */
+   protected static String transactionFeeSendingMsg = CommandEconomy.MSG_TRANSACT_FEE;
    /** how much to charge per transaction for buying */
    protected static float transactionFeeBuying = 0.05f;
+   /** how much to charge per transaction for selling */
+   protected static float transactionFeeSelling = 0.00f;
+   /** how much to charge per transaction for sending */
+   protected static float transactionFeeSending = 0.02f;
    /** if true, transactionFeeBuying is treated as a multiplier,
     *  charging based off of purchases' total prices */
    protected static boolean transactionFeeBuyingIsMult = true;
-   /** how much to charge per transaction for selling */
-   protected static float transactionFeeSelling = 0.00f;
    /** if true, transactionFeeSelling is treated as a multiplier,
     *  charging based off of sales' total prices */
    protected static boolean transactionFeeSellingIsMult = true;
-   /** how much to charge per transaction for sending */
-   protected static float transactionFeeSending = 0.02f;
    /** if true, transactionFeeSending is treated as a multiplier,
     *  charging based off of total funds transferred */
    protected static boolean transactionFeeSendingIsMult = true;
-   /** if true, money from paid fees is put into transactionFeeAccount */
-   protected static boolean transactionFeesShouldPutFeesIntoAccount = true;
    /** the account which transaction fees are paid to */
    protected static String transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
+   /** if true, money from paid fees is put into transactionFeeAccount */
+   protected static boolean transactionFeesShouldPutFeesIntoAccount = true;
 
    // random events
    /** if true, periodic events will summon or destroy wares' quantities for sale */
@@ -455,8 +462,17 @@ public class Config
             filenameNoPathAIProfessions = value;
             break;
 
+         case "transactionFeeBuyingMsg":
+            transactionFeeBuyingMsg  = "   " + value;
+            break;
+         case "transactionFeeSellingMsg":
+            transactionFeeSellingMsg = "   " + value;
+            break;
+         case "transactionFeeSendingMsg":
+            transactionFeeSendingMsg = "   " + value;
+            break;
          case "transactionFeesAccount":
-            transactionFeesAccount = value;
+            transactionFeesAccount   = value;
             break;
 
          case "filenameRandomEvents":
@@ -753,14 +769,17 @@ public class Config
 
       // transaction fees
       chargeTransactionFees       = false;
+      transactionFeeBuyingMsg     = CommandEconomy.MSG_TRANSACT_FEE;
+      transactionFeeSellingMsg    = CommandEconomy.MSG_TRANSACT_FEE;
+      transactionFeeSendingMsg    = CommandEconomy.MSG_TRANSACT_FEE;
       transactionFeeBuying        = 0.05f;
-      transactionFeeBuyingIsMult  = true;
       transactionFeeSelling       = 0.00f;
-      transactionFeeSellingIsMult = true;
       transactionFeeSending       = 0.02f;
+      transactionFeeBuyingIsMult  = true;
+      transactionFeeSellingIsMult = true;
       transactionFeeSendingIsMult = true;
-      transactionFeesShouldPutFeesIntoAccount = true;
       transactionFeesAccount      = CommandEconomy.TRANSACT_FEE_COLLECTION;
+      transactionFeesShouldPutFeesIntoAccount = true;
 
       // random events
       randomEvents                   = false;
