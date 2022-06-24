@@ -9,12 +9,15 @@ import net.minecraft.util.text.TextComponentString;         // for sending messa
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.command.EntitySelector;                // for using command block selectors
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage
-import java.util.List;                                      // for autocompleting arguments and command aliases
+import java.util.List;                                      // for autocompleting arguments and sending command aliases
 import java.util.LinkedList;
 import net.minecraft.util.math.BlockPos;
 import java.util.UUID;                                      // for more securely tracking users internally
+import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandMoney extends CommandBase {
+   private final List<String> aliases = Arrays.asList("wallet");
+
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
       // request can be null or have zero arguments
@@ -91,6 +94,11 @@ public class CommandMoney extends CommandBase {
    @Override
    public String getName() {
        return CommandEconomy.CMD_MONEY;
+   }
+
+   @Override
+   public List<String> getAliases() {
+      return aliases;
    }
 
    @Override

@@ -16,11 +16,13 @@ import net.minecraft.util.ResourceLocation;                 // for finding names
 import net.minecraft.util.math.BlockPos;                    // for handling coordinates
 import net.minecraft.command.EntitySelector;                // for using command block selectors
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage
-import java.util.List;                                      // for autocompleting arguments
+import java.util.List;                                      // for autocompleting arguments and sending command aliases
 import net.minecraftforge.oredict.OreDictionary;            // for checking Forge OreDictionary names
 import java.util.UUID;                                      // for more securely tracking users internally
+import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandSellAll extends CommandBase {
+   private final List<String> aliases = Arrays.asList(CommandEconomy.CMD_SELLALL_LOWER);
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -226,6 +228,11 @@ public class CommandSellAll extends CommandBase {
    @Override
    public String getName() {
       return CommandEconomy.CMD_SELLALL;
+   }
+
+   @Override
+   public List<String> getAliases() {
+      return aliases;
    }
 
    @Override

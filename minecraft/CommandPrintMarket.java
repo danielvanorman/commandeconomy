@@ -7,8 +7,11 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;            // for finding who to send messages to
 import net.minecraft.util.text.TextComponentString;         // for sending messages to players
 import net.minecraft.util.text.TextFormatting;
+import java.util.List;                                      // for sending command aliases
+import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandPrintMarket extends CommandBase {
+   private final List<String> aliases = Arrays.asList(CommandEconomy.CMD_PRINT_MARKET_LOWER);
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -26,6 +29,11 @@ public class CommandPrintMarket extends CommandBase {
   public String getName() {
       return CommandEconomy.CMD_PRINT_MARKET;
   }
+
+   @Override
+   public List<String> getAliases() {
+      return aliases;
+   }
 
   @Override
   public String getUsage(ICommandSender sender) {

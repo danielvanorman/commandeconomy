@@ -10,11 +10,13 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.entity.player.EntityPlayer;            // for accessing the command-issuing player's inventory
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;                    // for accessing marking itemstacks to not be sold
-import java.util.List;                                      // for autocompleting arguments
+import java.util.List;                                      // for autocompleting arguments and sending command aliases
 import java.util.LinkedList;
 import net.minecraft.util.math.BlockPos;
+import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandNoSell extends CommandBase {
+   private final List<String> aliases = Arrays.asList(CommandEconomy.CMD_NOSELL_LOWER);
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -152,6 +154,11 @@ public class CommandNoSell extends CommandBase {
   public String getName() {
       return CommandEconomy.CMD_NOSELL;
   }
+
+   @Override
+   public List<String> getAliases() {
+      return aliases;
+   }
 
   @Override
   public String getUsage(ICommandSender sender) {
