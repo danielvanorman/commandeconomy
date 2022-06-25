@@ -57,6 +57,20 @@ public class InterfaceTerminal implements InterfaceCommand
 
    // FUNCTIONS
    /**
+    * Main function for initializing the market.
+    *
+    * @param args unused
+    */
+   public static void main(String[] args) {
+      // connect desired interface to the market
+      Config.commandInterface = new InterfaceTerminal();
+
+      // set up and run the market
+      CommandEconomy.start(null);
+      return;
+   }
+
+   /**
     * Returns the path to the local game's save directory.
     *
     * @return directory of local save and config files
@@ -420,6 +434,18 @@ public class InterfaceTerminal implements InterfaceCommand
          System.out.println("(for " + getDisplayNameStatic(playerID) + ") " + message);
       else
          System.out.println(message);
+   }
+
+   /**
+    * Forwards a message to all users.
+    *
+    * @param message what to tell the users
+    */
+   public void printToAllUsers(String message) {
+      if (message  == null || message.isEmpty())
+         return;
+
+      System.out.println(message);
    }
 
    /**

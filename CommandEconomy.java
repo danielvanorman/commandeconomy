@@ -1,12 +1,5 @@
 package commandeconomy;
 
-/*
-import net.minecraftforge.fml.common.Mod;                         // for registering as a mod
-import net.minecraftforge.fml.common.Mod.EventHandler;            // for initializing
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent; // for initializing upon game's start
-import net.minecraftforge.common.MinecraftForge;                  // for registering to be notified of events (for autosaving, etc.)
-import net.minecraftforge.fml.common.event.FMLServerStoppedEvent; // for canceling threads when the world stops
-*/
 import java.text.DecimalFormat;                                   // for formatting prices when displaying
 
 /**
@@ -21,7 +14,7 @@ import java.text.DecimalFormat;                                   // for formatt
  * navigate to (or start in) the .java file's directory,
  * and enter the following:<br>
  * javac commandEconomy\*.java<br>
- * java commandEconomy.CommandEconomy
+ * java commandEconomy.InterfaceTerminal
  * <p>
  * To generate external documentation files, open a terminal (such as CMD),
  * navigate to (or start in) the .java file's directory,
@@ -157,7 +150,6 @@ import java.text.DecimalFormat;                                   // for formatt
  * @version %I%, %G%
  * @since   2021-01-29
  */
-// @Mod(modid = CommandEconomy.MODID, name = CommandEconomy.NAME, version = CommandEconomy.VERSION, acceptableRemoteVersions = "*")
 public class CommandEconomy {
    /** lowercase name for accessing services and information */
    public static final String MODID   = "commandeconomy";
@@ -174,13 +166,15 @@ public class CommandEconomy {
    // FUNCTIONS
    /**
     * Main function for initializing the market.
+    * Warning: Config.commandInterface must be initialized before calling this function!
     *
     * @param args unused
     */
-   public static void main(String[] args) {
-      // connect desired interface to the market
-      Config.commandInterface = new InterfaceTerminal();
-      // Config.commandInterface = new InterfaceMinecraft();
+   public static void start(String[] args) {
+      if (Config.commandInterface == null) {
+         System.err.println(INITIALIZATION_ERROR);
+         return;
+      }
 
       // initialize the market
       Config.loadConfig();
@@ -199,34 +193,6 @@ public class CommandEconomy {
    }
 
    /**
-    * After game start, sets up chat commands and the market.
-    * It is important to load wares after other mods are loaded.
-    * If all other mods have been loaded, Command Economy may
-    * more accurately check for other mods and load their wares.
-    *
-    * @param event information concerning Minecraft's current state
-    */
-   /*@Mod.EventHandler
-   public void serverStarted(FMLServerStartedEvent event) {
-      // register serviceable commands
-      InterfaceMinecraft.registerCommands(event);
-
-      // set up and run the market
-      main(null);
-   }*/
-
-   /**
-    * When the world is closing, cancel any running threads.
-    *
-    * @param event information concerning Minecraft's current state
-    */
-   /*@Mod.EventHandler
-   public void serverStopped(FMLServerStoppedEvent event) {
-      // end any threads needed by features
-      Marketplace.endPeriodicEvents();
-   }*/
-
-   /**
     * Truncates a given number to a standardized decimal place.
     * <p>
     * Complexity: O(1)
@@ -238,6 +204,8 @@ public class CommandEconomy {
    }
 
    // INTERFACE CONSTANTS
+   public final static String INITIALIZATION_ERROR = "CommandEconomy initialization fatal error - must initialize Config.commandInterface before calling CommandEconomy.start()";
+
    // command names
    public final static String CMD_HELP                      = "help";
    public final static String CMD_BUY                       = "buy";

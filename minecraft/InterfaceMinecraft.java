@@ -1,5 +1,10 @@
 package commandeconomy;
 
+import net.minecraftforge.fml.common.Mod;                          // for registering as a mod
+import net.minecraftforge.fml.common.Mod.EventHandler;             // for initializing the mod
+import net.minecraftforge.fml.common.event.FMLServerStartedEvent;  // for initializing the marketplace upon game's start
+import net.minecraftforge.common.MinecraftForge;                   // for registering to be notified of events (for autosaving, etc.)
+import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;  // for canceling threads when the world stops
 import java.util.LinkedList;                                       // for returning properties of wares found in an inventory and autocompleting arguments
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;  // for initializing upon game's start
 import net.minecraft.command.CommandHandler;                       // for registering commands
@@ -36,6 +41,7 @@ import java.io.File;                                        // for adding a file
  * @version %I%, %G%
  * @since   2021-04-28
  */
+@Mod(modid = CommandEconomy.MODID, name = CommandEconomy.NAME, version = CommandEconomy.VERSION, acceptableRemoteVersions = "*")
 public class InterfaceMinecraft implements InterfaceCommand
 {
    // GLOBAL VARIABLES
@@ -79,6 +85,37 @@ public class InterfaceMinecraft implements InterfaceCommand
    public static final String[] INVENTORY_KEYWORDS = new String[] {CommandEconomy.INVENTORY_NONE, CommandEconomy.INVENTORY_DOWN, CommandEconomy.INVENTORY_UP, CommandEconomy.INVENTORY_NORTH, CommandEconomy.INVENTORY_EAST, CommandEconomy.INVENTORY_WEST, CommandEconomy.INVENTORY_SOUTH};
 
    // FUNCTIONS
+   /**
+    * After game start, sets up chat commands and the market.
+    * It is important to load wares after other mods are loaded.
+    * If all other mods have been loaded, Command Economy may
+    * more accurately check for other mods and load their wares.
+    *
+    * @param event information concerning Minecraft's current state
+    */
+   @Mod.EventHandler
+   public void serverStarted(FMLServerStartedEvent event) {
+      // register serviceable commands
+      InterfaceMinecraft.registerCommands(event);
+
+      // connect desired interface to the market
+      Config.commandInterface = this;
+
+      // set up and run the market
+      CommandEconomy.start(null);
+   }
+
+   /**
+    * When the world is closing, cancel any running threads.
+    *
+    * @param event information concerning Minecraft's current state
+    */
+   @Mod.EventHandler
+   public void serverStopped(FMLServerStoppedEvent event) {
+      // end any threads needed by features
+      Marketplace.endPeriodicEvents();
+   }
+
    /**
     * Returns the path to the local game's save directory.
     *
