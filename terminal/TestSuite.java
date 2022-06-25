@@ -425,6 +425,14 @@ public class TestSuite
          failedTests += "   random events\n";
       }
 
+      // test instances where features may influence each other
+      if (testCrossInteractions())
+         TEST_OUTPUT.println("test passed - cross-interactions\n");
+      else {
+         TEST_OUTPUT.println("test failed - cross-interactions\n");
+         failedTests += "   cross-interactions\n";
+      }
+
       // teardown testing environment
       // restore file names
       Config.filenameWares     = "config" + File.separator + "CommandEconomy" + File.separator + "wares.txt";
@@ -18559,6 +18567,401 @@ public class TestSuite
          TEST_OUTPUT.println(baosErr.toString());
          return false;
       }
+
+      return !errorFound;
+   }
+
+   /**
+    * Tests specific cross-interactions between features.
+    *
+    * @return whether cross-interactions passed all test cases
+    */
+   private static boolean testCrossInteractions() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+
+      // set up testing variables
+      Object   requiredObject  = null;
+      Object[] requiredObjects = null;
+      Account  feeCollectionAccount;
+      AI       ai;
+      String[] purchasablesIDs; // IDS for wares an AI may buy
+      HashMap<Ware, Integer> tradesPending = new HashMap<Ware, Integer>(); // contains AI trade decisions before finalization
+      Ware     ware1;
+      Ware     ware2;
+      Ware     ware3;
+      Ware     ware4;
+      int      quantityToTrade;
+      int      quantityToOffer;
+      int      quantityWare1;
+      int      quantityWare2;
+      float    price1;
+      float    price2;
+      float    money;
+      byte     level;
+
+      try {
+         // enable transaction fees and set to known values
+         Config.chargeTransactionFees       = true;
+         Config.transactionFeeBuying        = 0.10f;
+         Config.transactionFeeSelling       = 0.50f;
+         Config.transactionFeeBuyingIsMult  = true;
+         Config.transactionFeeSellingIsMult = true;
+
+         // grab the fee collection account
+         feeCollectionAccount = Account.getAccount(Config.transactionFeesAccount);
+         if (feeCollectionAccount == null)
+            feeCollectionAccount = Account.makeAccount(Config.transactionFeesAccount, null);
+
+         TEST_OUTPUT.println("Cross Interactions - Transaction Fees: AI, positive fees");
+         // set up test variables
+         ware1 = testWare1;
+         Config.aiTradeQuantityPercent = 0.10f;
+
+         // enable AI and set to known values
+         purchasablesIDs = new String[]{ware1.getWareID()};
+         ai = new AI("testAI", purchasablesIDs, null, null);
+         quantityToTrade = (int) (Config.aiTradeQuantityPercent * Config.quanMid[ware1.getLevel()]);
+
+         // set up test conditions
+         feeCollectionAccount.setMoney(0.0f);
+         ware1.setQuantity(Config.quanMid[ware1.getLevel()]);
+
+         // set up test oracles
+         Config.chargeTransactionFees = false;
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, true) * Config.transactionFeeBuying;
+         Config.chargeTransactionFees = true;
+
+         // perform action
+         ai.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
+
+         // check fees
+         price2 = feeCollectionAccount.getMoney();
+         if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
+             price2 < price1 - FLOAT_COMPARE_PRECISION) {
+            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+                                "\n      diff: " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Transaction Fees: AI, negative fees");
+         // set up test conditions
+         feeCollectionAccount.setMoney(10000.0f);
+         ware1.setQuantity(Config.quanMid[ware1.getLevel()]);
+
+         // set up test oracles
+         Config.chargeTransactionFees = false;
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, true) * Config.transactionFeeBuying;
+         Config.chargeTransactionFees = true;
+
+         // perform action
+         ai.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
+
+         // check fees
+         price2 = feeCollectionAccount.getMoney();
+         if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
+             price2 < price1 - FLOAT_COMPARE_PRECISION) {
+            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+                                "\n      diff: " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Transaction Fees: Manufacturing Contracts, positive fees");
+         // enable manufacturing contracts and set to known values
+         Config.buyingOutOfStockWaresAllowed   = true;
+         Config.buyingOutOfStockWaresPriceMult = 1.10f;
+
+         // set up test conditions
+         quantityToTrade = 10;
+         ware1           = testWareP1;
+         ware2           = testWare1;
+         quantityWare1   = 0;
+         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         feeCollectionAccount.setMoney(0.0f);
+         playerAccount.setMoney(10000.0f);
+
+         // set up test oracles
+         Config.chargeTransactionFees = false;
+         price1 = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade, true)
+                  * Config.priceProcessed
+                  * Config.buyingOutOfStockWaresPriceMult
+                  * Config.transactionFeeBuying;
+         Config.chargeTransactionFees = true;
+
+         // perform action
+         Marketplace.buy(PLAYER_ID, null, ware1.getWareID(), quantityToTrade, 0.0f, null, true);
+
+         // check fee
+         price2 = feeCollectionAccount.getMoney();
+         if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
+             price2 < price1 - FLOAT_COMPARE_PRECISION) {
+            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+                               "\n      diff: " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Transaction Fees: Manufacturing Contracts, negative fees");
+         Config.transactionFeeBuying = -0.10f;
+
+         // set up test conditions
+         quantityToTrade = 10;
+         ware1           = testWareP1;
+         ware2           = testWare1;
+         quantityWare1   = 0;
+         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         feeCollectionAccount.setMoney(10000.0f);
+         playerAccount.setMoney(10000.0f);
+
+         // set up test oracles
+         Config.chargeTransactionFees = false;
+         price1 = feeCollectionAccount.getMoney() + // plus since fee multiplier is negative, so fee collection account should pay out money
+                  (Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade, true)
+                   * Config.priceProcessed
+                   * Config.buyingOutOfStockWaresPriceMult
+                   * Config.transactionFeeBuying);
+         Config.chargeTransactionFees = true;
+
+         // perform action
+         Marketplace.buy(PLAYER_ID, null, ware1.getWareID(), quantityToTrade, 0.0f, null, true);
+
+         // check fee
+         price2 = feeCollectionAccount.getMoney();
+         if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
+             price2 < price1 - FLOAT_COMPARE_PRECISION) {
+            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+                               "\n      diff: " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Transaction Fees: Investments, positive fees");
+         Config.transactionFeeBuying    = 0.10f;
+         Config.transactionFeeInvesting = 0.10f;
+
+         // enable investments and set to known values
+         Config.investmentCostPerHierarchyLevel = 1000.0f;
+         Config.investmentCostIsAMultOfAvgPrice = false;
+
+         // set up test conditions
+         ware1         = testWare2;
+         quantityWare1 = Config.quanMid[ware1.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         feeCollectionAccount.setMoney(0.0f);
+         playerAccount.setMoney(10000.0f);
+
+         // set up test oracles
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false)
+                  * ware1.getLevel()
+                  * Config.investmentCostPerHierarchyLevel
+                  * Config.transactionFeeInvesting;
+
+         // perform action
+         InterfaceTerminal.serviceRequestInvest(new String[]{ware1.getWareID()});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         // check fee
+         price2 = feeCollectionAccount.getMoney();
+         if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
+             price2 < price1 - FLOAT_COMPARE_PRECISION) {
+            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+                               "\n      diff: " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Transaction Fees: Investments, negative fees");
+         Config.transactionFeeInvesting = -0.10f;
+
+         // set up test conditions
+         ware1         = testWare2;
+         quantityWare1 = Config.quanMid[ware1.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         feeCollectionAccount.setMoney(0.0f);
+         playerAccount.setMoney(10000.0f);
+
+         // set up test oracles
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false)
+                  * ware1.getLevel()
+                  * Config.investmentCostPerHierarchyLevel
+                  * Config.transactionFeeInvesting;
+
+         // perform action
+         InterfaceTerminal.serviceRequestInvest(new String[]{ware1.getWareID()});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         // check fee
+         price2 = feeCollectionAccount.getMoney();
+         if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
+             price2 < price1 - FLOAT_COMPARE_PRECISION) {
+            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+                               "\n      diff: " + (price2 - price1));
+            errorFound = true;
+         }
+
+         // disable transaction fees to avoid possible interference
+         Config.chargeTransactionFees = false;
+
+         // enable linked prices and set to known values
+         Config.shouldComponentsCurrentPricesAffectWholesPrice = true;
+         Config.linkedPricesPercent   = 0.50f;
+         Config.linkedPriceMultsSaved = 0; // recalculate every value every time
+
+         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Manufacturing Contracts, surplus");
+         // enable manufacturing contracts and set to known values
+         Config.buyingOutOfStockWaresAllowed   = true;
+         Config.buyingOutOfStockWaresPriceMult = 1.10f;
+
+         // set up test conditions for equilibrium
+         quantityToTrade = 10;
+         ware1           = testWareP1;
+         ware2           = testWare1;
+         quantityWare1   = 0;
+         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         money           = 10000.0f;
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         playerAccount.setMoney(money);
+
+         // perform action
+         Marketplace.buy(PLAYER_ID, null, ware1.getWareID(), quantityToTrade, 0.0f, null, true);
+
+         // get the price when component is at equilibrium
+         price1 = money - playerAccount.getMoney();
+
+         // set up test conditions for surplus
+         quantityWare2   = Config.quanHigh[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         playerAccount.setMoney(money);
+
+         // perform action
+         Marketplace.buy(PLAYER_ID, null, ware1.getWareID(), quantityToTrade, 0.0f, null, true);
+
+         // get the price when component is in surplus
+         price2 = money - playerAccount.getMoney();
+
+         // compare prices
+         if (price1 <= price2) {
+            TEST_OUTPUT.println("   unexpected price comparison: price during surplus should be lower than price during equilibrium" +
+                               "\n      surplus:     " + price2 +
+                               "\n      equilibrium: " + price1 +
+                               "\n      diff:        " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Manufacturing Contracts, scarcity");
+         // set up test conditions for scarcity
+         quantityWare2 = Config.quanLow[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         playerAccount.setMoney(money);
+
+         // perform action
+         Marketplace.buy(PLAYER_ID, null, ware1.getWareID(), quantityToTrade, 0.0f, null, true);
+
+         // get the price when component has scarcity
+         price2 = money - playerAccount.getMoney();
+
+         // compare prices
+         if (price1 >= price2) {
+            TEST_OUTPUT.println("   unexpected price comparison: price during scarcity should be higher than price during equilibrium" +
+                               "\n      scarcity:    " + price2 +
+                               "\n      equilibrium: " + price1 +
+                               "\n      diff:        " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Investments, surplus");
+         // enable investments and set to known values
+         Config.investmentCostPerHierarchyLevel = 1000.0f;
+         Config.investmentCostIsAMultOfAvgPrice = false;
+
+         // set up test conditions for equilibrium
+         quantityToTrade = 10;
+         ware1           = testWareP1;
+         ware2           = testWare1;
+         quantityWare1   = 0;
+         quantityWare2   = Config.quanMid[ware2.getLevel()];
+
+         money           = 10000.0f;
+         level           = ware1.getLevel(); // for resetting the ware's level later on
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         playerAccount.setMoney(money);
+
+         // perform action
+         InterfaceTerminal.serviceRequestInvest(new String[]{ware1.getWareID()});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         // get the price when component is at equilibrium
+         price1 = money - playerAccount.getMoney();
+
+         // set up test conditions for surplus
+         quantityWare2 = Config.quanHigh[ware2.getLevel()];
+         ware1.setLevel(level);
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         playerAccount.setMoney(money);
+
+         // perform action
+         InterfaceTerminal.serviceRequestInvest(new String[]{ware1.getWareID()});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         // get the price when component is in surplus
+         price2 = money - playerAccount.getMoney();
+
+         // compare prices
+         if (price1 <= price2) {
+            TEST_OUTPUT.println("   unexpected price comparison: price during surplus should be lower than price during equilibrium" +
+                               "\n      surplus:     " + price2 +
+                               "\n      equilibrium: " + price1 +
+                               "\n      diff:        " + (price2 - price1));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Investments, scarcity");
+         // set up test conditions for scarcity
+         quantityWare2 = Config.quanLow[ware2.getLevel()];
+         ware1.setLevel(level);
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+         playerAccount.setMoney(money);
+
+         // perform action
+         InterfaceTerminal.serviceRequestInvest(new String[]{ware1.getWareID()});
+         InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
+
+         // get the price when component has scarcity
+         price2 = money - playerAccount.getMoney();
+
+         // compare prices
+         if (price1 <= price2) {
+            TEST_OUTPUT.println("   unexpected price comparison: price during scarcity should be higher than price during equilibrium" +
+                               "\n      scarcity:    " + price2 +
+                               "\n      equilibrium: " + price1 +
+                               "\n      diff:        " + (price2 - price1));
+            errorFound = true;
+         }
+      }
+      catch (Exception e) {
+         Config.chargeTransactionFees           = false;
+         Config.buyingOutOfStockWaresAllowed    = false;
+         Config.investmentCostPerHierarchyLevel = 0.0f;
+
+         TEST_OUTPUT.println("Cross Interactions - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
+      Config.chargeTransactionFees           = false;
+      Config.buyingOutOfStockWaresAllowed    = false;
+      Config.investmentCostPerHierarchyLevel = 0.0f;
 
       return !errorFound;
    }

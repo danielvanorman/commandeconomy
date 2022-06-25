@@ -164,30 +164,36 @@ public class Config
    protected static float buyingOutOfStockWaresPriceMult = 1.10f;
 
    // transaction fees
-   // transaction fees
    /** whether or not to charge for buying, selling, and possibly sending */
    protected static boolean chargeTransactionFees = false;
    /** what to say when telling users a fee for purchasing has been applied */
-   protected static String transactionFeeBuyingMsg = CommandEconomy.MSG_TRANSACT_FEE;
+   protected static String transactionFeeBuyingMsg    = CommandEconomy.MSG_TRANSACT_FEE;
    /** what to say when telling users a fee for selling has been applied */
-   protected static String transactionFeeSellingMsg = CommandEconomy.MSG_TRANSACT_FEE;
+   protected static String transactionFeeSellingMsg   = CommandEconomy.MSG_TRANSACT_FEE;
    /** what to say when telling users a fee for transferring has been applied */
-   protected static String transactionFeeSendingMsg = CommandEconomy.MSG_TRANSACT_FEE;
+   protected static String transactionFeeSendingMsg   = CommandEconomy.MSG_TRANSACT_FEE;
+   /** what to say when telling users a fee for investing has been applied */
+   protected static String transactionFeeInvestingMsg = CommandEconomy.MSG_TRANSACT_FEE;
    /** how much to charge per transaction for buying */
-   protected static float transactionFeeBuying = 0.05f;
+   protected static float transactionFeeBuying   = 0.05f;
    /** how much to charge per transaction for selling */
-   protected static float transactionFeeSelling = 0.00f;
+   protected static float transactionFeeSelling   = 0.00f;
    /** how much to charge per transaction for sending */
-   protected static float transactionFeeSending = 0.02f;
+   protected static float transactionFeeSending   = 0.02f;
+   /** how much to charge per transaction for investing */
+   protected static float transactionFeeInvesting = 0.015f;
    /** if true, transactionFeeBuying is treated as a multiplier,
     *  charging based off of purchases' total prices */
-   protected static boolean transactionFeeBuyingIsMult = true;
+   protected static boolean transactionFeeBuyingIsMult    = true;
    /** if true, transactionFeeSelling is treated as a multiplier,
     *  charging based off of sales' total prices */
-   protected static boolean transactionFeeSellingIsMult = true;
+   protected static boolean transactionFeeSellingIsMult   = true;
    /** if true, transactionFeeSending is treated as a multiplier,
     *  charging based off of total funds transferred */
-   protected static boolean transactionFeeSendingIsMult = true;
+   protected static boolean transactionFeeSendingIsMult   = true;
+   /** if true, transactionFeeInvesting is treated as a multiplier,
+    *  charging based off of total funds transferred */
+   protected static boolean transactionFeeInvestingIsMult = true;
    /** the account which transaction fees are paid to */
    protected static String transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
    /** if true, money from paid fees is put into transactionFeeAccount */
@@ -300,6 +306,9 @@ public class Config
             break;
          case "transactionFeeSending":
             transactionFeeSending = value;
+            break;
+         case "transactionFeeInvesting":
+            transactionFeeInvesting = value;
             break;
 
          case "randomEventsFrequency":
@@ -416,6 +425,9 @@ public class Config
          case "transactionFeeSendingIsMult":
             transactionFeeSendingIsMult = value;
             break;
+         case "transactionFeeInvestingIsMult":
+            transactionFeeInvestingIsMult = value;
+            break;
          case "transactionFeesShouldPutFeesIntoAccount":
             transactionFeesShouldPutFeesIntoAccount = value;
             break;
@@ -470,6 +482,9 @@ public class Config
             break;
          case "transactionFeeSendingMsg":
             transactionFeeSendingMsg = "   " + value;
+            break;
+         case "transactionFeeInvestingMsg":
+            transactionFeeInvestingMsg = "   " + value;
             break;
          case "transactionFeesAccount":
             transactionFeesAccount   = value;
@@ -768,16 +783,19 @@ public class Config
       buyingOutOfStockWaresPriceMult = 0.10f;
 
       // transaction fees
-      chargeTransactionFees       = false;
-      transactionFeeBuyingMsg     = CommandEconomy.MSG_TRANSACT_FEE;
-      transactionFeeSellingMsg    = CommandEconomy.MSG_TRANSACT_FEE;
-      transactionFeeSendingMsg    = CommandEconomy.MSG_TRANSACT_FEE;
-      transactionFeeBuying        = 0.05f;
-      transactionFeeSelling       = 0.00f;
-      transactionFeeSending       = 0.02f;
-      transactionFeeBuyingIsMult  = true;
-      transactionFeeSellingIsMult = true;
-      transactionFeeSendingIsMult = true;
+      chargeTransactionFees         = false;
+      transactionFeeBuyingMsg       = CommandEconomy.MSG_TRANSACT_FEE;
+      transactionFeeSellingMsg      = CommandEconomy.MSG_TRANSACT_FEE;
+      transactionFeeSendingMsg      = CommandEconomy.MSG_TRANSACT_FEE;
+      transactionFeeInvestingMsg    = CommandEconomy.MSG_TRANSACT_FEE;
+      transactionFeeBuying          = 0.05f;
+      transactionFeeSelling         = 0.00f;
+      transactionFeeSending         = 0.02f;
+      transactionFeeInvesting       = 0.015f;
+      transactionFeeBuyingIsMult    = true;
+      transactionFeeSellingIsMult   = true;
+      transactionFeeSendingIsMult   = true;
+      transactionFeeInvestingIsMult = true;
       transactionFeesAccount      = CommandEconomy.TRANSACT_FEE_COLLECTION;
       transactionFeesShouldPutFeesIntoAccount = true;
 
