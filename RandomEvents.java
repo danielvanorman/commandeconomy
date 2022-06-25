@@ -139,7 +139,7 @@ public class RandomEvents extends TimerTask {
     * <p>
     * Complexity: O(1)
     */
-   public static void startOrReconfigRandomEvents() {
+   public static void startOrReconfig() {
       // calculate frequency using settings for frequency and variance
       long newFrequency = ((long) (Config.randomEventsFrequency * (1.0f - Config.randomEventsVariance)) * 60000L); // 60000 ms per min.
       // enforce a positive floor

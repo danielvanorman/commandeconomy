@@ -119,7 +119,7 @@ public class AIHandler extends TimerTask {
     * <p>
     * Complexity: O(1)
     */
-   public static void startOrReconfigAI() {
+   public static void startOrReconfig() {
       // calculate frequency using configuration settings
       long newFrequency = ((long) Config.aiTradeFrequency) * 60000L; // 60000 ms per min.
       // enforce a positive floor

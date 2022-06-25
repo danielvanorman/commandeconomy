@@ -75,7 +75,7 @@ public abstract class Ware
     */
    public void setQuantity(int quantity) {
       this.quantity = quantity;
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -86,7 +86,7 @@ public abstract class Ware
     */
    public void addQuantity(int adjustment) {
       quantity += adjustment;
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -97,7 +97,7 @@ public abstract class Ware
     */
    public void subtractQuantity(int adjustment) {
       quantity -= adjustment;
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -132,7 +132,7 @@ public abstract class Ware
       } else {
          this.alias = null;
       }
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -161,7 +161,7 @@ public abstract class Ware
       else
          this.level = level;
 
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -181,7 +181,7 @@ public abstract class Ware
       else if (level > 5)
          level = 5;
 
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -252,7 +252,7 @@ public abstract class Ware
          // Use multipliers in getBasePrice() to ensure prices are accurate
          // when wares are reloading after multipliers are changed.
 
-         Marketplace.saveThisWare(wareID);
+         Marketplace.markAsChanged(wareID);
          return true;
       } else {
          return false;

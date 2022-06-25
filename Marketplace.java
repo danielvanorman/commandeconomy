@@ -666,7 +666,7 @@ public class Marketplace {
     * Complexity: O(1)
     * @param wareID unique identifier of the ware to be saved
     */
-   public static void saveThisWare(String wareID) {
+   public static void markAsChanged(String wareID) {
       if (wares.containsKey(wareID))
          waresChangedSinceLastSave.add(wareID);
    }
@@ -1894,7 +1894,6 @@ public class Marketplace {
 
       return;
    }
-
    /**
     * Removes wares from a player's inventory and
     * tallies up money gained from selling those wares
@@ -1933,6 +1932,9 @@ public class Marketplace {
       int    quantityToBeSold = quantity; // how much quantity still needs to be sold
       int    quantitySold     = 0;        // how much quantity has been sold
 
+      // prevents other threads from adjusting the marketplace's wares
+      acquireMutex();
+
       // loop through wares owned and get prices according to quality
       for (Stock stock : stocks) {
          // grab the ware to be used
@@ -1959,7 +1961,6 @@ public class Marketplace {
                quantitySold += stock.quantity;
 
                // add quantity sold to the marketplace
-               waitForMutex(); // check if another thread is adjusting wares' properties
                ware.addQuantity(stock.quantity);
 
                continue;
@@ -1979,7 +1980,6 @@ public class Marketplace {
                quantitySold += quantityToBeSold;
 
                // add quantity sold to the marketplace
-               waitForMutex(); // check if another thread is adjusting wares' properties
                ware.addQuantity(quantityToBeSold);
                break;
             } else {
@@ -1994,7 +1994,6 @@ public class Marketplace {
                quantitySold += stock.quantity;
 
                // add quantity sold to the marketplace
-               waitForMutex(); // check if another thread is adjusting wares' properties
                ware.addQuantity(stock.quantity);
 
                // if enough quantity has been sold,
@@ -2008,6 +2007,10 @@ public class Marketplace {
             // don't return, keep trying to sell wares and pay the player
          }
       }
+
+      // allow other threads to adjust wares' properties
+      releaseMutex();
+
       // truncate to reduce error
       totalEarnings = CommandEconomy.truncatePrice(totalEarnings);
 
@@ -2052,6 +2055,9 @@ public class Marketplace {
       boolean           isProfitable = false; // whether the transaction is profitable despite the fee
       LinkedList<Stock> unsoldStocks = new LinkedList<Stock>(); // holds wares to be sold if the transaction turns out to be profitable
 
+      // prevents other threads from adjusting the marketplace's wares
+      acquireMutex();
+
       // loop through wares owned and get prices according to quality
       for (Stock stock : stocks) {
          // grab the ware to be used
@@ -2084,7 +2090,6 @@ public class Marketplace {
                   quantitySold += stock.quantity;
 
                   // add quantity sold to the marketplace
-                  waitForMutex(); // check if another thread is adjusting wares' properties
                   ware.addQuantity(stock.quantity);
                }
 
@@ -2116,7 +2121,6 @@ public class Marketplace {
                   quantitySold += quantityToBeSold;
 
                   // add quantity sold to the marketplace
-                  waitForMutex(); // check if another thread is adjusting wares' properties
                   ware.addQuantity(quantityToBeSold);
                }
 
@@ -2146,7 +2150,6 @@ public class Marketplace {
                   quantitySold += stock.quantity;
 
                   // add quantity sold to the marketplace
-                  waitForMutex(); // check if another thread is adjusting wares' properties
                   ware.addQuantity(stock.quantity);
                }
 
@@ -2179,7 +2182,6 @@ public class Marketplace {
 
             // add quantity sold to the marketplace
             ware = translateAndGrab(stock.wareID);
-            waitForMutex(); // check if another thread is adjusting wares' properties
             ware.addQuantity(stock.quantity);
          }
       }
@@ -2190,6 +2192,9 @@ public class Marketplace {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
          return new float[]{0.0f, 0.0f};
       }
+
+      // allow other threads to adjust wares' properties
+      releaseMutex();
 
       // truncate to reduce error
       totalEarnings = CommandEconomy.truncatePrice(totalEarnings);
@@ -2478,10 +2483,10 @@ public class Marketplace {
     */
    public static void startOrReconfigPeriodicEvents() {
       // if necessary, start, reload, or stop AI
-      AIHandler.startOrReconfigAI();
+      AIHandler.startOrReconfig();
 
       // if necessary, start, reload, or stop random events
-      RandomEvents.startOrReconfigRandomEvents();
+      RandomEvents.startOrReconfig();
    }
 
    /**

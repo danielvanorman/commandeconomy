@@ -225,15 +225,18 @@ public class WareLinked extends Ware
       if (quantity == 0) { // avoid division by zero
          for (int i = 0; i < componentsAmounts.length; i++) {
             components[i].setQuantity(0);
+            Marketplace.markAsChanged(components[i].getWareID());
          }
+         Marketplace.markAsChanged(wareID);
          return;
       } else {
          for (int i = 0; i < componentsAmounts.length; i++) {
             components[i].setQuantity(this.quantity * componentsAmounts[i] / yield);
+            Marketplace.markAsChanged(components[i].getWareID());
          }
       }
 
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -259,8 +262,9 @@ public class WareLinked extends Ware
       // augment quantities of all components
       for (int i = 0; i < componentsAmounts.length; i++) {
          components[i].addQuantity(quantity * componentsAmounts[i]);
+         Marketplace.markAsChanged(components[i].getWareID());
       }
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**
@@ -292,8 +296,9 @@ public class WareLinked extends Ware
       // subtract quantities of all components
       for (int i = 0; i < componentsAmounts.length; i++) {
          components[i].subtractQuantity(quantity * componentsAmounts[i]);
+         Marketplace.markAsChanged(components[i].getWareID());
       }
-      Marketplace.saveThisWare(wareID);
+      Marketplace.markAsChanged(wareID);
    }
 
    /**

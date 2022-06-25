@@ -11449,8 +11449,8 @@ public class TestSuite
          fileWriter.close();
 
          // set up AI thread
-         AIHandler.startOrReconfigAI();                // first call performs preliminary set up
-         AIHandler.startOrReconfigAI();                // create thread
+         AIHandler.startOrReconfig();                  // first call performs preliminary set up
+         AIHandler.startOrReconfig();                  // create thread
          timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
          aiHandler     = (AIHandler) fTimerTask.get(null);
 
@@ -11460,7 +11460,7 @@ public class TestSuite
             aiHandler.run(); // process command to load
          }
          catch (Exception e) {
-            TEST_OUTPUT.println("   startOrReconfigAI() should not throw any exception, but it did while loading missing AI professions file");
+            TEST_OUTPUT.println("   startOrReconfig() should not throw any exception, but it did while loading missing AI professions file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -17621,16 +17621,16 @@ public class TestSuite
          fTimerTask.setAccessible(true);
 
          // first call performs preliminary set up
-         RandomEvents.startOrReconfigRandomEvents();
+         RandomEvents.startOrReconfig();
 
 
          TEST_OUTPUT.println("random events - handling missing events file");
          // initialize random events
          try {
-            RandomEvents.startOrReconfigRandomEvents();
+            RandomEvents.startOrReconfig();
          }
          catch (Exception e) {
-            TEST_OUTPUT.println("   startOrReconfigRandomEvents() should not throw any exception, but it did while loading missing events file");
+            TEST_OUTPUT.println("   startOrReconfig() should not throw any exception, but it did while loading missing events file");
             e.printStackTrace();
             errorFound = true;
          }
@@ -17711,7 +17711,7 @@ public class TestSuite
          }
 
          // ensure thread reference is current
-         RandomEvents.startOrReconfigRandomEvents();
+         RandomEvents.startOrReconfig();
          timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
 
          // try to load the test file
@@ -17774,7 +17774,7 @@ public class TestSuite
          }
 
          // ensure thread reference is current
-         RandomEvents.startOrReconfigRandomEvents();
+         RandomEvents.startOrReconfig();
          timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
 
          // try to load the test file

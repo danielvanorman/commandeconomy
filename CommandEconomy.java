@@ -411,8 +411,8 @@ public class CommandEconomy {
    public final static String WARN_FILE_MISSED           = "warning - file went missing: ";
 
    public final static String WARN_FILE_OVERWRITE        = "// warning: this file may be cleared and overwritten by the program\n\n";
-   public final static String WARN_FILE_WARES_INVALID    = "\n// warning: the following account entries could not be loaded\n\n";
-   public final static String WARN_FILE_ACCOUNTS_INVALID = "\n// warning: the following wares could not be loaded\n\n";
+   public final static String WARN_FILE_WARES_INVALID    = "\n// warning: the following ware entries could not be loaded\n\n";
+   public final static String WARN_FILE_ACCOUNTS_INVALID = "\n// warning: the following accounts could not be loaded\n\n";
    public final static String FILE_HEADER_ALT_ALIASES    = "\n// alternative aliases: these entries should be kept at the end of the file\n\n";
    public final static String FILE_HEADER_PRINT_MARKET   = "\nware ID\tware alias\tprice\tquantity\tlevel\n";
 
