@@ -2244,57 +2244,105 @@ public class Marketplace {
       }
 
       // get ware's alias for printing
-      String alias = ware.getAlias();
+      final String ALIAS = ware.getAlias();
+
+      // prepare to find unit and total prices
+      float priceBuy = 0.0f;
+      float priceSell;
 
       // if ware is untradeable, stop
       if (ware instanceof WareUntradeable) {
-         if (alias != null &&
-             !alias.isEmpty()) {
-            Config.commandInterface.printToUser(playerID, alias + " (" + wareID
-               + "): " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true)));
+         // find unit price for buying
+         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture);
+
+         // if necessary, factor in transaction fee
+         if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
+               if (Config.transactionFeeBuyingIsMult)
+                  priceBuy += priceBuy * Config.transactionFeeBuying;
+               else
+                  priceBuy += Config.transactionFeeBuying;
+         }
+
+         // print the untradeable ware's price
+         if (ALIAS != null &&
+             !ALIAS.isEmpty()) {
+            Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+               + "): " + CommandEconomy.PRICE_FORMAT.format(priceBuy));
          } else {
             Config.commandInterface.printToUser(playerID, wareID
-               + ": " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true)));
+               + ": " + CommandEconomy.PRICE_FORMAT.format(priceBuy));
          }
          return;
       }
 
+      // prepare to print prices
+      final boolean PRINT_BOTH_PRICES = Config.priceBuyUpchargeMult != 1.0f ||
+                                        (Config.chargeTransactionFees && (Config.transactionFeeBuying != 0.00f || Config.transactionFeeSelling != 0.00f));
+      priceSell = getPrice(playerID, wareID, 1, false, false);
+      if (PRINT_BOTH_PRICES || shouldManufacture) {
+         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture);
+
+         // if necessary, factor in transaction fee
+         if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
+               if (Config.transactionFeeBuyingIsMult)
+                  priceBuy += priceBuy * Config.transactionFeeBuying;
+               else
+                  priceBuy += Config.transactionFeeBuying;
+         }
+      }
+
+      // if necessary, factor in selling transaction fee
+      if (Config.chargeTransactionFees && Config.transactionFeeSelling != 0.00f) {
+         if (Config.transactionFeeSellingIsMult)
+            priceSell -= priceSell * Config.transactionFeeSelling;
+         else
+            priceSell -= Config.transactionFeeSelling;
+      }
+
       // if the ware has an alias, use it
-      if (alias != null &&
-          !alias.isEmpty()) {
-         // if there isn't an upcharge for purchases,
-         // only print one price
-         if (Config.priceBuyUpchargeMult == 1.0f) {
-            Config.commandInterface.printToUser(playerID, alias + " (" + wareID
-               + "): " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, shouldManufacture, shouldManufacture))
+      if (ALIAS != null &&
+          !ALIAS.isEmpty()) {
+         // print prices for buying and selling
+         if (PRINT_BOTH_PRICES) {
+            Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+               + "): Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
+               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell)
                + ", " + ware.getQuantity());
          }
-         // if there is an upcharge for purchases,
-         // print prices for buying and selling
+         // only print one price
          else {
-            Config.commandInterface.printToUser(playerID, alias + " (" + wareID
-               + "): Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true, shouldManufacture))
-               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false, false))
-               + ", " + ware.getQuantity());
+            // ensure manufactured prices are listed when appropriate
+            if (shouldManufacture)
+               Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+                  + "): " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
+                  + ", " + ware.getQuantity());
+            else
+               Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+                  + "): " + CommandEconomy.PRICE_FORMAT.format(priceSell)
+                  + ", " + ware.getQuantity());
          }
       }
       // if the ware doesn't have an alias,
       // don't try to print an alias
       else {
-         // if there isn't an upcharge for purchases,
-         // only print one price
-         if (Config.priceBuyUpchargeMult == 1.0f) {
+         // print prices for buying and selling
+         if (PRINT_BOTH_PRICES) {
             Config.commandInterface.printToUser(playerID, wareID
-               + ": " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, shouldManufacture, shouldManufacture))
+               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
+               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell)
                + ", " + ware.getQuantity());
          }
-         // if there is an upcharge for purchases,
-         // print prices for buying and selling
+         // only print one price
          else {
-            Config.commandInterface.printToUser(playerID, wareID
-               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, true, shouldManufacture))
-               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, 1, false, false))
-               + ", " + ware.getQuantity());
+            // ensure manufactured prices are listed when appropriate
+            if (shouldManufacture)
+               Config.commandInterface.printToUser(playerID, wareID
+                  + ": " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
+                  + ", " + ware.getQuantity());
+            else
+               Config.commandInterface.printToUser(playerID, wareID
+                  + ": " + CommandEconomy.PRICE_FORMAT.format(priceSell)
+                  + ", " + ware.getQuantity());
          }
       }
 
@@ -2305,10 +2353,13 @@ public class Marketplace {
       // if a specific quantity is specified,
       // print prices for buying and selling
       else {
+         priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture);
+         priceSell = getPrice(playerID, wareID, quantity, false, false);
+
          // if necessary, include transaction fees
          if (Config.chargeTransactionFees) {
-            // find buying price + fee
-            float priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture);
+            // find buying fee
+            priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture);
             if (Config.transactionFeeBuying != 0.00f) {
                if (Config.transactionFeeBuyingIsMult)
                   priceBuy += priceBuy * Config.transactionFeeBuying;
@@ -2316,27 +2367,19 @@ public class Marketplace {
                   priceBuy += Config.transactionFeeBuying;
             }
 
-            // find selling price + fee
-            float priceSell = getPrice(playerID, wareID, quantity, false, false);
+            // find selling fee
             if (Config.transactionFeeSelling != 0.00f) {
                if (Config.transactionFeeSellingIsMult)
                   priceSell -= priceSell * Config.transactionFeeSelling;
                else
                   priceSell -= Config.transactionFeeSelling;
             }
-
-            // report prices
-            Config.commandInterface.printToUser(playerID, "   for " + quantity
-               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
-               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
          }
 
-         // no fees == proceed as normal
-         else {
-            Config.commandInterface.printToUser(playerID, "   for " + quantity
-               + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, true, shouldManufacture))
-               + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(getPrice(playerID, wareID, quantity, false, false)));
-         }
+         // report prices
+         Config.commandInterface.printToUser(playerID, "   for " + quantity
+            + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
+            + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
       }
 
       return;

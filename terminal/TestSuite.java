@@ -16123,8 +16123,10 @@ public class TestSuite
       float   priceQuantityBuy  = 0.0f; // order's purchasing price
       float   priceQuantitySell = 0.0f; // order's asking price
       float   priceDamagedWares = 0.0f; // order's asking price when wares are damaged
-      float   feeBuy            = 0.0f; // transaction fees to be paid
-      float   feeSell           = 0.0f;
+      float   feeUnitBuy        = 0.0f; // transaction fees to be paid
+      float   feeUnitSell       = 0.0f;
+      float   feeQuantityBuy    = 0.0f;
+      float   feeQuantitySell   = 0.0f;
       boolean isTradeable       = !(ware instanceof WareUntradeable); // whether the ware can be traded in its current form
 
       String expectedOutput;    // what console output should be
@@ -16157,19 +16159,30 @@ public class TestSuite
       Config.chargeTransactionFees = false; // calculate transaction price and fee separately
       priceUnitBuy                 = Marketplace.getPrice(PLAYER_ID, WARE_ID, 1, true);
       priceUnitSell                = Marketplace.getPrice(PLAYER_ID, WARE_ID, 1, false);
+      if (Config.transactionFeeBuying != 0.00f)
+         feeUnitBuy                = Config.transactionFeeBuying;
+      if (Config.transactionFeeSelling != 0.00f)
+         feeUnitSell               = Config.transactionFeeSelling;
+      if (Config.transactionFeeBuyingIsMult)
+         feeUnitBuy               *= priceUnitBuy;
+      if (Config.transactionFeeSellingIsMult)
+         feeUnitSell              *= priceUnitSell;
+      feeUnitBuy                   = CommandEconomy.truncatePrice(feeUnitBuy); // avoid precision errors using truncation
+      feeUnitSell                  = CommandEconomy.truncatePrice(feeUnitSell);
+
       if (quantity > 1 && isTradeable) {
          priceQuantityBuy          = Marketplace.getPrice(PLAYER_ID, WARE_ID, quantity, true);
          priceQuantitySell         = Marketplace.getPrice(PLAYER_ID, WARE_ID, quantity, false);
          if (Config.transactionFeeBuying != 0.00f)
-            feeBuy                 = Config.transactionFeeBuying;
+            feeQuantityBuy         = Config.transactionFeeBuying;
          if (Config.transactionFeeSelling != 0.00f)
-            feeSell                = Config.transactionFeeSelling;
+            feeQuantitySell        = Config.transactionFeeSelling;
          if (Config.transactionFeeBuyingIsMult)
-            feeBuy                *= priceQuantityBuy;
+            feeQuantityBuy        *= priceQuantityBuy;
          if (Config.transactionFeeSellingIsMult)
-            feeSell               *= priceQuantitySell;
-         feeBuy                    = CommandEconomy.truncatePrice(feeBuy); // avoid precision errors using truncation
-         feeSell                   = CommandEconomy.truncatePrice(feeSell);
+            feeQuantitySell       *= priceQuantitySell;
+         feeQuantityBuy            = CommandEconomy.truncatePrice(feeQuantityBuy); // avoid precision errors using truncation
+         feeQuantitySell           = CommandEconomy.truncatePrice(feeQuantitySell);
       }
       Config.chargeTransactionFees = true;
       // if necessary, calculate damaged wares' selling price
@@ -16194,10 +16207,14 @@ public class TestSuite
          wareName  = WARE_ALIAS + " (" + WARE_ID + "): ";
 
       // singular price
-      if (Config.priceBuyUpchargeMult == 1.0f)
+      if (Config.priceBuyUpchargeMult == 1.0f && Config.transactionFeeBuying == 0.00f && Config.transactionFeeSelling == 0.00f)
          warePrice = CommandEconomy.PRICE_FORMAT.format(priceUnitSell);
       else
-         warePrice = "Buy - " + CommandEconomy.PRICE_FORMAT.format(priceUnitBuy) + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceUnitSell);
+         warePrice = "Buy - " + CommandEconomy.PRICE_FORMAT.format(priceUnitBuy + feeUnitBuy) + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceUnitSell - feeUnitSell);
+
+      // if an untradeable ware, singular price is buying price adjusted by fee
+      if (!isTradeable)
+         warePrice = CommandEconomy.PRICE_FORMAT.format(priceUnitBuy + feeUnitBuy);
 
       // ware quantity
       if (isTradeable) {
@@ -16206,8 +16223,8 @@ public class TestSuite
          // multiple price
          if (quantity > 1) {
             orderPrices = System.lineSeparator() + "   for " + quantity +
-                          ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceQuantityBuy + feeBuy) +
-                          " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceQuantitySell - feeSell);
+                          ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceQuantityBuy + feeQuantityBuy) +
+                          " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceQuantitySell - feeQuantitySell);
          }
 
          // damaged goods
