@@ -138,6 +138,14 @@ public class AI {
       Ware    ware;
       Integer tradeQuantityObject;
       int     tradeQuantity;
+      float   transactionFees = 0.0f; // if transaction fees are enabled, sum the total amount AI should pay
+      float   fee             = 0.0f; // fee currently being calculated
+
+      final boolean PAY_BUYING_FEES               = Config.chargeTransactionFees && Config.transactionFeeBuying  != 0.0f;
+      final boolean PAY_MULT_BUYING_FEES          = PAY_BUYING_FEES && Config.transactionFeeBuyingIsMult;
+      final boolean BUYING_SUBSIDIZING_IS_FINITE  = Config.transactionFeeBuying < 0.0f && Config.transactionFeesShouldPutFeesIntoAccount;
+      final boolean PAY_SELLING_FEES              = Config.chargeTransactionFees && Config.transactionFeeSelling != 0.0f;
+      final boolean SELLING_SUBSIDIZING_IS_FINITE = Config.transactionFeeSelling < 0.0f && Config.transactionFeesShouldPutFeesIntoAccount;
 
       // prevent other threads from adjusting wares' properties
       Marketplace.acquireMutex();
@@ -159,19 +167,78 @@ public class AI {
          // buy a ware
          if (tradeQuantity < 0) {
             // only purchase what is available
-            if (ware.getQuantity() >= -tradeQuantity)
+            if (ware.getQuantity() >= -tradeQuantity) {
+               // if paying transaction fees based on price, record the price
+               if (PAY_MULT_BUYING_FEES)
+                  fee = Marketplace.getPrice(null, ware.getWareID(), -tradeQuantity, true);
+
+               // purchase the ware
                ware.addQuantity(tradeQuantity);
-            else // buyout the ware
+            }
+
+            // buyout the ware
+            else {
+               // if paying transaction fees based on price, record the price
+               if (PAY_MULT_BUYING_FEES)
+                  fee = Marketplace.getPrice(null, ware.getWareID(), ware.getQuantity(), true);
+
+               // buyout the ware
                ware.setQuantity(0);
+            }
+
+            // if necessary, find the transaction fee to be paid
+            if (PAY_BUYING_FEES) {
+               // find fee's charge
+               if (PAY_MULT_BUYING_FEES)
+                  fee *= Config.transactionFeeBuying;
+               else
+                  fee = Config.transactionFeeBuying;
+
+               // if the fee is negative, adjust by how much may be paid
+               if (Config.transactionFeeBuying < 0.0f)
+                  fee += Account.canNegativeFeeBePaid(fee);
+
+               // add the fee to a total sum or
+               // pay the fee if an account is supposed to pay out negative fees
+               if (BUYING_SUBSIDIZING_IS_FINITE)
+                  Account.depositTransactionFee(fee);
+               else
+                  transactionFees += fee;
+            }
          }
 
          // sell a ware
-         else
+         else {
+            // if necessary, find the transaction fee to be paid
+            if (PAY_SELLING_FEES) {
+               fee = Config.transactionFeeSelling;
+
+               // find fee's charge
+               if (Config.transactionFeeSellingIsMult)
+                  fee *= Marketplace.getPrice(null, ware.getWareID(), tradeQuantity, false);
+
+               // if the fee is negative, adjust by how much may be paid
+               if (Config.transactionFeeSelling < 0.0f)
+                  fee += Account.canNegativeFeeBePaid(fee);
+
+               // add the fee to a total sum or
+               // pay the fee if an account is supposed to pay out negative fees
+               if (SELLING_SUBSIDIZING_IS_FINITE)
+                  Account.depositTransactionFee(fee);
+               else
+                  transactionFees += fee;
+            }
+
             ware.addQuantity(tradeQuantity);
+         }
       }
 
       // allow other threads to adjust wares' properties
       Marketplace.releaseMutex();
+
+      // if necessary, pay any transaction fees
+      if (transactionFees != 0.0f)
+         Account.depositTransactionFee(transactionFees);
 
       // clear pending trades
       tradesPending.clear();

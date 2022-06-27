@@ -256,6 +256,7 @@ public class CommandProcessor
       // set up variables
       InvestmentOffer investmentOffer = null;
       float   priceAcceptable = 0.0f;
+      float   fee             = 0.0f; // potential brokerage fee
       String  accountID       = null;
 
       // if two arguments are given,
@@ -305,17 +306,33 @@ public class CommandProcessor
          if (investmentOffer == null)
             return;
 
+         // if necessary, add a brokerage fee
+         // calculate the fee here rather than when generating the offer
+         // since it is unknown how long the offer has been standing
+         if (Config.chargeTransactionFees &&
+             Config.transactionFeeInvesting != 0.0f) {
+            // find fee's charge
+            if (Config.transactionFeeInvestingIsMult)
+               fee = investmentOffer.price * Config.transactionFeeInvesting;
+            else
+               fee = Config.transactionFeeInvesting;
+
+            // if the fee is negative, adjust by how much may be paid
+            if (Config.transactionFeeInvesting < 0.0f)
+               fee += Account.canNegativeFeeBePaid(fee);
+         }
+
          // compare current offer to old offer
          // If the current offer's price is higher than 5% of the old price
          // and no max price acceptable is specified,
          // or if the current offer's price is higher than the specified max price acceptable,
          // present the new offer instead of processing it.
          if ((priceAcceptable == 0.0f && investmentOffer.price > (oldOffer.price * 1.05f)) ||
-             (priceAcceptable != 0.0f && investmentOffer.price > priceAcceptable)) {
+             (priceAcceptable != 0.0f && investmentOffer.price + fee > priceAcceptable)) {
             if (investmentOffer.ware.getAlias() != null && !investmentOffer.ware.getAlias().isEmpty())
-               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
             else
-               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
 
             investmentOffers.put(playerID, investmentOffer);
             return;
@@ -335,15 +352,31 @@ public class CommandProcessor
          // The offer might be processed,
          // so it might be better not to store it at all.
 
+         // if necessary, add a brokerage fee
+         // calculate the fee here rather than when generating the offer
+         // since it is unknown how long the offer has been standing
+         if (Config.chargeTransactionFees &&
+             Config.transactionFeeInvesting != 0.0f) {
+            // find fee's charge
+            if (Config.transactionFeeInvestingIsMult)
+               fee = investmentOffer.price * Config.transactionFeeInvesting;
+            else
+               fee = Config.transactionFeeInvesting;
+
+            // if the fee is negative, adjust by how much may be paid
+            if (Config.transactionFeeInvesting < 0.0f)
+               fee += Account.canNegativeFeeBePaid(fee);
+         }
+
          // If the max price acceptable is too little, tell the player.
          // Do not worry about printing messages - there is no autoinvesting.
          // If the max price acceptable is unset and investment price is $0,
          // don't assume the player wants to invest - they may just be watching the price or curious.
-         if (priceAcceptable == 0.0f || investmentOffer.price > priceAcceptable) {
+         if (priceAcceptable == 0.0f || investmentOffer.price + fee > priceAcceptable) {
             if (investmentOffer.ware.getAlias() != null && !investmentOffer.ware.getAlias().isEmpty())
-               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
             else
-               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price) + CommandEconomy.MSG_INVEST_USAGE_YES);
+               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
 
             investmentOffers.put(playerID, investmentOffer);
             return;
@@ -351,7 +384,7 @@ public class CommandProcessor
       }
 
       // grab the account to be used
-      Account account = Account.grabAndCheckAccount(accountID, playerID, investmentOffer.price);
+      Account account = Account.grabAndCheckAccount(accountID, playerID, investmentOffer.price + fee);
 
       // if something's wrong with the account, stop
       if (account == null)
@@ -373,6 +406,22 @@ public class CommandProcessor
          Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + CommandEconomy.MSG_INVEST_SUCCESS);
       else
          Config.commandInterface.printToUser(playerID, investmentOffer.wareID + CommandEconomy.MSG_INVEST_SUCCESS);
+
+      // pay the transaction fee
+      if (Config.chargeTransactionFees &&
+          Config.transactionFeeInvesting != 0.0f) {
+         // check whether a fee collection account should be used
+         if (Config.transactionFeesShouldPutFeesIntoAccount)
+            // if the fee is negative and unaffordable, don't pay it
+            if (Account.depositTransactionFee(fee))
+               return;
+
+         // pay the fee
+         account.subtractMoney(fee);
+
+         // report fee payment
+         Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
+      }
 
       // remove any old offer
       investmentOffers.remove(playerID);

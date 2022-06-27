@@ -2535,6 +2535,10 @@ public class Marketplace {
          // calculate price without upcharge multiplier
          priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult;
 
+      // factor in components' prices affecting manufactured prices
+      if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents())
+         priceNoQuantityEffect *= ware.getLinkedPriceMultiplier();
+
       return priceNoQuantityEffect;
    }
 
@@ -2599,6 +2603,10 @@ public class Marketplace {
          else
             // calculate price without upcharge multiplier
             priceCurrent = (priceBase + spreadAdjustment) * Config.priceMult;
+
+         // factor in components' prices affecting manufactured prices
+         if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents())
+            priceCurrent *= ware.getLinkedPriceMultiplier();
 
          // find price floor to be enforced
          priceMinimum = priceCurrent * Config.priceFloor;

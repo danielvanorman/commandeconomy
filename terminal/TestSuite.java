@@ -18620,6 +18620,7 @@ public class TestSuite
          // set up test variables
          ware1 = testWare1;
          Config.aiTradeQuantityPercent = 0.10f;
+         AI.calcTradeQuantities();
 
          // enable AI and set to known values
          purchasablesIDs = new String[]{ware1.getWareID()};
@@ -18643,13 +18644,14 @@ public class TestSuite
          price2 = feeCollectionAccount.getMoney();
          if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
              price2 < price1 - FLOAT_COMPARE_PRECISION) {
-            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+            TEST_OUTPUT.println("   unexpected fee: " + price2 + ", should be " + price1 +
                                 "\n      diff: " + (price2 - price1));
             errorFound = true;
          }
 
          TEST_OUTPUT.println("Cross Interactions - Transaction Fees: AI, negative fees");
          // set up test conditions
+         Config.transactionFeeBuying = -0.10f;
          feeCollectionAccount.setMoney(10000.0f);
          ware1.setQuantity(Config.quanMid[ware1.getLevel()]);
 
@@ -18663,15 +18665,16 @@ public class TestSuite
          AI.finalizeTrades(tradesPending);
 
          // check fees
-         price2 = feeCollectionAccount.getMoney();
+         price2 = feeCollectionAccount.getMoney() - 10000.0f;
          if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
              price2 < price1 - FLOAT_COMPARE_PRECISION) {
-            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+            TEST_OUTPUT.println("   unexpected fee: " + price2 + ", should be " + price1 +
                                 "\n      diff: " + (price2 - price1));
             errorFound = true;
          }
 
          TEST_OUTPUT.println("Cross Interactions - Transaction Fees: Manufacturing Contracts, positive fees");
+         Config.transactionFeeBuying = 0.10f;
          // enable manufacturing contracts and set to known values
          Config.buyingOutOfStockWaresAllowed   = true;
          Config.buyingOutOfStockWaresPriceMult = 1.10f;
@@ -18755,7 +18758,7 @@ public class TestSuite
          quantityWare1 = Config.quanMid[ware1.getLevel()];
          ware1.setQuantity(quantityWare1);
          feeCollectionAccount.setMoney(0.0f);
-         playerAccount.setMoney(10000.0f);
+         playerAccount.setMoney(100000.0f);
 
          // set up test oracles
          price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false)
@@ -18771,7 +18774,7 @@ public class TestSuite
          price2 = feeCollectionAccount.getMoney();
          if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
              price2 < price1 - FLOAT_COMPARE_PRECISION) {
-            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+            TEST_OUTPUT.println("   unexpected fee: " + price2 + ", should be " + price1 +
                                "\n      diff: " + (price2 - price1));
             errorFound = true;
          }
@@ -18800,7 +18803,7 @@ public class TestSuite
          price2 = feeCollectionAccount.getMoney();
          if (price1 + FLOAT_COMPARE_PRECISION < price2 ||
              price2 < price1 - FLOAT_COMPARE_PRECISION) {
-            TEST_OUTPUT.println("   unexpected price: " + price2 + ", should be " + price1 +
+            TEST_OUTPUT.println("   unexpected fee: " + price2 + ", should be " + price1 +
                                "\n      diff: " + (price2 - price1));
             errorFound = true;
          }
