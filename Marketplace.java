@@ -15,6 +15,7 @@ import java.io.FileNotFoundException; // for handling missing file errors
 import java.io.IOException;           // for handling miscellaneous file errors
 import java.text.DecimalFormat;       // for formatting prices when displaying
 import java.util.UUID;                // for more securely tracking users internally
+import java.util.Collection;          // for returning all wares within the marketplace
 
 /**
  * Manages trading and tracking wares for sale.
@@ -1331,6 +1332,14 @@ public class Marketplace {
    public static String translateAlias(String alias) { return wareAliasTranslations.get(alias); }
 
    /**
+    * Returns a set of all wares currently available within the marketplace.
+    * <p>
+    * Complexity: O(n), where n is the number of wares to be returned
+    * @return a set of all wares tradeable within the marketplace
+    */
+   public static Collection<Ware> getAllWares() { return wares.values(); }
+
+   /**
     * Returns a set of all aliases currently being used.
     * Useful for autocompletion.
     * <p>
@@ -2530,6 +2539,9 @@ public class Marketplace {
 
       // if necessary, start, reload, or stop random events
       RandomEvents.startOrReconfig();
+
+      // if necessary, start, reload, or stop automatic market rebalancing
+      AutoMarketRebalancer.startOrReconfig();
    }
 
    /**
@@ -2543,6 +2555,9 @@ public class Marketplace {
 
       // if necessary, stop random events
       RandomEvents.endRandomEvents();
+
+      // if necessary, stop automatic marketplace rebalancing
+      AutoMarketRebalancer.end();
    }
 
    /**

@@ -219,6 +219,14 @@ public class Config
    /** whether to print warnings for events' ware IDs or aliases not found within the marketplace */
    public static boolean randomEventsReportInvalidWares = false;
 
+   // automatic market rebalancing
+   /** whether stock levels should bring themselves to equilibrium by periodically increasing or decreasing */
+   public static boolean automaticStockRebalancing = false;
+   /** how often stock levels should change to rebalance themselves; measured in minutes */
+   public static int automaticStockRebalancingFrequency = 45;
+   /** what percentage of equilibrium stock levels should change per rebalancing event */
+   public static float automaticStockRebalancingPercent = 0.005f;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>
@@ -334,6 +342,13 @@ public class Config
             randomEventsLargeChange = value;
             break;
 
+         case "automaticStockRebalancingPercent":
+            automaticStockRebalancingPercent = value;
+            break;
+         case "automaticStockRebalancingFrequency":
+            automaticStockRebalancingFrequency = (int) value;
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -440,6 +455,10 @@ public class Config
             break;
          case "randomEventsPrintChanges":
             randomEventsPrintChanges = value;
+            break;
+
+         case "automaticStockRebalancing":
+            automaticStockRebalancing = value;
             break;
 
          default:
@@ -702,6 +721,10 @@ public class Config
              RandomEvents.calcQuantityChanges();
       }
 
+      // set up automatic market rebalancing if necessary
+      if (automaticStockRebalancing)
+         AutoMarketRebalancer.calcAdjustmentQuantities();
+
       // if the price floor is higher than the price ceiling, swap them
       if (priceFloor > priceCeiling) {
          priceCeilingAdjusted = priceFloor;
@@ -732,6 +755,20 @@ public class Config
       accountStartingMoney          = 0.0f;
       accountMaxCreatedByIndividual = 3;
       crossWorldMarketplace         = false;
+
+      // files
+      filenameNoPathWares         = "wares.txt";
+      ilenameNoPathWaresSave      = "waresSaved.txt";
+      ilenameNoPathAccounts       = "accounts.txt";
+      filenameNoPathAIProfessions = "aiProfessions.json";
+      filenameNoPathRandomEvents  = "randomEvents.json";
+      filenameConfig              = "CommandEconomy" + File.separator + "config.txt";
+      filenameWares               = "CommandEconomy" + File.separator + "wares.txt";
+      filenameWaresSave           = "CommandEconomy" + File.separator + "waresSaved.txt";
+      filenameAccounts            = "CommandEconomy" + File.separator + "accounts.txt";
+      filenameMarket             = "config" + File.separator + "CommandEconomy" + File.separator + "market.txt";
+      filenameAIProfessions       = "CommandEconomy" + File.separator + "aiProfessions.json";
+      filenameRandomEvents        = "CommandEconomy" + File.separator + "randomEvents.json";
 
       // prices
       priceMult            =  1.0f;
@@ -808,6 +845,11 @@ public class Config
       randomEventsLargeChange        = 0.15f;
       randomEventsAreChangesPercents = true;
       randomEventsPrintChanges       = false;
+
+      // automatic market rebalancing
+      automaticStockRebalancing          = false;
+      automaticStockRebalancingFrequency = 45;
+      automaticStockRebalancingPercent   = 0.005f;
    }
 
    /**

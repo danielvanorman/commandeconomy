@@ -90,11 +90,19 @@ public class TestSuite
    /** maps players to accounts they specified should be used by default for their transactions */
    private static HashMap<UUID, Account> defaultAccounts;
 
+   // automatic market rebalancing
+   /** used for testing periodically moving wares' quantities available for sale toward equilibrium */
+   private static Method incrementallyRebalanceMarket = null;
+
    // repeatedly-used constants
    /** default player's UUID */
    private static final UUID PLAYER_ID = InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername);
    /** tolerated variance in floating point calculations */
    private static final float FLOAT_COMPARE_PRECISION = (float) 3e-4f;
+   /** used for invoking methods obtained via reflection */
+   private static final Object   NULL_OBJECT  = null;
+   /** used for invoking methods obtained via reflection */
+   private static final Object[] NULL_OBJECTS = null;
 
    /**
     * Tests functions throughout the program.
@@ -431,6 +439,14 @@ public class TestSuite
       else {
          TEST_OUTPUT.println("test failed - cross-interactions\n");
          failedTests += "   cross-interactions\n";
+      }
+
+      // test periodically bringing wares' quantities closer to equilibrium
+      if (testIncrementallyRebalanceMarket())
+         TEST_OUTPUT.println("test passed - incrementallyRebalanceMarket()\n");
+      else {
+         TEST_OUTPUT.println("test failed - incrementallyRebalanceMarket()\n");
+         failedTests += "   incrementallyRebalanceMarket()\n";
       }
 
       // teardown testing environment
@@ -18982,6 +18998,341 @@ public class TestSuite
       Config.chargeTransactionFees           = false;
       Config.buyingOutOfStockWaresAllowed    = false;
       Config.investmentCostPerHierarchyLevel = 0.0f;
+
+      return !errorFound;
+   }
+
+   /**
+    * Predicts how much a ware's quantity available for sale should change if its rebalanced correctly
+    * for a typical case when rebalancing the marketplace.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware the ware to be adjusted
+    * @return true if an error was discovered
+    */
+   private static int predictRebalancingWareAdjustment(Ware ware) {
+      if (ware == null ||                                        // ware doesn't exist
+          ware instanceof WareUntradeable ||                     // ware cannot be traded
+          ware.getQuantity() == Config.quanMid[ware.getLevel()]) // ware is at equilibrium
+         return 0;
+
+      // find the maximum amount that quantity may move
+      int adjustment = (int) (Config.automaticStockRebalancingPercent * Config.quanMid[ware.getLevel()]);
+
+      // predict how much quantity should be changed
+      // too much quantity
+      if (ware.getQuantity() > Config.quanMid[ware.getLevel()]) {
+         // above maximum adjustment
+         if (ware.getQuantity() - adjustment >= Config.quanMid[ware.getLevel()])
+            return -adjustment;
+
+         // within range of adjustment
+         else
+            return Config.quanMid[ware.getLevel()] - ware.getQuantity();
+      }
+
+      // too little quantity
+      else {
+         // above maximum adjustment
+         if (ware.getQuantity() + adjustment <= Config.quanMid[ware.getLevel()])
+            return adjustment;
+
+         // within range of adjustment
+         else
+            return Config.quanMid[ware.getLevel()] - ware.getQuantity();
+      }
+   }
+
+   /**
+    * Evaluates whether several wares' quantities available for sale were rebalanced correctly
+    * for a typical case when rebalancing the marketplace.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware1                 the first ware to be adjusted
+    * @param ware2                 the second ware to be adjusted
+    * @param ware3                 the third ware to be adjusted
+    * @param ware4                 the fourth ware to be adjusted
+    * @param ware5                 the fifth ware to be adjusted
+    * @param ware6                 the sixth ware to be adjusted
+    * @param quantityWare1         what to set the first ware's quantity available for sale to
+    * @param quantityWare2         what to set the second ware's quantity available for sale to
+    * @param quantityWare3         what to set the third ware's quantity available for sale to
+    * @param quantityWare4         what to set the fourth ware's quantity available for sale to
+    * @param quantityWare5         what to set the fifth ware's quantity available for sale to
+    * @param quantityWare6         what to set the sixth ware's quantity available for sale to
+    * @param testNumber            test number to use when printing errors
+    * @param printTestNumber       whether to print test numbers
+    * @return true if an error was discovered
+    */
+   private static boolean testRebalanceMarket(Ware ware1, Ware ware2, Ware ware3, Ware ware4, Ware ware5, Ware ware6,
+                                              int quantityWare1, int quantityWare2, int quantityWare3,
+                                              int quantityWare4, int quantityWare5, int quantityWare6,
+                                              int testNumber, boolean printTestNumber) {
+      String  testIdentifier;     // can be added to printed errors to differentiate between tests
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      int adjustment1 = 0; // how much ware 1's stock should move
+      int adjustment2 = 0; // how much ware 2's stock should move
+      int adjustment3 = 0; // how much ware 3's stock should move
+      int adjustment4 = 0; // how much ware 4's stock should move
+      int adjustment5 = 0; // how much ware 5's stock should move
+      int adjustment6 = 0; // how much ware 6's stock should move
+
+      if (printTestNumber)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // grab the method to be tested
+      if (incrementallyRebalanceMarket == null) {
+         try {
+            incrementallyRebalanceMarket = AutoMarketRebalancer.class.getDeclaredMethod("incrementallyRebalanceMarket");
+            incrementallyRebalanceMarket.setAccessible(true);
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   failed to retrieve rebalancing method: " + e);
+            baosErr.reset();
+            e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
+            return true;
+         }
+      }
+
+      // set up test conditions and test oracles
+      if (ware1 != null) {
+         ware1.setQuantity(quantityWare1);
+         adjustment1 = predictRebalancingWareAdjustment(ware1);
+      }
+      if (ware2 != null) {
+         ware2.setQuantity(quantityWare2);
+         adjustment2 = predictRebalancingWareAdjustment(ware2);
+      }
+      if (ware3 != null) {
+         ware3.setQuantity(quantityWare3);
+         adjustment3 = predictRebalancingWareAdjustment(ware3);
+      }
+      if (ware4 != null) {
+         ware4.setQuantity(quantityWare4);
+         adjustment4 = predictRebalancingWareAdjustment(ware4);
+      }
+      if (ware5 != null) {
+         ware5.setQuantity(quantityWare5);
+         adjustment5 = predictRebalancingWareAdjustment(ware5);
+      }
+      if (ware6 != null) {
+         ware6.setQuantity(quantityWare6);
+         adjustment6 = predictRebalancingWareAdjustment(ware6);
+      }
+
+      // test as normal
+      try {
+         incrementallyRebalanceMarket.invoke(NULL_OBJECT, NULL_OBJECTS);
+      }
+      catch (Exception e) {
+         TEST_OUTPUT.println("   failed to invoke rebalancing method: " + e);
+         baosErr.reset();
+         e.printStackTrace();
+         TEST_OUTPUT.println(baosErr.toString());
+         return true;
+      }
+
+      // check ware properties
+      if (ware1 != null && ware1.getQuantity() != quantityWare1 + adjustment1) {
+            TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + " for ware1:   " + ware1.getQuantity() + ", should be " + (quantityWare1 + adjustment1) +
+                                "\n   unexpected adjustment" + testIdentifier + " for ware1: " + (ware1.getQuantity() - quantityWare1) + ", should be " + adjustment1 +
+                                "\n   equilibrium" + testIdentifier + " for ware1:           " + Config.quanMid[ware1.getLevel()]);
+         errorFound = true;
+      }
+      if (ware2 != null && ware2.getQuantity() != quantityWare2 + adjustment2) {
+            TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + " for ware2: " + ware2.getQuantity() + ", should be " + (quantityWare2 + adjustment2) +
+                                "\n   unexpected adjustment" + testIdentifier + " for ware2: " + (ware2.getQuantity() - quantityWare2) + ", should be " + adjustment2);
+         errorFound = true;
+      }
+      if (ware3 != null && ware3.getQuantity() != quantityWare3 + adjustment3) {
+            TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + " for ware3: " + ware3.getQuantity() + ", should be " + (quantityWare3 + adjustment3) +
+                                "\n   unexpected adjustment" + testIdentifier + " for ware3: " + (ware3.getQuantity() - quantityWare3) + ", should be " + adjustment3);
+         errorFound = true;
+      }
+      if (ware4 != null && ware4.getQuantity() != quantityWare4 + adjustment4) {
+            TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + " for ware4: " + ware4.getQuantity() + ", should be " + (quantityWare4 + adjustment4) +
+                                "\n   unexpected adjustment" + testIdentifier + " for ware4: " + (ware4.getQuantity() - quantityWare4) + ", should be " + adjustment4);
+         errorFound = true;
+      }
+      if (ware5 != null && ware5.getQuantity() != quantityWare5 + adjustment5) {
+            TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + " for ware5: " + ware5.getQuantity() + ", should be " + (quantityWare5 + adjustment5) +
+                                "\n   unexpected adjustment" + testIdentifier + " for ware5: " + (ware5.getQuantity() - quantityWare5) + ", should be " + adjustment5);
+         errorFound = true;
+      }
+      if (ware6 != null && ware6.getQuantity() != quantityWare6 + adjustment6) {
+            TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + " for ware6: " + ware6.getQuantity() + ", should be " + (quantityWare6 + adjustment6) +
+                                "\n   unexpected adjustment" + testIdentifier + " for ware6: " + (ware6.getQuantity() - quantityWare6) + ", should be " + adjustment6);
+         errorFound = true;
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Evaluates whether a ware's quantity available for sale was rebalanced correctly
+    * for a typical case when rebalancing the marketplace.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware                  the ware to be adjusted
+    * @param quantityWare          what to set the ware's quantity available for sale to
+    * @param testNumber            test number to use when printing errors
+    * @param printTestNumber       whether to print test numbers
+    * @return true if an error was discovered
+    */
+   private static boolean testRebalanceMarket(Ware ware, int quantityWare,
+                                              int testNumber, boolean printTestNumber) {
+      return testRebalanceMarket(ware, null, null, null, null, null,
+                                 quantityWare, 0, 0, 0, 0, 0,
+                                 testNumber, printTestNumber);
+   }
+
+   /**
+    * Tests automatically rebalancing quantities for sale within the marketplace.
+    *
+    * @return whether automatically rebalancing supply and demand passed all test cases
+    */
+   private static boolean testIncrementallyRebalanceMarket() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+      Config.automaticStockRebalancingPercent = 0.10f;
+      AutoMarketRebalancer.calcAdjustmentQuantities();
+
+      try {
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - overstocked");
+         errorFound |= testRebalanceMarket(testWare1, Config.quanHigh[testWare1.getLevel()], 0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - above equilibrium");
+         errorFound |= testRebalanceMarket(testWareC1, (int) (Config.quanMid[testWareC1.getLevel()] * (1.0f + (Config.automaticStockRebalancingPercent / 2.0f))), 0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - equilibrium");
+         errorFound |= testRebalanceMarket(testWareP1, Config.quanMid[testWareP1.getLevel()], 0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - below equilibrium");
+         errorFound |= testRebalanceMarket(testWareC2, (int) (Config.quanMid[testWareC2.getLevel()] * (1.0f - (Config.automaticStockRebalancingPercent / 2.0f))), 0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - understocked");
+         errorFound |= testRebalanceMarket(testWare3, Config.quanLow[testWare3.getLevel()], 0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - untradeable ware");
+         errorFound |= testRebalanceMarket(testWareU1, 10, 0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - scaling based on each level's equilibrium stock: overstocked");
+         errorFound |= testRebalanceMarket(testWare1,  // level 0
+                             testWare2,  // level 1
+                             testWareC1, // level 2
+                             testWare4,  // level 3
+                             testWareP1, // level 4
+                             testWareP2, // level 5
+                             Config.quanHigh[0], Config.quanHigh[1], Config.quanHigh[2],
+                             Config.quanHigh[3], Config.quanHigh[4], Config.quanHigh[5],
+                             0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - scaling based on each level's equilibrium stock: understocked");
+         errorFound |= testRebalanceMarket(testWare1,  // level 0
+                             testWare2,  // level 1
+                             testWareC1, // level 2
+                             testWare4,  // level 3
+                             testWareP1, // level 4
+                             testWareP2, // level 5
+                             Config.quanLow[0], Config.quanLow[1], Config.quanLow[2],
+                             Config.quanLow[3], Config.quanLow[4], Config.quanLow[5],
+                             0, false);
+
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - toggling feature and changing values by reloading configuration");
+         // grab the variables used for rebalancing the marketplace
+         Field testTimer = AutoMarketRebalancer.class.getDeclaredField("timerMarketRebalancer");
+         testTimer.setAccessible(true);
+         Timer timerMarketRebalancer = (Timer) testTimer.get(null);
+
+         // Make sure the feature is off.
+         if (timerMarketRebalancer != null) {
+            timerMarketRebalancer.cancel();
+            timerMarketRebalancer = null;
+            TEST_OUTPUT.println("   warning - timer was not null when it should have been");
+         }
+
+         // write to config file to turn on feature
+         Config.filenameConfig = "CommandEconomy" + File.separator + "testConfig.txt";
+         FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "automaticStockRebalancing = true\n" +
+            "automaticStockRebalancingFrequency = 10\n" +
+            "automaticStockRebalancingPercent = 0.05\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         // attempt to turn on the feature by reloading config
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // check whether the feature is enabled
+         timerMarketRebalancer = (Timer) testTimer.get(null);
+         if (timerMarketRebalancer == null) {
+            TEST_OUTPUT.println("   feature did not turn on when it should have");
+            errorFound = true;
+         }
+
+         // check frequency and percent
+         if (Config.automaticStockRebalancingFrequency != 10) {
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.automaticStockRebalancingFrequency + ", should be 10");
+            errorFound = true;
+         }
+
+         if (Config.automaticStockRebalancingPercent != 0.05f) {
+            TEST_OUTPUT.println("   unexpected percent: " + Config.automaticStockRebalancingPercent + ", should be 0.05");
+            errorFound = true;
+         }
+
+         // write to config file to turn off feature
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "automaticStockRebalancing = false\n" +
+            "automaticStockRebalancingFrequency = 15\n" +
+            "automaticStockRebalancingPercent = 0.30\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         // attempt to turn on the feature by reloading config
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // check whether the feature is disabled
+         timerMarketRebalancer = (Timer) testTimer.get(null);
+         if (timerMarketRebalancer != null) {
+            TEST_OUTPUT.println("   feature did not turn off when it should have");
+            errorFound = true;
+         }
+
+         // check frequency and percent
+         if (Config.automaticStockRebalancingFrequency != 15) {
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.automaticStockRebalancingFrequency + ", should be 15");
+            errorFound = true;
+         }
+
+         if (Config.automaticStockRebalancingPercent != 0.30f) {
+            TEST_OUTPUT.println("   unexpected percent: " + Config.automaticStockRebalancingPercent + ", should be 0.30");
+            errorFound = true;
+         }
+      }
+      catch (Exception e) {
+         TEST_OUTPUT.println("incrementallyRebalanceMarket() - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
 
       return !errorFound;
    }
