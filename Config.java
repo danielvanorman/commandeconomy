@@ -619,17 +619,23 @@ public class Config
         if (data[0].startsWith("//"))
            continue;
 
-        // remove whitespace
-        data[0] = data[0].replaceAll("\\s","");
+         // split line using equals sign
+         data = data[0].split("=", 0);
 
-        // split line using equals sign
-        data = data[0].split("=", 0);
+         // if line has no or multiple equal signs, something is wrong
+         if (data.length != 2) {
+            commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_FORMAT + data[0]);
+            continue;
+         }
 
-        // if line has multiple equal signs, something is wrong
-        if (data.length > 2) {
-           commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_FORMAT + data[0]);
-           continue;
-        }
+         // remove whitespace
+         data[0] = data[0].trim();                  // remove trailing and leading whitespace from config option to be set
+         data[1] = data[1].replaceFirst("\\s+",""); // remove leading whitespace from intended config setting
+                                                    // only removing leading whitespace allows for configuring trailing whitespace when setting strings
+         if (data[1].contains(","))                 // if the data is an array of values, remove all whitespace to ease splitting
+            data[1] = data[1].replaceAll("\\s+","");
+
+         // attempt to set the appropriate config variable
         try {
            // if option being set is an array representing quantities,
            // load it accordingly
