@@ -227,6 +227,14 @@ public class Config
    /** what percentage of equilibrium stock levels should change per rebalancing event */
    public static float automaticStockRebalancingPercent = 0.005f;
 
+   // account interest
+   /** if true, account funds experience compound interest */
+   public static boolean accountPeriodicInterestEnabled = false;
+   /** interest rate accounts experience compound interest at */
+   public static float accountPeriodicInterestPercent = 1.015f;
+   /** how often compound interest is compounded */
+   public static int accountPeriodicInterestInterval = 120;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>
@@ -349,6 +357,13 @@ public class Config
             automaticStockRebalancingFrequency = (int) value;
             break;
 
+         case "accountPeriodicInterestPercent":
+            accountPeriodicInterestPercent = 1.0f + (value / 100.0f);
+            break;
+         case "accountPeriodicInterestInterval":
+            accountPeriodicInterestInterval = (int) value * 60000; // 60000 milliseconds per minute
+            break;
+
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
@@ -459,6 +474,10 @@ public class Config
 
          case "automaticStockRebalancing":
             automaticStockRebalancing = value;
+            break;
+
+         case "accountPeriodicInterestEnabled":
+            accountPeriodicInterestEnabled = value;
             break;
 
          default:
@@ -741,6 +760,7 @@ public class Config
 
       // change or close any threads needed for features based on configuration settings
       Marketplace.startOrReconfigPeriodicEvents();
+      Account.startOrReconfigPeriodicEvents();
       return;
    }
 
@@ -758,8 +778,8 @@ public class Config
 
       // files
       filenameNoPathWares         = "wares.txt";
-      ilenameNoPathWaresSave      = "waresSaved.txt";
-      ilenameNoPathAccounts       = "accounts.txt";
+      filenameNoPathWaresSave      = "waresSaved.txt";
+      filenameNoPathAccounts       = "accounts.txt";
       filenameNoPathAIProfessions = "aiProfessions.json";
       filenameNoPathRandomEvents  = "randomEvents.json";
       filenameConfig              = "CommandEconomy" + File.separator + "config.txt";
@@ -850,6 +870,11 @@ public class Config
       automaticStockRebalancing          = false;
       automaticStockRebalancingFrequency = 45;
       automaticStockRebalancingPercent   = 0.005f;
+
+      // account interest
+      accountPeriodicInterestEnabled  = false;
+      accountPeriodicInterestPercent  = 1.015f;
+      accountPeriodicInterestInterval = 120;
    }
 
    /**

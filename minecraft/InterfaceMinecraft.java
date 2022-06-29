@@ -114,6 +114,7 @@ public class InterfaceMinecraft implements InterfaceCommand
    public void serverStopped(FMLServerStoppedEvent event) {
       // end any threads needed by features
       Marketplace.endPeriodicEvents();
+      Account.endPeriodicEvents();
    }
 
    /**

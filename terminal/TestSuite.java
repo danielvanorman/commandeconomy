@@ -449,6 +449,14 @@ public class TestSuite
          failedTests += "   incrementallyRebalanceMarket()\n";
       }
 
+      // test periodically growing accounts with compound interest
+      if (testAccountInterest())
+         TEST_OUTPUT.println("test passed - applyAccountInterest()\n");
+      else {
+         TEST_OUTPUT.println("test failed - applyAccountInterest()\n");
+         failedTests += "   applyAccountInterest()\n";
+      }
+
       // teardown testing environment
       // restore file names
       Config.filenameWares     = "config" + File.separator + "CommandEconomy" + File.separator + "wares.txt";
@@ -738,6 +746,8 @@ public class TestSuite
       Config.linkedPriceMultsSaved = 0;
 
       Config.buyingOutOfStockWaresAllowed = false;
+
+      Config.accountPeriodicInterestEnabled = false;
 
       // wares
       // raw materials
@@ -12059,6 +12069,8 @@ public class TestSuite
          // try to load the test file
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new references to threads in case it closed during earlier testing
             timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
@@ -12156,6 +12168,8 @@ public class TestSuite
          // try to load the test file
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new references to threads in case it closed during earlier testing
             timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
@@ -12253,6 +12267,8 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   load() should not throw any exception, but it did");
@@ -12282,6 +12298,8 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
          } 
          catch (Exception e) {
             TEST_OUTPUT.println("   load() should not throw any exception, but it did");
@@ -12346,6 +12364,8 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new reference to thread since reloading frequency (the previous test case) should have restarted it
             aiHandler = (AIHandler) fTimerTask.get(null);
@@ -12391,6 +12411,8 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new references to thread in case it was closed for whatever reason
             timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
@@ -12460,6 +12482,8 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
             aiHandler.run();
          }
          catch (Exception e) {
@@ -12510,6 +12534,8 @@ public class TestSuite
          // try to reload configuration
          try {
             InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+            Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
             aiHandler.run();
          }
          catch (Exception e) {
@@ -12551,6 +12577,8 @@ public class TestSuite
 
          // attempt to turn off the feature by reloading config
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+         Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
          // check whether the feature is disabled
          timerAITrades = (Timer) fTimer.get(null);
@@ -12573,6 +12601,8 @@ public class TestSuite
 
          // attempt to turn on the feature by reloading config
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         Config.filenameNoPathAIProfessions = "testAIProfessions.json";
+         Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
          // check whether the feature is enabled
          timerAITrades = (Timer) fTimer.get(null);
@@ -19330,6 +19360,196 @@ public class TestSuite
       }
       catch (Exception e) {
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
+
+      return !errorFound;
+   }
+
+   /**
+    * Evaluates whether several wares' quantities available for sale were rebalanced correctly
+    * for a typical case when rebalancing the marketplace.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param money1                how much money the first account should start with
+    * @param money2                how much money the second account should start with
+    * @param money3                how much money the third account should start with
+    * @param interestRate          the percentage of compound interest to be applied
+    * @param numIterations         how many times interest should be applied
+    * @param testNumber            test number to use when printing errors
+    * @param printTestNumber       whether to print test numbers
+    * @return true if an error was discovered
+    */
+   private static boolean testerAccountInterest(float money1, float money2, float money3,
+                                                float interestRate, int numIterations,
+                                                int testNumber, boolean printTestNumber) {
+      String  testIdentifier;     // can be added to printed errors to differentiate between tests
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      float expectedMoney1 = money1; // how much money the account should have after interest is applied
+      float expectedMoney2 = money2;
+      float expectedMoney3 = money3;
+
+      if (printTestNumber)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test conditions
+      Config.accountPeriodicInterestPercent = interestRate;
+      testAccount1.setMoney(money1);
+      testAccount2.setMoney(money2);
+      testAccount3.setMoney(money3);
+
+      // set up test oracles and test as normal
+         for (int i = 0; i < numIterations; i++) {
+            expectedMoney1 *= Config.accountPeriodicInterestPercent;
+            expectedMoney2 *= Config.accountPeriodicInterestPercent;
+            expectedMoney3 *= Config.accountPeriodicInterestPercent;
+            Account.applyAccountInterest();
+         }
+
+      // check account properties
+         if (testAccount1.getMoney() != expectedMoney1) {
+            TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount1: " + testAccount1.getMoney() + ", should be " + expectedMoney1);
+            errorFound = true;
+         }
+
+         if (testAccount2.getMoney() != expectedMoney2) {
+            TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount2: " + testAccount2.getMoney() + ", should be " + expectedMoney2);
+            errorFound = true;
+         }
+         if (testAccount3.getMoney() != expectedMoney3) {
+            TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount3: " + testAccount3.getMoney() + ", should be " + expectedMoney3);
+            errorFound = true;
+         }
+
+      return errorFound;
+   }
+
+   /**
+    * Tests periodically growing account with compound interest.
+    *
+    * @return whether growing accounts with interest passed all test cases
+    */
+   private static boolean testAccountInterest() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+      Config.accountPeriodicInterestEnabled  = true;
+      Config.accountPeriodicInterestPercent  = 1.015f;
+      Config.accountPeriodicInterestInterval = 7200000; // 2 hours
+
+      try {
+         TEST_OUTPUT.println("applyAccountInterest() - compounding once");
+         errorFound |= testerAccountInterest(1000.0f, 100.0f, 10.0f,
+                                             1.015f, 1, 0, false);
+
+         TEST_OUTPUT.println("applyAccountInterest() - compounding 5 times");
+         errorFound |= testerAccountInterest(1000.0f, 100.0f, 10.0f,
+                                             1.015f, 5, 0, false);
+
+         TEST_OUTPUT.println("applyAccountInterest() - compounding 10 times");
+         errorFound |= testerAccountInterest(-1000.0f, -100.0f, -10.0f,
+                                             1.015f, 1, 0, false);
+
+         TEST_OUTPUT.println("applyAccountInterest() - compounding 25 times");
+         errorFound |= testerAccountInterest(2.0f, 4.0f, 8.0f,
+                                             1.015f, 1, 0, false);
+
+         TEST_OUTPUT.println("applyAccountInterest() - negative interest");
+         errorFound |= testerAccountInterest(-1000.0f, 100.0f, 4.0f,
+                                             0.985f, 1, 1, true); // -1.5% interest rate
+
+         errorFound |= testerAccountInterest(-1000.0f, 100.0f, 4.0f,
+                                             0.985f, 10, 2, true); // -1.5% interest rate
+
+         TEST_OUTPUT.println("applyAccountInterest() - toggling feature and changing values by reloading configuration");
+         // grab the timer for applying account interest
+         Field testTimer = AccountInterestApplier.class.getDeclaredField("timerAccountInterestApplier");
+         testTimer.setAccessible(true);
+         Timer timerAccountInterestApplier = (Timer) testTimer.get(null);
+
+         // Make sure the feature is off.
+         if (timerAccountInterestApplier != null) {
+            timerAccountInterestApplier.cancel();
+            timerAccountInterestApplier = null;
+            TEST_OUTPUT.println("   warning - Terminal Interface timer was not null when it should have been");
+         }
+
+         // write to config file to turn on feature
+         Config.filenameConfig = "CommandEconomy" + File.separator + "testConfig.txt";
+         FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "accountPeriodicInterestEnabled = true\n" +
+            "accountPeriodicInterestInterval = 15\n" +
+            "accountPeriodicInterestPercent = 5.0\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         // attempt to turn on the feature by reloading config
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // check whether the feature is enabled
+         timerAccountInterestApplier = (Timer) testTimer.get(null);
+         if (timerAccountInterestApplier == null) {
+            TEST_OUTPUT.println("   feature did not turn on when it should have");
+            errorFound = true;
+         }
+
+         // check frequency and percent
+         if (Config.accountPeriodicInterestInterval != 900000) { // 15 minutes * 60000 milliseconds per minute
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestInterval + ", should be 900000");
+            errorFound = true;
+         }
+
+         if (Config.accountPeriodicInterestPercent != 1.05f) { // 1 + (5 / 100)
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestPercent + ", should be 1.05");
+            errorFound = true;
+         }
+
+         // write to config file to turn off feature
+         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter.write(
+            "// warning: this file may be cleared and overwritten by the program\n\n" +
+            "accountPeriodicInterestEnabled = false\n" +
+            "accountPeriodicInterestInterval = 4\n" +
+            "accountPeriodicInterestPercent = 85.0\n" +
+            "disableAutoSaving = true\n" +
+            "crossWorldMarketplace = true\n"
+         );
+         fileWriter.close();
+
+         // attempt to turn on the feature by reloading config
+         InterfaceTerminal.serviceRequestReload(new String[]{"config"});
+
+         // check whether the feature is disabled
+         timerAccountInterestApplier = (Timer) testTimer.get(null);
+         if (timerAccountInterestApplier != null) {
+            TEST_OUTPUT.println("   feature did not turn off when it should have");
+            errorFound = true;
+         }
+
+         // check frequency and percent
+         if (Config.accountPeriodicInterestInterval != 240000) {
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestInterval + ", should be 240000");
+            errorFound = true;
+         }
+
+         if (Config.accountPeriodicInterestPercent != 1.85f) {
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestPercent + ", should be 1.85");
+            errorFound = true;
+         }
+      }
+      catch (Exception e) {
+         TEST_OUTPUT.println("applyAccountInterest() - fatal error: " + e);
          e.printStackTrace();
          return false;
       }

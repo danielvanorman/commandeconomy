@@ -1263,6 +1263,26 @@ public class Account {
    }
 
    /**
+    * Spawns and handles threads for features.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void startOrReconfigPeriodicEvents() {
+      // if necessary, start, reload, or stop applying account interest
+      AccountInterestApplier.startOrReconfig();
+   }
+
+   /**
+    * Closes threads for features.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void endPeriodicEvents() {
+      // if necessary, stop applying account interest
+      AccountInterestApplier.end();
+   }
+
+   /**
     * When negative fees are used, returns the amount of a negative fee
     * the fee collection account will pay not out due to constrained funds.
     * <p>
@@ -1321,5 +1341,25 @@ public class Account {
       // deposit the transaction fee
       feeCollectionAccount.addMoney(fee);
       return false;
+   }
+
+   /**
+    * Loops through each account and applies compound interest.
+    * <p>
+    * Complexity: O(n), where n is the number of accounts usable within the market
+    */
+   protected static void applyAccountInterest() {
+      // wait for permission to adjust ware's properties
+      acquireMutex();
+
+      // apply compound interest to every account
+      for (Account account : accounts.values()) {
+         // apply compound interest
+         account.setMoney(account.getMoney() * Config.accountPeriodicInterestPercent);
+      }
+
+      // allow other threads to adjust wares' properties
+      releaseMutex();
+      return;
    }
 };
