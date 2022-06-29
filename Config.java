@@ -788,7 +788,6 @@ public class Config
       filenameNoPathAccounts       = "accounts.txt";
       filenameNoPathAIProfessions = "aiProfessions.json";
       filenameNoPathRandomEvents  = "randomEvents.json";
-      filenameConfig              = "CommandEconomy" + File.separator + "config.txt";
       filenameWares               = "CommandEconomy" + File.separator + "wares.txt";
       filenameWaresSave           = "CommandEconomy" + File.separator + "waresSaved.txt";
       filenameAccounts            = "CommandEconomy" + File.separator + "accounts.txt";

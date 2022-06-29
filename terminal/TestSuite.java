@@ -749,6 +749,12 @@ public class TestSuite
 
       Config.accountPeriodicInterestEnabled = false;
 
+      // don't overwrite user information
+      Config.filenameWares     = "config" + File.separator + "CommandEconomy" + File.separator + "testWares.txt";
+      Config.filenameWaresSave = "config" + File.separator + "CommandEconomy" + File.separator + "testWaresSaved.txt";
+      Config.filenameAccounts  = "config" + File.separator + "CommandEconomy" + File.separator + "testAccounts.txt";
+      Config.filenameConfig    = "CommandEconomy" + File.separator + "testConfig.txt";
+
       // wares
       // raw materials
       wares.put("test:material1", new WareMaterial("test:material1", "", 1.0f, 256, (byte) 0));
@@ -17646,6 +17652,7 @@ public class TestSuite
       Config.randomEvents          = true;
       Config.randomEventsFrequency = 999999999;
       Config.randomEventsVariance  = 0.0f;
+      Config.filenameConfig = "config" + File.separator + "CommandEconomy" + File.separator + "testConfig.txt";
       Config.filenameRandomEvents  = "config" + File.separator + "CommandEconomy" + File.separator + "testRandomEvents.json";
       File       fileRandomEvents  = new File(Config.filenameRandomEvents);
       FileWriter fileWriter;
@@ -18113,8 +18120,7 @@ public class TestSuite
          // turn printing changes off
          Config.randomEventsPrintChanges = true;
 
-         Config.filenameConfig = "CommandEconomy" + File.separator + "testConfig.txt";
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsPrintChanges = false\n" +
@@ -18155,7 +18161,7 @@ public class TestSuite
          }
 
          // turn printing changes on
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsPrintChanges = true\n" +
@@ -18222,7 +18228,7 @@ public class TestSuite
 
          TEST_OUTPUT.println("random events - positive flat rate for ware changes");
          // set up ware changes
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = false\n" +
@@ -18270,7 +18276,7 @@ public class TestSuite
 
          TEST_OUTPUT.println("random events - negative flat rate for ware changes");
          // set up ware changes
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = false\n" +
@@ -18317,7 +18323,7 @@ public class TestSuite
 
          TEST_OUTPUT.println("random events - positive percentage rate for ware changes");
          // set up ware changes
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = true\n" +
@@ -18364,7 +18370,7 @@ public class TestSuite
 
          TEST_OUTPUT.println("random events - negative percentage rate for ware changes");
          // set up ware changes
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "randomEventsAreChangesPercents = true\n" +
@@ -19236,6 +19242,8 @@ public class TestSuite
       resetTestEnvironment();
       Config.automaticStockRebalancingPercent = 0.10f;
       AutoMarketRebalancer.calcAdjustmentQuantities();
+      Config.filenameConfig = "config" + File.separator + "CommandEconomy" + File.separator + "testConfig.txt";
+      FileWriter fileWriter;
 
       try {
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - overstocked");
@@ -19292,8 +19300,7 @@ public class TestSuite
          }
 
          // write to config file to turn on feature
-         Config.filenameConfig = "CommandEconomy" + File.separator + "testConfig.txt";
-         FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "automaticStockRebalancing = true\n" +
@@ -19326,7 +19333,7 @@ public class TestSuite
          }
 
          // write to config file to turn off feature
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "automaticStockRebalancing = false\n" +
@@ -19443,6 +19450,8 @@ public class TestSuite
       Config.accountPeriodicInterestEnabled  = true;
       Config.accountPeriodicInterestPercent  = 1.015f;
       Config.accountPeriodicInterestInterval = 7200000; // 2 hours
+      Config.filenameConfig = "config" + File.separator + "CommandEconomy" + File.separator + "testConfig.txt";
+      FileWriter fileWriter;
 
       try {
          TEST_OUTPUT.println("applyAccountInterest() - compounding once");
@@ -19482,8 +19491,7 @@ public class TestSuite
          }
 
          // write to config file to turn on feature
-         Config.filenameConfig = "CommandEconomy" + File.separator + "testConfig.txt";
-         FileWriter fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "accountPeriodicInterestEnabled = true\n" +
@@ -19516,7 +19524,7 @@ public class TestSuite
          }
 
          // write to config file to turn off feature
-         fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
+         fileWriter = new FileWriter(Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "accountPeriodicInterestEnabled = false\n" +
