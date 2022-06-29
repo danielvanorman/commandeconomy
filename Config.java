@@ -698,11 +698,11 @@ public class Config
 
       // ensure file paths are correct
       String path;
-      boolean regenWares         = !oldFilenameNoPathWares.equals(filenameWares);
-      boolean regenWaresSave     = !oldFilenameNoPathWaresSave.equals(filenameWares);
-      boolean regenAccounts      = !oldFilenameNoPathAccounts.equals(filenameWares);
-      boolean regenAIProfessions = !oldFilenameNoPathAIProfessions.equals(filenameWares);
-      boolean regenRandomEvents  = !oldFilenameNoPathRandomEvents.equals(filenameWares);
+      boolean regenWares         = !oldFilenameNoPathWares.equals(filenameNoPathWares);
+      boolean regenWaresSave     = !oldFilenameNoPathWaresSave.equals(filenameNoPathWaresSave);
+      boolean regenAccounts      = !oldFilenameNoPathAccounts.equals(filenameNoPathAccounts);
+      boolean regenAIProfessions = !oldFilenameNoPathAIProfessions.equals(filenameNoPathAIProfessions);
+      boolean regenRandomEvents  = !oldFilenameNoPathRandomEvents.equals(filenameNoPathRandomEvents);
       // check whether file paths need to be regenerated
       if (regenWares || regenWaresSave || regenAccounts || regenAIProfessions || regenRandomEvents ||
           oldCrossWorldMarketplace != crossWorldMarketplace) {
