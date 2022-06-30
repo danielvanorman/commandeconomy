@@ -520,7 +520,7 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       // welcome the player
-      System.out.println("\nWelcome to Command Economy!\nTo see available commands, use /help.\nTo see tradeable wares, it is recommended to use \"/printMarket\"\nand look in \"config\\CommandEconomy\\market.txt\". \n\nWaiting for commands....");
+      System.out.println("\nWelcome to Command Economy!\n\nRecommended commands:\n/add # - provides free money\n/buy <ware ID> # - purchases a ware\n/sell <ware ID> # - sells a ware\n/inventory - checks owned property\n/help - prints available commands\n\nTo obtain valid wares, use /printMarket \nand look in \"config\\CommandEconomy\\market.txt\"\nor type in Minecraft item names\n(ex: wheat, apple, iron_sword, diamond).\n\nWaiting for commands....\n");
 
       // loop to service requests
       while (true) {
@@ -567,7 +567,7 @@ public class InterfaceTerminal implements InterfaceCommand
                serviceRequestCheck(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_SELLALL:
+            case CommandEconomy.CMD_SELLALL_LOWER:
                serviceRequestSellAll(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
@@ -610,7 +610,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
             case "stop":
             case "exit":
-               System.out.println("Save before quitting? (Y/N)");
+               System.out.print("Save before quitting? (Y/N)\n> ");
                if (consoleInput.nextLine().toLowerCase().startsWith("y"))
                   serviceRequestSave(null);
 
