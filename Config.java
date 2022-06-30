@@ -632,8 +632,6 @@ public class Config
          data[0] = data[0].trim();                  // remove trailing and leading whitespace from config option to be set
          data[1] = data[1].replaceFirst("\\s+",""); // remove leading whitespace from intended config setting
                                                     // only removing leading whitespace allows for configuring trailing whitespace when setting strings
-         if (data[1].contains(","))                 // if the data is an array of values, remove all whitespace to ease splitting
-            data[1] = data[1].replaceAll("\\s+","");
 
          // attempt to set the appropriate config variable
         try {
@@ -642,6 +640,9 @@ public class Config
            if (!data[0].equals("startQuanMult") && !data[0].equals("startQuanSpread")
               && (data[0].startsWith("quan")
                   || data[0].startsWith("startQuan"))) {
+               // if the data is an array of values, remove all whitespace to ease splitting
+               data[1] = data[1].replaceAll("\\s+","");
+
               // split the array in separate values
               inputArray = data[1].split(",", 0);
 
@@ -666,6 +667,9 @@ public class Config
             }
             // for AI professions
             else if (data[0].equals("activeAI")) {
+               // if the data is an array of values, remove all whitespace to ease splitting
+               data[1] = data[1].replaceAll("\\s+","");
+
               // split the array in separate values and set the corresponding config option
               activeAI = data[1].split(",", 0);
             }
@@ -711,15 +715,15 @@ public class Config
          else
             path = commandInterface.getSaveDirectory() + File.separator + "CommandEconomy" + File.separator;
 
-         if (regenWares)
+         if (regenWares         || crossWorldMarketplace)
             filenameWares         = path + filenameNoPathWares;
-         if (regenWaresSave)
+         if (regenWaresSave     || crossWorldMarketplace)
             filenameWaresSave     = path + filenameNoPathWaresSave;
-         if (regenAccounts)
+         if (regenAccounts      || crossWorldMarketplace)
             filenameAccounts      = path + filenameNoPathAccounts;
-         if (regenAIProfessions)
+         if (regenAIProfessions || crossWorldMarketplace)
             filenameAIProfessions = path + filenameNoPathAIProfessions;
-         if (regenRandomEvents)
+         if (regenRandomEvents  || crossWorldMarketplace)
             filenameRandomEvents  = path + filenameNoPathRandomEvents;
       }
 
@@ -781,19 +785,6 @@ public class Config
       accountStartingMoney          = 0.0f;
       accountMaxCreatedByIndividual = 3;
       crossWorldMarketplace         = false;
-
-      // files
-      filenameNoPathWares         = "wares.txt";
-      filenameNoPathWaresSave      = "waresSaved.txt";
-      filenameNoPathAccounts       = "accounts.txt";
-      filenameNoPathAIProfessions = "aiProfessions.json";
-      filenameNoPathRandomEvents  = "randomEvents.json";
-      filenameWares               = "CommandEconomy" + File.separator + "wares.txt";
-      filenameWaresSave           = "CommandEconomy" + File.separator + "waresSaved.txt";
-      filenameAccounts            = "CommandEconomy" + File.separator + "accounts.txt";
-      filenameMarket             = "config" + File.separator + "CommandEconomy" + File.separator + "market.txt";
-      filenameAIProfessions       = "CommandEconomy" + File.separator + "aiProfessions.json";
-      filenameRandomEvents        = "CommandEconomy" + File.separator + "randomEvents.json";
 
       // prices
       priceMult            =  1.0f;
