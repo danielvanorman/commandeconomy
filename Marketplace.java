@@ -1693,6 +1693,15 @@ public class Marketplace {
          return;
       }
 
+      // if selling at or past the price floor is prohibited,
+      // then stop and warn players if they are about to
+      if (Config.noGarbageDisposing &&
+          (((!(ware instanceof WareLinked)) && ware.getQuantity() >= Config.quanHigh[ware.getLevel()] - 1) ||
+           ((ware instanceof WareLinked) && ware.getQuantity() >= ((WareLinked) ware).getQuanWhenReachedPriceFloor()))) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_SELL_NO_GARBAGE_DISPOSING);
+         return;
+      }
+
       // get the quality and quantity of wares the player has
       LinkedList<Stock> waresFound;
       // if the given ware ID is an alias,
@@ -1940,6 +1949,7 @@ public class Marketplace {
       int    quantityLeftover = 1;        // the stock's quantity if all quantity to be removed is taken from it
       int    quantityToBeSold = quantity; // how much quantity still needs to be sold
       int    quantitySold     = 0;        // how much quantity has been sold
+      int    quantityDistFromFloor;       // how much quantity may be sold before reaching the price floor
 
       // prevents other threads from adjusting the marketplace's wares
       acquireMutex();
@@ -1958,6 +1968,23 @@ public class Marketplace {
          price = CommandEconomy.truncatePrice(price);
          if (price < minUnitPrice)
             continue;
+
+         // check whether stock should not be sold past the price floor
+         if (Config.noGarbageDisposing) {
+            // find how much may be sold
+            if (ware instanceof WareLinked)
+               quantityDistFromFloor = ((WareLinked) ware).getQuanWhenReachedPriceFloor() - ware.getQuantity();
+            else
+               quantityDistFromFloor = Config.quanHigh[ware.getLevel()] - ware.getQuantity() - 1;
+
+            // if nothing may be sold, skip this ware
+            if (quantityDistFromFloor <= 0)
+               continue;
+
+            // otherwise, sell the most possible
+            if (quantityDistFromFloor - stock.quantity <= 0)
+               stock.quantity = quantityDistFromFloor;
+         }
 
          // try to sell the ware
          try {

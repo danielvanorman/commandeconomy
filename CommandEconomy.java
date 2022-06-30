@@ -368,6 +368,7 @@ public class CommandEconomy {
    public final static String MSG_SELLALL                 = "failed to sell ware: ";
    public final static String MSG_TRANSACT_FEE            = "   Transaction fee applied: ";
    public final static String MSG_TRANSACT_FEE_SALES_LOSS = "Transaction fee is too high to make a profit";
+   public final static String MSG_SELL_NO_GARBAGE_DISPOSING = "Cannot sell at or below the price floor";
 
    // file-handling
    public final static String ERROR_FILE_LOAD_ACCOUNTS   = "error - unable to load accounts";

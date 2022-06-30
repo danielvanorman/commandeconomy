@@ -235,6 +235,10 @@ public class Config
    /** how often compound interest is compounded */
    public static int accountPeriodicInterestInterval = 120;
 
+   // no garbage disposing
+   /** if true, wares with prices at or below the price floor cannot be sold */
+   public static boolean noGarbageDisposing = false;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>
@@ -478,6 +482,10 @@ public class Config
 
          case "accountPeriodicInterestEnabled":
             accountPeriodicInterestEnabled = value;
+            break;
+
+         case "noGarbageDisposing":
+            noGarbageDisposing = value;
             break;
 
          default:
@@ -871,6 +879,9 @@ public class Config
       accountPeriodicInterestEnabled  = false;
       accountPeriodicInterestPercent  = 1.015f;
       accountPeriodicInterestInterval = 120;
+
+      // no garbage disposing
+      noGarbageDisposing = false;
    }
 
    /**

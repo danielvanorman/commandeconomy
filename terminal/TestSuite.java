@@ -457,6 +457,14 @@ public class TestSuite
          failedTests += "   applyAccountInterest()\n";
       }
 
+      // test restricting sales when prices at or below the price floor
+      if (testNoGarbageDisposing())
+         TEST_OUTPUT.println("test passed - testNoGarbageDisposing()\n");
+      else {
+         TEST_OUTPUT.println("test failed - testNoGarbageDisposing()\n");
+         failedTests += "   no garbage disposing\n";
+      }
+
       // teardown testing environment
       // restore file names
       Config.filenameWares     = "config" + File.separator + "CommandEconomy" + File.separator + "wares.txt";
@@ -19558,6 +19566,530 @@ public class TestSuite
          e.printStackTrace();
          return false;
       }
+
+      return !errorFound;
+   }
+
+   /**
+    * Evaluates whether restricting sales at or below the price floor
+    * was handled correctly for a typical case of selling something.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware                  the ware to be sold
+    * @param wareDistFromFloor     how much quantity available for sale away from
+                                   lowering price to the floor the ware should be set to
+    * @param quantityToOffer       how much of the ware to attempt to sell
+    * @param testNumber            test number to use when printing errors
+    * @param printTestNumber       whether to print test numbers
+    * @return true if an error was discovered
+    */
+   private static boolean testNGDSell(Ware ware, int wareDistFromFloor, int quantityToOffer,
+                                      int testNumber, boolean printTestNumber) {
+      String  testIdentifier;     // can be added to printed errors to differentiate between tests
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      float   price;           // how much traded wares should cost
+      int     quantityToTrade; // how much of the ware should be traded
+      int     quantityWare;    // ware's quantity available for sale
+
+      boolean displayErrorFloorReached = false; // whether a message about not stopping sales at the price floor should be displayed
+      boolean displayErrorFloorBelow   = false; // whether a message about not selling past the price floor should be displayed
+
+      if (printTestNumber)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test conditions
+      if (wareDistFromFloor < quantityToOffer) {
+         // only sell to the price floor
+         if (wareDistFromFloor > 0) {
+            quantityToTrade          = wareDistFromFloor - 1;
+            displayErrorFloorReached = true;
+         }
+
+         // do not sell past the price floor
+         else {
+            quantityToTrade        = 0;
+            displayErrorFloorBelow = true;
+         }
+      }
+      else
+         quantityToTrade = quantityToOffer;
+      quantityWare       = Config.quanHigh[ware.getLevel()] - wareDistFromFloor - 1;
+      ware.setQuantity(quantityWare);
+      playerAccount.setMoney(0.0f);
+      InterfaceTerminal.inventory.clear();
+      InterfaceTerminal.inventory.put(ware.getWareID(), quantityToTrade);
+
+      // set up test oracles
+      if (quantityToTrade <= 0)
+         price = 0.0f;
+      else
+         price = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, false);
+
+      // test as normal
+      baosOut.reset(); // clear buffer holding console output
+      Marketplace.sell(PLAYER_ID, null, ware.getWareID(), quantityToOffer, 0.0f, null);
+
+      // check ware properties
+      if (ware.getQuantity() != quantityWare + quantityToTrade) {
+         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
+                            ", should be " + (quantityWare + quantityToTrade));
+         errorFound = true;
+      }
+      // check account funds
+      if (price + FLOAT_COMPARE_PRECISION < playerAccount.getMoney() ||
+          playerAccount.getMoney() < price - FLOAT_COMPARE_PRECISION) {
+         TEST_OUTPUT.println("   unexpected price" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + price +
+                            "\n      diff: " + (playerAccount.getMoney() - price));
+         errorFound = true;
+      }
+      // check console output
+      /*if (displayErrorFloorReached && !baosOut.toString().contains("Cannot sell at or below the price floor")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
+         errorFound = true;
+      } else*/ if (displayErrorFloorBelow && !baosOut.toString().contains("Cannot sell at or below the price floor")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
+                            "   ware quantity: " + ware.getQuantity());
+         errorFound = true;
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Evaluates whether restricting sales at or below the price floor
+    * was handled correctly for a typical case of selling all of an inventory.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware1                 ware to be sold or null
+    * @param ware2                 ware to be sold or null
+    * @param ware3                 ware to be sold or null
+    * @param quantityToOffer1      how much of the first ware to sell
+    * @param quantityToOffer2      how much of the second ware to sell
+    * @param quantityToOffer3      how much of the third ware to sell
+    * @param wareDistFromFloor1    how much quantity available for sale away from
+                                   lowering price to the floor the first ware should be set to
+    * @param wareDistFromFloor2    quantity available for sale away from floor for second ware
+    * @param wareDistFromFloor3    quantity available for sale away from floor for third ware
+    * @param testNumber            test number to use when printing errors
+    * @param printTestNumber       whether to print test numbers
+    * @return true if an error was discovered
+    */
+   private static boolean testNGDSellAll(Ware ware1, Ware ware2, Ware ware3,
+                                         int quantityToOffer1, int quantityToOffer2, int quantityToOffer3,
+                                         int wareDistFromFloor1, int wareDistFromFloor2, int wareDistFromFloor3,
+                                         int testNumber, boolean printTestNumber) {
+      String  testIdentifier;        // can be added to printed errors to differentiate between tests
+      boolean errorFound    = false; // assume innocence until proven guilty
+
+      float   price1           = 0.0f;  // profits from each ware
+      float   price2           = 0.0f;
+      float   price3           = 0.0f;
+      int     quantityWare1    = 0;     // wares' quantities available for sale
+      int     quantityWare2    = 0;
+      int     quantityWare3    = 0;
+      int     quantityToTrade1 = 0;     // how much of the ware should be traded
+      int     quantityToTrade2 = 0;
+      int     quantityToTrade3 = 0;
+      boolean sellWare1        = true;  // don't sell if it will not make money
+      boolean sellWare2        = true;
+      boolean sellWare3        = true;
+      float   priceTotal;               // transaction's income
+
+      if (printTestNumber)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test conditions
+      playerAccount.setMoney(0.0f);
+      InterfaceTerminal.inventory.clear();
+
+      // set up wares
+      if (ware1 != null) {
+         quantityWare1 = Config.quanHigh[ware1.getLevel()] - wareDistFromFloor1;
+         ware1.setQuantity(quantityWare1);
+         InterfaceTerminal.inventory.put(ware1.getWareID(), quantityToOffer1);
+
+         // find quantity to sell
+         if (wareDistFromFloor1 < quantityToOffer1) {
+            // only sell to the price floor
+            if (wareDistFromFloor1 > 0)
+               quantityToTrade1 = wareDistFromFloor1 - 1;
+
+            // do not sell past the price floor
+            else {
+               quantityToTrade1 = 0;
+               sellWare1        = false;
+            }
+         }
+         else
+            quantityToTrade1 = quantityToOffer1;
+
+         // don't sell if there is no profit to be made
+         price1       = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false);
+         if (price1 > 0.0001f)
+            price1    = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade1, false);
+         else {
+            price1    = 0.0f;
+            sellWare1 = false;
+         }
+      }
+      if (ware2 != null) {
+         quantityWare2 = Config.quanHigh[ware2.getLevel()] - wareDistFromFloor2;
+         ware2.setQuantity(quantityWare2);
+         InterfaceTerminal.inventory.put(ware2.getWareID(), quantityToOffer2);
+
+         // find quantity to sell
+         if (wareDistFromFloor2 < quantityToOffer2) {
+            // only sell to the price floor
+            if (wareDistFromFloor2 > 0)
+               quantityToTrade2 = wareDistFromFloor2 - 1;
+
+            // do not sell past the price floor
+            else {
+               quantityToTrade2 = 0;
+               sellWare2        = false;
+            }
+         }
+         else
+            quantityToTrade2 = quantityToOffer2;
+
+         // don't sell if there is no profit to be made
+         price2       = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), 1, false);
+         if (price2 > 0.0001f)
+            price2    = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade2, false);
+         else {
+            price2    = 0.0f;
+            sellWare2 = false;
+         }
+      }
+      if (ware3 != null) {
+         quantityWare3 = Config.quanHigh[ware3.getLevel()] - wareDistFromFloor3;
+         ware3.setQuantity(quantityWare3);
+         InterfaceTerminal.inventory.put(ware3.getWareID(), quantityToOffer3);
+
+         // find quantity to sell
+         if (wareDistFromFloor3 < quantityToOffer3) {
+            // only sell to the price floor
+            if (wareDistFromFloor3 > 0)
+               quantityToTrade3 = wareDistFromFloor3 - 1;
+
+            // do not sell past the price floor
+            else {
+               quantityToTrade3 = 0;
+               sellWare3        = false;
+            }
+         }
+         else
+            quantityToTrade3 = quantityToOffer3;
+
+         // don't sell if there is no profit to be made
+         price3       = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), 1, false);
+         if (price3 > 0.0001f)
+            price3    = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), quantityToTrade3, false);
+         else {
+            price3    = 0.0f;
+            sellWare3 = false;
+         }
+      }
+
+      // set up test oracles
+      priceTotal = CommandEconomy.truncatePrice(price1 + price2 + price3); // avoid precision errors using truncation
+
+      // run the test
+      baosOut.reset(); // clear buffer holding console output
+      Marketplace.sellAll(PLAYER_ID, null, getFormattedInventory(), null);
+
+      // check ware properties
+      if (quantityWare1 != 0) {
+         if (sellWare1) {
+            if (ware1.getQuantity() != quantityWare1 + quantityToTrade1) {
+               TEST_OUTPUT.println("   unexpected quantity for " + ware1.getWareID() + testIdentifier + ": " + ware1.getQuantity() +
+                                  ", should be " + (quantityWare1 + quantityToTrade1));
+               errorFound = true;
+            }
+         } else {
+            if (ware1.getQuantity() != quantityWare1) {
+               TEST_OUTPUT.println("   unexpected quantity for " + ware1.getWareID() + testIdentifier + ": " + ware1.getQuantity() +
+                                  ", should be " + quantityWare1);
+               errorFound = true;
+            }
+         }
+      }
+      if (quantityWare2 != 0) {
+         if (sellWare2) {
+            if (ware2.getQuantity() != quantityWare2 + quantityToTrade2) {
+               TEST_OUTPUT.println("   unexpected quantity for " + ware2.getWareID() + testIdentifier + ": " + ware2.getQuantity() +
+                                  ", should be " + (quantityWare2 + quantityToTrade2));
+               errorFound = true;
+            }
+         } else {
+            if (ware2.getQuantity() != quantityWare2) {
+               TEST_OUTPUT.println("   unexpected quantity for " + ware2.getWareID() + testIdentifier + ": " + ware2.getQuantity() +
+                                  ", should be " + quantityWare2);
+               errorFound = true;
+            }
+         }
+      }
+      if (quantityWare3 != 0) {
+         if (sellWare3) {
+            if (ware3.getQuantity() != quantityWare3 + quantityToTrade3) {
+               TEST_OUTPUT.println("   unexpected quantity for " + ware3.getWareID() + testIdentifier + ": " + ware3.getQuantity() +
+                                  ", should be " + (quantityWare3 + quantityToTrade3));
+               errorFound = true;
+            }
+         } else {
+            if (ware3.getQuantity() != quantityWare3) {
+               TEST_OUTPUT.println("   unexpected quantity for " + ware3.getWareID() + testIdentifier + ": " + ware3.getQuantity() +
+                                  ", should be " + quantityWare3);
+               errorFound = true;
+            }
+         }
+      }
+      // check account funds
+      if (priceTotal + FLOAT_COMPARE_PRECISION < playerAccount.getMoney() ||
+          playerAccount.getMoney() < priceTotal - FLOAT_COMPARE_PRECISION) {
+         TEST_OUTPUT.println("   unexpected price" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + priceTotal +
+                            "\n      diff: " + (playerAccount.getMoney() - priceTotal));
+         errorFound = true;
+      }
+      // check console output
+      if (baosOut.toString().contains("   Sales upon reaching the ware's price floor")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
+         errorFound = true;
+      } else if (baosOut.toString().contains("   error - unable to sell beyond the ware's price floor")) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
+         errorFound = true;
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Evaluates whether restricting sales at or below the price floor
+    * was handled correctly for cases of selling a linked ware.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware                   ware to be sold
+    * @param component              ware to be sold's sole component
+    * @param yieldOrComponentAmount if positive, ware to be sold's yield per unit of components,
+    *                               if negative, ware to be sold's amount of components required per unit
+    * @param wareDistFromFloor      how much quantity available for sale away from
+    *                               lowering price to the floor the ware should be set to
+    * @param quantityToOffer        how much of the ware to attempt to sell
+    * @param testNumber             test number to use when printing errors
+    * @param printTestNumber        whether to print test numbers
+    * @return true if an error was discovered
+    */
+   private static boolean testNGDLinkedWares(WareLinked ware, Ware component, int yieldOrComponentAmount,
+                                             int wareDistFromFloor, int quantityToOffer,
+                                             int testNumber, boolean printTestNumber, boolean isNotSellAll) {
+      String  testIdentifier;     // can be added to printed errors to differentiate between tests
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      int     quantityToTrade;         // how much of the ware should be traded
+      int     quantityWare;            // ware's quantity available for sale
+      int     quantityComponent;       // ware's component's quantity available for sale
+      int     yield           = 1;     // how many wares are created per recipe iteration using 1 component unit
+      int     componentAmount = 1;     // how many components are needed per recipe iteration creating 1 ware unit
+      boolean displayError    = false; // whether a message about not selling at or past at the price floor should be displayed
+
+      if (printTestNumber)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test conditions and oracles
+      if (wareDistFromFloor < quantityToOffer) {
+         // only sell to the price floor
+         if (wareDistFromFloor > 0) {
+            quantityToTrade = wareDistFromFloor - 1;
+         }
+
+         // do not sell past the price floor
+         else {
+            quantityToTrade = 0;
+            displayError    = isNotSellAll;
+         }
+      }
+      else
+         quantityToTrade = quantityToOffer;
+      quantityComponent  = Config.quanHigh[component.getLevel()];
+      if (yieldOrComponentAmount > 0) {
+         yield              = yieldOrComponentAmount;
+         quantityComponent -= wareDistFromFloor / yield;           // adjust by wares created per component unit
+      }
+      else {
+         componentAmount    = -yieldOrComponentAmount;
+         quantityComponent -= wareDistFromFloor * componentAmount; // adjust by components required to make a ware unit
+      }
+      quantityComponent -= componentAmount;
+      component.setQuantity(quantityComponent);
+      quantityWare = ware.getQuantity();
+      playerAccount.setMoney(0.0f);
+      InterfaceTerminal.inventory.clear();
+      InterfaceTerminal.inventory.put(ware.getWareID(), quantityToTrade);
+
+      // test as normal
+      baosOut.reset(); // clear buffer holding console output
+      if (isNotSellAll)
+         Marketplace.sell(PLAYER_ID, null, ware.getWareID(), quantityToOffer, 0.0f, null);
+      else
+         Marketplace.sellAll(PLAYER_ID, null, getFormattedInventory(), null);
+
+      // check ware properties
+      if (ware.getQuantity() != quantityWare + quantityToTrade) {
+         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
+                            ", should be " + (quantityWare + quantityToTrade) +
+                            "\n      limit:              " + (((Config.quanHigh[component.getLevel()] - 1) / componentAmount) * yield) +
+                            "\n      diff:               " + (ware.getQuantity() - (quantityWare + quantityToTrade)) +
+                            "\n      component limit:    " + (Config.quanHigh[component.getLevel()] - 1) +
+                            "\n      component quantity: " + component.getQuantity() +
+                            "\n      component expected: " + quantityComponent +
+                            "\n      component diff:     " + (component.getQuantity() - (quantityComponent + (quantityToTrade / componentAmount) * yield)));
+         errorFound = true;
+      }
+      // check console output
+      if ((displayError && !baosOut.toString().contains("Cannot sell at or below the price floor")) ||
+          (!displayError && baosOut.toString().contains("Cannot sell at or below the price floor"))) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
+                            "\n      limit:              " + (((Config.quanHigh[component.getLevel()] - 1) / componentAmount) * yield) +
+                            "\n      diff:               " + (ware.getQuantity() - (quantityWare + quantityToTrade)) +
+                            "\n      component limit:    " + (Config.quanHigh[component.getLevel()] - 1) +
+                            "\n      component quantity: " + component.getQuantity() +
+                            "\n      component expected: " + quantityComponent +
+                            "\n      component diff:     " + (component.getQuantity() - (quantityComponent + (quantityToTrade / componentAmount) * yield)));
+         errorFound = true;
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Tests the configuration option to restrict selling
+    * when prices are at or below the price floor.
+    *
+    * @return whether restricting sales passed all test cases
+    */
+   private static boolean testNoGarbageDisposing() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+      Config.noGarbageDisposing = true;
+
+      // test up test variables
+      // linked ware with high yield
+      Ware wood = new WareMaterial("minecraft:log", "wood", 0.5f, 10, (byte) 0);
+      wares.put("minecraft:log", wood);
+      wareAliasTranslations.put("wood", "minecraft:log");
+      WareLinked planks = new WareLinked(new String[]{"wood"}, new int[]{1}, "minecraft:planks", "planks", 2);
+      wares.put("minecraft:planks", planks);
+      wareAliasTranslations.put("planks", "minecraft:planks");
+
+      // linked ware with low yield
+      Ware gold_ingot = new WareMaterial("minecraft:gold_ingot", "gold_ingot", 12.0f, 26, (byte) 3);
+      wares.put("minecraft:gold_ingot", gold_ingot);
+      wareAliasTranslations.put("gold_ingot", "minecraft:gold_ingot");
+      WareLinked gold_block = new WareLinked(new String[]{"gold_ingot"}, new int[]{9}, "minecraft:gold_block", "gold_block", 1);
+      wares.put("minecraft:gold_block", gold_block);
+      wareAliasTranslations.put("gold_block", "minecraft:gold_block");
+
+      // ensure linked wares are not flagged as invalid
+      String validationError = planks.validate();
+      if (validationError != null && !validationError.isEmpty())
+         TEST_OUTPUT.println("failed to set up linked wares - planks: " + validationError);
+
+      validationError = gold_block.validate();
+      if (validationError != null && !validationError.isEmpty())
+         TEST_OUTPUT.println("failed to set up linked wares - gold_block: " + validationError);
+
+      // test variables
+      int quantityWare;
+      int quantityToTrade;
+
+      try {
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): above price floor, ending above");
+         errorFound |= testNGDSell(testWare1, 100, 10, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): above price floor, ending at floor");
+         errorFound |= testNGDSell(testWare1, 100, 99, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): above price floor, ending past");
+         errorFound |= testNGDSell(testWare1, 100, 100, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): at price floor");
+         errorFound |= testNGDSell(testWare1, 0, 1, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): below price floor");
+         errorFound |= testNGDSell(testWare1, -10, 1, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): linked wares, high yield, ending past price floor");
+         errorFound |= testNGDLinkedWares(planks, wood, 2,
+                                          10, 10, 0, false, true);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): linked wares, high yield, below price floor");
+         errorFound |= testNGDLinkedWares(planks, wood, 2,
+                                          -1, 10, 0, false, true);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): linked wares, low yield, ending past price floor");
+         errorFound |= testNGDLinkedWares(gold_block, gold_ingot, -9,
+                                          10, 10, 0, false, true);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sell(): linked wares, low yield, below price floor");
+         errorFound |= testNGDLinkedWares(gold_block, gold_ingot, -9,
+                                          -1, 10, 0, false, true);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): above price floor, ending above");
+         errorFound |= testNGDSellAll(testWare1, testWare2, null, 100, 10, 1,
+                                      200, 20, 0, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): above price floor, ending at floor");
+         errorFound |= testNGDSellAll(testWare1, testWare2, null, 100, 10, 1,
+                                      101, 11, 0, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): above price floor, ending past");
+         errorFound |= testNGDSellAll(testWare1, testWare2, null, 100, 10, 1,
+                                      10, 1, 0, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): at price floor");
+         errorFound |= testNGDSellAll(testWareP1, testWareC2, testWare4, 10, 1, 1,
+                                      0, 0, 0, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): below price floor");
+         errorFound |= testNGDSellAll(testWareP1, testWareC2, testWare4, 10, 1, 1,
+                                      -10, -1, -1, 0, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): linked wares, high yield, ending past price floor");
+         errorFound |= testNGDLinkedWares(planks, wood, 2,
+                                          10, 10, 0, false, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): linked wares, high yield, below price floor");
+         errorFound |= testNGDLinkedWares(planks, wood, 2,
+                                          -1, 10, 0, false, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): linked wares, low yield, ending past price floor");
+         errorFound |= testNGDLinkedWares(gold_block, gold_ingot, -9,
+                                          10, 10, 0, false, false);
+
+         TEST_OUTPUT.println("No Garbage Disposing - sellall(): linked wares, low yield, below price floor");
+         errorFound |= testNGDLinkedWares(gold_block, gold_ingot, -9,
+                                          -1, 10, 0, false, false);
+      }
+      catch (Exception e) {
+         Config.noGarbageDisposing = false;
+         TEST_OUTPUT.println("No Garbage Disposing - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
+      Config.noGarbageDisposing = false;
 
       return !errorFound;
    }

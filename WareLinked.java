@@ -414,4 +414,33 @@ public class WareLinked extends Ware
 
       return jsonObject.toString();
    }
+
+   /**
+    * Returns the number of quantity available for sale minus 1 recipe iteration this ware would have
+    * when any component's quantity available for sale reaches an excessive surplus.
+    * <p>
+    * Complexity: O(n), whether n is the number of wares used to create this ware
+    * @return ware's number of units when a component has excessive surplus
+    */
+   public int getQuanWhenReachedPriceFloor() {
+      // if something's wrong with the components, do nothing
+      if (Float.isNaN(priceBase))
+         return 0;
+
+      int quanHigh         = Integer.MAX_VALUE;
+      int possibleQuanHigh = 0;
+
+      // find which component is the constraining component
+      for (int i = 0; i < componentsAmounts.length; i++) {
+         possibleQuanHigh = Config.quanHigh[components[i].getLevel()] / componentsAmounts[i];
+
+         // if the current component is constraining,
+         // use the constrained quantity
+         if (quanHigh > possibleQuanHigh)
+            quanHigh = possibleQuanHigh;
+      }
+
+      quanHigh *= yield;
+      return quanHigh - yield;
+   }
 };
