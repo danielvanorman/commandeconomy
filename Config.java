@@ -731,15 +731,15 @@ public class Config
          else
             path = commandInterface.getSaveDirectory() + File.separator + "CommandEconomy" + File.separator;
 
-         if (regenWares         || crossWorldMarketplace)
+         if (regenWares         || oldCrossWorldMarketplace != crossWorldMarketplace)
             filenameWares         = path + filenameNoPathWares;
-         if (regenWaresSave     || crossWorldMarketplace)
+         if (regenWaresSave     || oldCrossWorldMarketplace != crossWorldMarketplace)
             filenameWaresSave     = path + filenameNoPathWaresSave;
-         if (regenAccounts      || crossWorldMarketplace)
+         if (regenAccounts      || oldCrossWorldMarketplace != crossWorldMarketplace)
             filenameAccounts      = path + filenameNoPathAccounts;
-         if (regenAIProfessions || crossWorldMarketplace)
+         if (regenAIProfessions || oldCrossWorldMarketplace != crossWorldMarketplace)
             filenameAIProfessions = path + filenameNoPathAIProfessions;
-         if (regenRandomEvents  || crossWorldMarketplace)
+         if (regenRandomEvents  || oldCrossWorldMarketplace != crossWorldMarketplace)
             filenameRandomEvents  = path + filenameNoPathRandomEvents;
       }
 
