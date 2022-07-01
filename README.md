@@ -8,11 +8,11 @@
  * [What It Does](#what-it-does)
  * [Installation](#installation)
  * [Usage](#usage)
- * [Downloadables](#downloadables)
+ * [Downloads](#downloads)
 
 ### What It Does
 
-![Command Economy GIF Demo](img/command-economy-demo.gif)
+<p align="center">![Command Economy GIF Demo](img/command-economy-demo.gif)</p>
 
 <p>Players may buy and sell wares within the marketplace by typing trade commands into game chat anywhere at any time. Buying causes items to instantly appear within an inventory and selling to instantly disappear. Players can exchange almost anything they want within the base game - from a forest fern clipped at its base to a dragon's head from another dimension. The marketplace's prices and stock levels depend on each ware's availability, complexity, manufacturing, and configuration options. A variety of possible configurations allows for heavy customization.</p>
 
@@ -115,7 +115,7 @@ Command-Line Interpreter: <a href="https://www.dropbox.com/s/feqikldiy0s3ug9/Com
         </tr>
     </tbody>
 </table>
-<p style="text-align: center;">Commonly-used commands available to players.</p>
+<p align="center">Commonly-used commands available to players.</p>
 
 <p>
 &lt;argument&gt; == required<br />
@@ -129,7 +129,7 @@ Download explanations of commands and configuration here: <a href="https://drive
 </p>
 
 
-### Downloadables
+### Downloads
 
 [Minecraft Installation](https://www.dropbox.com/s/wiy9ls3huepst8m/Command%20Economy%2C%20Minecraft.zip?dl=0)<br>
 [Demo Runnable using a Command-Line Interpreter](https://www.dropbox.com/s/feqikldiy0s3ug9/Command%20Economy%2C%20Terminal.zip?dl=0)<br>
