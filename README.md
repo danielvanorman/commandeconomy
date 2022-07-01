@@ -11,7 +11,7 @@
 
 ### What It Does
 
-<p align="center"><img src="img/command-economy-demo.gift" align="center" alt="Command Economy Logo"></p>
+<p align="center"><img src="img/command-economy-demo.gif" align="center" alt="Command Economy Demo"></p>
 
 <p>Players may buy and sell wares within the marketplace by typing trade commands into game chat anywhere at any time. Buying causes items to instantly appear within an inventory and selling to instantly disappear. Players can exchange almost anything they want within the base game - from a forest fern clipped at its base to a dragon's head from another dimension. The marketplace's prices and stock levels depend on each ware's availability, complexity, manufacturing, and configuration options. A variety of possible configurations allows for heavy customization.</p>
 
