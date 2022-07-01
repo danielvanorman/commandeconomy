@@ -465,6 +465,14 @@ public class TestSuite
          failedTests += "   no garbage disposing\n";
       }
 
+      // test fixing prices so they do not fluctuate
+      if (testPlannedEconomy())
+         TEST_OUTPUT.println("test passed - testPlannedEconomy()\n");
+      else {
+         TEST_OUTPUT.println("test failed - testPlannedEconomy()\n");
+         failedTests += "   planned economy\n";
+      }
+
       // teardown testing environment
       // restore file names
       Config.filenameWares     = "config" + File.separator + "CommandEconomy" + File.separator + "wares.txt";
@@ -20090,6 +20098,173 @@ public class TestSuite
          return false;
       }
       Config.noGarbageDisposing = false;
+
+      return !errorFound;
+   }
+
+   /**
+    * Evaluates whether fixing wares' prices
+    * was handled correctly for a typical case of selling something.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param ware                  the ware to be sold
+    * @param quantityWare          how much quantity available for sale the ware should be set to
+    * @param quantityToTrade       how much of the ware to sell
+    * @param priceBuyUpchargeMult  what to set the purchasing upcharge to
+    * @param priceMult             what to set the marketplace price multiplier
+    * @param testNumber            test number to use when printing errors
+    * @param printTestNumber       whether to print test numbers
+    * @param isPurchase            whether the transaction should buy wares
+    * @return true if an error was discovered
+    */
+   private static boolean testPETrade(Ware ware, int quantityWare, int quantityToTrade,
+                                      float priceBuyUpchargeMult, float priceMult,
+                                      int testNumber, boolean printTestNumber, boolean isPurchase) {
+      String  testIdentifier;     // can be added to printed errors to differentiate between tests
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      float priceUnitBefore; // ware's price per unit before trading
+      float priceUnitAfter;  // ware's price per unit after trading
+
+      if (printTestNumber)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test conditions
+      playerAccount.setMoney(10000.0f);
+      ware.setQuantity(quantityWare);
+      InterfaceTerminal.inventory.clear();
+      InterfaceTerminal.inventory.put(ware.getWareID(), quantityToTrade);
+
+      // set up test oracles
+      priceUnitBefore = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), 1, isPurchase);
+      if (priceBuyUpchargeMult != Config.priceBuyUpchargeMult && isPurchase) {
+         priceUnitBefore /= Config.priceBuyUpchargeMult;
+         priceUnitBefore *= priceBuyUpchargeMult;
+      }
+      if (priceMult != Config.priceMult) {
+         priceUnitBefore /= Config.priceMult;
+         priceUnitBefore *= priceMult;
+      }
+
+      // set up rest of test conditions
+      Config.priceBuyUpchargeMult = priceBuyUpchargeMult;
+      Config.priceMult            = priceMult;
+
+      // test as normal
+      baosOut.reset(); // clear buffer holding console output
+      if (isPurchase) {
+         Marketplace.buy(PLAYER_ID, null, ware.getWareID(), quantityToTrade, 1000.0f, null);
+         quantityToTrade *= -1; // to ease checking ware's quantity available for sale
+      }
+      else
+         Marketplace.sell(PLAYER_ID, null, ware.getWareID(), quantityToTrade, 0.0f, null);
+      priceUnitAfter = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), 1, isPurchase);
+
+      // check ware properties
+      if (ware.getQuantity() != quantityWare + quantityToTrade) {
+         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
+                            ", should be " + (quantityWare + quantityToTrade));
+         errorFound = true;
+      }
+      // check price
+      if (priceUnitBefore + FLOAT_COMPARE_PRECISION < priceUnitAfter ||
+          priceUnitAfter < priceUnitBefore - FLOAT_COMPARE_PRECISION) {
+         TEST_OUTPUT.println("   unexpected price" + testIdentifier + ": " + priceUnitAfter + ", should be " + priceUnitBefore +
+                            "\n      diff: " + (priceUnitAfter - priceUnitBefore));
+         errorFound = true;
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Tests the configuration option to fix all prices.
+    *
+    * @return whether price-setting passed all test cases
+    */
+   private static boolean testPlannedEconomy() {
+      // use a flag to signal at least one error being found
+      boolean errorFound = false;
+
+      // ensure testing environment is properly set up
+      resetTestEnvironment();
+      Config.pricesIgnoreSupplyAndDemand = true;
+
+      try {
+         TEST_OUTPUT.println("Planned Economy - buying: excessive surplus");
+         errorFound |= testPETrade(testWare1, Config.quanHigh[testWare1.getLevel()], 10,
+                                   1.0f, 1.0f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - buying: mild surplus");
+         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 1.1f), 10,
+                                   1.0f, 1.0f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - buying: at equilibrium");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   1.0f, 1.0f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - buying: mild shortage");
+         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 0.9f), 10,
+                                   1.0f, 1.0f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - buying: severe shortage");
+         errorFound |= testPETrade(testWare1, Config.quanLow[testWare1.getLevel()], 10,
+                                   1.0f, 1.0f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - buying: buying upcharge");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   2.0f, 1.0f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - buying: price multiplier, high");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   1.0f, 2.0f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - buying: price multiplier, low");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   1.0f, 0.5f, 0, false, true);
+
+         TEST_OUTPUT.println("Planned Economy - selling: excessive surplus");
+         errorFound |= testPETrade(testWare1, Config.quanHigh[testWare1.getLevel()], 10,
+                                   1.0f, 1.0f, 0, false, false);
+
+         TEST_OUTPUT.println("Planned Economy - selling: mild surplus");
+         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 1.1f), 10,
+                                   1.0f, 1.0f, 0, false, false);
+
+         TEST_OUTPUT.println("Planned Economy - selling: at equilibrium");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   1.0f, 1.0f, 0, false, false);
+
+         TEST_OUTPUT.println("Planned Economy - selling: mild shortage");
+         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 0.9f), 10,
+                                   1.0f, 1.0f, 0, false, false);
+
+         TEST_OUTPUT.println("Planned Economy - selling: severe shortage");
+         errorFound |= testPETrade(testWare1, Config.quanLow[testWare1.getLevel()], 10,
+                                   1.0f, 1.0f, 0, false, false);
+
+         TEST_OUTPUT.println("Planned Economy - selling: buying upcharge");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   2.0f, 1.0f, 0, false, false);
+
+         TEST_OUTPUT.println("Planned Economy - selling: price multiplier, high");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   1.0f, 2.0f, 0, false, false);
+
+         TEST_OUTPUT.println("Planned Economy - selling: price multiplier, low");
+         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+                                   1.0f, 0.5f, 0, false, false);
+      }
+      catch (Exception e) {
+         Config.pricesIgnoreSupplyAndDemand = false;
+         TEST_OUTPUT.println("Planned Economy - fatal error: " + e);
+         e.printStackTrace();
+         return false;
+      }
+      Config.pricesIgnoreSupplyAndDemand = false;
 
       return !errorFound;
    }

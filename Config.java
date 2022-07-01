@@ -239,6 +239,10 @@ public class Config
    /** if true, wares with prices at or below the price floor cannot be sold */
    public static boolean noGarbageDisposing = false;
 
+   // planned economy
+   /** true means it is truly a command economy */
+   public static boolean pricesIgnoreSupplyAndDemand = false;
+
    /**
     * Sets a config option to a given value or prints an error.
     * <p>
@@ -486,6 +490,10 @@ public class Config
 
          case "noGarbageDisposing":
             noGarbageDisposing = value;
+            break;
+
+         case "pricesIgnoreSupplyAndDemand":
+            pricesIgnoreSupplyAndDemand = value;
             break;
 
          default:
@@ -882,6 +890,9 @@ public class Config
 
       // no garbage disposing
       noGarbageDisposing = false;
+
+      // planned economy
+      pricesIgnoreSupplyAndDemand = false;
    }
 
    /**

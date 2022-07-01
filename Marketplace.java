@@ -871,11 +871,11 @@ public class Marketplace {
          priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult;
 
       // factor in components' prices affecting manufactured prices
-      if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents())
+      if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents() && !Config.pricesIgnoreSupplyAndDemand)
          priceNoQuantityEffect *= ware.getLinkedPriceMultiplier();
 
       // if the ware is untradeable, don't evaluate its supply and demand
-      if (ware instanceof WareUntradeable)
+      if ((ware instanceof WareUntradeable) || Config.pricesIgnoreSupplyAndDemand)
          return CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect);
 
       // find price floor to be enforced for this purchase
