@@ -1458,9 +1458,9 @@ public class TestSuite
          errorFound = errorFound || testWareFields(testWare, WareCrafted.class, "", (byte) 3, 2.4f, 32);
 
          TEST_OUTPUT.println("testLoadWares() - checking average for base price");
-         if ((float) fPriceBaseAverage.get(null) != 7.8f) {
+         if ((double) fPriceBaseAverage.get(null) != 7.800000190734863) {
             errorFound = true;
-            TEST_OUTPUT.println("   priceBaseAverage is " + (float) fPriceBaseAverage.get(null) + ", should be 7.8");
+            TEST_OUTPUT.println("   priceBaseAverage is " + (double) fPriceBaseAverage.get(null) + ", should be 7.8");
          }
 
          TEST_OUTPUT.println("testLoadWares() - checking average for base starting quantities");

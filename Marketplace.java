@@ -53,7 +53,7 @@ public class Marketplace {
    /** average ware starting quantity */
    private static float startQuanBaseAverage = 0.0f;
    /** average ware base price */
-   private static float priceBaseAverage = 0.0f;
+   private static double priceBaseAverage = 0.0;
    /** how many wares should be excluded from price and other averages */
    private static int numAverageExcludedWares = 0;
    /** a loose mutex used to avoid synchronization problems with threads rarely adjusting wares' properties */
@@ -151,7 +151,7 @@ public class Marketplace {
 
       // clear ware base averages
       startQuanBaseAverage = 0.0f;
-      priceBaseAverage     = 0.0f;
+      priceBaseAverage     = 0.0;
 
       // The variables below are mainly used for saving converted data.
       // Since properly casting data in Java is as expensive as creating a new object,
@@ -362,7 +362,7 @@ public class Marketplace {
          // calculate average base price
          priceBaseAverage /= wares.size() - numAverageExcludedWares;
          // truncate the price to avoid rounding and multiplication errors
-         priceBaseAverage  = CommandEconomy.truncatePrice(priceBaseAverage);
+         priceBaseAverage  = (double) CommandEconomy.truncatePrice((float) priceBaseAverage);
       }
 
       // allow other threads to adjust wares' properties
@@ -859,7 +859,7 @@ public class Marketplace {
       // if spread is normal or base is 0, make no adjustment
       if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
          // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = (priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
+         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
       }
 
       // check if purchasing upcharge should be applied
@@ -1027,7 +1027,7 @@ public class Marketplace {
       // if spread is normal or base is 0, make no adjustment
       if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
          // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = (priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
+         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
       }
 
       // calculate price when unaffected by supply and demand
@@ -1154,7 +1154,7 @@ public class Marketplace {
       // if spread is normal or base is 0, make no adjustment
       if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
          // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = (priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
+         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
       }
 
       // calculate price when unaffected by supply and demand
@@ -1226,7 +1226,7 @@ public class Marketplace {
     * Complexity: O(1)
     * @return average base price of all wares
     */
-   public static float getBasePriceAverage() { return priceBaseAverage; }
+   public static float getBasePriceAverage() { return (float) priceBaseAverage; }
 
    /**
     * Verifies whether a given ware ID is used within the marketplace
@@ -2609,7 +2609,7 @@ public class Marketplace {
       // if spread is normal or price base is 0, make no adjustment
       if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
          // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = (priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
+         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
       }
 
       // check if purchasing upcharge should be applied
@@ -2678,7 +2678,7 @@ public class Marketplace {
          // if spread is normal or base is 0, make no adjustment
          if (usePriceSpread && priceBase != 0.0f) {
             // spreadAdjustment = distance from average * distance multiplier
-            spreadAdjustment = (priceBaseAverage - priceBase) * spreadMult;
+            spreadAdjustment = ((float) priceBaseAverage - priceBase) * spreadMult;
          }
 
          // check if purchasing upcharge should be applied
