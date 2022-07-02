@@ -660,6 +660,8 @@ public class RandomEvents extends TimerTask {
        */
       public void fire() {
          int  size = changedWares.length; // how many wares should be affected
+         int  quanChange;                 // how much to alter the ware's quantity available for sale
+         int  quanCeiling = 0;            // if a maximum for how much quantity a ware may have is enforced, keep track of that maximum for selling
          Ware ware;                       // current ware being affected
 
          // change wares' quantities for sale
@@ -667,34 +669,57 @@ public class RandomEvents extends TimerTask {
          for (int i = 0; i < size; i++) {
             ware = changedWares[i];
 
+            // if a quantity ceiling should be enforced,
+            // check whether the ware's quantity is at or past its ceiling
+            if (Config.noGarbageDisposing) {
+               // find the ware's maximum quantity
+               if (ware instanceof WareLinked)
+                  quanCeiling = ((WareLinked) ware).getQuanWhenReachedPriceFloor();
+               else
+                  quanCeiling = Config.quanHigh[ware.getLevel()] - 1;
+
+               // skip the ware if its quantity is at or past its ceiling
+               if (ware.getQuantity() >= quanCeiling)
+                  continue;
+            }
+
             switch (changeMagnitudesCurrent[i]) {
                case  3:
-                  ware.addQuantity(quanChangeLarge[ware.getLevel()]);
+                  quanChange =  quanChangeLarge[ware.getLevel()];
                   break;
 
                case  2:
-                  ware.addQuantity(quanChangeMedium[ware.getLevel()]);
+                  quanChange =  quanChangeMedium[ware.getLevel()];
                   break;
 
                case  1:
-                  ware.addQuantity(quanChangeSmall[ware.getLevel()]);
+                  quanChange =  quanChangeSmall[ware.getLevel()];
                   break;
 
                case -3:
-                  ware.subtractQuantity(quanChangeLarge[ware.getLevel()]);
+                  quanChange = -quanChangeLarge[ware.getLevel()];
                   break;
 
                case -2:
-                  ware.subtractQuantity(quanChangeMedium[ware.getLevel()]);
+                  quanChange = -quanChangeMedium[ware.getLevel()];
                   break;
 
                case -1:
-                  ware.subtractQuantity(quanChangeSmall[ware.getLevel()]);
+                  quanChange = -quanChangeSmall[ware.getLevel()];
                   break;
 
-               default:
-                  break; // this line should never be reached
+               default:           // this line should never be reached
+                  quanChange = 0; // don't make any changes if it is reached
             }
+
+            // if necessary, ensure selling does not exceed the ware's quantity ceiling
+            if (Config.noGarbageDisposing &&                    // if quantity ceilings are enforced,
+                quanChange > 0            &&                    // the event is adding quantity,
+                ware.getQuantity() + quanChange >= quanCeiling) // and that quantity is too much,
+               quanChange = quanCeiling - ware.getQuantity();   // reduce quantity to an acceptable value
+
+            // increase or reduce the ware's quantity available for sale
+            ware.addQuantity(quanChange);
          }
 
          // allow other threads to adjust wares' properties

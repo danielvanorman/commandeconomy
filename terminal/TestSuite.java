@@ -18672,7 +18672,7 @@ public class TestSuite
       Object[] requiredObjects = null;
       Account  feeCollectionAccount;
       AI       ai;
-      String[] purchasablesIDs; // IDS for wares an AI may buy
+      String[] tradeablesIDs; // IDS for wares an AI may buy or sell
       HashMap<Ware, Integer> tradesPending = new HashMap<Ware, Integer>(); // contains AI trade decisions before finalization
       Ware     ware1;
       Ware     ware2;
@@ -18707,8 +18707,8 @@ public class TestSuite
          AI.calcTradeQuantities();
 
          // enable AI and set to known values
-         purchasablesIDs = new String[]{ware1.getWareID()};
-         ai = new AI("testAI", purchasablesIDs, null, null);
+         tradeablesIDs = new String[]{ware1.getWareID()};
+         ai = new AI("testAI", tradeablesIDs, null, null);
          quantityToTrade = (int) (Config.aiTradeQuantityPercent * Config.quanMid[ware1.getLevel()]);
 
          // set up test conditions
@@ -19088,13 +19088,15 @@ public class TestSuite
          Config.noGarbageDisposing = true;
 
          // set up AI for testing
+         tradeablesIDs = new String[]{testWare1.getWareID()};
+         ai = new AI("testAI", null, tradeablesIDs, null);
 
          TEST_OUTPUT.println("Cross Interactions - No Garbage Disposing: AI, selling past price floor");
          // set up test conditions
          ware1           = testWare1;
          quantityToOffer = (int) (Config.aiTradeQuantityPercent * Config.quanMid[ware1.getLevel()]);
          quantityToTrade = quantityToOffer / 2;
-         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade;
+         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade - 1;
          ware1.setQuantity(quantityWare1);
 
          // perform action
@@ -19104,7 +19106,10 @@ public class TestSuite
          // check ware properties
          if (ware1.getQuantity() != quantityWare1 + quantityToTrade) {
             TEST_OUTPUT.println("   unexpected quantity: " + ware1.getQuantity() +
-                               ", should be " + (quantityWare1 + quantityToTrade));
+                                ", should be " + (quantityWare1 + quantityToTrade) +
+                                "\n   quantity traded:  " + (ware1.getQuantity() - quantityWare1) +
+                                "\n   trade expected:   " + quantityToTrade +
+                                "\n   quantity before trade: " + quantityWare1);
             errorFound = true;
          }
 
@@ -19112,7 +19117,7 @@ public class TestSuite
          // set up test conditions
          quantityToTrade =  0;
          quantityToOffer = 20;
-         quantityWare1   = Config.quanHigh[ware1.getLevel()];
+         quantityWare1   = Config.quanHigh[ware1.getLevel()] - 1;
          ware1.setQuantity(quantityWare1);
 
          // perform action
@@ -19122,7 +19127,10 @@ public class TestSuite
          // check ware properties
          if (ware1.getQuantity() != quantityWare1 + quantityToTrade) {
             TEST_OUTPUT.println("   unexpected quantity: " + ware1.getQuantity() +
-                               ", should be " + (quantityWare1 + quantityToTrade));
+                                ", should be " + (quantityWare1 + quantityToTrade) +
+                                "\n   quantity traded:  " + (ware1.getQuantity() - quantityWare1) +
+                                "\n   trade expected:   " + quantityToTrade +
+                                "\n   quantity before trade: " + quantityWare1);
             errorFound = true;
          }
 
@@ -19176,7 +19184,7 @@ public class TestSuite
          quantityToTrade = 5;
          ware1           = testWare1;
          ware2           = testWare2;
-         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade;
+         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade - 1;
          quantityWare2   = Config.quanMid[ware2.getLevel()];
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
@@ -19201,7 +19209,7 @@ public class TestSuite
          ware1           = testWare1;
          ware2           = testWare2;
          quantityWare1   = Config.quanMid[ware1.getLevel()];
-         quantityWare2   = Config.quanHigh[ware2.getLevel()];
+         quantityWare2   = Config.quanHigh[ware2.getLevel()] - 1;
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
 

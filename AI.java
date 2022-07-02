@@ -138,6 +138,7 @@ public class AI {
       Ware    ware;
       Integer tradeQuantityObject;
       int     tradeQuantity;
+      int     quanCeiling     = 0;    // if a maximum for how much quantity a ware may have is enforced, keep track of that maximum for selling
       float   transactionFees = 0.0f; // if transaction fees are enabled, sum the total amount AI should pay
       float   fee             = 0.0f; // fee currently being calculated
 
@@ -209,6 +210,24 @@ public class AI {
 
          // sell a ware
          else {
+            // if a quantity ceiling should be enforced,
+            // check whether the ware's quantity is at or past its ceiling
+            if (Config.noGarbageDisposing) {
+               // find the ware's maximum quantity
+               if (ware instanceof WareLinked)
+                  quanCeiling = ((WareLinked) ware).getQuanWhenReachedPriceFloor();
+               else
+                  quanCeiling = Config.quanHigh[ware.getLevel()] - 1;
+
+               // skip the ware if its quantity is at or past its ceiling
+               if (ware.getQuantity() >= quanCeiling)
+                  continue;
+
+               // ensure selling does not exceed the ware's quantity ceiling
+               if (ware.getQuantity() + tradeQuantity  >= quanCeiling)
+                  tradeQuantity = quanCeiling - ware.getQuantity();
+            }
+
             // if necessary, find the transaction fee to be paid
             if (PAY_SELLING_FEES) {
                fee = Config.transactionFeeSelling;
@@ -678,6 +697,13 @@ public class AI {
       if (sellables != null) {
          // evaluate selling desirabilities
          for (Ware ware : sellables) {
+            // if a quantity ceiling should be enforced,
+            // check whether the ware's quantity is at or past the ceiling
+            if (Config.noGarbageDisposing &&
+                (((!(ware instanceof WareLinked)) && ware.getQuantity() >= Config.quanHigh[ware.getLevel()] - 1) ||
+                 ((ware instanceof WareLinked) && ware.getQuantity() >= ((WareLinked) ware).getQuanWhenReachedPriceFloor())))
+               continue;
+
             // get ware's prices
             priceEquilibrium = Marketplace.getEquilibriumPrice(ware, false);
             priceCurrent     = Marketplace.getPrice(null, ware.getWareID(), 1, false);
