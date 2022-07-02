@@ -19036,11 +19036,196 @@ public class TestSuite
                                "\n      diff:        " + (price2 - price1));
             errorFound = true;
          }
+
+         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Planned Economy, surplus");
+         Config.pricesIgnoreSupplyAndDemand = true; // enable planned economy
+
+         // testWareP1 is made from testWare1
+         // set both wares to surplus, then store their price
+         testWareP1.setQuantity(Config.quanHigh[testWareP1.getLevel()] / 2);
+         testWare1.setQuantity(Config.quanHigh[testWare1.getLevel()]);
+         price1 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+
+         // test selling some testWareP1 and checking its price
+         errorFound |= testPETrade(testWareP1, Config.quanHigh[testWareP1.getLevel()] / 2, 10,
+                                   1.0f, 1.0f, 0, false, true);
+
+         // grab testWareP1's price after selling some
+         price2 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+
+         // the prices before the quantity changes should be equal to the prices after
+         if (price1 != price2) {
+            TEST_OUTPUT.println("   unexpected price after quantity changes: " + price2 + ", should be " + price1);
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Planned Economy, scarcity");
+
+         // testWareP1 is made from testWare1
+         // set both wares to surplus, then store their price
+         testWareP1.setQuantity(Config.quanLow[testWareP1.getLevel()]);
+         testWare1.setQuantity(Config.quanLow[testWare1.getLevel()]);
+         price1 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+
+         // test selling some testWareP1 and checking its price
+         errorFound |= testPETrade(testWareP1, Config.quanLow[testWareP1.getLevel()], 8,
+                                   1.0f, 1.0f, 0, false, true);
+
+         // grab testWareP1's price after selling some
+         price2 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+
+         // the prices before the quantity changes should be equal to the prices after
+         if (price1 != price2) {
+            TEST_OUTPUT.println("   unexpected price after quantity changes: " + price2 + ", should be " + price1);
+            errorFound = true;
+         }
+
+         // disable features to avoid possible interference
+         Config.shouldComponentsCurrentPricesAffectWholesPrice = false;
+         Config.pricesIgnoreSupplyAndDemand = false;
+
+         // enable no garbage disposing for testing
+         Config.noGarbageDisposing = true;
+
+         // set up AI for testing
+
+         TEST_OUTPUT.println("Cross Interactions - No Garbage Disposing: AI, selling past price floor");
+         // set up test conditions
+         ware1           = testWare1;
+         quantityToOffer = (int) (Config.aiTradeQuantityPercent * Config.quanMid[ware1.getLevel()]);
+         quantityToTrade = quantityToOffer / 2;
+         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade;
+         ware1.setQuantity(quantityWare1);
+
+         // perform action
+         ai.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
+
+         // check ware properties
+         if (ware1.getQuantity() != quantityWare1 + quantityToTrade) {
+            TEST_OUTPUT.println("   unexpected quantity: " + ware1.getQuantity() +
+                               ", should be " + (quantityWare1 + quantityToTrade));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - No Garbage Disposing: AI, selling at price floor");
+         // set up test conditions
+         quantityToTrade =  0;
+         quantityToOffer = 20;
+         quantityWare1   = Config.quanHigh[ware1.getLevel()];
+         ware1.setQuantity(quantityWare1);
+
+         // perform action
+         ai.trade(tradesPending);
+         AI.finalizeTrades(tradesPending);
+
+         // check ware properties
+         if (ware1.getQuantity() != quantityWare1 + quantityToTrade) {
+            TEST_OUTPUT.println("   unexpected quantity: " + ware1.getQuantity() +
+                               ", should be " + (quantityWare1 + quantityToTrade));
+            errorFound = true;
+         }
+
+         // set up random events for testing
+         // grab the RandomEvent constructor
+         Class<?> randomEventClass = RandomEvents.class.getDeclaredClasses()[0];
+         Constructor<?> randomEvent = randomEventClass.getDeclaredConstructors()[0];
+         randomEvent.setAccessible(true);
+
+         // initialize event
+         Object testEvent1 = randomEvent.newInstance(NULL_OBJECT);
+
+         // make event properties accessible
+         Field fDescription       = randomEventClass.getDeclaredField("description"); // description is needed to appease event loader/validator
+         Field fChangedWaresIDs   = randomEventClass.getDeclaredField("changedWaresIDs");
+         Field fChangedMagnitudes = randomEventClass.getDeclaredField("changeMagnitudes");
+         fDescription.setAccessible(true);
+         fChangedWaresIDs.setAccessible(true);
+         fChangedMagnitudes.setAccessible(true);
+
+         // set event properties
+         fDescription.set(testEvent1, "This is the first test event description.");
+         fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
+         fChangedMagnitudes.set(testEvent1, new int[]{1, 2});
+
+         // grab the RandomEvent loader/validator
+         Method randomEventLoad = randomEventClass.getDeclaredMethod("load");
+         randomEvent.setAccessible(true);
+
+         // finish setting up event
+         randomEventLoad.invoke(testEvent1, requiredObjects);
+
+         // grab the RandomEvent event firer
+         Method randomEventFire = randomEventClass.getDeclaredMethod("fire");
+         randomEventFire.setAccessible(true);
+
+         // grab references to RandomEvent variables
+         Field fQuanChangeMedium = RandomEvents.class.getDeclaredField("quanChangeMedium");
+         Field fQuanChangeSmall  = RandomEvents.class.getDeclaredField("quanChangeSmall");
+         fQuanChangeMedium.setAccessible(true);
+         fQuanChangeSmall.setAccessible(true);
+
+         // set up RandomEvent variables
+         int[] quanChangeMedium = new int[]{100, 200, 300, 400, 500, 600};
+         int[] quanChangeSmall  = new int[]{10, 20, 30, 40, 50, 60};
+         fQuanChangeMedium.set(null, quanChangeMedium);
+         fQuanChangeSmall.set(null, quanChangeSmall);
+
+         TEST_OUTPUT.println("Cross Interactions - No Garbage Disposing: Random Events, selling past price floor");
+         // set up test conditions
+         quantityToTrade = 5;
+         ware1           = testWare1;
+         ware2           = testWare2;
+         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade;
+         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+
+         // perform action
+         randomEventFire.invoke(testEvent1, requiredObjects);
+
+         // check ware properties
+         if (ware1.getQuantity() != quantityWare1 + quantityToTrade) { // limited to price floor
+            TEST_OUTPUT.println("   unexpected quantity: " + ware1.getQuantity() +
+                               ", should be " + (quantityWare1 + quantityToTrade));
+            errorFound = true;
+         }
+         if (ware2.getQuantity() != quantityWare2 + quanChangeMedium[ware2.getLevel()]) { // not limited at all
+            TEST_OUTPUT.println("   unexpected quantity: " + ware2.getQuantity() +
+                               ", should be " + (quantityWare2 + quanChangeMedium[ware2.getLevel()]));
+            errorFound = true;
+         }
+
+         TEST_OUTPUT.println("Cross Interactions - No Garbage Disposing: Random Events, selling at price floor");
+         // set up test conditions
+         ware1           = testWare1;
+         ware2           = testWare2;
+         quantityWare1   = Config.quanMid[ware1.getLevel()];
+         quantityWare2   = Config.quanHigh[ware2.getLevel()];
+         ware1.setQuantity(quantityWare1);
+         ware2.setQuantity(quantityWare2);
+
+         // perform action
+         randomEventFire.invoke(testEvent1, requiredObjects);
+
+         // check ware properties
+         if (ware1.getQuantity() != quantityWare1 + quanChangeSmall[ware1.getLevel()]) { // not limited at all
+            TEST_OUTPUT.println("   unexpected quantity: " + ware1.getQuantity() +
+                               ", should be " + (quantityWare1 + quanChangeSmall[ware1.getLevel()]));
+            errorFound = true;
+         }
+         if (ware2.getQuantity() != quantityWare2) { // prevented from selling anything
+            TEST_OUTPUT.println("   unexpected quantity: " + ware2.getQuantity() +
+                               ", should be " + quantityWare2);
+            errorFound = true;
+         }
       }
       catch (Exception e) {
          Config.chargeTransactionFees           = false;
          Config.buyingOutOfStockWaresAllowed    = false;
          Config.investmentCostPerHierarchyLevel = 0.0f;
+         Config.pricesIgnoreSupplyAndDemand     = false;
+         Config.noGarbageDisposing              = false;
 
          TEST_OUTPUT.println("Cross Interactions - fatal error: " + e);
          e.printStackTrace();
@@ -19049,6 +19234,8 @@ public class TestSuite
       Config.chargeTransactionFees           = false;
       Config.buyingOutOfStockWaresAllowed    = false;
       Config.investmentCostPerHierarchyLevel = 0.0f;
+      Config.pricesIgnoreSupplyAndDemand     = false;
+      Config.noGarbageDisposing              = false;
 
       return !errorFound;
    }

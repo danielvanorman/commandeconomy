@@ -2621,7 +2621,7 @@ public class Marketplace {
          priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult;
 
       // factor in components' prices affecting manufactured prices
-      if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents())
+      if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents() && !Config.pricesIgnoreSupplyAndDemand)
          priceNoQuantityEffect *= ware.getLinkedPriceMultiplier();
 
       return priceNoQuantityEffect;
@@ -2690,7 +2690,7 @@ public class Marketplace {
             priceCurrent = (priceBase + spreadAdjustment) * Config.priceMult;
 
          // factor in components' prices affecting manufactured prices
-         if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents())
+         if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents() && !Config.pricesIgnoreSupplyAndDemand)
             priceCurrent *= ware.getLinkedPriceMultiplier();
 
          // find price floor to be enforced
