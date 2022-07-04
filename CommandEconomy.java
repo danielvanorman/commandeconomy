@@ -466,7 +466,7 @@ public class CommandEconomy {
    public final static String MSG_RANDOM_EVENT_DESC                 = System.lineSeparator() + "   event's description: ";
    public final static String MSG_RANDOM_EVENTS_CHANGES             = System.lineSeparator() + "   magnitudes must be: -3, -2, -1, 1, 2, or 3";
 
-   public final static String ERROR_RANDOM_EVENT_DESC_MISSING       = "error - random event is missing an event description";
+   public final static String ERROR_RANDOM_EVENT_DESC_MISSING       = "error - random event is missing an event description" + System.lineSeparator();
    public final static String ERROR_RANDOM_EVENT_MAGNITUDES_MISSING = "error - random event is missing changeMagnitudes; events must affect at least one ware";
    public final static String ERROR_RANDOM_EVENT_MAGNITUDES_BLANK   = "error - random event has no changeMagnitudes entries; events must affect at least one ware";
    public final static String ERROR_RANDOM_EVENT_MAGNITUDES_INVALID = "error - random event's changeMagnitudes entry is invalid: ";
@@ -476,7 +476,6 @@ public class CommandEconomy {
    public final static String ERROR_RANDOM_EVENT_WARES_INVALID_LIST = System.lineSeparator() + "Invalid IDs: ";
    public final static String ERROR_RANDOM_EVENT_WARES_NO_VALID     = "error - random event lacks valid wares";
    public final static String ERROR_RANDOM_EVENT_CHANGES_MISMATCH   = "error - random event's changeMagnitudes and changedWaresIDs are not the same size; the number of magnitudes for affecting wares must match the number of ware affected";
-   public final static String ERROR_RANDOM_EVENT_CHANGES_MISSING    = "error - random event does not affect any wares";
 
    // Terminal interface
    public final static String CMD_OP                = "op";

@@ -16,7 +16,6 @@ import java.lang.StringBuilder;       // for faster saving, so the same line ent
 import java.util.Timer;               // for automatically rebalancing the marketplace
 import java.util.UUID;                // for more securely tracking users internally
 import java.lang.Math;                // for calculating appropriate account funds
-import java.util.concurrent.ArrayBlockingQueue; // for testing random events
 
 /**
  * Checks functionality and fault-tolerance of the Terminal Interface.
@@ -17658,7 +17657,6 @@ public class TestSuite
     *
     * @return whether random events passed all test cases
     */
-   @SuppressWarnings("unchecked") // for grabbing RandomEvents' private queue
    private static boolean testRandomEvents() {
       // use a flag to signal at least one error being found
       boolean errorFound = false;
@@ -17672,15 +17670,21 @@ public class TestSuite
       File       fileRandomEvents  = new File(Config.filenameRandomEvents);
       FileWriter fileWriter;
 
+      // prepare to grab private methods
+      Method         randomEventsLoadWares;
+      Method         randomEventFire;
+      Class<?>       randomEventClass;
+      Constructor<?> constructor;
+
       // prepare to grab internal variables
       Field fRandomEvents;
       Field fTimer;
       Field fTimerTask;
-      Field fDescription; // for accessing event properties
+      // for accessing event properties
+      Field fDescription;
       Field fChangedWaresIDs;
       Field fChangedMagnitudes;
       Field fChangeMagnitudesCurrent;
-      Field fQueue;
 
       // track changes to variables
       Timer        timerRandomEvents;
@@ -17699,7 +17703,14 @@ public class TestSuite
       int          quantityWare2;
       int          quantityWare3;
       int          quantityWare4;
-      ArrayBlockingQueue<RandomEvents.QueueCommands> queue;
+
+      // repeatedly-used information
+      final RandomEvents.QuantityForSaleChangeMagnitudes[] MAGNITUDES_1 = new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_SMALL, RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_MEDIUM};
+      final RandomEvents.QuantityForSaleChangeMagnitudes[] MAGNITUDES_2 = new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.NEGATIVE_SMALL};
+      final RandomEvents.QuantityForSaleChangeMagnitudes[] MAGNITUDES_3 = new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_LARGE};
+      final RandomEvents.QuantityForSaleChangeMagnitudes[] MAGNITUDES_4 = new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_LARGE, RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_MEDIUM};
+      final RandomEvents.QuantityForSaleChangeMagnitudes[] MAGNITUDES_5 = new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.NEGATIVE_SMALL, RandomEvents.QuantityForSaleChangeMagnitudes.NEGATIVE_SMALL};
+      final RandomEvents.QuantityForSaleChangeMagnitudes[] MAGNITUDES_6 = new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_SMALL, RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_SMALL};
 
       // ensure events file doesn't affect next test run
       if (fileRandomEvents.exists())
@@ -17840,20 +17851,20 @@ public class TestSuite
                "[{\n" +
                "\"description\": \"This test event is perfectly fine.\",\n" +
                "\"changedWaresIDs\": [\"test:material3\", \"test:crafted2\"],\n" +
-               "\"changeMagnitudes\": [3, -2]},{\n" +
+               "\"changeMagnitudes\": [POSITIVE_LARGE, NEGATIVE_MEDIUM]},{\n" +
                "\"description\": \"This test event has too few magnitudes.\",\n" +
                "\"changedWaresIDs\": [\"test:material1\", \"test:material2\"],\n" +
-               "\"changeMagnitudes\": [1]},{\n" +
+               "\"changeMagnitudes\": [POSITIVE_SMALL]},{\n" +
                "\"description\": \"This test event has too many magnitudes.\",\n" +
                "\"changedWaresIDs\": [\"test:crafted1\"],\n" +
-               "\"changeMagnitudes\": [-1, 2]},{\n" +
+               "\"changeMagnitudes\": [NEGATIVE_SMALL, POSITIVE_MEDIUM]},{\n" +
                "\"description\": \"This test event doesn't have any magnitudes.\",\n" +
                "\"changedWaresIDs\": [\"test:processed2\"]},{\n" +
                "\"description\": \"This test event doesn't affect any wares, yet has magnitudes.\",\n" +
-               "\"changeMagnitudes\": [3, 3]},{\n" +
+               "\"changeMagnitudes\": [POSITIVE_LARGE, POSITIVE_LARGE]},{\n" +
                "\"description\": \"This test event is also perfectly fine.\",\n" +
                "\"changedWaresIDs\": [\"test:processed1\"],\n" +
-               "\"changeMagnitudes\": [-1]}]\n"
+               "\"changeMagnitudes\": [NEGATIVE_SMALL]}]\n"
             );
 
             // close the file
@@ -17903,12 +17914,12 @@ public class TestSuite
             // write test events file
             fileWriter.write(
                "[\n" +
-               "  {\"description\":\"This is a test event.\",\"changedWaresIDs\":[\"test:material3\",\"test:invalidWareID\"],\"changeMagnitudes\":[3,-2]},\n" +
-               "  {\"description\":\"This is also a test event.\",\"changedWaresIDs\":[\"test:anotherInvalidWareID\"],\"changeMagnitudes\":[-1]},\n" +
-               "  {\"description\":\"This is yet another test event.\",\"changedWaresIDs\":[\"test:yetAnotherInvalidWareID\",\"minecraft:material4\"],\"changeMagnitudes\":[1,-2]},\n" +
-               "  {\"description\":\"This is the third-to-last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:secondToLastInvalidWareID\",\"test:crafted2\"],\"changeMagnitudes\":[2,-3]},\n" +
-               "  {\"description\":\"This test event was included to ensure untradeable wares are being checked for.\",\"changedWaresIDs\":[\"test:untradeable1\"],\"changeMagnitudes\":[2]},\n" +
-               "  {\"description\":\"This is the last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:lastInvalidWareID\",\"test:untradeable1\",\"test:material1\"],\"changeMagnitudes\":[1,-1,2]}\n" +
+               "  {\"description\":\"This is a test event.\",\"changedWaresIDs\":[\"test:material3\",\"test:invalidWareID\"],\"changeMagnitudes\":[POSITIVE_LARGE,NEGATIVE_MEDIUM]},\n" +
+               "  {\"description\":\"This is also a test event.\",\"changedWaresIDs\":[\"test:anotherInvalidWareID\"],\"changeMagnitudes\":[NEGATIVE_SMALL]},\n" +
+               "  {\"description\":\"This is yet another test event.\",\"changedWaresIDs\":[\"test:yetAnotherInvalidWareID\",\"minecraft:material4\"],\"changeMagnitudes\":[POSITIVE_SMALL,NEGATIVE_MEDIUM]},\n" +
+               "  {\"description\":\"This is the third-to-last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:secondToLastInvalidWareID\",\"test:crafted2\"],\"changeMagnitudes\":[POSITIVE_MEDIUM,NEGATIVE_LARGE]},\n" +
+               "  {\"description\":\"This test event was included to ensure untradeable wares are being checked for.\",\"changedWaresIDs\":[\"test:untradeable1\"],\"changeMagnitudes\":[POSITIVE_MEDIUM]},\n" +
+               "  {\"description\":\"This is the last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:lastInvalidWareID\",\"test:untradeable1\",\"test:material1\"],\"changeMagnitudes\":[POSITIVE_SMALL,NEGATIVE_SMALL,POSITIVE_MEDIUM]}\n" +
                "]"
             );
 
@@ -17955,9 +17966,9 @@ public class TestSuite
             // write test events file
             fileWriter.write(
                "[\n" +
-               "  {\"description\":\"This is the first test event description.\",\"changedWaresIDs\":[\"test:material1\",\"test:material2\"],\"changeMagnitudes\":[1,2]},\n" +
-               "  {\"description\":\"This is the second test event description.\",\"changedWaresIDs\":[\"test:crafted1\"],\"changeMagnitudes\":[-1]},\n" +
-               "  {\"description\":\"This is the third test event description.\",\"changedWaresIDs\":[\"test:processed2\"],\"changeMagnitudes\":[3]}\n" +
+               "  {\"description\":\"This is the first test event description.\",\"changedWaresIDs\":[\"test:material1\",\"test:material2\"],\"changeMagnitudes\":[POSITIVE_SMALL,POSITIVE_MEDIUM]},\n" +
+               "  {\"description\":\"This is the second test event description.\",\"changedWaresIDs\":[\"test:crafted1\"],\"changeMagnitudes\":[NEGATIVE_SMALL]},\n" +
+               "  {\"description\":\"This is the third test event description.\",\"changedWaresIDs\":[\"test:processed2\"],\"changeMagnitudes\":[NEGATIVE_LARGE]}\n" +
                "]"
             );
 
@@ -17996,8 +18007,8 @@ public class TestSuite
 
          // set up test environment
          // grab the RandomEvent constructor
-         Class<?> randomEventClass = RandomEvents.class.getDeclaredClasses()[0];
-         Constructor<?> constructor = randomEventClass.getDeclaredConstructors()[0];
+         randomEventClass = RandomEvents.class.getDeclaredClasses()[0];
+         constructor = randomEventClass.getDeclaredConstructors()[0];
          constructor.setAccessible(true);
 
          // initialize events
@@ -18020,23 +18031,26 @@ public class TestSuite
          fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
          fChangedWaresIDs.set(testEvent2, new String[]{"test:crafted1"});
          fChangedWaresIDs.set(testEvent3, new String[]{"test:processed2"});
-         fChangedMagnitudes.set(testEvent1, new int[]{1, 2});
-         fChangedMagnitudes.set(testEvent2, new int[]{-1});
-         fChangedMagnitudes.set(testEvent3, new int[]{3});
+         fChangedMagnitudes.set(testEvent1, MAGNITUDES_1);
+         fChangedMagnitudes.set(testEvent2, MAGNITUDES_2);
+         fChangedMagnitudes.set(testEvent3, MAGNITUDES_3);
 
-         // grab the RandomEvent loader/validator
-         Method randomEventLoad = randomEventClass.getDeclaredMethod("load");
-         randomEventLoad.setAccessible(true);
-         Object   requiredObject  = null;
-         Object[] requiredObjects = null;
+         // grab the random event loader/validator
+         randomEventsLoadWares = RandomEvents.class.getDeclaredMethod("loadWaresPrivate");
+         randomEventsLoadWares.setAccessible(true);
+
+         // add test events to random events array
+         fRandomEvents.set(NULL_OBJECT, Array.newInstance(fRandomEvents.getType().getComponentType(), 3));
+         randomEvents    = (Object[]) fRandomEvents.get(null);
+         randomEvents[0] = testEvent1;
+         randomEvents[1] = testEvent2;
+         randomEvents[2] = testEvent3;
 
          // finish setting up events
-         randomEventLoad.invoke(testEvent1, requiredObjects);
-         randomEventLoad.invoke(testEvent2, requiredObjects);
-         randomEventLoad.invoke(testEvent3, requiredObjects);
+         randomEventsLoadWares.invoke(NULL_OBJECT, NULL_OBJECTS);
 
          // grab the RandomEvent event firer
-         Method randomEventFire = randomEventClass.getDeclaredMethod("fire");
+         randomEventFire = randomEventClass.getDeclaredMethod("fire");
          randomEventFire.setAccessible(true);
 
 
@@ -18047,7 +18061,7 @@ public class TestSuite
          descriptionScenario3 = "This is the third test event description." + System.lineSeparator();
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario1)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 1: " + baosOut.toString());
@@ -18055,7 +18069,7 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario2)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 2: " + baosOut.toString());
@@ -18063,7 +18077,7 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario3)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 3: " + baosOut.toString());
@@ -18086,9 +18100,9 @@ public class TestSuite
          fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
          fChangedWaresIDs.set(testEvent2, new String[]{"test:crafted1", "test:material3"});
          fChangedWaresIDs.set(testEvent3, new String[]{"test:processed2", "minecraft:material4"});
-         fChangedMagnitudes.set(testEvent1, new int[]{3, 2});
-         fChangedMagnitudes.set(testEvent2, new int[]{-1, -1});
-         fChangedMagnitudes.set(testEvent3, new int[]{1, 1});
+         fChangedMagnitudes.set(testEvent1, MAGNITUDES_4);
+         fChangedMagnitudes.set(testEvent2, MAGNITUDES_5);
+         fChangedMagnitudes.set(testEvent3, MAGNITUDES_6);
 
          // generate messages for ware changes
          RandomEvents.reloadWares();
@@ -18108,7 +18122,7 @@ public class TestSuite
          descriptionWareChanges3 = "\u001b[32;1m+test:processed2, material4\u001b[0m\n" + System.lineSeparator();
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario1 + descriptionWareChanges1)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 1: " + baosOut.toString());
@@ -18116,7 +18130,7 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario2 + descriptionWareChanges2)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 2: " + baosOut.toString());
@@ -18124,7 +18138,7 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario3 + descriptionWareChanges3)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 3: " + baosOut.toString());
@@ -18152,7 +18166,7 @@ public class TestSuite
 
          // test printing after disabling printing changes
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario1)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 1: " + baosOut.toString());
@@ -18160,7 +18174,7 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario2)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 2: " + baosOut.toString());
@@ -18168,7 +18182,7 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario3)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 3: " + baosOut.toString());
@@ -18190,7 +18204,7 @@ public class TestSuite
 
          // test printing after enabling printing changes
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent1, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario1 + descriptionWareChanges1)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 1: " + baosOut.toString());
@@ -18198,7 +18212,7 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent2, requiredObjects);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario2 + descriptionWareChanges2)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 2: " + baosOut.toString());
@@ -18206,18 +18220,12 @@ public class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          if (!baosOut.toString().equals(descriptionScenario3 + descriptionWareChanges3)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 3: " + baosOut.toString());
             errorFound = true;
          }
-
-         // prepare for next test by grabbing random events requests queue
-         // to know when to check values
-         fQueue = RandomEvents.class.getDeclaredField("queue");
-         fQueue.setAccessible(true);
-         queue  = (ArrayBlockingQueue<RandomEvents.QueueCommands>) fQueue.get(null);
 
          // set events to known values
          testEvent1 = constructor.newInstance(timerTaskRandomEvents);
@@ -18231,14 +18239,19 @@ public class TestSuite
          fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
          fChangedWaresIDs.set(testEvent2, new String[]{"test:crafted1"});
          fChangedWaresIDs.set(testEvent3, new String[]{"test:processed2"});
-         fChangedMagnitudes.set(testEvent1, new int[]{1, 2});
-         fChangedMagnitudes.set(testEvent2, new int[]{-1});
-         fChangedMagnitudes.set(testEvent3, new int[]{3});
+         fChangedMagnitudes.set(testEvent1, MAGNITUDES_1);
+         fChangedMagnitudes.set(testEvent2, MAGNITUDES_2);
+         fChangedMagnitudes.set(testEvent3, MAGNITUDES_3);
+
+         // add test events to random events array
+         fRandomEvents.set(NULL_OBJECT, Array.newInstance(fRandomEvents.getType().getComponentType(), 3));
+         randomEvents    = (Object[]) fRandomEvents.get(null);
+         randomEvents[0] = testEvent1;
+         randomEvents[1] = testEvent2;
+         randomEvents[2] = testEvent3;
 
          // finish setting up events
-         randomEventLoad.invoke(testEvent1, requiredObjects);
-         randomEventLoad.invoke(testEvent2, requiredObjects);
-         randomEventLoad.invoke(testEvent3, requiredObjects);
+         randomEventsLoadWares.invoke(NULL_OBJECT, NULL_OBJECTS);
 
 
          TEST_OUTPUT.println("random events - positive flat rate for ware changes");
@@ -18257,7 +18270,7 @@ public class TestSuite
          );
          fileWriter.close();
          InterfaceTerminal.serviceRequestReload(new String[]{"config"});
-         fRandomEvents.set(requiredObject, null); // prevent firing an event immediately, then hanging while waiting for randomEventsFrequency minutes to pass
+         fRandomEvents.set(NULL_OBJECT, null); // prevent firing an event immediately, then hanging while waiting for randomEventsFrequency minutes to pass
          timerTaskRandomEvents.run();
 
          // set up expected results
@@ -18267,9 +18280,9 @@ public class TestSuite
          quantityWare4 = testWareP2.getQuantity() + (int) (15.0f / Config.quanMid[2] * Config.quanMid[testWareP2.getLevel()]);
 
          // fire events
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          // test quantities
          if (testWare1.getQuantity() != quantityWare1) {
@@ -18314,9 +18327,9 @@ public class TestSuite
          quantityWare4 = testWareP2.getQuantity() - (int) (4.0f / Config.quanMid[2] * Config.quanMid[testWareP2.getLevel()]);
 
          // fire events
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          // test quantities
          if (testWare1.getQuantity() != quantityWare1) {
@@ -18361,9 +18374,9 @@ public class TestSuite
          quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanMid[testWareP2.getLevel()] * 0.30f);
 
          // fire events
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          // test quantities
          if (testWare1.getQuantity() != quantityWare1) {
@@ -18408,9 +18421,9 @@ public class TestSuite
          quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.08f);
 
          // fire events
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          // test quantities
          if (testWare1.getQuantity() != quantityWare1) {
@@ -18448,20 +18461,19 @@ public class TestSuite
          quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.08f);
 
          // add test events to random events array
-         fRandomEvents.set(requiredObject, Array.newInstance(fRandomEvents.getType().getComponentType(), 3));
-         fRandomEvents.setAccessible(true);
+         fRandomEvents.set(NULL_OBJECT, Array.newInstance(fRandomEvents.getType().getComponentType(), 3));
          randomEvents    = (Object[]) fRandomEvents.get(null);
          randomEvents[0] = testEvent1;
          randomEvents[1] = testEvent2;
          randomEvents[2] = testEvent3;
 
          // trigger events twice to greatly change current state
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          // ensure ware quantities have changed
          if (testWare1.getQuantity() >= quantityWare1) {
@@ -18476,16 +18488,15 @@ public class TestSuite
             TEST_OUTPUT.println("   (before reload) unexpected quantity for testWareC1: " + testWareC1.getQuantity() + ", should be greater than " + quantityWare3);
             errorFound = true;
          }
-         if (testWare1.getQuantity() >= quantityWare1) {
+         if (testWareP2.getQuantity() >= quantityWare4) {
             TEST_OUTPUT.println("   (before reload) unexpected quantity for testWareP2: " + testWareP2.getQuantity() + ", should be less than " + quantityWare4);
             errorFound = true;
          }
 
          // prevent any randomly selected random events from messing up data
-         fChangedMagnitudes.setAccessible(true);
-         fChangedMagnitudes.set(testEvent1, new int[]{0, 0});
-         fChangedMagnitudes.set(testEvent2, new int[]{0});
-         fChangedMagnitudes.set(testEvent3, new int[]{0});
+         fChangedMagnitudes.set(testEvent1, new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.NONE, RandomEvents.QuantityForSaleChangeMagnitudes.NONE});
+         fChangedMagnitudes.set(testEvent2, new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.NONE});
+         fChangedMagnitudes.set(testEvent3, new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.NONE});
 
          // reload wares to reset to equilibrium
          Marketplace.loadWares();
@@ -18495,14 +18506,14 @@ public class TestSuite
 
          // restore event magnitudes
          fChangeMagnitudesCurrent = randomEventClass.getDeclaredField("changeMagnitudesCurrent");
-         fChangeMagnitudesCurrent.set(testEvent1, new int[]{1, 2});
-         fChangeMagnitudesCurrent.set(testEvent2, new int[]{-1});
-         fChangeMagnitudesCurrent.set(testEvent3, new int[]{3});
+         fChangeMagnitudesCurrent.set(testEvent1, MAGNITUDES_1);
+         fChangeMagnitudesCurrent.set(testEvent2, MAGNITUDES_2);
+         fChangeMagnitudesCurrent.set(testEvent3, MAGNITUDES_3);
 
          // trigger events once to test relinking
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          // relink wares
          testWare1  = wares.get("test:material1");
@@ -18563,9 +18574,9 @@ public class TestSuite
          quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanMid[testWareP2.getLevel()] * 0.30f);
 
          // fire events
-         randomEventFire.invoke(testEvent1, requiredObjects);
-         randomEventFire.invoke(testEvent2, requiredObjects);
-         randomEventFire.invoke(testEvent3, requiredObjects);
+         randomEventFire.invoke(testEvent1, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent2, NULL_OBJECTS);
+         randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
          // test quantities
          if (testWare1.getQuantity() != quantityWare1) {
@@ -18667,13 +18678,30 @@ public class TestSuite
       // ensure testing environment is properly set up
       resetTestEnvironment();
 
+      // prepare to grab private methods
+      Method randomEventsLoadWares;
+      Method randomEventFire;
+
+      // prepare to grab internal variables
+      Field fRandomEvents;
+      Field fQuanChangeMedium;
+      Field fQuanChangeSmall;
+
+      // track changes to variables
+      Object[] randomEvents;
+
       // set up testing variables
       Object   requiredObject  = null;
       Object[] requiredObjects = null;
       Account  feeCollectionAccount;
+
       AI       ai;
       String[] tradeablesIDs; // IDS for wares an AI may buy or sell
       HashMap<Ware, Integer> tradesPending = new HashMap<Ware, Integer>(); // contains AI trade decisions before finalization
+
+      int[]    quanChangeMedium;
+      int[]    quanChangeSmall;
+
       Ware     ware1;
       Ware     ware2;
       Ware     ware3;
@@ -19154,28 +19182,35 @@ public class TestSuite
          // set event properties
          fDescription.set(testEvent1, "This is the first test event description.");
          fChangedWaresIDs.set(testEvent1, new String[]{"test:material1", "test:material2"});
-         fChangedMagnitudes.set(testEvent1, new int[]{1, 2});
+         fChangedMagnitudes.set(testEvent1, new RandomEvents.QuantityForSaleChangeMagnitudes[]{RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_SMALL, RandomEvents.QuantityForSaleChangeMagnitudes.POSITIVE_MEDIUM});
 
-         // grab the RandomEvent loader/validator
-         Method randomEventLoad = randomEventClass.getDeclaredMethod("load");
-         randomEvent.setAccessible(true);
+         // grab the random event loader/validator
+         randomEventsLoadWares = RandomEvents.class.getDeclaredMethod("loadWaresPrivate");
+         randomEventsLoadWares.setAccessible(true);
+
+         // add test events to random events array
+         fRandomEvents = RandomEvents.class.getDeclaredField("randomEvents");
+         fRandomEvents.setAccessible(true);
+         fRandomEvents.set(NULL_OBJECT, Array.newInstance(fRandomEvents.getType().getComponentType(), 1));
+         randomEvents    = (Object[]) fRandomEvents.get(null);
+         randomEvents[0] = testEvent1;
 
          // finish setting up event
-         randomEventLoad.invoke(testEvent1, requiredObjects);
+         randomEventsLoadWares.invoke(NULL_OBJECT, NULL_OBJECTS);
 
          // grab the RandomEvent event firer
-         Method randomEventFire = randomEventClass.getDeclaredMethod("fire");
+         randomEventFire = randomEventClass.getDeclaredMethod("fire");
          randomEventFire.setAccessible(true);
 
          // grab references to RandomEvent variables
-         Field fQuanChangeMedium = RandomEvents.class.getDeclaredField("quanChangeMedium");
-         Field fQuanChangeSmall  = RandomEvents.class.getDeclaredField("quanChangeSmall");
+         fQuanChangeMedium = RandomEvents.class.getDeclaredField("quanChangeMedium");
+         fQuanChangeSmall  = RandomEvents.class.getDeclaredField("quanChangeSmall");
          fQuanChangeMedium.setAccessible(true);
          fQuanChangeSmall.setAccessible(true);
 
          // set up RandomEvent variables
-         int[] quanChangeMedium = new int[]{100, 200, 300, 400, 500, 600};
-         int[] quanChangeSmall  = new int[]{10, 20, 30, 40, 50, 60};
+         quanChangeMedium = new int[]{100, 200, 300, 400, 500, 600};
+         quanChangeSmall  = new int[]{10, 20, 30, 40, 50, 60};
          fQuanChangeMedium.set(null, quanChangeMedium);
          fQuanChangeSmall.set(null, quanChangeSmall);
 

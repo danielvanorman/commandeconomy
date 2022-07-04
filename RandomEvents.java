@@ -8,7 +8,9 @@ import java.io.FileReader;
 import com.google.gson.JsonSyntaxException;     // for more specific error messages when parsing files
 import java.util.Timer;                         // for triggering events periodically and on a separate thread
 import java.util.TimerTask;                     // for disabling random events mid-execution
-import java.util.concurrent.ArrayBlockingQueue; // for communication between the main thread and the thread handling random events
+import java.util.Collections;                   // for communication between the main thread and the thread handling random events
+import java.util.Set;
+import java.util.EnumSet;                       // EnumSets are faster than HashSets, so they are used for inter-thread communication
 import java.lang.StringBuilder;                 // for generating ware change descriptions and reporting invalid ware IDs
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequency and decisions
 
@@ -28,14 +30,24 @@ import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequen
 public class RandomEvents extends TimerTask {
    // STATIC VARIABLES
    // events
+   /** events which might occur */
+   static RandomEvent[] randomEvents = null;
    /** how much to adjust when an event greatly affects a ware */
    static int[] quanChangeLarge  = null;
    /** how much to adjust when an event moderately affects a ware */
    static int[] quanChangeMedium = null;
    /** how much to adjust when an event slightly affects a ware */
    static int[] quanChangeSmall  = null;
-   /** events which might occur */
-   static RandomEvent[] randomEvents = null;
+   /** valid flags for how much to change wares' quantities available for sale */
+   enum QuantityForSaleChangeMagnitudes {
+      NEGATIVE_LARGE,
+      NEGATIVE_MEDIUM,
+      NEGATIVE_SMALL,
+      NONE,
+      POSITIVE_SMALL,
+      POSITIVE_MEDIUM,
+      POSITIVE_LARGE
+   }
 
    // thread management
    /** manages thread triggering random events */
@@ -45,7 +57,7 @@ public class RandomEvents extends TimerTask {
    /** used to monitor a timer interval for configuration changes */
    static long oldFrequency = 0L;
    /** used to monitor changes in quantity change percentages for configuration changes */
-   static float[] oldQuantityChangePercents =null;
+   static float[] oldQuantityChangePercents = null;
    /** used to signal what should be reloaded or recalculated */
    enum QueueCommands {
       LOAD,
@@ -54,7 +66,7 @@ public class RandomEvents extends TimerTask {
       GEN_WARE_DESCS
    }
    /** used to signal thread to reload or recalculate variables */
-   static ArrayBlockingQueue<QueueCommands> queue = null;
+   static Set<QueueCommands> queue = null;
 
    // INSTANCE VARIABLES
    /** whether the task should continue running */
@@ -151,7 +163,7 @@ public class RandomEvents extends TimerTask {
          // set up random events if they haven't been already
          if (queue == null) {
             // set up queue
-            queue = new ArrayBlockingQueue<QueueCommands>(15);
+            queue = Collections.synchronizedSet(EnumSet.noneOf(QueueCommands.class));
 
             // leave requests to set up random events
             queue.add(QueueCommands.LOAD);
@@ -164,9 +176,6 @@ public class RandomEvents extends TimerTask {
                oldQuantityChangePercents[1] = Config.randomEventsMediumChange;
                oldQuantityChangePercents[2] = Config.randomEventsLargeChange;
             }
-
-            // exit to delay setting up until the marketplace is set up
-            return;
          }
 
          // if necessary, recalculate change amounts for quantities
@@ -229,15 +238,28 @@ public class RandomEvents extends TimerTask {
          timerTaskRandomEvents = null;
          timerRandomEvents.cancel();
          timerRandomEvents = null;
+
+         // deallocate memory
+         randomEvents              = null;
+         quanChangeLarge           = null;
+         quanChangeMedium          = null;
+         quanChangeSmall           = null;
+         oldQuantityChangePercents = null;
+         queue                     = null;
       }
    }
 
    /**
     * Prepares for using random events.
     * <p>
-    * Complexity: O(n), where n is events to load
+    * Complexity: O(n^2), where n is events to load
     */
-   private static void loadRandomEventsPrivate() {
+   private static void loadPrivate() {
+      // if the marketplace is uninitialized,
+      // there are no wares for AI to trade
+      if (Marketplace.getAllWares().size() == 0)
+         return;
+
       // try to load the events file
       File fileRandomEvents = new File(Config.filenameRandomEvents); // contains RandomEvent objects
       // if the local file isn't found, use the global file
@@ -291,39 +313,86 @@ public class RandomEvents extends TimerTask {
       }
 
       // validate random events
-      int size = randomEvents.length;
-      int nullEntries = 0; // how many random events failed to load
+      int           size                   = randomEvents.length;   // how many random events need to be parsed
       RandomEvent[] compressedRandomEvents = new RandomEvent[size]; // eases copying events to an array without any null entries
-      int compressedIndex = 0;
+      RandomEvent   randomEvent            = null;                  // current random event being parsed
+      StringBuilder loadingErrors          = new StringBuilder();   // if any events fail to load, buffer their error messages before printing them
+      int           invalidEntries         = 0;                     // how many random events failed to load
+      int           compressedIndex        = 0;                     // index into array containing only valid random events
+
       for (int i = 0; i < size; i++) {
-         // if the random event fails to load,
-         // remove the entry
-         if (randomEvents[i].load()) {
-            randomEvents[i] = null;
-            nullEntries++;
-            // an error message has already been printed
+         randomEvent = randomEvents[i];
+
+         // validate description
+         if (randomEvent.description == null || randomEvent.description.isEmpty()) {
+            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_DESC_MISSING);
+            invalidEntries++; // mark how many random events fail to load
+            continue;
+         }
+
+         // validate effects
+         // check whether magnitudes were loaded
+         if (randomEvent.changeMagnitudes == null) {
+            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            invalidEntries++;
+            continue;
+         }
+
+         // check whether magnitudes entries were loaded
+         if (randomEvent.changeMagnitudes.length == 0) {
+            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            invalidEntries++;
+            continue;
+         }
+
+         // validate ware IDs
+         // check whether ware IDs were loaded
+         if (randomEvent.changedWaresIDs == null) {
+            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            invalidEntries++;
+            continue;
+         }
+
+         // check whether ware ID entries were loaded
+         if (randomEvent.changedWaresIDs.length == 0) {
+            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            invalidEntries++;
+            continue;
+         }
+
+         // validate effects and ware IDs
+         // check whether the is a magnitude for every ware ID
+         if (randomEvent.changedWaresIDs.length != randomEvent.changeMagnitudes.length) {
+            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_CHANGES_MISMATCH + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            invalidEntries++;
+            continue;
          }
 
          // if the entry is valid,
-         // save it in the next null entry of an array
-         else {
-            compressedRandomEvents[compressedIndex] = randomEvents[i];
-            compressedIndex++;
-         }
+         // save it in the valid-events array's next available entry
+         compressedRandomEvents[compressedIndex] = randomEvent;
+         compressedIndex++;
       }
 
       // if necessary, resize the random events array
-      if (nullEntries > 0) {
-         // change pointer to prevent allocating a third array
+      if (invalidEntries > 0) {
+         // change reference to prevent allocating a third array
          randomEvents = compressedRandomEvents;
 
          // copy event references to appropriately-sized array
-         compressedRandomEvents = new RandomEvent[size - nullEntries];
-         System.arraycopy(randomEvents, 0, compressedRandomEvents, 0, size - nullEntries);
+         compressedRandomEvents = new RandomEvent[compressedIndex];
+         System.arraycopy(randomEvents, 0, compressedRandomEvents, 0, compressedIndex);
 
          // replace old array with new
          randomEvents = compressedRandomEvents;
+
+         // print error messages
+         Config.commandInterface.printToConsole(loadingErrors.substring(0, loadingErrors.length() - System.lineSeparator().length())); // remove the trailing new line
+         loadingErrors = null; // deallocate memory sooner rather than later
       }
+
+      // attempt to load the random events' wares
+      loadWaresPrivate();
 
       // check whether any events were loaded
       if (randomEvents.length <= 0) {
@@ -373,38 +442,121 @@ public class RandomEvents extends TimerTask {
    }
 
    /**
-    * Relinks random events to wares they affect.
+    * Links random events to wares they affect.
     * Necessary if wares are reloaded.
     * <p>
     * Complexity: O(n*m)<br>
     * where n is the number of random events<br>
     * where m is the number of affected wares
     */
-   private static void reloadWaresPrivate() {
+   private static void loadWaresPrivate() {
       if (randomEvents == null)
          return;
 
-      // track whether any events failed to reload
-      int invalidEvents = 0;
+
+      // prepare to load wares
+      StringBuilder invalidWareIDs       = null;  // if reporting is enabled, prepares invalid ware IDs and aliases before printing them
+      Ware[]        newChangedWares      = null;  // holds a reference to a newly allocated array of wares when resizing an array of affected wares
+      QuantityForSaleChangeMagnitudes[] newChangeMagnitudes = null; // holds a reference to a newly allocated array of change magnitudes when resizing an array of change magnitudes affecting wares
+      Ware          changedWares         = null;
+      Ware          ware;                         // holds ware reference before adding to array
+      int           invalidEvents        = 0;     // track whether any events failed to reload
+      int           size                 = 0;     // how many ware IDs should be processed
+      int           randomEventsIndex    = 0;     // tracks which event should be marked as invalid
+      int           changedWaresIDsIndex = 0;     // eases parsing IDs of possibly affected wares
+      int           changedWaresIndex    = 0;     // eases shrinking the array holding ware references
+      boolean       foundInvalidEntry    = false; // whether a ware ID is unusable
 
       // reload wares for each random event
       for (RandomEvent randomEvent : randomEvents) {
-         // if an error is found, don't use that random event
-         if (randomEvent.reloadWares()) {
-            randomEvent = null;
+         // if wares cannot be loaded, flag an error
+         if (randomEvent.changedWaresIDs == null ||
+             randomEvent.changedWaresIDs.length == 0) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description);
+            randomEvents[randomEventsIndex] = null;
             invalidEvents++;
+            randomEventsIndex++;
+            continue;
          }
+
+         // initialize variables
+         size                     = randomEvent.changedWaresIDs.length;
+         randomEvent.changedWares = new Ware[size];                                       // holds affected ware references
+         changedWaresIndex        = 0;
+         randomEvent.changeMagnitudesCurrent = new QuantityForSaleChangeMagnitudes[size]; // holds how much each ware should be changed
+         foundInvalidEntry        = false;
+
+         // grab each ware's latest reference
+         for (changedWaresIDsIndex = 0; changedWaresIDsIndex < size; changedWaresIDsIndex++) {
+            ware = Marketplace.translateAndGrab(randomEvent.changedWaresIDs[changedWaresIDsIndex]);
+
+            // if the ware is fine, use it
+            if (ware != null && !(ware instanceof WareUntradeable)) {
+               randomEvent.changedWares[changedWaresIndex]            = ware;                                               // move ware reference into correct location
+               randomEvent.changeMagnitudesCurrent[changedWaresIndex] = randomEvent.changeMagnitudes[changedWaresIDsIndex]; // move change magnitude into corresponding location
+               changedWaresIndex++;
+            }
+            // if the ware is not fine, record it
+            else {
+               // if enabled, print which scenario is using an invalid ware ID
+               if (Config.randomEventsReportInvalidWares && !foundInvalidEntry) {
+                  // allocate space for holding invalid ware IDs before printing
+                  if (invalidWareIDs == null)
+                     invalidWareIDs = new StringBuilder();
+
+                  // prepare front matter for reporting the event's invalid IDs
+                  invalidWareIDs.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID +
+                                        CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description +
+                                        CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
+               }
+
+               // flag that at least one invalid entry has been found
+               foundInvalidEntry = true;
+
+               // if enabled, report invalid IDs
+               if (Config.randomEventsReportInvalidWares)
+                  invalidWareIDs.append(randomEvent.changedWaresIDs[changedWaresIDsIndex] + ", ");
+            }
+         }
+
+         // check whether any wares were loaded
+         if (changedWaresIndex == 0) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_NO_VALID + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description);
+            randomEvents[randomEventsIndex] = null;
+            invalidEvents++;
+            randomEventsIndex++;
+            continue;
+         }
+
+         // check whether the arrays holding ware data should be resized
+         // and whether invalid ware IDs should be printed
+         if (foundInvalidEntry) {
+            newChangedWares     = new Ware[changedWaresIndex];
+            newChangeMagnitudes = new QuantityForSaleChangeMagnitudes[changedWaresIndex];
+            System.arraycopy(randomEvent.changedWares, 0, newChangedWares, 0, changedWaresIndex);
+            System.arraycopy(randomEvent.changeMagnitudesCurrent, 0, newChangeMagnitudes, 0, changedWaresIndex);
+            randomEvent.changedWares            = newChangedWares;
+            randomEvent.changeMagnitudesCurrent = newChangeMagnitudes;
+
+            // check whether invalid ware IDs should be printed
+            if (Config.randomEventsReportInvalidWares) {
+               Config.commandInterface.printToConsole(invalidWareIDs.substring(0, invalidWareIDs.length() - 2)); // remove the trailing comma and space
+               invalidWareIDs.setLength(0); // clear buffer
+            }
+         }
+
+         randomEventsIndex++;
       }
 
       // check whether the array holding random event references should be resized
       if (invalidEvents > 0) {
          RandomEvent[] newRandomEvents = new RandomEvent[randomEvents.length - invalidEvents];
 
-         int index = 0;
+         changedWaresIndex = 0;
          for (RandomEvent randomEvent : randomEvents) {
             if (randomEvent != null) {
-               newRandomEvents[index] = randomEvent;
-               index++;
+               newRandomEvents[changedWaresIndex] = randomEvent;
+               changedWaresIndex++;
             }
          }
 
@@ -428,9 +580,128 @@ public class RandomEvents extends TimerTask {
           randomEvents == null)
          return;
 
+      // prepare to generate descriptions
+      Ware changedWare      = null; // holds current change's affected ware
+      int  changedWareIndex = 0;    // tracks which ware is currently being parsed
+      int  size             = 0;    // holds how many wares should be parsed
+
+      // prepare a buffer for each change order of magnitude
+      // to eliminate the needs for ware changes to be sorted
+      StringBuilder descriptionPosLarge  = new StringBuilder(PlatformStrings.PREFIX_POS_LARGE);
+      StringBuilder descriptionPosMedium = new StringBuilder(PlatformStrings.PREFIX_POS_MEDIUM);
+      StringBuilder descriptionPosSmall  = new StringBuilder(PlatformStrings.PREFIX_POS_SMALL);
+      StringBuilder descriptionNegLarge  = new StringBuilder(PlatformStrings.PREFIX_NEG_LARGE);
+      StringBuilder descriptionNegMedium = new StringBuilder(PlatformStrings.PREFIX_NEG_MEDIUM);
+      StringBuilder descriptionNegSmall  = new StringBuilder(PlatformStrings.PREFIX_NEG_SMALL);
+
       // generate descriptions
       for (RandomEvent randomEvent : randomEvents) {
-         randomEvent.generateWareChangeDescriptions();
+         // use changes' magnitudes to
+         // determine how to format descriptions
+         for (changedWareIndex = 0; changedWareIndex < randomEvent.changedWares.length; changedWareIndex++) {
+            // grab reference to changed ware
+            changedWare = randomEvent.changedWares[changedWareIndex];
+
+            // add to buffer corresponding to change's magnitude
+            switch(randomEvent.changeMagnitudesCurrent[changedWareIndex]) {
+               case POSITIVE_LARGE:
+                  if (changedWare.getAlias() != null)
+                     descriptionPosLarge.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionPosLarge.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case POSITIVE_MEDIUM:
+                  if (changedWare.getAlias() != null)
+                     descriptionPosMedium.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionPosMedium.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case POSITIVE_SMALL:
+                  if (changedWare.getAlias() != null)
+                     descriptionPosSmall.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionPosSmall.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case NEGATIVE_LARGE:
+                  if (changedWare.getAlias() != null)
+                     descriptionNegLarge.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionNegLarge.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case NEGATIVE_MEDIUM:
+                  if (changedWare.getAlias() != null)
+                     descriptionNegMedium.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionNegMedium.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               case NEGATIVE_SMALL:
+                  if (changedWare.getAlias() != null)
+                     descriptionNegSmall.append(changedWare.getAlias()).append(", ");
+                  else
+                     descriptionNegSmall.append(changedWare.getWareID()).append(", ");
+                  break;
+
+               default:
+                  // validation function should catch and handle invalid magnitudes
+                  break;
+            }
+         }
+
+         // allocate memory for overall description
+         if (randomEvent.descriptionChangedWares == null) {
+            randomEvent.descriptionChangedWares = new StringBuilder(
+               descriptionPosLarge.length()  + descriptionPosMedium.length() +
+               descriptionPosSmall.length()  + descriptionNegLarge.length()  +
+               descriptionNegMedium.length() + descriptionNegSmall.length());
+         } else {
+            randomEvent.descriptionChangedWares.setLength(0); // clear contents
+            randomEvent.descriptionChangedWares.ensureCapacity(
+               descriptionPosLarge.length()  + descriptionPosMedium.length() +
+               descriptionPosSmall.length()  + descriptionNegLarge.length()  +
+               descriptionNegMedium.length() + descriptionNegSmall.length());
+         }
+
+         // generate overall description by combining buffers
+         // add each buffer if it has any entries
+         // also, remove trailing comma and space
+         if (descriptionPosLarge.length() != PlatformStrings.PREFIX_POS_LARGE.length()) {
+            descriptionPosLarge.setLength(descriptionPosLarge.length() - 2); // remove trailing comma and space
+            randomEvent.descriptionChangedWares.append(descriptionPosLarge).append(PlatformStrings.POSTFIX);
+            descriptionPosLarge.setLength(PlatformStrings.PREFIX_POS_LARGE.length()); // clear buffer
+         }
+         if (descriptionPosMedium.length() != PlatformStrings.PREFIX_POS_MEDIUM.length()) {
+            descriptionPosMedium.setLength(descriptionPosMedium.length() - 2);
+            randomEvent.descriptionChangedWares.append(descriptionPosMedium).append(PlatformStrings.POSTFIX);
+            descriptionPosMedium.setLength(PlatformStrings.PREFIX_POS_MEDIUM.length()); // clear buffer
+         }
+         if (descriptionPosSmall.length() != PlatformStrings.PREFIX_POS_SMALL.length()) {
+            descriptionPosSmall.setLength(descriptionPosSmall.length() - 2);
+            randomEvent.descriptionChangedWares.append(descriptionPosSmall).append(PlatformStrings.POSTFIX);
+            descriptionPosSmall.setLength(PlatformStrings.PREFIX_POS_SMALL.length()); // clear buffer
+         }
+         if (descriptionNegLarge.length() != PlatformStrings.PREFIX_NEG_LARGE.length()) {
+            descriptionNegLarge.setLength(descriptionNegLarge.length() - 2);
+            randomEvent.descriptionChangedWares.append(descriptionNegLarge).append(PlatformStrings.POSTFIX);
+            descriptionNegLarge.setLength(PlatformStrings.PREFIX_NEG_LARGE.length()); // clear buffer
+         }
+         if (descriptionNegMedium.length() != PlatformStrings.PREFIX_NEG_MEDIUM.length()) {
+            descriptionNegMedium.setLength(descriptionNegMedium.length() - 2);
+            randomEvent.descriptionChangedWares.append(descriptionNegMedium).append(PlatformStrings.POSTFIX);
+            descriptionNegMedium.setLength(PlatformStrings.PREFIX_NEG_MEDIUM.length()); // clear buffer
+         }
+         if (descriptionNegSmall.length() != PlatformStrings.PREFIX_NEG_SMALL.length()) {
+            descriptionNegSmall.setLength(descriptionNegSmall.length() - 2);
+            randomEvent.descriptionChangedWares.append(descriptionNegSmall).append(PlatformStrings.POSTFIX);
+            descriptionNegSmall.setLength(PlatformStrings.PREFIX_NEG_SMALL.length()); // clear buffer
+         }
+
+         // reduce size to as much as is needed
+         randomEvent.descriptionChangedWares.trimToSize();
       }
    }
 
@@ -456,31 +727,34 @@ public class RandomEvents extends TimerTask {
          return;
 
       // check the queue
-      while (queue.size() > 0) {
+      if (queue.size() > 0) {
          // check flag for stopping
          if (stop)
             return;
 
-         // grab request
-         switch (queue.poll()) { // take from head of queue, in order of requests made
-            // load random events
-            case LOAD:
-               loadRandomEventsPrivate();
-               return;
+         // load random events from file
+         if (queue.contains(QueueCommands.LOAD)) {
+            queue.remove(QueueCommands.LOAD);
+            loadPrivate();
+            return;
+         }
 
-            // recalc quantities
-            case CALC_TRADE_QUANTITIES:
-               calcQuantityChangesPrivate();
-               break;
+         // recalculate values for adjusting wares' quantities for sale
+         if (queue.contains(QueueCommands.CALC_TRADE_QUANTITIES)) {
+            queue.remove(QueueCommands.CALC_TRADE_QUANTITIES);
+            calcQuantityChangesPrivate();
+         }
 
-            // reload wares
-            case RELOAD_WARES:
-               reloadWaresPrivate();
-               break;
+         // reload ware references
+         if (queue.contains(QueueCommands.RELOAD_WARES)) {
+            queue.remove(QueueCommands.RELOAD_WARES);
+            loadWaresPrivate();
+         }
 
-            // generate ware descriptions
-            case GEN_WARE_DESCS:
-               generateWareChangeDescriptionsPrivate();
+         // generate descriptions of events' effects
+         if (queue.contains(QueueCommands.GEN_WARE_DESCS)) {
+            queue.remove(QueueCommands.GEN_WARE_DESCS);
+            generateWareChangeDescriptionsPrivate();
          }
       }
 
@@ -520,46 +794,6 @@ public class RandomEvents extends TimerTask {
     */
    private class RandomEvent
    {
-      // STATIC VARIABLES
-      // +++ --> Dark Green
-      //  ++ --> Green
-      //   + --> Light Green or Italicized Green
-      // --- --> Dark Red
-      //  -- --> Red
-      //   - --> Light Red or Italicized Red
-
-      // Terminal Interface
-      /** color code for positive, large changes in ware's quantities */
-      private static final String PREFIX_POS_LARGE  = "\033[1m\033[32m+++";
-      /** color code for positive, medium changes in ware's quantities */
-      private static final String PREFIX_POS_MEDIUM = "\033[32m++";
-      /** color code for positive, small changes in ware's quantities */
-      private static final String PREFIX_POS_SMALL  = "\033[32;1m+";
-      /** color code for negative, large changes in ware's quantities */
-      private static final String PREFIX_NEG_LARGE  = "\033[1m\033[31m---";
-      /** color code for negative, medium changes in ware's quantities */
-      private static final String PREFIX_NEG_MEDIUM = "\033[31m--";
-      /** color code for negative, small changes in ware's quantities */
-      private static final String PREFIX_NEG_SMALL  = "\033[31;1m-";
-      /** code for resetting color codes */
-      private static final String POSTFIX           = "\033[0m\n";
-
-      // Minecraft Interface
-      /** color code for positive, large changes in ware's quantities */
-      //private static final String PREFIX_POS_LARGE  = "§2+++";
-      /** color code for positive, medium changes in ware's quantities */
-      //private static final String PREFIX_POS_MEDIUM = "§a++";
-      /** color code for positive, small changes in ware's quantities */
-      //private static final String PREFIX_POS_SMALL  = "§a§o+";
-      /** color code for negative, large changes in ware's quantities */
-      //private static final String PREFIX_NEG_LARGE  = "§4---";
-      /** color code for negative, medium changes in ware's quantities */
-      //private static final String PREFIX_NEG_MEDIUM = "§c--";
-      /** color code for negative, small changes in ware's quantities */
-      //private static final String PREFIX_NEG_SMALL  = "§c§o-";
-      /** code for resetting color codes */
-      //private static final String POSTFIX           = "§r\n";
-
       // INSTANCE VARIABLES
       /**
        * What to print when the event occurs.
@@ -574,17 +808,11 @@ public class RandomEvents extends TimerTask {
       String[] changedWaresIDs = null;
       /** which wares are affected */
       transient Ware[] changedWares = null;
-      /**
-       * How much each ware is affected.
-       * Valid entries are:<br>
-       * +/-3: Positive/negative large change<br>
-       * +/-2: Positive/negative medium change<br>
-       * +/-1: Positive/negative small change
-       */
-      int[] changeMagnitudes = null;
+      /** how much each ware's quantity available for sale is affected */
+      QuantityForSaleChangeMagnitudes[] changeMagnitudes = null;
       /** How much each ware is affected; corresponds to changedWares and
         * allows loading in new wares without loading magnitudes from file. */
-      transient int[] changeMagnitudesCurrent = null;
+      transient QuantityForSaleChangeMagnitudes[] changeMagnitudesCurrent = null;
 
       // INSTANCE METHODS
       /**
@@ -593,65 +821,6 @@ public class RandomEvents extends TimerTask {
        * Complexity: O(1)
        */
       public RandomEvent() { }
-
-      /**
-       * Prepares and checks the event's data, correcting errors where possible.
-       * <p>
-       * Complexity: O(n), where n is wares affected by the event
-       * @return <code>true</code> if an error was detected and loading failed
-       */
-      public boolean load() {
-         // validate description
-         if (description == null || description.isEmpty()) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_DESC_MISSING);
-            return true;
-         }
-
-         // validate effects
-         // check whether magnitudes were loaded
-         if (changeMagnitudes == null) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-            return true;
-         }
-
-         // check whether magnitudes entries were loaded
-         int sizeChangeMagnitudes = changeMagnitudes.length;
-         if (sizeChangeMagnitudes == 0) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-            return true;
-         }
-
-         // check whether magnitude entries are valid
-         for (int i = 0; i < sizeChangeMagnitudes; i++) {
-            if (changeMagnitudes[i] < -3 || changeMagnitudes[i] == 0 || changeMagnitudes[i] > 3) {
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_INVALID + changeMagnitudes[i] + CommandEconomy.MSG_RANDOM_EVENTS_CHANGES + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-               return true;
-            }
-         }
-
-         // validate ware IDs
-         // check whether ware IDs were loaded
-         if (changedWaresIDs == null) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-            return true;
-         }
-
-         // check whether ware ID entries were loaded
-         int sizeChangedWaresIDs = changedWaresIDs.length;
-         if (sizeChangedWaresIDs == 0) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-            return true;
-         }
-
-         // check whether the is a magnitude for every ware ID
-         if (sizeChangedWaresIDs != sizeChangeMagnitudes) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_CHANGES_MISMATCH + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-            return true;
-         }
-
-         // load wares
-         return reloadWares();
-      }
 
       /**
        * Prints the event's description and adjusts wares' quantities for sale.
@@ -684,27 +853,27 @@ public class RandomEvents extends TimerTask {
             }
 
             switch (changeMagnitudesCurrent[i]) {
-               case  3:
+               case POSITIVE_LARGE:
                   quanChange =  quanChangeLarge[ware.getLevel()];
                   break;
 
-               case  2:
+               case POSITIVE_MEDIUM:
                   quanChange =  quanChangeMedium[ware.getLevel()];
                   break;
 
-               case  1:
+               case POSITIVE_SMALL:
                   quanChange =  quanChangeSmall[ware.getLevel()];
                   break;
 
-               case -3:
+               case NEGATIVE_LARGE:
                   quanChange = -quanChangeLarge[ware.getLevel()];
                   break;
 
-               case -2:
+               case NEGATIVE_MEDIUM:
                   quanChange = -quanChangeMedium[ware.getLevel()];
                   break;
 
-               case -1:
+               case NEGATIVE_SMALL:
                   quanChange = -quanChangeSmall[ware.getLevel()];
                   break;
 
@@ -729,222 +898,8 @@ public class RandomEvents extends TimerTask {
          Config.commandInterface.printToAllUsers(description);
 
          // print effects on wares
-         if (Config.randomEventsPrintChanges && descriptionChangedWares != null) {
+         if (Config.randomEventsPrintChanges && descriptionChangedWares != null)
             Config.commandInterface.printToAllUsers(descriptionChangedWares.toString());
-         }
-      }
-
-      /**
-       * Relinks affected wares with the marketplace's wares.
-       * <p>
-       * Complexity: O(n), where n is wares affected by the event
-       * @return <code>true</code> if no wares were loaded
-       */
-      public boolean reloadWares() {
-         // if wares cannot be loaded, flag an error
-         if (changedWaresIDs == null || changedWaresIDs.length == 0) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_CHANGES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-            return true;
-         }
-
-         // prepare to load wares
-         int     size                    = changedWaresIDs.length; // how many ware IDs should be processed
-                 changedWares            = new Ware[size];         // holds affected ware references
-                 changeMagnitudesCurrent = new int[size];          // holds how much each ware should be changed
-         boolean foundInvalidEntry       = false;                  // whether a ware ID is unusable
-         int     changedWaresIndex       = 0;                      // eases shrinking the array holding ware references
-         Ware    ware;                                             // holds ware reference before adding to array
-         StringBuilder invalidWareIDs    = null;                   // if reporting is enabled, prepares invalid ware IDs and aliases before printing them
-
-         // grab each ware's latest reference
-         for (int i = 0; i < size; i++) {
-            ware = Marketplace.translateAndGrab(changedWaresIDs[i]);
-
-            // if the ware is fine, use it
-            if (ware != null && !(ware instanceof WareUntradeable)) {
-               changedWares[changedWaresIndex] = ware;                           // move ware reference into correct location
-               changeMagnitudesCurrent[changedWaresIndex] = changeMagnitudes[i]; // move change magnitude into corresponding location
-               changedWaresIndex++;
-            }
-            // if the ware is not fine, record it
-            else {
-               // if enabled, print which scenario is using an invalid ware ID
-               if (Config.randomEventsReportInvalidWares && !foundInvalidEntry) {
-                  // allocate space for holding invalid ware IDs before printing
-                  if (invalidWareIDs == null)
-                     invalidWareIDs = new StringBuilder();
-
-                  // prepare front matter for reporting the event's invalid IDs
-                  invalidWareIDs.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID +
-                                        CommandEconomy.MSG_RANDOM_EVENT_DESC + description +
-                                        CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
-               }
-
-               // flag that at least one invalid entry has been found
-               foundInvalidEntry = true;
-
-               // if enabled, report invalid IDs
-               if (Config.randomEventsReportInvalidWares)
-                  invalidWareIDs.append(changedWaresIDs[i] + ", ");
-            }
-         }
-
-         // check whether any wares were loaded
-         if (changedWaresIndex == 0) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_NO_VALID + CommandEconomy.MSG_RANDOM_EVENT_DESC + description);
-            return true;
-         }
-
-         // check whether the arrays holding ware data should be resized
-         // and whether invalid ware IDs should be printed
-         if (foundInvalidEntry) {
-            Ware[] newChangedWares     = new Ware[changedWaresIndex];
-            int[]  newChangeMagnitudes = new int[changedWaresIndex];
-            System.arraycopy(changedWares, 0, newChangedWares, 0, changedWaresIndex);
-            System.arraycopy(changeMagnitudesCurrent, 0, newChangeMagnitudes, 0, changedWaresIndex);
-            changedWares               = newChangedWares;
-            changeMagnitudesCurrent    = newChangeMagnitudes;
-
-            // check whether invalid ware IDs should be printed
-            if (Config.randomEventsReportInvalidWares) {
-               Config.commandInterface.printToConsole(invalidWareIDs.substring(0, invalidWareIDs.length() - 2)); // remove the trailing comma and space
-            }
-         }
-
-         // report that no errors were found
-         return false;
-      }
-
-      /**
-       * Generates descriptions stating which wares are affected by events.
-       * <p>
-       * Complexity: O(n),where n is the number of affected wares
-       */
-      public void generateWareChangeDescriptions() {
-         // if wares cannot be parsed, there is nothing to do
-         if (changedWares == null || changedWares.length == 0 ||
-             changeMagnitudesCurrent == null || changeMagnitudesCurrent.length == 0 ||
-             changedWares.length != changeMagnitudesCurrent.length)
-            return;
-
-         // initialize variables
-         // holds current change's level of effect
-         int  changeMagnitude = 0;
-         // holds current change's affected ware
-         Ware changedWare     = null;
-         // holds how many wares should be parsed
-         int  size            = changedWares.length;
-
-         // prepare a buffer for each change order of magnitude
-         // to eliminate the needs for ware changes to be sorted
-         StringBuilder descriptionPosLarge  = new StringBuilder(PREFIX_POS_LARGE);
-         StringBuilder descriptionPosMedium = new StringBuilder(PREFIX_POS_MEDIUM);
-         StringBuilder descriptionPosSmall  = new StringBuilder(PREFIX_POS_SMALL);
-         StringBuilder descriptionNegLarge  = new StringBuilder(PREFIX_NEG_LARGE);
-         StringBuilder descriptionNegMedium = new StringBuilder(PREFIX_NEG_MEDIUM);
-         StringBuilder descriptionNegSmall  = new StringBuilder(PREFIX_NEG_SMALL);
-
-         // use changes' magnitudes to
-         // determine how to format descriptions
-         for (int i = 0; i < size; i++) {
-            // grab change information
-            changedWare     = changedWares[i];
-            changeMagnitude = changeMagnitudesCurrent[i];
-
-            // add to buffer corresponding to change's magnitude
-            switch(changeMagnitude) {
-               case 3:
-                  if (changedWare.getAlias() != null)
-                     descriptionPosLarge.append(changedWare.getAlias()).append(", ");
-                  else
-                     descriptionPosLarge.append(changedWare.getWareID()).append(", ");
-                  break;
-
-               case 2:
-                  if (changedWare.getAlias() != null)
-                     descriptionPosMedium.append(changedWare.getAlias()).append(", ");
-                  else
-                     descriptionPosMedium.append(changedWare.getWareID()).append(", ");
-                  break;
-
-               case 1:
-                  if (changedWare.getAlias() != null)
-                     descriptionPosSmall.append(changedWare.getAlias()).append(", ");
-                  else
-                     descriptionPosSmall.append(changedWare.getWareID()).append(", ");
-                  break;
-
-               case -3:
-                  if (changedWare.getAlias() != null)
-                     descriptionNegLarge.append(changedWare.getAlias()).append(", ");
-                  else
-                     descriptionNegLarge.append(changedWare.getWareID()).append(", ");
-                  break;
-
-               case -2:
-                  if (changedWare.getAlias() != null)
-                     descriptionNegMedium.append(changedWare.getAlias()).append(", ");
-                  else
-                     descriptionNegMedium.append(changedWare.getWareID()).append(", ");
-                  break;
-
-               case -1:
-                  if (changedWare.getAlias() != null)
-                     descriptionNegSmall.append(changedWare.getAlias()).append(", ");
-                  else
-                     descriptionNegSmall.append(changedWare.getWareID()).append(", ");
-                  break;
-
-               default:
-                  // validation function should catch and handle invalid magnitudes
-                  break;
-            }
-         }
-
-         // allocate memory for overall description
-         if (descriptionChangedWares == null) {
-            descriptionChangedWares = new StringBuilder(
-               descriptionPosLarge.length()  + descriptionPosMedium.length() +
-               descriptionPosSmall.length()  + descriptionNegLarge.length()  +
-               descriptionNegMedium.length() + descriptionNegSmall.length());
-         } else {
-            descriptionChangedWares.setLength(0); // clear contents
-            descriptionChangedWares.ensureCapacity(
-               descriptionPosLarge.length()  + descriptionPosMedium.length() +
-               descriptionPosSmall.length()  + descriptionNegLarge.length()  +
-               descriptionNegMedium.length() + descriptionNegSmall.length());
-         }
-
-         // generate overall description by combining buffers
-         // add each buffer if it has any entries
-         // also, remove trailing comma and space
-         if (descriptionPosLarge.length() != PREFIX_POS_LARGE.length()) {
-            descriptionPosLarge.setLength(descriptionPosLarge.length() - 2); // remove trailing comma and space
-            descriptionChangedWares.append(descriptionPosLarge).append(POSTFIX);
-         }
-         if (descriptionPosMedium.length() != PREFIX_POS_MEDIUM.length()) {
-            descriptionPosMedium.setLength(descriptionPosMedium.length() - 2);
-            descriptionChangedWares.append(descriptionPosMedium).append(POSTFIX);
-         }
-         if (descriptionPosSmall.length() != PREFIX_POS_SMALL.length()) {
-            descriptionPosSmall.setLength(descriptionPosSmall.length() - 2);
-            descriptionChangedWares.append(descriptionPosSmall).append(POSTFIX);
-         }
-         if (descriptionNegLarge.length() != PREFIX_NEG_LARGE.length()) {
-            descriptionNegLarge.setLength(descriptionNegLarge.length() - 2);
-            descriptionChangedWares.append(descriptionNegLarge).append(POSTFIX);
-         }
-         if (descriptionNegMedium.length() != PREFIX_NEG_MEDIUM.length()) {
-            descriptionNegMedium.setLength(descriptionNegMedium.length() - 2);
-            descriptionChangedWares.append(descriptionNegMedium).append(POSTFIX);
-         }
-         if (descriptionNegSmall.length() != PREFIX_NEG_SMALL.length()) {
-            descriptionNegSmall.setLength(descriptionNegSmall.length() - 2);
-            descriptionChangedWares.append(descriptionNegSmall).append(POSTFIX);
-         }
-
-         // reduce size to as much as is needed
-         descriptionChangedWares.trimToSize();
       }
    };
 };
