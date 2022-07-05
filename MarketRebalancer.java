@@ -14,58 +14,23 @@ import java.util.TimerTask;           // for disabling features relying on timer
  * @version %I%, %G%
  * @since   2022-06-28
  */
-public class AutoMarketRebalancer extends TimerTask  {
-   /** whether the task should continue running */
-   public volatile boolean stop = false;
-
-   // automatic market rebalancing
+public class MarketRebalancer extends TimerTask  {
+   // STATIC ATTRIBUTES
+   // thread management
    /** for periodically moving wares' quantities for sale toward equilibrium */
    private static Timer timerMarketRebalancer = null;
-   /** for stopping the automarketrebalance thread gracefully */
-   private static AutoMarketRebalancer timertaskMarketRebalancer = null;
+   /** for stopping the thread gracefully */
+   private static MarketRebalancer timertaskMarketRebalancer = null;
    /** used to monitor a timer interval for configuration changes */
    private static int oldAutomaticStockRebalancingFrequency = 0;
    /** amounts each hierarchy level should periodically adjust by when rebalancing the market */
    private static int[] autoRebalanceAdjustQuantities = null;
 
-   /**
-    * Constructor: Initializes the periodic event.
-    */
-   public AutoMarketRebalancer() { }
+   // INSTANCE ATTRIBUTES
+   /** whether the task should continue running */
+   public transient volatile boolean stop = false;
 
-   /**
-    * Calls on the appropriate function for
-    * periodically rebalancing the marketplace.
-    */
-   public void run() {
-      if (stop)
-         return;
-
-      try {
-         incrementallyRebalanceMarket();
-      } catch (Exception e) {
-         Marketplace.releaseMutex();
-         System.err.println("fatal error while automatically rebalancing the marketplace: " + e);
-         e.printStackTrace();
-      }
-   }
-
-   /**
-    * Recalculates how much to adjust wares' quantities for sale
-    * according to configuration settings.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void calcAdjustmentQuantities() {
-      // generate automatic market rebalancing incremental values
-      autoRebalanceAdjustQuantities = new int[]{(int) (Config.automaticStockRebalancingPercent * Config.quanMid[0]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[1]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[2]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[3]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[4]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[5])};
-   }
-
+   // STATIC METHODS
    /**
     * Spawns and handles a thread for handling automatically rebalancing wares' quantities for sale within the marketplace.
     * <p>
@@ -76,9 +41,12 @@ public class AutoMarketRebalancer extends TimerTask  {
       if (Config.automaticStockRebalancing && Config.automaticStockRebalancingFrequency > 0) {
          // start automatic market rebalancing
          if (timerMarketRebalancer == null ) {
+            // calculate how much to adjust wares' quantities for sale
+            calcQuantityChanges();
+
             // initialize timer objects
             timerMarketRebalancer     = new Timer(true);
-            timertaskMarketRebalancer = new AutoMarketRebalancer();
+            timertaskMarketRebalancer = new MarketRebalancer();
 
             // initialize periodically rebalancing the marketplace
             timerMarketRebalancer.scheduleAtFixedRate(timertaskMarketRebalancer, (long) 0, (long) Config.automaticStockRebalancingFrequency * 60000); // 60000 milliseconds per minute
@@ -93,7 +61,7 @@ public class AutoMarketRebalancer extends TimerTask  {
             timertaskMarketRebalancer.cancel();
 
             // initialize timertask object
-            timertaskMarketRebalancer = new AutoMarketRebalancer();
+            timertaskMarketRebalancer = new MarketRebalancer();
 
             // initialize periodically rebalancing the marketplace
             timerMarketRebalancer.scheduleAtFixedRate(timertaskMarketRebalancer, (long) 0, (long) Config.automaticStockRebalancingFrequency * 60000); // 60000 milliseconds per minute
@@ -101,7 +69,8 @@ public class AutoMarketRebalancer extends TimerTask  {
       }
 
       // stop automatic market rebalancing
-      else if (timerMarketRebalancer != null && (!Config.automaticStockRebalancing || Config.automaticStockRebalancingFrequency <= 0))
+      else if (timerMarketRebalancer != null &&
+               (!Config.automaticStockRebalancing || Config.automaticStockRebalancingFrequency <= 0))
          end();
 
       // record timer interval to monitor for changes
@@ -121,7 +90,26 @@ public class AutoMarketRebalancer extends TimerTask  {
          timerMarketRebalancer.cancel();
          timerMarketRebalancer = null;
          autoRebalanceAdjustQuantities = null;
+
+         // deallocate memory
+         autoRebalanceAdjustQuantities = null;
       }
+   }
+
+   /**
+    * Calculates how much to adjust wares' quantities for sale
+    * according to configuration settings.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void calcQuantityChanges() {
+      // generate automatic market rebalancing incremental values
+      autoRebalanceAdjustQuantities = new int[]{(int) (Config.automaticStockRebalancingPercent * Config.quanMid[0]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[1]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[2]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[3]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[4]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[5])};
    }
 
    /**
@@ -183,5 +171,28 @@ public class AutoMarketRebalancer extends TimerTask  {
       // allow other threads to adjust wares' properties
       Marketplace.releaseMutex();
       return;
+   }
+
+   // INSTANCE METHODS
+   /**
+    * Constructor: Initializes the periodic event.
+    */
+   public MarketRebalancer() { }
+
+   /**
+    * Calls on the appropriate function for
+    * periodically rebalancing the marketplace.
+    */
+   public void run() {
+      if (stop)
+         return;
+
+      try {
+         incrementallyRebalanceMarket();
+      } catch (Exception e) {
+         Marketplace.releaseMutex();
+         System.err.println("fatal error while automatically rebalancing the marketplace: " + e);
+         e.printStackTrace();
+      }
    }
 }

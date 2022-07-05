@@ -61,8 +61,8 @@ public class RandomEvents extends TimerTask {
    /** used to signal what should be reloaded or recalculated */
    enum QueueCommands {
       LOAD,
-      CALC_TRADE_QUANTITIES,
-      RELOAD_WARES,
+      CALC_QUANTITY_CHANGES,
+      LOAD_WARES,
       GEN_WARE_DESCS
    }
    /** used to signal thread to reload or recalculate variables */
@@ -73,6 +73,103 @@ public class RandomEvents extends TimerTask {
    public transient volatile boolean stop = false;
 
    // STATIC METHODS
+   /**
+    * Spawns and handles a thread for handling random events.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void startOrReconfig() {
+      // calculate frequency using settings for frequency and variance
+      long newFrequency = ((long) (Config.randomEventsFrequency * (1.0f - Config.randomEventsVariance)) * 60000L); // 60000 ms per min.
+      // enforce a positive floor
+      if (newFrequency <= 0.0)
+         newFrequency = 60000L; // 60000 ms per min.
+
+      // if necessary, start, reload, or stop random events
+      if (Config.randomEvents && Config.randomEventsFrequency > 0) {
+         // set up random events if they haven't been already
+         if (queue == null) {
+            // set up queue
+            queue = Collections.synchronizedSet(EnumSet.noneOf(QueueCommands.class));
+
+            // leave requests to set up random events
+            queue.add(QueueCommands.LOAD);
+            queue.add(QueueCommands.CALC_QUANTITY_CHANGES);
+
+            // record change amounts for quantities for the first time
+            if (oldQuantityChangePercents == null) {
+               oldQuantityChangePercents    = new float[3];
+               oldQuantityChangePercents[0] = Config.randomEventsSmallChange;
+               oldQuantityChangePercents[1] = Config.randomEventsMediumChange;
+               oldQuantityChangePercents[2] = Config.randomEventsLargeChange;
+            }
+         }
+
+         // if necessary, recalculate change amounts for quantities
+         if (oldQuantityChangePercents != null &&
+             (oldQuantityChangePercents[0] != Config.randomEventsSmallChange  ||
+              oldQuantityChangePercents[1] != Config.randomEventsMediumChange ||
+              oldQuantityChangePercents[2] != Config.randomEventsLargeChange))
+            calcQuantityChanges();
+
+         // start random events
+         if (timerRandomEvents == null) {
+            // initialize timer objects
+            timerRandomEvents     = new Timer(true);
+            timerTaskRandomEvents = new RandomEvents();
+
+            // initialize random events
+            timerRandomEvents.scheduleAtFixedRate(timerTaskRandomEvents, 0L, newFrequency);
+         }
+
+         // reload random events
+         else if (oldFrequency != newFrequency) {
+            // There's no way to change a task's period.
+            // Therefore, it is necessary to stop the current task
+            // and schedule a new one.
+            timerTaskRandomEvents.stop = true;
+            timerTaskRandomEvents.cancel();
+
+            // initialize timertask object
+            timerTaskRandomEvents = new RandomEvents();
+
+            // initialize random events
+            timerRandomEvents.scheduleAtFixedRate(timerTaskRandomEvents, newFrequency, newFrequency);
+         }
+      }
+
+      // stop random events
+      else if (timerRandomEvents != null &&
+               (!Config.randomEvents || Config.randomEventsFrequency <= 0))
+         end();
+
+      // record timer interval to monitor for changes
+      oldFrequency = newFrequency;
+   }
+
+   /**
+    * Closes the thread handling random events.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void end() {
+      // if necessary, stop random events
+      if (timerRandomEvents != null) {
+         timerTaskRandomEvents.stop = true;
+         timerTaskRandomEvents = null;
+         timerRandomEvents.cancel();
+         timerRandomEvents = null;
+
+         // deallocate memory
+         randomEvents              = null;
+         quanChangeLarge           = null;
+         quanChangeMedium          = null;
+         quanChangeSmall           = null;
+         oldQuantityChangePercents = null;
+         queue                     = null;
+      }
+   }
+
    /**
     * Prepares for using random events.
     * <p>
@@ -103,11 +200,17 @@ public class RandomEvents extends TimerTask {
       if (queue == null)
          return;
 
-      queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
+      queue.add(QueueCommands.CALC_QUANTITY_CHANGES);
+
+      // record quantity change amounts to monitor for changes
+      oldQuantityChangePercents    = new float[3];
+      oldQuantityChangePercents[0] = Config.randomEventsSmallChange;
+      oldQuantityChangePercents[1] = Config.randomEventsMediumChange;
+      oldQuantityChangePercents[2] = Config.randomEventsLargeChange;
    }
 
    /**
-    * Relinks random events to wares they affect.
+    * Links random events to wares they affect.
     * Necessary if wares are reloaded.
     * <p>
     * This method sends a request to the thread handling random events
@@ -118,11 +221,11 @@ public class RandomEvents extends TimerTask {
     * where n is the number of random events<br>
     * where m is the number of affected wares
     */
-   public static void reloadWares() {
+   public static void loadWares() {
       if (queue == null)
          return;
 
-      queue.add(QueueCommands.RELOAD_WARES);
+      queue.add(QueueCommands.LOAD_WARES);
    }
 
    /**
@@ -144,109 +247,6 @@ public class RandomEvents extends TimerTask {
          return;
 
       queue.add(QueueCommands.GEN_WARE_DESCS);
-   }
-
-   /**
-    * Spawns and handles a thread for handling random events.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void startOrReconfig() {
-      // calculate frequency using settings for frequency and variance
-      long newFrequency = ((long) (Config.randomEventsFrequency * (1.0f - Config.randomEventsVariance)) * 60000L); // 60000 ms per min.
-      // enforce a positive floor
-      if (newFrequency <= 0.0)
-         newFrequency = 60000L; // 60000 ms per min.
-
-      // if necessary, start, reload, or stop random events
-      if (Config.randomEvents && Config.randomEventsFrequency > 0) {
-         // set up random events if they haven't been already
-         if (queue == null) {
-            // set up queue
-            queue = Collections.synchronizedSet(EnumSet.noneOf(QueueCommands.class));
-
-            // leave requests to set up random events
-            queue.add(QueueCommands.LOAD);
-            queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
-
-            // record change amounts for quantities for the first time
-            if (oldQuantityChangePercents == null) {
-               oldQuantityChangePercents    = new float[3];
-               oldQuantityChangePercents[0] = Config.randomEventsSmallChange;
-               oldQuantityChangePercents[1] = Config.randomEventsMediumChange;
-               oldQuantityChangePercents[2] = Config.randomEventsLargeChange;
-            }
-         }
-
-         // if necessary, recalculate change amounts for quantities
-         if (oldQuantityChangePercents != null &&
-             (oldQuantityChangePercents[0] != Config.randomEventsSmallChange  ||
-              oldQuantityChangePercents[1] != Config.randomEventsMediumChange ||
-              oldQuantityChangePercents[2] != Config.randomEventsLargeChange)) {
-            queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
-
-            // record quantity change amounts to monitor for changes
-            oldQuantityChangePercents    = new float[3];
-            oldQuantityChangePercents[0] = Config.randomEventsSmallChange;
-            oldQuantityChangePercents[1] = Config.randomEventsMediumChange;
-            oldQuantityChangePercents[2] = Config.randomEventsLargeChange;
-         }
-
-         // start random events
-         if (timerRandomEvents == null) {
-            // initialize timer objects
-            timerRandomEvents     = new Timer(true);
-            timerTaskRandomEvents = new RandomEvents();
-
-            // initialize random events
-            timerRandomEvents.scheduleAtFixedRate(timerTaskRandomEvents, (long) 0, newFrequency);
-         }
-
-         // reload random events
-         else if (oldFrequency != newFrequency) {
-            // There's no way to change a task's period.
-            // Therefore, it is necessary to stop the current task
-            // and schedule a new one.
-            timerTaskRandomEvents.stop = true;
-            timerTaskRandomEvents.cancel();
-
-            // initialize timertask object
-            timerTaskRandomEvents = new RandomEvents();
-
-            // initialize random events
-            timerRandomEvents.scheduleAtFixedRate(timerTaskRandomEvents, newFrequency, newFrequency);
-         }
-      }
-
-      // stop random events
-      else if (timerRandomEvents != null && (!Config.randomEvents || Config.randomEventsFrequency <= 0))
-         endRandomEvents();
-
-      // record timer interval to monitor for changes
-      oldFrequency = newFrequency;
-   }
-
-   /**
-    * Closes the thread handling random events.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void endRandomEvents() {
-      // if necessary, stop random events
-      if (timerRandomEvents != null) {
-         timerTaskRandomEvents.stop = true;
-         timerTaskRandomEvents = null;
-         timerRandomEvents.cancel();
-         timerRandomEvents = null;
-
-         // deallocate memory
-         randomEvents              = null;
-         quanChangeLarge           = null;
-         quanChangeMedium          = null;
-         quanChangeSmall           = null;
-         oldQuantityChangePercents = null;
-         queue                     = null;
-      }
    }
 
    /**
@@ -308,7 +308,7 @@ public class RandomEvents extends TimerTask {
          } catch (Exception e) { }
 
          Config.commandInterface.printToConsole(CommandEconomy.WARN_RANDOM_EVENTS_NONE_LOADED);
-         endRandomEvents();
+         end();
          return;
       }
 
@@ -398,7 +398,7 @@ public class RandomEvents extends TimerTask {
       if (randomEvents.length <= 0) {
          randomEvents = null; // disable random events
          Config.commandInterface.printToConsole(CommandEconomy.WARN_RANDOM_EVENTS_NONE_LOADED);
-         endRandomEvents();
+         end();
          return;
       }
 
@@ -713,7 +713,7 @@ public class RandomEvents extends TimerTask {
 
    /**
     * Calls on the appropriate function for
-    * periodically saving the marketplace.
+    * periodically triggering random events.
     */
    public void run() {
       // don't allow more than one singleton
@@ -740,14 +740,14 @@ public class RandomEvents extends TimerTask {
          }
 
          // recalculate values for adjusting wares' quantities for sale
-         if (queue.contains(QueueCommands.CALC_TRADE_QUANTITIES)) {
-            queue.remove(QueueCommands.CALC_TRADE_QUANTITIES);
+         if (queue.contains(QueueCommands.CALC_QUANTITY_CHANGES)) {
+            queue.remove(QueueCommands.CALC_QUANTITY_CHANGES);
             calcQuantityChangesPrivate();
          }
 
          // reload ware references
-         if (queue.contains(QueueCommands.RELOAD_WARES)) {
-            queue.remove(QueueCommands.RELOAD_WARES);
+         if (queue.contains(QueueCommands.LOAD_WARES)) {
+            queue.remove(QueueCommands.LOAD_WARES);
             loadWaresPrivate();
          }
 

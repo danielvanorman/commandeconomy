@@ -7,16 +7,18 @@ import java.util.TimerTask;
  * <p>
  * This class is only used by the terminal interface.
  * Autosaving in Minecraft is done through an
- * Event Handler triggered upon saving the world.
+ * Event Handler alerted upon saving the world.
  *
  * @author  Daniel Van Orman
  * @version %I%, %G%
  * @since   2021-12-12
  */
 public class Autosaver extends TimerTask  {
+   // INSTANCE ATTRIBUTES
    /** whether the task should continue running */
-   public volatile boolean stop = false;
+   public transient volatile boolean stop = false;
 
+   // INSTANCE METHODS
    /**
     * Constructor: Initializes the periodic event.
     */

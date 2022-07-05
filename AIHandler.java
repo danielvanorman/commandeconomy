@@ -41,9 +41,9 @@ public class AIHandler extends TimerTask {
 
    // thread management
    /** manages thread triggering AI trading */
-   static Timer timerAITrades = null;
+   static Timer timerAIHandler = null;
    /** handles AI trading */
-   static AIHandler timerTaskAITrades = null;
+   static AIHandler timerTaskAIHandler = null;
    /** used to monitor a timer interval for configuration changes */
    static long oldFrequency = 0L;
    /** used to monitor changes in a trade quantity percentage for configuration changes */
@@ -51,8 +51,8 @@ public class AIHandler extends TimerTask {
    /** used to signal what should be reloaded or recalculated */
    enum QueueCommands {
       LOAD,
-      CALC_TRADE_QUANTITIES,
-      RELOAD_WARES
+      CALC_QUANTITY_CHANGES,
+      LOAD_WARES
    }
    /** used to signal thread to reload or recalculate variables */
    static Set<QueueCommands> queue = null;
@@ -64,6 +64,88 @@ public class AIHandler extends TimerTask {
    private transient HashMap<Ware, Integer> tradesPending = null;
 
    // STATIC METHODS
+   /**
+    * Spawns and handles a thread for handling AI.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void startOrReconfig() {
+      // if necessary, start, reload, or stop AI
+      if (Config.enableAI && Config.aiTradeFrequency > 0) {
+         // set up AI if they haven't been already
+         if (queue == null) {
+            // set up queue
+            queue = Collections.synchronizedSet(EnumSet.noneOf(QueueCommands.class));
+
+            // leave requests to set up AI
+            queue.add(QueueCommands.LOAD);
+            queue.add(QueueCommands.CALC_QUANTITY_CHANGES);
+         }
+
+         // if necessary, recalculate trade quantities
+         if (oldTradeQuantityPercent != Config.aiTradeQuantityPercent)
+            queue.add(QueueCommands.CALC_QUANTITY_CHANGES);
+
+         // start AI
+         if (timerAIHandler == null ) {
+            // initialize timer objects
+            timerAIHandler     = new Timer(true);
+            timerTaskAIHandler = new AIHandler();
+
+            // initialize AI
+            timerAIHandler.scheduleAtFixedRate(timerTaskAIHandler, 0L, Config.aiTradeFrequency);
+         }
+
+         // reload AI trading frequency
+         else {
+            // reload AI professions file
+            queue.add(QueueCommands.LOAD);
+
+            if (oldFrequency != Config.aiTradeFrequency) {
+               // There's no way to change a task's period.
+               // Therefore, it is necessary to stop the current task
+               // and schedule a new one.
+               timerTaskAIHandler.stop = true;
+               timerTaskAIHandler.cancel();
+
+               // initialize timertask object
+               timerTaskAIHandler = new AIHandler();
+
+               // initialize AI
+               timerAIHandler.scheduleAtFixedRate(timerTaskAIHandler, Config.aiTradeFrequency, Config.aiTradeFrequency);
+            }
+         }
+      }
+
+      // stop AI
+      else if (timerAIHandler != null &&
+               (!Config.enableAI || Config.aiTradeFrequency <= 0))
+         end();
+
+      // record timer interval to monitor for changes
+      oldFrequency = Config.aiTradeFrequency;
+   }
+
+   /**
+    * Closes the thread handling AI.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void end() {
+      // if necessary, stop AI thread
+      if (timerAIHandler != null) {
+         timerTaskAIHandler.stop = true;
+         timerTaskAIHandler = null;
+         timerAIHandler.cancel();
+         timerAIHandler = null;
+
+         // deallocate memory
+         professions = null;
+         activeAI    = null;
+         queue       = null;
+      }
+   }
+
    /**
     * Prepares for using AI.
     * <p>
@@ -90,16 +172,16 @@ public class AIHandler extends TimerTask {
     * <p>
     * Complexity: O(1)
     */
-   public static void calcTradeQuantities() {
+   public static void calcQuantityChanges() {
       if (queue == null)
          return;
 
-      queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
+      queue.add(QueueCommands.CALC_QUANTITY_CHANGES);
    }
 
    /**
-    * Relinks AI to the wares they affect.
-    * This is necessary if wares are reloaded.
+    * Links AI to the wares they affect.
+    * Necessary if wares are reloaded.
     * <p>
     * This method sends a request to the thread handling AI
     * to perform a given task before starting the next AI trades.
@@ -109,98 +191,11 @@ public class AIHandler extends TimerTask {
     * where n is the number of active AI<br>
     * where m is the number of affected wares
     */
-   public static void reloadWares() {
+   public static void loadWares() {
       if (queue == null)
          return;
 
-      queue.add(QueueCommands.RELOAD_WARES);
-   }
-
-   /**
-    * Spawns and handles a thread for handling AI.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void startOrReconfig() {
-      // calculate frequency using configuration settings
-      long newFrequency = ((long) Config.aiTradeFrequency) * 60000L; // 60000 ms per min.
-      // enforce a positive floor
-      if (newFrequency <= 0.0)
-         newFrequency = 60000L; // 60000 ms per min.
-
-      // if necessary, start, reload, or stop AI
-      if (Config.enableAI && Config.aiTradeFrequency > 0) {
-         // set up AI if they haven't been already
-         if (queue == null) {
-            // set up queue
-            queue = Collections.synchronizedSet(EnumSet.noneOf(QueueCommands.class));
-
-            // leave requests to set up AI
-            queue.add(QueueCommands.LOAD);
-            queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
-         }
-
-         // if necessary, recalculate trade quantities
-         if (oldTradeQuantityPercent != Config.aiTradeQuantityPercent)
-            queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
-
-         // start AI
-         if (timerAITrades == null ) {
-            // initialize timer objects
-            timerAITrades     = new Timer(true);
-            timerTaskAITrades = new AIHandler();
-
-            // initialize AI
-            timerAITrades.scheduleAtFixedRate(timerTaskAITrades, (long) 0, newFrequency);
-         }
-
-         // reload AI trading frequency
-         else {
-            // reload AI professions file
-            queue.add(QueueCommands.LOAD);
-
-            if (oldFrequency != newFrequency) {
-               // There's no way to change a task's period.
-               // Therefore, it is necessary to stop the current task
-               // and schedule a new one.
-               timerTaskAITrades.stop = true;
-               timerTaskAITrades.cancel();
-
-               // initialize timertask object
-               timerTaskAITrades = new AIHandler();
-
-               // initialize AI
-               timerAITrades.scheduleAtFixedRate(timerTaskAITrades, newFrequency, newFrequency);
-            }
-         }
-      }
-
-      // stop AI
-      else if (timerAITrades != null && (!Config.enableAI || Config.aiTradeFrequency <= 0))
-         endAI();
-
-      // record timer interval to monitor for changes
-      oldFrequency = newFrequency;
-   }
-
-   /**
-    * Closes the thread handling AI.
-    * <p>
-    * Complexity: O(1)
-    */
-   public static void endAI() {
-      // if necessary, stop AI thread
-      if (timerAITrades != null) {
-         timerTaskAITrades.stop = true;
-         timerTaskAITrades = null;
-         timerAITrades.cancel();
-         timerAITrades = null;
-
-         // deallocate memory
-         professions = null;
-         activeAI    = null;
-         queue       = null;
-      }
+      queue.add(QueueCommands.LOAD_WARES);
    }
 
    /**
@@ -318,7 +313,7 @@ public class AIHandler extends TimerTask {
          // if no AI were found
          if (aiToActivate.size() == 0) {
             Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
-            endAI();
+            end();
          }
 
          // create active AI array
@@ -333,18 +328,18 @@ public class AIHandler extends TimerTask {
 
       // if no AI should be run
       else
-         endAI();
+         end();
    }
 
    /**
-    * Relinks AI to wares they affect.
+    * Links AI to wares they affect.
     * Necessary if wares are reloaded.
     * <p>
     * Complexity: O(n*m)<br>
     * where n is the number of active AI<br>
     * where m is the number of affected wares
     */
-   private static void reloadWaresPrivate() {
+   private static void loadWaresPrivate() {
       if (activeAI == null)
          return;
 
@@ -376,7 +371,7 @@ public class AIHandler extends TimerTask {
     */
    public void run() {
       // don't allow more than one singleton
-      if (timerTaskAITrades != this) {
+      if (timerTaskAIHandler != this) {
          cancel();
          return;
       }
@@ -391,25 +386,24 @@ public class AIHandler extends TimerTask {
          if (stop)
             return;
 
-         // load AI
+         // load AI from file
          if (queue.contains(QueueCommands.LOAD)) {
             queue.remove(QueueCommands.LOAD);
             loadPrivate();
             return;
          }
 
-         // recalc quantities
-         if (queue.contains(QueueCommands.CALC_TRADE_QUANTITIES) &&
-             oldTradeQuantityPercent != Config.aiTradeQuantityPercent) {
-            queue.remove(QueueCommands.CALC_TRADE_QUANTITIES);
+         // recalculate values for adjusting wares' quantities for sale
+         if (queue.contains(QueueCommands.CALC_QUANTITY_CHANGES)) {
+            queue.remove(QueueCommands.CALC_QUANTITY_CHANGES);
             oldTradeQuantityPercent = Config.aiTradeQuantityPercent; // record to monitor for changes
             AI.calcTradeQuantities();
          }
 
-         // reload wares
-         if (queue.contains(QueueCommands.RELOAD_WARES)) {
-            queue.remove(QueueCommands.RELOAD_WARES);
-            reloadWaresPrivate();
+         // reload ware references
+         if (queue.contains(QueueCommands.LOAD_WARES)) {
+            queue.remove(QueueCommands.LOAD_WARES);
+            loadWaresPrivate();
          }
       }
 

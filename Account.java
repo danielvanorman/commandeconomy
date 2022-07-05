@@ -14,6 +14,7 @@ import java.lang.StringBuilder;       // for faster saving, so the same line ent
 import java.util.HashSet;             // for faster saving, by storing accounts changed since last save
 import java.io.BufferedWriter;        // for faster saving, so fewer file writes are used
 import java.util.Map;                 // for iterating through hashmaps
+import java.util.Collection;          // for returning all accounts usable within the marketplace
 
 /**
  * Manages financial accounts usable within the market.
@@ -424,6 +425,14 @@ public class Account {
     * @return all account names in use
     */
    public static Set<String> getAllAccountNames() { return accounts.keySet(); }
+
+   /**
+    * Returns a set of all accounts currently being used within the marketplace.
+    * <p>
+    * Complexity: O(n), where n is the number of accounts to be returned
+    * @return a set of all accounts usable within the marketplace
+    */
+   public static Collection<Account> getAllAccounts() { return accounts.values(); }
 
    /**
     * Creates an account.
@@ -1341,25 +1350,5 @@ public class Account {
       // deposit the transaction fee
       feeCollectionAccount.addMoney(fee);
       return false;
-   }
-
-   /**
-    * Loops through each account and applies compound interest.
-    * <p>
-    * Complexity: O(n), where n is the number of accounts usable within the market
-    */
-   protected static void applyAccountInterest() {
-      // wait for permission to adjust ware's properties
-      acquireMutex();
-
-      // apply compound interest to every account
-      for (Account account : accounts.values()) {
-         // apply compound interest
-         account.setMoney(account.getMoney() * Config.accountPeriodicInterestPercent);
-      }
-
-      // allow other threads to adjust wares' properties
-      releaseMutex();
-      return;
    }
 };

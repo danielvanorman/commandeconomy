@@ -134,7 +134,7 @@ public class Config
    /** which AI professions should be used */
    public static String[] activeAI = null;
    /** how often AI should trade, in minutes */
-   public static int aiTradeFrequency = 60;
+   public static int aiTradeFrequency = 3600000; // 60 minutes
    /** how many units AI should buy or sell per trade, in percentage of equilibrium stock */
    public static float aiTradeQuantityPercent = 0.05f;
    /** how randomized AI trade decisions should be */
@@ -203,7 +203,7 @@ public class Config
    /** if true, periodic events will summon or destroy wares' quantities for sale */
    public static boolean randomEvents = false;
    /** how often random events should occur on average */
-   public static int randomEventsFrequency = 60;
+   public static int randomEventsFrequency = 10800000; // 180 minutes
    /** percentage for how much events' occurrences may drift from the average */
    public static float randomEventsVariance = 0.25f;
    /** how much a small change in a ware's quantity for sale should be */
@@ -223,7 +223,7 @@ public class Config
    /** whether stock levels should bring themselves to equilibrium by periodically increasing or decreasing */
    public static boolean automaticStockRebalancing = false;
    /** how often stock levels should change to rebalance themselves; measured in minutes */
-   public static int automaticStockRebalancingFrequency = 45;
+   public static int automaticStockRebalancingFrequency = 2700000; // 45 minutes
    /** what percentage of equilibrium stock levels should change per rebalancing event */
    public static float automaticStockRebalancingPercent = 0.005f;
 
@@ -233,7 +233,7 @@ public class Config
    /** interest rate accounts experience compound interest at */
    public static float accountPeriodicInterestPercent = 1.015f;
    /** how often compound interest is compounded */
-   public static int accountPeriodicInterestInterval = 120;
+   public static int accountPeriodicInterestFrequency = 7200000; // 120 minutes
 
    // no garbage disposing
    /** if true, wares with prices at or below the price floor cannot be sold */
@@ -295,7 +295,11 @@ public class Config
             break;
 
          case "aiTradeFrequency":
-            aiTradeFrequency = (int) value;
+            if (value < 0.0f)
+               value = -value;
+            else if (value > 35791.0f)
+               value = 35791;
+            aiTradeFrequency = (int) value * 60000;  // 60000 milliseconds per minute
             break;
          case "aiTradeQuantityPercent":
             aiTradeQuantityPercent = value;
@@ -338,6 +342,8 @@ public class Config
          case "randomEventsFrequency":
             if (value < 0.0f)
                value = -value;
+            else if (value > 35791.0f)
+               value = 35791;
             randomEventsFrequency = (int) value * 60000;  // 60000 milliseconds per minute
             break;
          case "randomEventsVariance":
@@ -362,14 +368,22 @@ public class Config
             automaticStockRebalancingPercent = value;
             break;
          case "automaticStockRebalancingFrequency":
-            automaticStockRebalancingFrequency = (int) value;
+            if (value < 0.0f)
+               value = -value;
+            else if (value > 35791.0f)
+               value = 35791;
+            automaticStockRebalancingFrequency = (int) value * 60000;  // 60000 milliseconds per minute
             break;
 
          case "accountPeriodicInterestPercent":
             accountPeriodicInterestPercent = 1.0f + (value / 100.0f);
             break;
-         case "accountPeriodicInterestInterval":
-            accountPeriodicInterestInterval = (int) value * 60000; // 60000 milliseconds per minute
+         case "accountPeriodicInterestFrequency":
+            if (value < 0.0f)
+               value = -value;
+            else if (value > 35791.0f)
+               value = 35791;
+            accountPeriodicInterestFrequency = (int) value * 60000;  // 60000 milliseconds per minute
             break;
 
          default:
@@ -758,17 +772,18 @@ public class Config
          // if AI is enabled,
          // calculate trade amounts
          if (enableAI)
-            AIHandler.calcTradeQuantities();
+            AIHandler.calcQuantityChanges();
 
          // if random events are enabled,
          // calculate changes for wares' quantities for sale
          if (randomEvents)
              RandomEvents.calcQuantityChanges();
-      }
 
-      // set up automatic market rebalancing if necessary
-      if (automaticStockRebalancing)
-         AutoMarketRebalancer.calcAdjustmentQuantities();
+         // if periodically moving wares toward equilibrium is enabled,
+         // calculate changes for wares' quantities for sale
+         if (automaticStockRebalancing)
+            MarketRebalancer.calcQuantityChanges();
+      }
 
       // if the price floor is higher than the price ceiling, swap them
       if (priceFloor > priceCeiling) {
@@ -833,7 +848,7 @@ public class Config
       // AI
       enableAI               = false;
       activeAI               = null;
-      aiTradeFrequency       = 60;
+      aiTradeFrequency       = 3600000;
       aiTradeQuantityPercent = 0.05f;
       aiRandomness           = 0.05f;
       aiReportInvalidWares   = false;
@@ -870,7 +885,7 @@ public class Config
 
       // random events
       randomEvents                   = false;
-      randomEventsFrequency          = 60;
+      randomEventsFrequency          = 10800000;
       randomEventsVariance           = 0.25f;
       randomEventsSmallChange        = 0.05f;
       randomEventsMediumChange       = 0.10f;
@@ -880,13 +895,13 @@ public class Config
 
       // automatic market rebalancing
       automaticStockRebalancing          = false;
-      automaticStockRebalancingFrequency = 45;
+      automaticStockRebalancingFrequency = 2700000;
       automaticStockRebalancingPercent   = 0.005f;
 
       // account interest
       accountPeriodicInterestEnabled  = false;
       accountPeriodicInterestPercent  = 1.015f;
-      accountPeriodicInterestInterval = 120;
+      accountPeriodicInterestFrequency = 7200000;
 
       // no garbage disposing
       noGarbageDisposing = false;
@@ -915,7 +930,7 @@ public class Config
          // try to fill the file with default values
          try {
             FileWriter fileWriter = new FileWriter("config" + File.separator + filenameConfig, false);
-            fileWriter.write("// ===Prices:===\n// =Global:=\n// scales prices linearly\npriceMult = 1.0\n// pushes prices closer together or farther apart\npriceSpread = 1.0\n\n// the highest a ware's price may increase based on stock quantity\n// 2.0 == 2x price base after stock falls below quanLow\npriceCeiling = 2.0\n// the lowest a ware's price may decrease based on stock quantity\n// 0.0 == free after stock surpasses quanHigh\npriceFloor = 0.0\n\n// =Targeted Multipliers:=\n// processed wares' prices are adjusted by this multiplier\n// ex: charcoal's price == wood's price * priceProcessed\npriceProcessed = 1.5\n// crafted wares' prices are adjusted by this multiplier\n// ex: piston's price == sum of piston's components' prices * priceCrafted\npriceCrafted = 1.2\n\n// multiplies the cost of purchasing a ware, but keeps selling the same\n// 1.2 == 20% higher price when buying than selling\npriceBuyUpchargeMult = 1.0\n\n// if true, out-of-stock processed/crafted wares may be purchased\n// if their components have enough available stock on the market\nbuyingOutOfStockWaresAllowed = true\n\n// how much to charge for purchasing out-of-stock processed/crafted wares\n// this charge is in addition to processed/crafted price multipliers\n// 1.10 == +10% out-of-stock price\nbuyingOutOfStockWaresPriceMult = 1.10\n\n// =Linked Prices:=\n// if true, current prices of components used to create a ware\n// affect the current price of the created ware,\n// even if the ware cannot be reverted into its components\n// ex: if wood is scarce, charcoal automatically costs more\nshouldComponentsCurrentPricesAffectWholesPrice = true\n\n// the most components' prices may affect a created ware's price\n// ex: 0.75 == can lower created's price as much as 75% and\n// can raise created's price by 75% of components' prices\nlinkedPricesPercent = 0.75\n\n// how many recently calculated linked price multipliers\n// are saved for recall, reducing CPU usage\n// too small risks stack overflow for lengthy crafting chains\n// too large risks prices lagging behind the market's current state\nlinkedPriceMultsSaved = 5\n\n// =Transaction Fees:=\n// whether or not to charge for buying, selling, or sending\nchargeTransactionFees = false\n\n// how much to charge per transaction for buying/etc.\n// 0.05 == fee is 5% of total price or $0.05\ntransactionFeeBuying    = 0.05\ntransactionFeeSelling   = 0.00\ntransactionFeeSending   = 0.02\ntransactionFeeInvesting = 0.015\n\n// if true, transactionFee is treated as a multiplier,\n// charging based off of purchases' total prices \n// if false, transactionFee is treated as a flat rate\ntransactionFeeBuyingIsMult    = true\ntransactionFeeSellingIsMult   = true\ntransactionFeeSendingIsMult   = true\ntransactionFeeInvestingIsMult = true\n\n// what to say when telling users a fee for\n// purchasing/selling/transferring has been applied\ntransactionFeeBuyingMsg    = Sales tax paid: \ntransactionFeeSellingMsg   = Income tax paid: \ntransactionFeeSendingMsg   = Transfer fee applied: \ntransactionFeeInvestingMsg = Brokerage fee applied: \n\n// if true, money from fees is put into transactionFeeAccount\ntransactionFeesShouldPutFeesIntoAccount = true\n\n// the account which transaction fees are paid to\n// if this account doesn't exist,\n// an inaccessible account is made\ntransactionFeesAccount = cumulativeTransactionFees\n\n// ===Wares' Quantities for Sale:===\n// =Supply and Demand:=\n// quantity > this is considered saturated\nquanHigh = 65536, 43008, 14336, 10240, 6144, 3072\n// quantity = this is considered balanced\nquanMid  = 16384,  9216,  5120,  3072, 2048, 1024\n// quantity < this is considered scarce\nquanLow  =  4096,  2048,  1536,  1024,  768,  512\n\n// true means it is truly a command economy\n// Coming Soon! pricesIgnoreSupplyAndDemand = false\n\n// if true, wares with prices at or below\n// the price floor cannot be sold\nnoGarbageDisposing = false\n\n// =Starting Quantities:=\n// starting stock for each level\nstartQuanBase = 16384, 9216, 5120, 3072, 2048, 1024\n// scales starting stock linearly\nstartQuanMult = 1.0\n// pushes starting stock levels closer together or farther apart\nstartQuanSpread = 1.0\n\n// =Investment:=\n// Investments into industrial research and manufacturing\n// increase a ware's supply and demand, reduces price fluctuations,\n// and resets quantity available for sale to equilibrium.\n\n// investing in a ware costs increases this much\n// per ware hierarchy level (represents rarity)\n// set to 0 to disable this feature\ninvestmentCostPerHierarchyLevel = 185.0\n\n// if true, the cost of investing in a ware is a multiplier\n// applied to the market's current price average\ninvestmentCostIsAMultOfAvgPrice = true\n\n// =Automatic Market Rebalancing:=\n// whether stock levels should bring themselves\n// to equilibrium by periodically increasing or decreasing\nautomaticStockRebalancing = false\n\n// how often quantities for sale should change to rebalance themselves\n// 20 == change every 20 minutes or once every in-game day\nautomaticStockRebalancingFrequency = 20\n\n// how much quantities for sale should change per rebalancing event\n// 0.03 == 3% of equilibrium quantity\nautomaticStockRebalancingPercent = 0.03\n\n// ===Ware-Handling:===\n// contains wares to be tradeable within the marketplace\nfilenameWares = wares.txt\n\n// save file containing tradeable wares within the marketplace\n// if this file exists, it is loaded instead of filenameWares\nfilenameWaresSave = waresSaved.txt\n\n// if true, checking ware IDs for corresponding items\n// existing within Minecraft does not check metadata\n// useful for mods which do not register items properly\n// bad for validating ware entries since it may\n// allow loading wares which don't exist\nitemExistenceCheckIgnoresMeta = false\n\n// whether wares which are not in the market\n// may be sold using a Forge OreDictionary name\n// it shares with a ware in the market\n// ex: sell different copper ingots from multiple mods,\n// pretending they are all from the mod\n// whose copper ingot is in the market\nallowOreDictionarySubstitution = true\n\n// whether to print warnings for not finding\n// Forge OreDictionary names used by alternative aliases\noreDictionaryReportInvalid = false\n\n// max tolerance for how long a crafting chain may go, where a crafted item is crafted using another crafted item, which is crafted using another crafted item, and so forth\n// Ex: 5 means allows loading Item6, where Item6 is crafted using Item5, which uses Item4, which uses Item3, which uses Item2, which uses Item1. However, 5 would flag an error for Item7 since Item7's crafting chain would be too long.\nmaxCraftingDepth = 10\n\n// ===Accounts:===\n// how much money an account should start with\naccountStartingMoney = 0.0\n\n// how many accounts a single player is allowed to create\n// 0 == no new accounts except default, personal ones\n// -1 == no restriction or infinity accounts\naccountMaxCreatedByIndividual = 3\n\n// contains accounts usable within the marketplace\nfilenameAccounts = accounts.txt\n\n// =Interest:=\n// if true, account funds experience compound interest\naccountPeriodicInterestEnabled = false\n\n// interest rate at which account funds are compounded\n// 1.5 == 1.5%\naccountPeriodicInterestPercent = 1.5\n\n// how often compound interest is applied\n// dedicated server recommended: 120 == 2 hours\n// singleplayer recommended: 15 == 15 minutes\naccountPeriodicInterestInterval = 120\n\n// ===Administrative:===\n// All files except filenameMarket can be saved\n// in a world's directory in ../CommandEconomy/\n// or the Minecraft game directory\n// in ../config/CommandEconomy/.\n// The world's directory is checked for files first\n// unless crossWorldMarketplace is true.\n\n// If true, ware and account save files\n// will be shared across all worlds.\n// To exclude a world while set to true,\n// go to the world's Command Economy directory\n// and create a local config file named \"config.txt\".\n// As long as this config file exists,\n// that world will load it\n// instead of the main config file.\ncrossWorldMarketplace = false\n\n// output file for printing wares within the marketplace\n// \"/printMarket\" to print to this file\nfilenameMarket = market.txt\n\n// disables automatically saving wares and accounts when the world is saved\ndisableAutoSaving = false\n\n// ===Additional Factors:===\n// =AI:=\n// whether AI should be used\nenableAI = false\n\n// which AI professions should be used\n// repeats increase the number of times a profession trades per event\nactiveAI = armorer, cleric, farmer, farmer, fletcher, librarian\n\n// how often AI should trade, in minutes\naiTradeFrequency = 60\n\n// how many units AI should buy or sell per trade\n// in percentage of equilibrium stock\n// ex: ware's quanMid = 100 and aiTradeQuantityPercent = 0.05\n// means AI will buy or sell 5 units of the ware at a time\naiTradeQuantityPercent = 0.05\n\n// how randomized AI trade decisions should be\n// 0.0 == trade according to wares' supply and demand\n// 1.0 == trades are mostly unpredictable\naiRandomness = 0.05\n\n// contains possible AI, the wares they may trade,\n// and their preferences\nfilenameAIProfessions = aiProfessions.json\n\n// =Random Events:=\n// whether or not to periodically trigger events\n// summoning or destroying wares' quantities for sale\nrandomEvents = false\n\n// on average, an event should occur every X minutes\nrandomEventsFrequency = 60\n\n// events may occur anywhere from\n// frequency *  (1 - variance) to frequency * variance\n// so if frequency is 60 minutes and variance is 0.25,\n// events could occur anywhere from every 45 minutes to 75 minutes\nrandomEventsVariance = 0.25\n\n// if true, random events display which wares\n// have been affected when an event fires\nrandomEventsPrintChanges = false\n\n// if true, the changes in quantities for sale listed below\n// are considered percentages of equilibrium quantity\n// if false, they are considered flat values\nrandomEventsAreChangesPercents = true\n\n// each random event may affect stock levels\n// up to the amounts listed below\n// 0.15 == 15% of equilibrium or 0 change\n// 15 == 1500% or +/-15 stock for hierarchy level 2 (iron),\n// flat rates scale according to equilibrium stock for other levels\nrandomEventsLargeChange  = 0.15\nrandomEventsMediumChange = 0.10\nrandomEventsSmallChange  = 0.05\n\n// contains possible events, their descriptions,\n// the wares they may affect and how much each ware is affected\nfilenameRandomEvents = randomEvents.json");
+            fileWriter.write("// ===Prices:===\n// =Global:=\n// scales prices linearly\npriceMult = 1.0\n// pushes prices closer together or farther apart\npriceSpread = 1.0\n\n// the highest a ware's price may increase based on stock quantity\n// 2.0 == 2x price base after stock falls below quanLow\npriceCeiling = 2.0\n// the lowest a ware's price may decrease based on stock quantity\n// 0.0 == free after stock surpasses quanHigh\npriceFloor = 0.0\n\n// =Targeted Multipliers:=\n// processed wares' prices are adjusted by this multiplier\n// ex: charcoal's price == wood's price * priceProcessed\npriceProcessed = 1.5\n// crafted wares' prices are adjusted by this multiplier\n// ex: piston's price == sum of piston's components' prices * priceCrafted\npriceCrafted = 1.2\n\n// multiplies the cost of purchasing a ware, but keeps selling the same\n// 1.2 == 20% higher price when buying than selling\npriceBuyUpchargeMult = 1.0\n\n// if true, out-of-stock processed/crafted wares may be purchased\n// if their components have enough available stock on the market\nbuyingOutOfStockWaresAllowed = true\n\n// how much to charge for purchasing out-of-stock processed/crafted wares\n// this charge is in addition to processed/crafted price multipliers\n// 1.10 == +10% out-of-stock price\nbuyingOutOfStockWaresPriceMult = 1.10\n\n// =Linked Prices:=\n// if true, current prices of components used to create a ware\n// affect the current price of the created ware,\n// even if the ware cannot be reverted into its components\n// ex: if wood is scarce, charcoal automatically costs more\nshouldComponentsCurrentPricesAffectWholesPrice = true\n\n// the most components' prices may affect a created ware's price\n// ex: 0.75 == can lower created's price as much as 75% and\n// can raise created's price by 75% of components' prices\nlinkedPricesPercent = 0.75\n\n// how many recently calculated linked price multipliers\n// are saved for recall, reducing CPU usage\n// too small risks stack overflow for lengthy crafting chains\n// too large risks prices lagging behind the market's current state\nlinkedPriceMultsSaved = 5\n\n// =Transaction Fees:=\n// whether or not to charge for buying, selling, or sending\nchargeTransactionFees = false\n\n// how much to charge per transaction for buying/etc.\n// 0.05 == fee is 5% of total price or $0.05\ntransactionFeeBuying    = 0.05\ntransactionFeeSelling   = 0.00\ntransactionFeeSending   = 0.02\ntransactionFeeInvesting = 0.015\n\n// if true, transactionFee is treated as a multiplier,\n// charging based off of purchases' total prices \n// if false, transactionFee is treated as a flat rate\ntransactionFeeBuyingIsMult    = true\ntransactionFeeSellingIsMult   = true\ntransactionFeeSendingIsMult   = true\ntransactionFeeInvestingIsMult = true\n\n// what to say when telling users a fee for\n// purchasing/selling/transferring has been applied\ntransactionFeeBuyingMsg    = Sales tax paid: \ntransactionFeeSellingMsg   = Income tax paid: \ntransactionFeeSendingMsg   = Transfer fee applied: \ntransactionFeeInvestingMsg = Brokerage fee applied: \n\n// if true, money from fees is put into transactionFeeAccount\ntransactionFeesShouldPutFeesIntoAccount = true\n\n// the account which transaction fees are paid to\n// if this account doesn't exist,\n// an inaccessible account is made\ntransactionFeesAccount = cumulativeTransactionFees\n\n// ===Wares' Quantities for Sale:===\n// =Supply and Demand:=\n// quantity > this is considered saturated\nquanHigh = 65536, 43008, 14336, 10240, 6144, 3072\n// quantity = this is considered balanced\nquanMid  = 16384,  9216,  5120,  3072, 2048, 1024\n// quantity < this is considered scarce\nquanLow  =  4096,  2048,  1536,  1024,  768,  512\n\n// true means it is truly a command economy\n// Coming Soon! pricesIgnoreSupplyAndDemand = false\n\n// if true, wares with prices at or below\n// the price floor cannot be sold\nnoGarbageDisposing = false\n\n// =Starting Quantities:=\n// starting stock for each level\nstartQuanBase = 16384, 9216, 5120, 3072, 2048, 1024\n// scales starting stock linearly\nstartQuanMult = 1.0\n// pushes starting stock levels closer together or farther apart\nstartQuanSpread = 1.0\n\n// =Investment:=\n// Investments into industrial research and manufacturing\n// increase a ware's supply and demand, reduces price fluctuations,\n// and resets quantity available for sale to equilibrium.\n\n// investing in a ware costs increases this much\n// per ware hierarchy level (represents rarity)\n// set to 0 to disable this feature\ninvestmentCostPerHierarchyLevel = 185.0\n\n// if true, the cost of investing in a ware is a multiplier\n// applied to the market's current price average\ninvestmentCostIsAMultOfAvgPrice = true\n\n// =Automatic Market Rebalancing:=\n// whether stock levels should bring themselves\n// to equilibrium by periodically increasing or decreasing\nautomaticStockRebalancing = false\n\n// how often quantities for sale should change to rebalance themselves\n// 20 == change every 20 minutes or once every in-game day\nautomaticStockRebalancingFrequency = 20\n\n// how much quantities for sale should change per rebalancing event\n// 0.03 == 3% of equilibrium quantity\nautomaticStockRebalancingPercent = 0.03\n\n// ===Ware-Handling:===\n// contains wares to be tradeable within the marketplace\nfilenameWares = wares.txt\n\n// save file containing tradeable wares within the marketplace\n// if this file exists, it is loaded instead of filenameWares\nfilenameWaresSave = waresSaved.txt\n\n// if true, checking ware IDs for corresponding items\n// existing within Minecraft does not check metadata\n// useful for mods which do not register items properly\n// bad for validating ware entries since it may\n// allow loading wares which don't exist\nitemExistenceCheckIgnoresMeta = false\n\n// whether wares which are not in the market\n// may be sold using a Forge OreDictionary name\n// it shares with a ware in the market\n// ex: sell different copper ingots from multiple mods,\n// pretending they are all from the mod\n// whose copper ingot is in the market\nallowOreDictionarySubstitution = true\n\n// whether to print warnings for not finding\n// Forge OreDictionary names used by alternative aliases\noreDictionaryReportInvalid = false\n\n// max tolerance for how long a crafting chain may go, where a crafted item is crafted using another crafted item, which is crafted using another crafted item, and so forth\n// Ex: 5 means allows loading Item6, where Item6 is crafted using Item5, which uses Item4, which uses Item3, which uses Item2, which uses Item1. However, 5 would flag an error for Item7 since Item7's crafting chain would be too long.\nmaxCraftingDepth = 10\n\n// ===Accounts:===\n// how much money an account should start with\naccountStartingMoney = 0.0\n\n// how many accounts a single player is allowed to create\n// 0 == no new accounts except default, personal ones\n// -1 == no restriction or infinity accounts\naccountMaxCreatedByIndividual = 3\n\n// contains accounts usable within the marketplace\nfilenameAccounts = accounts.txt\n\n// =Interest:=\n// if true, account funds experience compound interest\naccountPeriodicInterestEnabled = false\n\n// interest rate at which account funds are compounded\n// 1.5 == 1.5%\naccountPeriodicInterestPercent = 1.5\n\n// how often compound interest is applied\n// dedicated server recommended: 120 == 2 hours\n// singleplayer recommended: 15 == 15 minutes\naccountPeriodicInterestFrequency = 120\n\n// ===Administrative:===\n// All files except filenameMarket can be saved\n// in a world's directory in ../CommandEconomy/\n// or the Minecraft game directory\n// in ../config/CommandEconomy/.\n// The world's directory is checked for files first\n// unless crossWorldMarketplace is true.\n\n// If true, ware and account save files\n// will be shared across all worlds.\n// To exclude a world while set to true,\n// go to the world's Command Economy directory\n// and create a local config file named \"config.txt\".\n// As long as this config file exists,\n// that world will load it\n// instead of the main config file.\ncrossWorldMarketplace = false\n\n// output file for printing wares within the marketplace\n// \"/printMarket\" to print to this file\nfilenameMarket = market.txt\n\n// disables automatically saving wares and accounts when the world is saved\ndisableAutoSaving = false\n\n// ===Additional Factors:===\n// =AI:=\n// whether AI should be used\nenableAI = false\n\n// which AI professions should be used\n// repeats increase the number of times a profession trades per event\nactiveAI = armorer, cleric, farmer, farmer, fletcher, librarian\n\n// how often AI should trade, in minutes\naiTradeFrequency = 60\n\n// how many units AI should buy or sell per trade\n// in percentage of equilibrium stock\n// ex: ware's quanMid = 100 and aiTradeQuantityPercent = 0.05\n// means AI will buy or sell 5 units of the ware at a time\naiTradeQuantityPercent = 0.05\n\n// how randomized AI trade decisions should be\n// 0.0 == trade according to wares' supply and demand\n// 1.0 == trades are mostly unpredictable\naiRandomness = 0.05\n\n// contains possible AI, the wares they may trade,\n// and their preferences\nfilenameAIProfessions = aiProfessions.json\n\n// =Random Events:=\n// whether or not to periodically trigger events\n// summoning or destroying wares' quantities for sale\nrandomEvents = false\n\n// on average, an event should occur every X minutes\nrandomEventsFrequency = 60\n\n// events may occur anywhere from\n// frequency *  (1 - variance) to frequency * variance\n// so if frequency is 60 minutes and variance is 0.25,\n// events could occur anywhere from every 45 minutes to 75 minutes\nrandomEventsVariance = 0.25\n\n// if true, random events display which wares\n// have been affected when an event fires\nrandomEventsPrintChanges = false\n\n// if true, the changes in quantities for sale listed below\n// are considered percentages of equilibrium quantity\n// if false, they are considered flat values\nrandomEventsAreChangesPercents = true\n\n// each random event may affect stock levels\n// up to the amounts listed below\n// 0.15 == 15% of equilibrium or 0 change\n// 15 == 1500% or +/-15 stock for hierarchy level 2 (iron),\n// flat rates scale according to equilibrium stock for other levels\nrandomEventsLargeChange  = 0.15\nrandomEventsMediumChange = 0.10\nrandomEventsSmallChange  = 0.05\n\n// contains possible events, their descriptions,\n// the wares they may affect and how much each ware is affected\nfilenameRandomEvents = randomEvents.json");
             fileWriter.close();
          } catch (IOException e) {
             Config.commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_FILE_CREATE + filenameConfig);

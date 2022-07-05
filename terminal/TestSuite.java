@@ -93,6 +93,10 @@ public class TestSuite
    /** used for testing periodically moving wares' quantities available for sale toward equilibrium */
    private static Method incrementallyRebalanceMarket = null;
 
+   // account interest
+   /** used for testing applying account interest to all accounts */
+   private static Method applyAccountInterest = null;
+
    // repeatedly-used constants
    /** default player's UUID */
    private static final UUID PLAYER_ID = InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername);
@@ -11420,7 +11424,7 @@ public class TestSuite
 
       // prepare to grab internal variables
       Field     fTimer;           // used to check whether feature is running
-      Timer     timerAITrades;
+      Timer     timerAIHandler;
       Field     fTimerTask;
       AIHandler aiHandler;
       Field     fTradeFrequency;  // how often AI make trading decisions
@@ -11474,8 +11478,8 @@ public class TestSuite
          // grab references to AI handler attributes
          fProfessions    = AIHandler.class.getDeclaredField("professions");
          fActiveAI       = AIHandler.class.getDeclaredField("activeAI");
-         fTimer          = AIHandler.class.getDeclaredField("timerAITrades");
-         fTimerTask      = AIHandler.class.getDeclaredField("timerTaskAITrades");
+         fTimer          = AIHandler.class.getDeclaredField("timerAIHandler");
+         fTimerTask      = AIHandler.class.getDeclaredField("timerTaskAIHandler");
          fTradeFrequency = AIHandler.class.getDeclaredField("oldFrequency");
          fProfessions.setAccessible(true);
          fActiveAI.setAccessible(true);
@@ -11504,10 +11508,9 @@ public class TestSuite
          fileWriter.close();
 
          // set up AI thread
-         AIHandler.startOrReconfig();                  // first call performs preliminary set up
          AIHandler.startOrReconfig();                  // create thread
-         timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
-         aiHandler     = (AIHandler) fTimerTask.get(null);
+         timerAIHandler = (Timer) fTimer.get(null);     // grab references to thread
+         aiHandler      = (AIHandler) fTimerTask.get(null);
 
          TEST_OUTPUT.println("AI - missing file");
          // initialize AI
@@ -12088,7 +12091,9 @@ public class TestSuite
             fileWriter.close();
          } catch (Exception e) {
             TEST_OUTPUT.println("   (initial setup) unable to create test AI professions file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             return false;
          }
 
@@ -12099,8 +12104,8 @@ public class TestSuite
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new references to threads in case it closed during earlier testing
-            timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
-            aiHandler     = (AIHandler) fTimerTask.get(null);
+            timerAIHandler = (Timer) fTimer.get(null);     // grab references to thread
+            aiHandler      = (AIHandler) fTimerTask.get(null);
 
             Config.activeAI = new String[]{"possibleAI"}; // ensure there are AI to be run so thread doesn't close
 
@@ -12108,7 +12113,9 @@ public class TestSuite
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   (initial setup) load() should not throw any exception, but it did while loading test professions file");
+            baosErr.reset();
             e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
             errorFound = true;
          }
 
@@ -12198,8 +12205,8 @@ public class TestSuite
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new references to threads in case it closed during earlier testing
-            timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
-            aiHandler     = (AIHandler) fTimerTask.get(null);
+            timerAIHandler = (Timer) fTimer.get(null);     // grab references to thread
+            aiHandler      = (AIHandler) fTimerTask.get(null);
 
             Config.activeAI = new String[]{"possibleAI"}; // ensure there are AI to be run so thread doesn't close
 
@@ -12313,7 +12320,7 @@ public class TestSuite
          fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
-            "aiTradeFrequency       = 123456\n" +
+            "aiTradeFrequency       = 123456\n" + // beyond maximum value
             "enableAI               = true\n" +
             "aiRandomness           = 0.0\n" +
             "disableAutoSaving      = true\n" +
@@ -12335,8 +12342,8 @@ public class TestSuite
 
          // check trade frequency
          tradeFrequency = (long) fTradeFrequency.get(null);
-         if (tradeFrequency != 7407360000L) { // 60000 ms per min.
-            TEST_OUTPUT.println("   unexpected frequency (test #2): " + tradeFrequency + ", should be 7407360000");
+         if (tradeFrequency != 2147460000L) { // 60000 ms per min.
+            TEST_OUTPUT.println("   unexpected frequency (test #2): " + tradeFrequency + ", should be 2147460000");
             errorFound = true;
          }
 
@@ -12442,8 +12449,8 @@ public class TestSuite
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new references to thread in case it was closed for whatever reason
-            timerAITrades = (Timer) fTimer.get(null);     // grab references to thread
-            aiHandler     = (AIHandler) fTimerTask.get(null);
+            timerAIHandler = (Timer) fTimer.get(null);     // grab references to thread
+            aiHandler      = (AIHandler) fTimerTask.get(null);
 
             aiHandler.run(); // preliminary setup
             aiHandler.run(); // recalculation
@@ -12609,8 +12616,8 @@ public class TestSuite
          Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
          // check whether the feature is disabled
-         timerAITrades = (Timer) fTimer.get(null);
-         if (timerAITrades != null) {
+         timerAIHandler = (Timer) fTimer.get(null);
+         if (timerAIHandler != null) {
             TEST_OUTPUT.println("   feature did not turn off when it should have");
             errorFound = true;
          }
@@ -12634,8 +12641,8 @@ public class TestSuite
          Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
          // check whether the feature is enabled
-         timerAITrades = (Timer) fTimer.get(null);
-         if (timerAITrades == null) {
+         timerAIHandler = (Timer) fTimer.get(null);
+         if (timerAIHandler == null) {
             TEST_OUTPUT.println("   feature did not turn on when it should have");
             errorFound = true;
          }
@@ -18113,7 +18120,7 @@ public class TestSuite
          fChangedMagnitudes.set(testEvent3, MAGNITUDES_6);
 
          // generate messages for ware changes
-         RandomEvents.reloadWares();
+         RandomEvents.loadWares();
          RandomEvents.generateWareChangeDescriptions();
          timerTaskRandomEvents.run();
 
@@ -19377,7 +19384,7 @@ public class TestSuite
       // grab the method to be tested
       if (incrementallyRebalanceMarket == null) {
          try {
-            incrementallyRebalanceMarket = AutoMarketRebalancer.class.getDeclaredMethod("incrementallyRebalanceMarket");
+            incrementallyRebalanceMarket = MarketRebalancer.class.getDeclaredMethod("incrementallyRebalanceMarket");
             incrementallyRebalanceMarket.setAccessible(true);
          }
          catch (Exception e) {
@@ -19494,7 +19501,7 @@ public class TestSuite
       // ensure testing environment is properly set up
       resetTestEnvironment();
       Config.automaticStockRebalancingPercent = 0.10f;
-      AutoMarketRebalancer.calcAdjustmentQuantities();
+      MarketRebalancer.calcQuantityChanges();
       FileWriter fileWriter;
 
       try {
@@ -19540,7 +19547,7 @@ public class TestSuite
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - toggling feature and changing values by reloading configuration");
          // grab the variables used for rebalancing the marketplace
-         Field testTimer = AutoMarketRebalancer.class.getDeclaredField("timerMarketRebalancer");
+         Field testTimer = MarketRebalancer.class.getDeclaredField("timerMarketRebalancer");
          testTimer.setAccessible(true);
          Timer timerMarketRebalancer = (Timer) testTimer.get(null);
 
@@ -19574,8 +19581,8 @@ public class TestSuite
          }
 
          // check frequency and percent
-         if (Config.automaticStockRebalancingFrequency != 10) {
-            TEST_OUTPUT.println("   unexpected frequency: " + Config.automaticStockRebalancingFrequency + ", should be 10");
+         if (Config.automaticStockRebalancingFrequency != 600000) {
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.automaticStockRebalancingFrequency + ", should be 600000");
             errorFound = true;
          }
 
@@ -19607,8 +19614,8 @@ public class TestSuite
          }
 
          // check frequency and percent
-         if (Config.automaticStockRebalancingFrequency != 15) {
-            TEST_OUTPUT.println("   unexpected frequency: " + Config.automaticStockRebalancingFrequency + ", should be 15");
+         if (Config.automaticStockRebalancingFrequency != 900000) {
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.automaticStockRebalancingFrequency + ", should be 900000");
             errorFound = true;
          }
 
@@ -19651,6 +19658,21 @@ public class TestSuite
       float expectedMoney2 = money2;
       float expectedMoney3 = money3;
 
+      // grab the method to be tested
+      if (applyAccountInterest == null) {
+         try {
+            applyAccountInterest = AccountInterestApplier.class.getDeclaredMethod("applyAccountInterest");
+            applyAccountInterest.setAccessible(true);
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   failed to retrieve interest-applying method: " + e);
+            baosErr.reset();
+            e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
+            return true;
+         }
+      }
+
       if (printTestNumber)
          testIdentifier = " (#" + testNumber + ")";
       else
@@ -19667,7 +19689,18 @@ public class TestSuite
             expectedMoney1 *= Config.accountPeriodicInterestPercent;
             expectedMoney2 *= Config.accountPeriodicInterestPercent;
             expectedMoney3 *= Config.accountPeriodicInterestPercent;
-            Account.applyAccountInterest();
+
+            // test as normal
+            try {
+               applyAccountInterest.invoke(NULL_OBJECT, NULL_OBJECTS);
+            }
+            catch (Exception e) {
+               TEST_OUTPUT.println("   failed to invoke interest-applying method: " + e);
+               baosErr.reset();
+               e.printStackTrace();
+               TEST_OUTPUT.println(baosErr.toString());
+               return true;
+            }
          }
 
       // check account properties
@@ -19699,9 +19732,9 @@ public class TestSuite
 
       // ensure testing environment is properly set up
       resetTestEnvironment();
-      Config.accountPeriodicInterestEnabled  = true;
-      Config.accountPeriodicInterestPercent  = 1.015f;
-      Config.accountPeriodicInterestInterval = 7200000; // 2 hours
+      Config.accountPeriodicInterestEnabled   = true;
+      Config.accountPeriodicInterestPercent   = 1.015f;
+      Config.accountPeriodicInterestFrequency = 7200000; // 2 hours
       FileWriter fileWriter;
 
       try {
@@ -19746,7 +19779,7 @@ public class TestSuite
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "accountPeriodicInterestEnabled = true\n" +
-            "accountPeriodicInterestInterval = 15\n" +
+            "accountPeriodicInterestFrequency = 15\n" +
             "accountPeriodicInterestPercent = 5.0\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
@@ -19764,8 +19797,8 @@ public class TestSuite
          }
 
          // check frequency and percent
-         if (Config.accountPeriodicInterestInterval != 900000) { // 15 minutes * 60000 milliseconds per minute
-            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestInterval + ", should be 900000");
+         if (Config.accountPeriodicInterestFrequency != 900000) { // 15 minutes * 60000 milliseconds per minute
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestFrequency + ", should be 900000");
             errorFound = true;
          }
 
@@ -19779,7 +19812,7 @@ public class TestSuite
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
             "accountPeriodicInterestEnabled = false\n" +
-            "accountPeriodicInterestInterval = 4\n" +
+            "accountPeriodicInterestFrequency = 4\n" +
             "accountPeriodicInterestPercent = 85.0\n" +
             "disableAutoSaving = true\n" +
             "crossWorldMarketplace = true\n"
@@ -19797,8 +19830,8 @@ public class TestSuite
          }
 
          // check frequency and percent
-         if (Config.accountPeriodicInterestInterval != 240000) {
-            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestInterval + ", should be 240000");
+         if (Config.accountPeriodicInterestFrequency != 240000) {
+            TEST_OUTPUT.println("   unexpected frequency: " + Config.accountPeriodicInterestFrequency + ", should be 240000");
             errorFound = true;
          }
 

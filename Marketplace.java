@@ -182,9 +182,9 @@ public class Marketplace {
          releaseMutex();
          // signal threads to reload their wares when possible
          if (Config.enableAI)
-            AIHandler.reloadWares();
+            AIHandler.loadWares();
          if (Config.randomEvents)
-            RandomEvents.reloadWares();
+            RandomEvents.loadWares();
          return;
       }
 
@@ -370,9 +370,9 @@ public class Marketplace {
 
       // signal threads to reload their wares when possible
       if (Config.enableAI)
-         AIHandler.reloadWares();
+         AIHandler.loadWares();
       if (Config.randomEvents)
-         RandomEvents.reloadWares();
+         RandomEvents.loadWares();
 
       return;
    }
@@ -2568,7 +2568,7 @@ public class Marketplace {
       RandomEvents.startOrReconfig();
 
       // if necessary, start, reload, or stop automatic market rebalancing
-      AutoMarketRebalancer.startOrReconfig();
+      MarketRebalancer.startOrReconfig();
    }
 
    /**
@@ -2578,13 +2578,13 @@ public class Marketplace {
     */
    public static void endPeriodicEvents() {
       // if necessary, stop AI
-      AIHandler.endAI();
+      AIHandler.end();
 
       // if necessary, stop random events
-      RandomEvents.endRandomEvents();
+      RandomEvents.end();
 
       // if necessary, stop automatic marketplace rebalancing
-      AutoMarketRebalancer.end();
+      MarketRebalancer.end();
    }
 
    /**
