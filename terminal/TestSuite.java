@@ -11581,6 +11581,8 @@ public class TestSuite
 
 
          TEST_OUTPUT.println("AI - loading valid and invalid professions");
+         Config.activeAI = new String[]{"validAIProfession", "invalidAIProfession"}; // prevents feature from shutting down due to lack of work
+
          // create test AI professions file
          try {
             // open the config file for AI professions, create it if it doesn't exist
@@ -11645,6 +11647,8 @@ public class TestSuite
          }
 
          TEST_OUTPUT.println("AI - loading professions with invalid wares");
+         Config.activeAI = new String[]{"hasPreferences", "hasNoPreferences"}; // prevents feature from shutting down due to lack of work
+
          // create test AI professions file
          try {
             // open the config file for AI professions, create it if it doesn't exist
@@ -11677,6 +11681,7 @@ public class TestSuite
          try {
             AIHandler.load();
             aiHandler.run();
+            aiHandler.stop = true; // prevent any unintentional trading
          }
          catch (Exception e) {
             TEST_OUTPUT.println("   load() should not throw any exception, but it did while loading test professions file");
@@ -11716,7 +11721,7 @@ public class TestSuite
                      }
 
                      if (purchasablesIDs.length > 1) {
-                        if (!purchasablesIDs[0].equals("invalidWareAlias")) {
+                        if (!purchasablesIDs[1].equals("invalidWareAlias")) {
                            TEST_OUTPUT.println("   AI profession with preferences - unexpected purchasablesIDs[1]: " + purchasablesIDs[1] + ", should be invalidWareAlias");
                            errorFound = true;
                         }
@@ -11738,9 +11743,9 @@ public class TestSuite
                   errorFound = true;
                }
                else {
-                  if (purchasables.length != 1) {
-                     if (purchasablesIDs[0] != testWare1.getWareID()) {
-                        TEST_OUTPUT.println("   AI profession with preferences - unexpected purchasables[0]: " + purchasables[0] + ", should be test:material1");
+                  if (purchasables.length == 1) {
+                     if (!purchasablesIDs[0].equals(testWare1.getWareID())) {
+                        TEST_OUTPUT.println("   AI profession with preferences - unexpected purchasables[0]: " + purchasablesIDs[0] + ", should be test:material1");
                         errorFound = true;
                      }
                   }
@@ -12389,6 +12394,7 @@ public class TestSuite
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
             // grab new reference to thread since reloading frequency (the previous test case) should have restarted it
+            aiHandler.stop = true; // prevent any unintentional trading
             aiHandler = (AIHandler) fTimerTask.get(null);
 
             aiHandler.run(); // preliminary setup from previous test case
@@ -12591,6 +12597,7 @@ public class TestSuite
             "enableAI               = false\n" +
             "aiTradeFrequency       = 999999999\n" +
             "aiRandomness           = 0.0\n" +
+            "activeAI               = possibleAI1, possibleAI2\n" +
             "disableAutoSaving      = true\n" +
             "crossWorldMarketplace  = true\n"
          );
@@ -12615,6 +12622,7 @@ public class TestSuite
             "enableAI               = true\n" +
             "aiTradeFrequency       = 999999999\n" +
             "aiRandomness           = 0.0\n" +
+            "activeAI               = possibleAI1, possibleAI2\n" +
             "disableAutoSaving      = true\n" +
             "crossWorldMarketplace  = true\n"
          );

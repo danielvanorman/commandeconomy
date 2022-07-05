@@ -10,7 +10,9 @@ import java.io.FileReader;
 import com.google.gson.JsonSyntaxException;     // for more specific error messages when parsing files
 import java.util.Timer;                         // for triggering AI trades periodically and on a separate thread
 import java.util.TimerTask;                     // for disabling AI mid-execution
-import java.util.concurrent.ArrayBlockingQueue; // for communication between the main thread and the thread handling AI
+import java.util.Collections;                   // for communication between the main thread and the thread handling AI
+import java.util.Set;
+import java.util.EnumSet;
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing trade frequency and decisions
 import java.util.HashMap;                       // for storing AI professions and trade decisions
 import java.util.Map;                           // for iterating through hashmaps
@@ -53,7 +55,7 @@ public class AIHandler extends TimerTask {
       RELOAD_WARES
    }
    /** used to signal thread to reload or recalculate variables */
-   static ArrayBlockingQueue<QueueCommands> queue = null;
+   static Set<QueueCommands> queue = null;
 
    // INSTANCE ATTRIBUTES
    /** whether the task should continue running */
@@ -131,14 +133,11 @@ public class AIHandler extends TimerTask {
          // set up AI if they haven't been already
          if (queue == null) {
             // set up queue
-            queue = new ArrayBlockingQueue<QueueCommands>(15);
+            queue = Collections.synchronizedSet(EnumSet.noneOf(QueueCommands.class));
 
             // leave requests to set up AI
             queue.add(QueueCommands.LOAD);
             queue.add(QueueCommands.CALC_TRADE_QUANTITIES);
-
-            // exit to delay setting up until the marketplace is set up
-            return;
          }
 
          // if necessary, recalculate trade quantities
@@ -196,6 +195,11 @@ public class AIHandler extends TimerTask {
          timerTaskAITrades = null;
          timerAITrades.cancel();
          timerAITrades = null;
+
+         // deallocate memory
+         professions = null;
+         activeAI    = null;
+         queue       = null;
       }
    }
 
@@ -205,6 +209,11 @@ public class AIHandler extends TimerTask {
     * Complexity: O(n), where n is the number of AI professions to load
     */
    private static void loadPrivate() {
+      // if the marketplace is uninitialized,
+      // there are no wares for AI to trade
+      if (Marketplace.getAllWares().size() == 0)
+         return;
+
       // try to load the professions file
       File fileAIProfessions = new File(Config.filenameAIProfessions);  // contains AI objects
       // if the local file isn't found, use the global file
@@ -377,30 +386,30 @@ public class AIHandler extends TimerTask {
          return;
 
       // check the queue
-      while (queue.size() > 0) {
+      if (queue.size() > 0) {
          // check flag for stopping
          if (stop)
             return;
 
-         // grab request
-         switch (queue.poll()) { // take from head of queue, in order of requests made
-            // load AI
-            case LOAD:
-               loadPrivate();
-               return;
+         // load AI
+         if (queue.contains(QueueCommands.LOAD)) {
+            queue.remove(QueueCommands.LOAD);
+            loadPrivate();
+            return;
+         }
 
-            // recalc quantities
-            case CALC_TRADE_QUANTITIES:
-               if (oldTradeQuantityPercent != Config.aiTradeQuantityPercent) {
-                  oldTradeQuantityPercent = Config.aiTradeQuantityPercent; // record to monitor for changes
-                  AI.calcTradeQuantities();
-               }
-               break;
+         // recalc quantities
+         if (queue.contains(QueueCommands.CALC_TRADE_QUANTITIES) &&
+             oldTradeQuantityPercent != Config.aiTradeQuantityPercent) {
+            queue.remove(QueueCommands.CALC_TRADE_QUANTITIES);
+            oldTradeQuantityPercent = Config.aiTradeQuantityPercent; // record to monitor for changes
+            AI.calcTradeQuantities();
+         }
 
-            // reload wares
-            case RELOAD_WARES:
-               reloadWaresPrivate();
-               break;
+         // reload wares
+         if (queue.contains(QueueCommands.RELOAD_WARES)) {
+            queue.remove(QueueCommands.RELOAD_WARES);
+            reloadWaresPrivate();
          }
       }
 
