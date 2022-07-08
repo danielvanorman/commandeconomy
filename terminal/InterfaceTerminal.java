@@ -806,11 +806,12 @@ public class InterfaceTerminal implements InterfaceCommand
       // set up variables
       String  username          = null;
       InterfaceCommand.Coordinates coordinates = null;
+      String  accountID         = null;
       String  wareID            = null;
+      int     baseArgsLength    = args.length; // number of args, not counting special keywords
       int     quantity          = 0;
       float   priceUnit         = 0.0f;
-      String  accountID         = null;
-      int     baseArgsLength    = args.length; // number of args, not counting special keywords
+      float   pricePercent      = 1.0f;
       boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
       // check for and process special keywords and zero-length args
@@ -821,13 +822,24 @@ public class InterfaceTerminal implements InterfaceCommand
             return;
          }
 
-         // special keywords start with &
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX))
+         // special keywords start with certain symbols
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
             continue;
 
          // if a special keyword is detected,
          // adjust the arg length count for non-special args
          baseArgsLength--;
+
+         // check whether user is specifying the transaction price multiplier
+         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+            pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, true);
+
+            // check for error
+            if (Float.isNaN(pricePercent))
+               return; // an error message has already been printed
+
+            continue; // skip to the next argument
+         }
 
          // check whether user specifies manufacturing the ware
          if (arg.equals(CommandEconomy.MANUFACTURING))
@@ -1003,7 +1015,7 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       // call corresponding function
-      Marketplace.buy(playerID, coordinates, wareID, quantity, priceUnit, accountID, shouldManufacture);
+      Marketplace.buy(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent, shouldManufacture);
       return;
    }
 
@@ -1024,31 +1036,61 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
       }
 
+      // set up variables
+      String username       = null;
+      InterfaceCommand.Coordinates coordinates = null;
+      String accountID      = null;
+      String wareID         = null;
+      int    baseArgsLength = args.length; // number of args, not counting special keywords
+      int    quantity       = 0;
+      float  priceUnit      = 0.0f;
+      float  pricePercent   = 1.0f;
+
+      // check for and process special keywords and zero-length args
+      for (String arg : args) {
+         // if a zero-length arg is detected, stop
+         if (arg == null || arg.length() == 0) {
+            System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+            return;
+         }
+
+         // special keywords start with certain symbols
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+            continue;
+
+         // if a special keyword is detected,
+         // adjust the arg length count for non-special args
+         baseArgsLength--;
+
+         // check whether user is specifying the transaction price multiplier
+         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+            pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, true);
+
+            // check for error
+            if (Float.isNaN(pricePercent))
+               return; // an error message has already been printed
+
+            continue; // skip to the next argument
+         }
+      }
+
       // command must have the right number of args
-      if (args.length < 1 ||
-          args.length > 6) {
+      if (baseArgsLength < 1 ||
+          baseArgsLength > 6) {
          System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELL);
          return;
       }
 
       // check for zero-length args
       if (args[0] == null || args[0].length() == 0 ||
-          (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
-          (args.length >= 3 && (args[2] == null || args[2].length() == 0)) ||
-          (args.length >= 4 && (args[3] == null || args[3].length() == 0)) ||
-          (args.length >= 5 && (args[4] == null || args[4].length() == 0)) ||
-          (args.length == 6 && (args[5] == null || args[5].length() == 0))) {
+          (baseArgsLength >= 2 && (args[1] == null || args[1].length() == 0)) ||
+          (baseArgsLength >= 3 && (args[2] == null || args[2].length() == 0)) ||
+          (baseArgsLength >= 4 && (args[3] == null || args[3].length() == 0)) ||
+          (baseArgsLength >= 5 && (args[4] == null || args[4].length() == 0)) ||
+          (baseArgsLength == 6 && (args[5] == null || args[5].length() == 0))) {
          System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELL);
          return;
       }
-
-      // set up variables
-      String      username  = null;
-      InterfaceCommand.Coordinates coordinates = null;
-      String      wareID    = null;
-      int         quantity  = 0;
-      float       priceUnit = 0.0f;
-      String      accountID = null;
 
       // if the second argument is a number, no username or direction should be given
       // if the second argument is a direction, a username and a direction should be given
@@ -1064,7 +1106,7 @@ public class InterfaceTerminal implements InterfaceCommand
          // ensure passed args are valid types
          // if at least four arguments are given,
          // the fourth must be a quantity
-         if (args.length >= 4) {
+         if (baseArgsLength >= 4) {
             try {
                quantity = Integer.parseInt(args[3]);
             } catch (NumberFormatException e) {
@@ -1075,7 +1117,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if five arguments are given,
          // the fifth must either be a price or an account ID
-         if (args.length == 5) {
+         if (baseArgsLength == 5) {
             try {
                // assume the third argument is a price
                priceUnit = Float.parseFloat(args[4]);
@@ -1088,7 +1130,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if six arguments are given,
          // they must be a price and an account ID
-         else if (args.length == 6) {
+         else if (baseArgsLength == 6) {
             try {
                   priceUnit = Float.parseFloat(args[4]);
             } catch (NumberFormatException e) {
@@ -1148,7 +1190,7 @@ public class InterfaceTerminal implements InterfaceCommand
          // ensure passed args are valid types
          // if at least two arguments are given,
          // the second must be a quantity
-         if (args.length > 1) {
+         if (baseArgsLength > 1) {
             try {
                quantity = Integer.parseInt(args[1]);
             } catch (NumberFormatException e) {
@@ -1159,7 +1201,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if three arguments are given,
          // the third must either be a price or an account ID
-         if (args.length == 3) {
+         if (baseArgsLength == 3) {
             try {
                // assume the third argument is a price
                priceUnit = Float.parseFloat(args[2]);
@@ -1172,7 +1214,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if four arguments are given,
          // they must be a price and an account ID
-         else if (args.length == 4) {
+         else if (baseArgsLength == 4) {
             try {
                   priceUnit = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
@@ -1228,7 +1270,7 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       // call corresponding function
-      Marketplace.sell(playerID, coordinates, wareID, quantity, priceUnit, accountID);
+      Marketplace.sell(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent);
       return;
    }
 
@@ -1251,8 +1293,9 @@ public class InterfaceTerminal implements InterfaceCommand
       // set up variables
       String  username          = null;
       String  wareID            = null;
-      int     quantity          = 0; // holds ware quantities
       int     baseArgsLength    = args.length; // number of args, not counting special keywords
+      int     quantity          = 0;           // holds ware quantities
+      float   pricePercent      = 1.0f;
       boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
       // check for and process special keywords and zero-length args
@@ -1263,13 +1306,24 @@ public class InterfaceTerminal implements InterfaceCommand
             return;
          }
 
-         // special keywords start with &
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX))
+         // special keywords start with certain symbols
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
             continue;
 
          // if a special keyword is detected,
          // adjust the arg length count for non-special args
          baseArgsLength--;
+
+         // check whether user is specifying the transaction price multiplier
+         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+            pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, false);
+
+            // check for error
+            if (Float.isNaN(pricePercent))
+               return; // an error message has already been printed
+
+            continue; // skip to the next argument
+         }
 
          // check whether user specifies manufacturing the ware
          if (arg.equals(CommandEconomy.MANUFACTURING))
@@ -1303,7 +1357,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // grab remaining variables
          username = playername;
-         wareID = args[0];
+         wareID   = args[0];
       }
 
       // if three arguments are given,
@@ -1319,7 +1373,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // grab remaining variables
          username = args[0];
-         wareID = args[1];
+         wareID   = args[1];
       }
 
       // check for entity selectors
@@ -1349,7 +1403,7 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       // call corresponding function
-      Marketplace.check(playerID, wareID, quantity, shouldManufacture);
+      Marketplace.check(playerID, wareID, quantity, pricePercent, shouldManufacture);
       return;
    }
 
@@ -1365,23 +1419,6 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestSellAll(String[] args) {
       // request can be null or have zero arguments
 
-      // command must have the right number of args
-      if (args != null &&
-          (args.length < 0 ||
-           args.length > 3)) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
-         return;
-      }
-
-      // check for zero-length args
-      if (args != null &&
-          ((args.length >= 1 && (args[0] == null || args[0].length() == 0)) ||
-           (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
-           (args.length == 3 && (args[2] == null || args[2].length() == 0)))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
-         return;
-      }
-
       // set up variables
       String username  = null;
       InterfaceCommand.Coordinates coordinates = null;
@@ -1389,10 +1426,64 @@ public class InterfaceTerminal implements InterfaceCommand
       // prepare a reformatted container for the wares
       LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
       HashMap<String, Integer> inventoryToUse = null;
+      int   baseArgsLength; // number of args, not counting special keywords
+      float pricePercent = 1.0f;
+
+      // avoid null pointer exception
+      if (args == null)
+         baseArgsLength = 0;
+      else {
+         baseArgsLength = args.length;
+
+         // check for and process special keywords and zero-length args
+         for (String arg : args) {
+            // if a zero-length arg is detected, stop
+            if (arg == null || arg.length() == 0) {
+               System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+               return;
+            }
+
+            // special keywords start with certain symbols
+            if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+               continue;
+
+            // if a special keyword is detected,
+            // adjust the arg length count for non-special args
+            baseArgsLength--;
+
+            // check whether user is specifying the transaction price multiplier
+            if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+               pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, true);
+
+               // check for error
+               if (Float.isNaN(pricePercent))
+                  return; // an error message has already been printed
+
+               continue; // skip to the next argument
+            }
+         }
+      }
+
+      // command must have the right number of args
+      if (args != null &&
+          (baseArgsLength < 0 ||
+           baseArgsLength > 3)) {
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
+         return;
+      }
+
+      // check for zero-length args
+      if (args != null &&
+          ((baseArgsLength >= 1 && (args[0] == null || args[0].length() == 0)) ||
+           (baseArgsLength >= 2 && (args[1] == null || args[1].length() == 0)) ||
+           (baseArgsLength == 3 && (args[2] == null || args[2].length() == 0)))) {
+         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
+         return;
+      }
 
       // if there are at least two arguments,
       // a username and a direction must be given
-      if (args != null && args.length >= 2) {
+      if (args != null && baseArgsLength >= 2) {
          username = args[0];
 
          // translate coordinates
@@ -1436,7 +1527,7 @@ public class InterfaceTerminal implements InterfaceCommand
          }
 
          // if an account ID was given, use it
-         if (args.length == 3)
+         if (baseArgsLength == 3)
             accountID = args[2];
          // If an account ID wasn't given, leave the ID as null.
       } else {
@@ -1444,7 +1535,7 @@ public class InterfaceTerminal implements InterfaceCommand
          coordinates = null;
 
          // if an account ID was given, use it
-         if (args != null && args.length == 1)
+         if (args != null && baseArgsLength == 1)
             accountID = args[0];
          // If an account ID wasn't given, leave the ID as null.
       }
@@ -1483,7 +1574,7 @@ public class InterfaceTerminal implements InterfaceCommand
          formattedInventory.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
       }
 
-      Marketplace.sellAll(playerID, coordinates, formattedInventory, accountID);
+      Marketplace.sellAll(playerID, coordinates, formattedInventory, accountID, pricePercent);
       return;
    }
 

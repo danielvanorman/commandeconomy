@@ -259,6 +259,7 @@ public class CommandEconomy {
    public final static String YES                       = "yes";
    public final static String ARG_SPECIAL_PREFIX        = "&";
    public final static String MANUFACTURING             = ARG_SPECIAL_PREFIX + "craft";
+   public final static String PRICE_PERCENT             = "%";
 
    // command usages
    public final static String CMD_USAGE_BUY                 = "/" + CMD_BUY + " <ware_id> <quantity> [max_unit_price] [account_id] [" + MANUFACTURING + "]";
@@ -335,7 +336,7 @@ public class CommandEconomy {
    public final static String ERROR_ACCOUNT_ID_MISSING = "error - must provide account ID: ";
    public final static String ERROR_ACCOUNT_EXISTS     = "error - account already exists: ";
    public final static String ERROR_ACCOUNT_IS_PLAYER  = "error - account ID matches existing player name: ";
-   public final static String ERROR_ACCOUNT_QUANTITY  = "error - invalid quantity, transfer not completed";
+   public final static String ERROR_ACCOUNT_QUANTITY   = "error - invalid quantity, transfer not completed";
    public final static String ERROR_ACCOUNT_ID_INVALID = "error - invalid quantity, transfer not completed";
 
    public final static String MSG_ACCOUNT_NO_MONEY               = "You do not have enough money";
@@ -350,24 +351,26 @@ public class CommandEconomy {
    public final static String MSG_ACCOUNT_ACCESS_REVOKED         = "You may no longer access ";
 
    // command messages
-   public final static String MSG_RELOAD_CONFIG    = "Reloaded config.";
-   public final static String MSG_RELOAD_WARES     = "Reloaded wares.";
-   public final static String MSG_RELOAD_ACCOUNTS  = "Reloaded accounts.";
-   public final static String MSG_RELOAD_ALL       = "Reloaded config, wares, and accounts.";
-   public final static String MSG_PERSONAL_ACCOUNT = "Your account";
-   public final static String MSG_SAVED_ECONOMY    = "Saved the economy";
-   public final static String MSG_VERSION          = "Running Command Economy version #";
-   public final static String MSG_PRINT_MARKET     = "Current market wares printed to file";
+   public final static String MSG_RELOAD_CONFIG          = "Reloaded config.";
+   public final static String MSG_RELOAD_WARES           = "Reloaded wares.";
+   public final static String MSG_RELOAD_ACCOUNTS        = "Reloaded accounts.";
+   public final static String MSG_RELOAD_ALL             = "Reloaded config, wares, and accounts.";
+   public final static String MSG_PERSONAL_ACCOUNT       = "Your account";
+   public final static String MSG_SAVED_ECONOMY          = "Saved the economy";
+   public final static String MSG_VERSION                = "Running Command Economy version #";
+   public final static String MSG_PRINT_MARKET           = "Current market wares printed to file";
+   public final static String MSG_PRICE_ADJUST_NO_PERM   = "You do not have permission to use % in this command";
+   public final static String ERROR_PRICE_ADJUST_INVALID = "error - invalid percentage: ";
 
    // trade messages
-   public final static String MSG_BUY_UNTRADEABLE         = " is not for sale in that form";
-   public final static String MSG_BUY_OUT_OF_STOCK        = "Market is out of ";
-   public final static String MSG_BUY_NO_MONEY            = "Not enough money to buy one item";
-   public final static String MSG_INVENTORY_NO_SPACE      = "No inventory space available";
-   public final static String MSG_INVENTORY_MISSING       = "No inventory was found";
-   public final static String MSG_SELLALL                 = "failed to sell ware: ";
-   public final static String MSG_TRANSACT_FEE            = "   Transaction fee applied: ";
-   public final static String MSG_TRANSACT_FEE_SALES_LOSS = "Transaction fee is too high to make a profit";
+   public final static String MSG_BUY_UNTRADEABLE           = " is not for sale in that form";
+   public final static String MSG_BUY_OUT_OF_STOCK          = "Market is out of ";
+   public final static String MSG_BUY_NO_MONEY              = "Not enough money to buy one item";
+   public final static String MSG_INVENTORY_NO_SPACE        = "No inventory space available";
+   public final static String MSG_INVENTORY_MISSING         = "No inventory was found";
+   public final static String MSG_SELLALL                   = "failed to sell ware: ";
+   public final static String MSG_TRANSACT_FEE              = "   Transaction fee applied: ";
+   public final static String MSG_TRANSACT_FEE_SALES_LOSS   = "Transaction fee is too high to make a profit";
    public final static String MSG_SELL_NO_GARBAGE_DISPOSING = "Cannot sell at or below the price floor";
 
    // file-handling

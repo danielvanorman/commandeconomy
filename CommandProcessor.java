@@ -824,4 +824,40 @@ public class CommandProcessor
       // generate struct
       return new InvestmentOffer(ware, wareID, accountID, priceInvestment);
    }
+
+   /**
+    * Interprets a price multiplier argument from a user.
+    * If an error occurs, prints a message and returns Float.NaN.
+    * <p>
+    * Complexity: O(1)
+    * @param playerID  user responsible for the trading
+    * @param arg       passed parameter assumed to contain a transaction price multiplier
+    * @param isTrading <code>true</code> if buying or selling
+    *                  <code>false</code> if checking prices or otherwise not affecting wares
+    * @return transaction price multiplier to be used or Float.NaN to signal error
+    */
+   public static float parsePricePercentArgument(UUID playerID, String arg, boolean isTrading) {
+      // remove keyword, if present
+      if (arg.startsWith(CommandEconomy.PRICE_PERCENT))
+         arg = arg.substring(CommandEconomy.PRICE_PERCENT.length()); // remove identifying character(s)
+
+      // check user permissions
+      if ((isTrading && Config.commandInterface.isAnOp(playerID)) || // buying/selling requires permission to change prices
+          !isTrading) {                                              // checking doesn't require any permissions
+         // attempt to parse user input
+         try {
+            return Float.parseFloat(arg);
+         }
+         catch (Exception e) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PRICE_ADJUST_INVALID + arg);
+            return Float.NaN;
+         }
+      }
+
+      // invalid permissions
+      else {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_PRICE_ADJUST_NO_PERM);
+         return Float.NaN;
+      }
+   }
 };

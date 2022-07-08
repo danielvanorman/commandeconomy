@@ -1127,12 +1127,11 @@ public class Marketplace {
     * may result in reaching a given unit price.
     * <p>
     * Complexity: O(1)
-    * @param ware       tradeable ware to be analyzed
-    * @param priceUnit  unit price to be sought
-    * @param isPurchase <code>true</code> if the price should reflect buying the ware
-    *                    <code>false</code> if the price should reflect selling the ware
+    * @param ware         tradeable ware to be analyzed
+    * @param priceUnit    unit price to be sought
+    * @param isPurchase   <code>true</code> if the price should reflect buying the ware
+    *                     <code>false</code> if the price should reflect selling the ware
     * @return units until given price is reached
-    * @see Ware
     */
    public static int getQuantityUntilPrice(Ware ware, float priceUnit, boolean isPurchase) {
       // get ware information
@@ -1164,14 +1163,9 @@ public class Marketplace {
       if (priceUnit > priceBase) {
          // quad1, if price is above ceiling
          if (priceUnit >= priceBase * Config.priceCeiling) {
-            if (isPurchase)
-               // if the highest possible price is acceptable,
-               // everything is acceptable
-               return quanOnMarket;
-            else
-               // if the highest possible price is unacceptable,
-               // nothing is acceptable
-               return quanOnMarket;
+            // if the highest possible price is acceptable,
+            // everything is acceptable
+            return quanOnMarket;
          }
          // quad2, if price is below ceiling and above equilibrium
          else {
@@ -1354,19 +1348,24 @@ public class Marketplace {
     * Complexity: O(log n)
     * @param playerID     user responsible for the trading
     * @param coordinates  where wares may be found
+    * @param accountID    key used to retrieve account information
     * @param wareID       key used to retrieve ware information
     * @param quantity     how much of the ware should be purchased
     * @param maxUnitPrice stop buying if unit price is above this amount
-    * @param accountID    key used to retrieve account information
+    * @param pricePercent percentage multiplier for ware's price
     * @param shouldManufacture if unable to fill an order, whether to purchase missing components and manufacture the ware
     */
    public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                          String wareID, int quantity, float maxUnitPrice, String accountID,
-                          boolean shouldManufacture) {
+                          String accountID, String wareID, int quantity, float maxUnitPrice,
+                          float pricePercent, boolean shouldManufacture) {
       if (Float.isNaN(maxUnitPrice) || // if something's wrong with the unit price, stop
          quantity <= 0              || // if nothing should be bought, stop
          playerID == null)             // if no player was given, there is no party responsible for the purchase
          return;
+
+      // if price multiplier is invalid, set it have no effect
+      if (Float.isNaN(pricePercent))
+         pricePercent = 1.0f;
 
       // ---Analyze Ware:---
       // grab the ware to be used
@@ -1440,7 +1439,7 @@ public class Marketplace {
       // only buy until the acceptable price is reached
       if (maxUnitPrice != 0.0f) {
          // find out how much quantity is for sale until the given price
-         quantityToBuy = getQuantityUntilPrice(ware, maxUnitPrice, true);
+         quantityToBuy = getQuantityUntilPrice(ware, maxUnitPrice / pricePercent, true);
 
          // if nothing can be bought, buy nothing
          if (quantityToBuy == 0 &&
@@ -1463,7 +1462,7 @@ public class Marketplace {
          quantityToBuy = inventorySpaceAvailable;
 
       // get ware's price and player's funds to figure out how much is affordable
-      float price          = getPrice(playerID, wareID, quantityToBuy, true);
+      float price          = getPrice(playerID, wareID, quantityToBuy, true) * pricePercent;
       float moneyAvailable = account.getMoney();
 
       // if there are transaction fees,
@@ -1511,8 +1510,8 @@ public class Marketplace {
 
       // if the ware isn't free, figure out how much is affordable
       if (price > moneyAvailable && price > 0.0f) {
-         quantityToBuy = getPurchasableQuantity(ware, moneyAvailable);
-         price = getPrice(playerID, wareID, quantityToBuy, true);
+         quantityToBuy = getPurchasableQuantity(ware, moneyAvailable / pricePercent);
+         price = getPrice(playerID, wareID, quantityToBuy, true) * pricePercent;
 
          // if not enough money to buy one ware, stop
          if (quantityToBuy <= 0) {
@@ -1556,7 +1555,7 @@ public class Marketplace {
          }
 
          // add manufacturing costs and quantity to order
-         price         += manufacturedWares[0];
+         price         += manufacturedWares[0] * pricePercent;
          quantityToBuy += manufacturedWares[1];
 
          // truncate price for neatness and avoiding problematic rounding
@@ -1641,39 +1640,28 @@ public class Marketplace {
    }
 
    /**
-    * Purchases a ware from the market for a player.
-    * <p>
-    * Complexity: O(log n)
-    * @param playerID     user responsible for the trading
-    * @param coordinates  where wares may be found
-    * @param wareID       key used to retrieve ware information
-    * @param quantity     how much of the ware should be purchased
-    * @param maxUnitPrice stop buying if unit price is above this amount
-    * @param accountID    key used to retrieve account information
-    */
-   public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      String wareID, int quantity, float maxUnitPrice, String accountID) {
-      buy(playerID, coordinates, wareID, quantity, maxUnitPrice, accountID, false);
-   }
-
-   /**
     * Sells a ware to the market for a player.
     *<p>
     * Complexity: O(n)
     * @param playerID    user responsible for the trading
     * @param coordinates where wares may be found
+    * @param accountID   key used to retrieve account information
     * @param wareID      key used to retrieve ware information
     * @param quantity    how much of the ware should be sold; 0 means sell everything
     * @param minUnitPrice stop selling if unit price is below this amount
-    * @param accountID   key used to retrieve account information
+    * @param pricePercent percentage multiplier for ware's price
     */
    public static void sell(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      String wareID, int quantity,
-      float minUnitPrice, String accountID) {
+      String accountID, String wareID, int quantity,
+      float minUnitPrice, float pricePercent) {
       if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
          quantity <  0              || // if nothing should be sold, stop; 0 quantity means sell everything
          playerID == null)             // if no player was given, there is no party responsible for the purchase
          return;
+
+      // if price multiplier is invalid, set it have no effect
+      if (Float.isNaN(pricePercent))
+         pricePercent = 1.0f;
 
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
@@ -1739,7 +1727,7 @@ public class Marketplace {
       // only sell until the acceptable price is reached
       if (minUnitPrice != 0.0f) {
          // find out how much quantity is for sale until the given price
-         quantityToSell = getQuantityUntilPrice(ware, minUnitPrice, false);
+         quantityToSell = getQuantityUntilPrice(ware, minUnitPrice / pricePercent, false);
 
          // if nothing can be sold, sell nothing
          if (quantityToSell == 0)
@@ -1757,7 +1745,7 @@ public class Marketplace {
           Config.transactionFeeSelling != 0.0f &&
           minUnitPrice >= 0.0f) {
          // calculate potential income and fee
-         float price = getPrice(null, wareID, quantityToSell, false);
+         float price = getPrice(null, wareID, quantityToSell, false) * pricePercent;
          float fee   = Config.transactionFeeSelling;
          if (Config.transactionFeeSellingIsMult)
             fee *= price;
@@ -1772,7 +1760,7 @@ public class Marketplace {
 
       // sell the ware
       waresFound.removeFirst(); // remove the total quantity entry
-      float[] salesResults = sellStock(playerID, coordinates, waresFound, quantityToSell, minUnitPrice);
+      float[] salesResults = sellStock(playerID, coordinates, waresFound, quantityToSell, minUnitPrice, pricePercent);
       int quantitySold = (int) salesResults[1];
 
       // give money to the player
@@ -1830,17 +1818,22 @@ public class Marketplace {
     * Sells all wares within a given inventory.
     *<p>
     * Complexity: O(n)
-    * @param playerID    user responsible for the trading
-    * @param coordinates where wares may be found
-    * @param inventory   wares to be sold and their information
-    * @param accountID   key used to retrieve account information
+    * @param playerID     user responsible for the trading
+    * @param coordinates  where wares may be found
+    * @param inventory    wares to be sold and their information
+    * @param accountID    key used to retrieve account information
+    * @param pricePercent percentage multiplier for ware's price
     */
    public static void sellAll(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      LinkedList<Stock> inventory, String accountID) {
+      LinkedList<Stock> inventory, String accountID, float pricePercent) {
       if ((coordinates == null &&                            // if the given inventory is empty and no coordinates are given,
           (inventory   == null || inventory.size() == 0)) || // there is nothing to sell
           playerID     == null)                              // if no player was given, there is no party responsible for the purchase
          return;
+
+      // if price multiplier is invalid, set it have no effect
+      if (Float.isNaN(pricePercent))
+         pricePercent = 1.0f;
 
       // if no account ID was given, use the player's personal account
       if (accountID == null || accountID.isEmpty())
@@ -1872,7 +1865,7 @@ public class Marketplace {
       }
 
       // sell everything sellable
-      float[] salesResults = sellStock(playerID, coordinates, inventory, 0, 0.0001f);
+      float[] salesResults = sellStock(playerID, coordinates, inventory, 0, 0.0001f, pricePercent);
 
       // deliver funds to account
       account.addMoney(salesResults[0]);
@@ -1925,20 +1918,26 @@ public class Marketplace {
     * @param stocks       wares to be sold and their information
     * @param quantity     how much wares should be sold; 0 means sell everything
     * @param minUnitPrice stop selling if unit price is below this amount
+    * @param pricePercent percentage multiplier for ware's price
     * @return total money from selling wares and the quantity sold
     */
    protected static float[] sellStock(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                                      LinkedList<Stock> stocks, int quantity, float minUnitPrice) {
+                                      LinkedList<Stock> stocks, int quantity,
+                                      float minUnitPrice, float pricePercent) {
       if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
           quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
          return null;
+
+      // if price multiplier is invalid, set it have no effect
+      if (Float.isNaN(pricePercent))
+         pricePercent = 1.0f;
 
       // if a flat fee should be used,
       // call on another function to handle it
       if (Config.chargeTransactionFees &&
           !Config.transactionFeeSellingIsMult &&
           Config.transactionFeeSelling > 0.0f) {
-         return sellStockFlatFee(playerID, coordinates, stocks, quantity, minUnitPrice);
+         return sellStockFlatFee(playerID, coordinates, stocks, quantity, minUnitPrice, pricePercent);
       }
 
       // set up variables
@@ -1964,8 +1963,7 @@ public class Marketplace {
          translatedID = ware.getWareID();
 
          // if the price isn't high enough, stop
-         price = getPrice(playerID, translatedID, 1, false) * stock.percentWorth;
-         price = CommandEconomy.truncatePrice(price);
+         price = CommandEconomy.truncatePrice(getPrice(playerID, translatedID, 1, false) * stock.percentWorth * pricePercent);
          if (price < minUnitPrice)
             continue;
 
@@ -2048,7 +2046,7 @@ public class Marketplace {
       releaseMutex();
 
       // truncate to reduce error
-      totalEarnings = CommandEconomy.truncatePrice(totalEarnings);
+      totalEarnings = CommandEconomy.truncatePrice(totalEarnings * pricePercent);
 
       // return total money gained and total quantity sold
       return new float[]{totalEarnings, (float) quantitySold};
@@ -2069,10 +2067,12 @@ public class Marketplace {
     * @param stocks       wares to be sold and their information
     * @param quantity     how much wares should be sold; 0 means sell everything
     * @param minUnitPrice stop selling if unit price is below this amount
+    * @param pricePercent percentage multiplier for ware's price
     * @return total money from selling wares and the quantity sold
     */
    protected static float[] sellStockFlatFee(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                                             LinkedList<Stock> stocks, int quantity, float minUnitPrice) {
+                                             LinkedList<Stock> stocks, int quantity,
+                                             float minUnitPrice, float pricePercent) {
       if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
           quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
          return null;
@@ -2104,7 +2104,7 @@ public class Marketplace {
          translatedID = ware.getWareID();
 
          // if the price isn't high enough, stop
-         price = getPrice(playerID, translatedID, 1, false) * stock.percentWorth;
+         price = getPrice(playerID, translatedID, 1, false) * stock.percentWorth * pricePercent;
          price = CommandEconomy.truncatePrice(price);
          if (price < minUnitPrice)
             continue;
@@ -2113,7 +2113,7 @@ public class Marketplace {
          try {
             if (quantity == 0) {
                // get the money
-               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth;
+               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth * pricePercent;
 
                // check whether the transaction became profitable
                isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
@@ -2144,7 +2144,7 @@ public class Marketplace {
             // otherwise, remove it
             if (quantityLeftover > 0) {
                // get the money
-               totalEarnings += getPrice(playerID, translatedID, quantityToBeSold, false) * stock.percentWorth;
+               totalEarnings += getPrice(playerID, translatedID, quantityToBeSold, false) * stock.percentWorth * pricePercent;
 
                // check whether the transaction became profitable
                isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
@@ -2170,7 +2170,7 @@ public class Marketplace {
                break;
             } else {
                // get the money
-               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth;
+               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth * pricePercent;
 
                // update remainder needing to be sold
                quantityToBeSold = (-1 * quantityLeftover);
@@ -2243,14 +2243,15 @@ public class Marketplace {
     * Displays ware price and quantity for a player.
     * <p>
     * Complexity: O(n^2)
-    * @param playerID user responsible for the trading
-    * @param wareID   key used to retrieve ware information
-    * @param quantity how much would be traded
+    * @param playerID     user responsible for the trading
+    * @param wareID       key used to retrieve ware information
+    * @param quantity     how much would be traded
+    * @param pricePercent percentage multiplier for ware's price
     * @param shouldManufacture if specified quantity is above quantity for sale,
     *                          then true means to factor in purchasing
     *                          missing components and manufacturing the ware
     */
-   public static void check(UUID playerID, String wareID, int quantity, boolean shouldManufacture) {
+   public static void check(UUID playerID, String wareID, int quantity, float pricePercent, boolean shouldManufacture) {
       // if no player was given, there is no one to send messages to
       if (playerID == null)
          return;
@@ -2279,6 +2280,10 @@ public class Marketplace {
          return;
       }
 
+      // if price multiplier is invalid, set it have no effect
+      if (Float.isNaN(pricePercent))
+         pricePercent = 1.0f;
+
       // get ware's alias for printing
       final String ALIAS = ware.getAlias();
 
@@ -2289,7 +2294,7 @@ public class Marketplace {
       // if ware is untradeable, stop
       if (ware instanceof WareUntradeable) {
          // find unit price for buying
-         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture);
+         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture) * pricePercent;
 
          // if necessary, factor in transaction fee
          if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
@@ -2314,9 +2319,9 @@ public class Marketplace {
       // prepare to print prices
       final boolean PRINT_BOTH_PRICES = Config.priceBuyUpchargeMult != 1.0f ||
                                         (Config.chargeTransactionFees && (Config.transactionFeeBuying != 0.00f || Config.transactionFeeSelling != 0.00f));
-      priceSell = getPrice(playerID, wareID, 1, false, false);
+      priceSell = getPrice(playerID, wareID, 1, false, false) * pricePercent;
       if (PRINT_BOTH_PRICES || shouldManufacture) {
-         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture);
+         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture) * pricePercent;
 
          // if necessary, factor in transaction fee
          if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
@@ -2389,13 +2394,11 @@ public class Marketplace {
       // if a specific quantity is specified,
       // print prices for buying and selling
       else {
-         priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture);
-         priceSell = getPrice(playerID, wareID, quantity, false, false);
+         priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture) * pricePercent;
+         priceSell = getPrice(playerID, wareID, quantity, false, false) * pricePercent;
 
          // if necessary, include transaction fees
          if (Config.chargeTransactionFees) {
-            // find buying fee
-            priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture);
             if (Config.transactionFeeBuying != 0.00f) {
                if (Config.transactionFeeBuyingIsMult)
                   priceBuy += priceBuy * Config.transactionFeeBuying;
@@ -2434,13 +2437,15 @@ public class Marketplace {
     * @param wareID       key used to retrieve ware information
     * @param quantity     how much would be traded
     * @param percentWorth multiplier for price
+    * @param pricePercent percentage multiplier for ware's price
     * @param shouldManufacture if specified quantity is above quantity for sale,
     *                          then true means to factor in purchasing
     *                          missing components and manufacturing the ware
     */
    public static void check(UUID playerID, String wareID, int quantity,
-                            float percentWorth, boolean shouldManufacture) {
-      check(playerID, wareID, quantity, shouldManufacture);
+                            float percentWorth, float pricePercent,
+                            boolean shouldManufacture) {
+      check(playerID, wareID, quantity, pricePercent, shouldManufacture);
 
       // check whether anything could be printed
       if (playerID == null || wareID == null || wareID.isEmpty())
@@ -2451,13 +2456,17 @@ public class Marketplace {
       if (ware == null || Float.isNaN(ware.getBasePrice()) || ware instanceof WareUntradeable)
          return;
 
+      // if price multiplier is invalid, set it have no effect
+      if (Float.isNaN(pricePercent))
+         pricePercent = 1.0f;
+
       // use percent worth to give price if player sells
       if (percentWorth != 1.0f) {
          float priceSell;
 
          if (quantity < 2) {
             // find selling price
-            priceSell = getPrice(playerID, ware.getWareID(), 1, false) * percentWorth;
+            priceSell = getPrice(playerID, ware.getWareID(), 1, false) * percentWorth * pricePercent;
 
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
@@ -2475,7 +2484,7 @@ public class Marketplace {
          }
          else {
             // find selling price
-            priceSell = getPrice(playerID, ware.getWareID(), quantity, false) * percentWorth;
+            priceSell = getPrice(playerID, ware.getWareID(), quantity, false) * percentWorth * pricePercent;
 
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
