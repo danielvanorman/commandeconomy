@@ -16,7 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandNoSell extends CommandBase {
-   private final List<String> aliases = Arrays.asList(CommandEconomy.CMD_NOSELL_LOWER);
+   private final List<String> aliases = Arrays.asList(PlatformStrings.CMD_NOSELL_LOWER);
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -30,7 +30,7 @@ public class CommandNoSell extends CommandBase {
       if (sender instanceof EntityPlayer) {
          player = (EntityPlayer) sender;
       } else {
-         errorMessage = new TextComponentString(CommandEconomy.ERROR_PLAYER_MISSING);
+         errorMessage = new TextComponentString(PlatformStrings.ERROR_PLAYER_MISSING);
          errorMessage.getStyle().setColor(TextFormatting.RED);
          sender.sendMessage(errorMessage);
          return;
@@ -88,9 +88,9 @@ public class CommandNoSell extends CommandBase {
 
          // tag the current item
          if (!shouldSell)
-            errorMessage = new TextComponentString(CommandEconomy.MSG_NOSELL_ON_ALL);
+            errorMessage = new TextComponentString(PlatformStrings.MSG_NOSELL_ON_ALL);
          else
-            errorMessage = new TextComponentString(CommandEconomy.MSG_NOSELL_OFF_ALL);
+            errorMessage = new TextComponentString(PlatformStrings.MSG_NOSELL_OFF_ALL);
          sender.sendMessage(errorMessage);
       }
       // only change the status of one item
@@ -101,7 +101,7 @@ public class CommandNoSell extends CommandBase {
          // check whether an item was found
          if (heldItem.isEmpty() ||
                 heldItem == ItemStack.EMPTY) {
-            errorMessage = new TextComponentString(CommandEconomy.ERROR_ITEM_MISSING);
+            errorMessage = new TextComponentString(PlatformStrings.ERROR_ITEM_MISSING);
             sender.sendMessage(errorMessage);
             return;
          }
@@ -117,9 +117,9 @@ public class CommandNoSell extends CommandBase {
 
             // report success
             if (heldItem.hasDisplayName())
-               errorMessage = new TextComponentString(heldItem.getDisplayName() + CommandEconomy.MSG_NOSELL_ON_HELD);
+               errorMessage = new TextComponentString(heldItem.getDisplayName() + PlatformStrings.MSG_NOSELL_ON_HELD);
             else
-               errorMessage = new TextComponentString(CommandEconomy.MSG_NOSELL_ON_HELD_NAMED);
+               errorMessage = new PlatformStrings(CommandEconomy.MSG_NOSELL_ON_HELD_NAMED);
 
             sender.sendMessage(errorMessage);
          }
@@ -139,9 +139,9 @@ public class CommandNoSell extends CommandBase {
 
             // report success
             if (heldItem.hasDisplayName())
-               errorMessage = new TextComponentString(heldItem.getDisplayName() + CommandEconomy.MSG_NOSELL_OFF_HELD_NAMED);
+               errorMessage = new TextComponentString(heldItem.getDisplayName() + PlatformStrings.MSG_NOSELL_OFF_HELD_NAMED);
             else
-               errorMessage = new TextComponentString(CommandEconomy.MSG_NOSELL_OFF_HELD);
+               errorMessage = new TextComponentString(PlatformStrings.MSG_NOSELL_OFF_HELD);
 
             sender.sendMessage(errorMessage);
          }
@@ -152,7 +152,7 @@ public class CommandNoSell extends CommandBase {
 
   @Override
   public String getName() {
-      return CommandEconomy.CMD_NOSELL;
+      return PlatformStrings.CMD_NOSELL;
   }
 
    @Override
@@ -162,7 +162,7 @@ public class CommandNoSell extends CommandBase {
 
   @Override
   public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_NOSELL;
+      return PlatformStrings.CMD_USAGE_NOSELL;
   }
 
    @Override

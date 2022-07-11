@@ -141,7 +141,7 @@ public class CommandCheck extends CommandBase {
          if (itemStack == null ||
              itemStack.isEmpty() ||
              itemStack == ItemStack.EMPTY) {
-            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_HANDS_MINECRAFT);
+            InterfaceMinecraft.forwardErrorToUser(sender, PlatformStrings.ERROR_HANDS);
             return;
          }
 

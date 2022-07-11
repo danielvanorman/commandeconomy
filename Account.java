@@ -146,7 +146,7 @@ public class Account {
 
             // generate record to ease saving later
             // format: #,playername,count
-            accountCreationRecords.append("#," + accountOwner.toString() + "," + accountsCreatedPerUser.get(accountOwner) + "\n");
+            accountCreationRecords.append("#," + accountOwner.toString() + ',' + accountsCreatedPerUser.get(accountOwner) + '\n');
          }
       }
 
@@ -241,7 +241,7 @@ public class Account {
 
             // generate record to ease saving later
             // format: #,playername,count
-            accountCreationRecords.append("#," + accountOwner.toString() + "," + accountsCreatedPerUser.get(accountOwner) + "\n");
+            accountCreationRecords.append("#," + accountOwner.toString() + ',' + accountsCreatedPerUser.get(accountOwner) + '\n');
          }
       }
 
@@ -295,7 +295,7 @@ public class Account {
             accountRecipient.addMoney(account.getMoney());
 
             // report the transfer
-            Config.commandInterface.printToUser(realOwner, "You received $" + account.getMoney() + " from " + accountID);
+            Config.commandInterface.printToUser(realOwner, "You received $" + Float.toString(account.getMoney()) + " from " + accountID);
          }
       }
 
@@ -470,10 +470,10 @@ public class Account {
       // if a ID was given, use it to insert
       // the new account into the accounts table
       if (accountID != null && !accountID.isEmpty()) {
-         accounts.put(accountID, this);
+         accounts.put(accountID.intern(), this);
 
          // add account to the save list
-         accountEntries.put(accountID, new StringBuilder());
+         accountEntries.put(accountID.intern(), new StringBuilder());
 
          // mark the new account as needing to be saved
          accountsChangedSinceLastSave.add(this);
@@ -788,7 +788,7 @@ public class Account {
       accountRecipient.addMoney(quantity);
 
       // report the transfer
-      Config.commandInterface.printToUser(playerID, "Successfully transferred $" + quantity + " to " + recipientID);
+      Config.commandInterface.printToUser(playerID, "Successfully transferred " + CommandEconomy.PRICE_FORMAT.format(quantity) + " to " + recipientID);
 
       // if the owner of the recipient account can be found,
       // tell them about the transfer
@@ -797,15 +797,15 @@ public class Account {
          if (senderID == null || senderID.isEmpty()) {
             // use the name of the account transferred into if it isn't a personal account
             if (recipientID.equals(accountRecipient.accountUsers.getFirst()))
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received $" + quantity + " from an anonymous party");
+               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " from an anonymous party");
             else
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received $" + quantity + " in " + recipientID + " from an anonymous party");
+               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " in " + recipientID + " from an anonymous party");
          } else {
             // use the name of the account transferred into if it isn't a personal account
             if (recipientID.equals(accountRecipient.accountUsers.getFirst()))
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received $" + quantity + " from " + senderID);
+               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " from " + senderID);
             else
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received $" + quantity + " in " + recipientID + " from " + senderID);
+               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " in " + recipientID + " from " + senderID);
          }
       }
 
@@ -842,18 +842,18 @@ public class Account {
 
       // grab account funds
       StringBuilder result = new StringBuilder();
-      result.append(money).append(",");
+      result.append(money).append(',');
 
       // if there are any permitted players, write them
       if (accountUsers != null) {
          for (UUID id : accountUsers)
-            result.append(id.toString()).append(",");
+            result.append(id.toString()).append(',');
       }
 
       // remove trailing comma and
       // end the line to signify end of account information
       result.setLength(result.length() - 1);
-      result.append("\n");
+      result.append('\n');
 
       return result.toString();
    }
@@ -962,7 +962,7 @@ public class Account {
          if (data[0].equals("#")) {
             try {
                accountsCreatedPerUser.put(UUID.fromString(data[1]), Integer.parseInt(data[2]));
-               accountCreationRecords.append(String.join(",", data) + "\n");
+               accountCreationRecords.append(String.join(",", data) + '\n');
             } catch (Exception e) {
                String erroredAccount = String.join(",", data);
                Config.commandInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_CREATION + erroredAccount);
@@ -1107,7 +1107,7 @@ public class Account {
             // prevents a null pointer exception if an account was just deleted
             if (account == null)
                continue;
-            json.append(accountID + "," + account.getWrittenState()); // save updated entry
+            json.append(accountID + ',' + account.getWrittenState()); // save updated entry
          }
       }
       accountsChangedSinceLastSave.clear();
@@ -1130,7 +1130,7 @@ public class Account {
                continue;
 
             // format: *,playerID,accountID
-            defaultAccountEntries.append("*,").append(playerID.toString()).append(",").append(accountID).append("\n");
+            defaultAccountEntries.append("*,").append(playerID.toString()).append(',').append(accountID).append('\n');
          }
       }
       regenerateDefaultAccountEntries = false;
@@ -1154,17 +1154,17 @@ public class Account {
          // write account creation counts to file
          // format: #,playerID,count
          if (accountCreationRecords.length() > 0)
-            fileWriter.write("\n" + accountCreationRecords.toString());
+            fileWriter.write('\n' + accountCreationRecords.toString());
 
          // write entries mapping players to default accounts
          // format: *,playerID,accountID
          if (defaultAccountEntries.length() > 0)
-            fileWriter.write("\n" + defaultAccountEntries.toString());
+            fileWriter.write('\n' + defaultAccountEntries.toString());
 
          // write accounts which failed to load,
          // they might be nonexistent until fixed by a server administrator
          if (accountsErrored.length() > 0)
-            fileWriter.write(CommandEconomy.WARN_FILE_WARES_INVALID + accountsErrored + "\n");
+            fileWriter.write(CommandEconomy.WARN_FILE_WARES_INVALID + accountsErrored + '\n');
 
          // close the file
          fileWriter.close();

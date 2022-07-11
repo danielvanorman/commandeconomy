@@ -111,7 +111,7 @@ public class CommandBuy extends CommandBase {
          // translate coordinates
          BlockPos position = sender.getPosition();
          if (position == null) {
-            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_BUY);
+            InterfaceMinecraft.forwardErrorToUser(sender, PlatformStrings.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_BUY);
             return;
          }
 

@@ -651,27 +651,27 @@ public class InterfaceTerminal implements InterfaceCommand
                serviceRequestPrintMarket(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_OP:
+            case PlatformStrings.CMD_OP:
                serviceRequestOp(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_DEOP:
+            case PlatformStrings.CMD_DEOP:
                serviceRequestDeop(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_INVENTORY:
+            case PlatformStrings.CMD_INVENTORY:
                serviceRequestInventory(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_GIVE:
+            case PlatformStrings.CMD_GIVE:
                serviceRequestGive(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_TAKE:
+            case PlatformStrings.CMD_TAKE:
                serviceRequestTake(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_CHANGE_NAME_LOWER:
+            case PlatformStrings.CMD_CHANGE_NAME_LOWER:
                serviceRequestChangeName(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
@@ -771,12 +771,12 @@ public class InterfaceTerminal implements InterfaceCommand
                         .append(CommandEconomy.CMD_USAGE_SAVECE).append(CommandEconomy.CMD_DESC_SAVECE)
                         .append(CommandEconomy.CMD_USAGE_RELOAD).append(CommandEconomy.CMD_DESC_RELOAD)
                         .append(CommandEconomy.CMD_USAGE_PRINT_MARKET).append(CommandEconomy.CMD_DESC_PRINT_MARKET)
-                        .append(CommandEconomy.CMD_USAGE_OP).append(CommandEconomy.CMD_DESC_OP)
-                        .append(CommandEconomy.CMD_USAGE_DEOP).append(CommandEconomy.CMD_DESC_DEOP)
-                        .append(CommandEconomy.CMD_USAGE_INVENTORY).append(CommandEconomy.CMD_DESC_INVENTORY)
-                        .append(CommandEconomy.CMD_USAGE_GIVE).append(CommandEconomy.CMD_DESC_GIVE)
-                        .append(CommandEconomy.CMD_USAGE_TAKE).append(CommandEconomy.CMD_DESC_TAKE)
-                        .append(CommandEconomy.CMD_USAGE_CHANGE_NAME).append(CommandEconomy.CMD_DESC_CHANGE_NAME)
+                        .append(PlatformStrings.CMD_USAGE_OP).append(PlatformStrings.CMD_DESC_OP)
+                        .append(PlatformStrings.CMD_USAGE_DEOP).append(PlatformStrings.CMD_DESC_DEOP)
+                        .append(PlatformStrings.CMD_USAGE_INVENTORY).append(PlatformStrings.CMD_DESC_INVENTORY)
+                        .append(PlatformStrings.CMD_USAGE_GIVE).append(PlatformStrings.CMD_DESC_GIVE)
+                        .append(PlatformStrings.CMD_USAGE_TAKE).append(PlatformStrings.CMD_DESC_TAKE)
+                        .append(PlatformStrings.CMD_USAGE_CHANGE_NAME).append(PlatformStrings.CMD_DESC_CHANGE_NAME)
                         .append("/stop || exit - shutdowns the market").append(System.lineSeparator());
          }
 
@@ -1265,7 +1265,7 @@ public class InterfaceTerminal implements InterfaceCommand
       // the idea of selling the user's held item is from
       // DynamicEconomy ( https://dev.bukkit.org/projects/dynamiceconomy-v-01 )
       if (wareID.equalsIgnoreCase(CommandEconomy.HELD_ITEM)) {
-         System.out.println(CommandEconomy.ERROR_HANDS_TERMINAL);
+         System.out.println(PlatformStrings.ERROR_HANDS);
          return;
       }
 
@@ -1398,7 +1398,7 @@ public class InterfaceTerminal implements InterfaceCommand
       // the idea of checking the user's held item is from
       // DynamicEconomy ( https://dev.bukkit.org/projects/dynamiceconomy-v-01 )
       if (wareID.equalsIgnoreCase(CommandEconomy.HELD_ITEM)) {
-         System.out.println(CommandEconomy.ERROR_HANDS_TERMINAL);
+         System.out.println(PlatformStrings.ERROR_HANDS);
          return;
       }
 
@@ -1984,19 +1984,19 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // request should not be null
       if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_OP);
+         System.out.println(PlatformStrings.CMD_USAGE_OP);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_OP);
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + PlatformStrings.CMD_USAGE_OP);
          return;
       }
 
       // check for zero-length args
       if (args[0] == null || args[0].length() == 0) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_OP);
+         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + PlatformStrings.CMD_USAGE_OP);
          return;
       }
 
@@ -2028,19 +2028,19 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // request should not be null
       if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_DEOP);
+         System.out.println(PlatformStrings.CMD_USAGE_DEOP);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_DEOP);
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + PlatformStrings.CMD_USAGE_DEOP);
          return;
       }
 
       // check for zero-length args
       if (args[0] == null || args[0].length() == 0) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_DEOP);
+         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + PlatformStrings.CMD_USAGE_DEOP);
          return;
       }
 
@@ -2074,7 +2074,7 @@ public class InterfaceTerminal implements InterfaceCommand
              args[0].equals(CommandEconomy.INVENTORY_SOUTH)) {
             printInventory(args[0]);
          } else {
-            System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_INVENTORY);
+            System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + PlatformStrings.CMD_USAGE_INVENTORY);
          }
       } else {
          printInventory(CommandEconomy.INVENTORY_NONE);
@@ -2092,7 +2092,7 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestGive(String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_GIVE);
+         System.out.println(PlatformStrings.CMD_USAGE_GIVE);
          return;
       }
 
@@ -2100,7 +2100,7 @@ public class InterfaceTerminal implements InterfaceCommand
       if (args.length != 1 &&
           args.length != 2 &&
           args.length != 3) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_GIVE);
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + PlatformStrings.CMD_USAGE_GIVE);
          return;
       }
 
@@ -2108,7 +2108,7 @@ public class InterfaceTerminal implements InterfaceCommand
       if (args[0] == null || args[0].length() == 0 ||
           (args.length == 2 && (args[1] == null || args[1].length() == 0)) ||
           (args.length == 3 && (args[2] == null || args[2].length() == 0))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_GIVE);
+         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + PlatformStrings.CMD_USAGE_GIVE);
          return;
       }
 
@@ -2140,14 +2140,14 @@ public class InterfaceTerminal implements InterfaceCommand
 
             // check whether the inventory was found
             if (inventoryToUse == null) {
-               System.out.println(CommandEconomy.ERROR_QUANTITY + "wrong type, " + CommandEconomy.CMD_USAGE_GIVE);
+               System.out.println(CommandEconomy.ERROR_QUANTITY + "wrong type, " + PlatformStrings.CMD_USAGE_GIVE);
                return;
             }
          }
 
          // ensure quantity is a valid number
          if (quantity < 1) {
-            System.out.println(CommandEconomy.ERROR_QUANTITY + "must be greater than zero, " + CommandEconomy.CMD_USAGE_GIVE);
+            System.out.println(CommandEconomy.ERROR_QUANTITY + "must be greater than zero, " + PlatformStrings.CMD_USAGE_GIVE);
             return;
          }
       }
@@ -2158,7 +2158,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // check whether the inventory was found
          if (inventoryToUse == null) {
-            System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_GIVE);
+            System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + PlatformStrings.CMD_USAGE_GIVE);
             return;
          }
       }
@@ -2196,7 +2196,7 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestTake(String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_TAKE);
+         System.out.println(PlatformStrings.CMD_USAGE_TAKE);
          return;
       }
 
@@ -2204,7 +2204,7 @@ public class InterfaceTerminal implements InterfaceCommand
       if (args.length != 1 &&
           args.length != 2 &&
           args.length != 3) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_TAKE);
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + PlatformStrings.CMD_USAGE_TAKE);
          return;
       }
 
@@ -2212,7 +2212,7 @@ public class InterfaceTerminal implements InterfaceCommand
       if (args[0] == null || args[0].length() == 0 ||
           (args.length == 2 && (args[1] == null || args[1].length() == 0)) ||
           (args.length == 3 && (args[2] == null || args[2].length() == 0))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_TAKE);
+         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + PlatformStrings.CMD_USAGE_TAKE);
          return;
       }
 
@@ -2240,14 +2240,14 @@ public class InterfaceTerminal implements InterfaceCommand
 
             // check whether the inventory was found
             if (inventoryToUse == null) {
-               System.out.println(CommandEconomy.ERROR_QUANTITY + "wrong type, " + CommandEconomy.CMD_USAGE_TAKE);
+               System.out.println(CommandEconomy.ERROR_QUANTITY + "wrong type, " + PlatformStrings.CMD_USAGE_TAKE);
                return;
             }
          }
 
          // ensure quantity is a valid number
          if (quantity < 0) {
-            System.out.println(CommandEconomy.ERROR_QUANTITY + "must be greater than zero, " + CommandEconomy.CMD_USAGE_TAKE);
+            System.out.println(CommandEconomy.ERROR_QUANTITY + "must be greater than zero, " + PlatformStrings.CMD_USAGE_TAKE);
             return;
          }
       }
@@ -2258,14 +2258,14 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // check whether the inventory was found
          if (inventoryToUse == null) {
-            System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_TAKE);
+            System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + PlatformStrings.CMD_USAGE_TAKE);
             return;
          }
       }
 
       // player should have the ware to be taken from
       if (!inventoryToUse.containsKey(wareID)) {
-         System.out.println(CommandEconomy.ERROR_WARE_MISSING + CommandEconomy.CMD_USAGE_TAKE);
+         System.out.println(CommandEconomy.ERROR_WARE_MISSING + PlatformStrings.CMD_USAGE_TAKE);
          return;
       }
 
@@ -2296,19 +2296,19 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestChangeName(String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_CHANGE_NAME);
+         System.out.println(PlatformStrings.CMD_USAGE_CHANGE_NAME);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHANGE_NAME);
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + PlatformStrings.CMD_USAGE_CHANGE_NAME);
          return;
       }
 
       // given player name should not be null
       if (args[0] == null || args[0].length() == 0) {
-         System.out.println(CommandEconomy.ERROR_CHANGE_NAME_MISSING + CommandEconomy.CMD_USAGE_CHANGE_NAME);
+         System.out.println(PlatformStrings.ERROR_CHANGE_NAME_MISSING + PlatformStrings.CMD_USAGE_CHANGE_NAME);
          return;
       }
 
@@ -2380,7 +2380,7 @@ public class InterfaceTerminal implements InterfaceCommand
                break;
 
             default:
-               System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_INVENTORY);
+               System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + PlatformStrings.CMD_USAGE_INVENTORY);
                return;
          }
       }

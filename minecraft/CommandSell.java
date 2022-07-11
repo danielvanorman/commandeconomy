@@ -108,7 +108,7 @@ public class CommandSell extends CommandBase {
          // translate coordinates
          BlockPos position = sender.getPosition();
          if (position == null) {
-            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELL);
+            InterfaceMinecraft.forwardErrorToUser(sender, PlatformStrings.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELL);
             return;
          }
 
@@ -251,7 +251,7 @@ public class CommandSell extends CommandBase {
          if (itemStack == null ||
              itemStack.isEmpty() ||
              itemStack == ItemStack.EMPTY) {
-            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_HANDS_MINECRAFT);
+            InterfaceMinecraft.forwardErrorToUser(sender, PlatformStrings.ERROR_HANDS);
             return;
          }
 

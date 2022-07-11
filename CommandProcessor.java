@@ -101,10 +101,10 @@ public class CommandProcessor
       }
 
       // call corresponding function
-      Account.makeAccount(args[0], playerID);
+      Account.makeAccount(args[0].intern(), playerID);
 
       // only report success if the account was actually created
-      if (Account.getAccount(args[0]) != null)
+      if (Account.getAccount(args[0].intern()) != null)
          Config.commandInterface.printToUser(playerID, "Created new account: " + args[0]);
       return;
    }
@@ -136,7 +136,7 @@ public class CommandProcessor
       }
 
       // call corresponding function
-      Account.deleteAccount(args[0], playerID);
+      Account.deleteAccount(args[0].intern(), playerID);
       return;
    }
 
@@ -165,14 +165,14 @@ public class CommandProcessor
       if (args[1] == null || args[1].length() == 0)
          return;
       // don't overwrite an existing account
-      Account account = Account.getAccount(args[1]);
+      Account account = Account.getAccount(args[1].intern());
       if (account == null) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_MISSING + CommandEconomy.CMD_USAGE_GRANT_ACCESS);
          return;
       }
 
       // call corresponding function
-      account.grantAccess(playerID, Config.commandInterface.getPlayerID(args[0]), args[1]);
+      account.grantAccess(playerID, Config.commandInterface.getPlayerID(args[0]), args[1].intern());
       return;
    }
 
@@ -201,14 +201,14 @@ public class CommandProcessor
       if (args[1] == null || args[1].length() == 0)
          return;
       // don't overwrite an existing account
-      Account account = Account.getAccount(args[1]);
+      Account account = Account.getAccount(args[1].intern());
       if (account == null) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_MISSING + CommandEconomy.CMD_USAGE_REVOKE_ACCESS);
          return;
       }
 
       // call corresponding function
-      account.revokeAccess(playerID, Config.commandInterface.getPlayerID(args[0]), args[1]);
+      account.revokeAccess(playerID, Config.commandInterface.getPlayerID(args[0]), args[1].intern());
       return;
    }
 
@@ -268,7 +268,7 @@ public class CommandProcessor
          } catch (NumberFormatException e) {
             // if the fifth argument is not a price,
             // it must be an account ID
-            accountID = args[1];
+            accountID = args[1].intern();
          }
       }
 
@@ -281,7 +281,7 @@ public class CommandProcessor
             Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_INVEST);
             return;
          }
-         accountID = args[2];
+         accountID = args[2].intern();
       }
 
       // check if player is accepting an offer
@@ -342,7 +342,7 @@ public class CommandProcessor
       else { // if an investment offer isn't being accepted
          // create an offer
          // translates the ware ID, grabs the ware, and calculates the price
-         investmentOffer = generateInvestmentOffer(playerID, args[0], accountID);
+         investmentOffer = generateInvestmentOffer(playerID, args[0].intern(), accountID);
 
          // If there was a problem, a message would have already been printed.
          if (investmentOffer == null)
@@ -675,7 +675,7 @@ public class CommandProcessor
       Ware ware     = null;
 
       // grab the ware to be used
-      ware = Marketplace.translateAndGrab(args[0]);
+      ware = Marketplace.translateAndGrab(args[0].intern());
       // if ware is not in the market, stop
       if (ware == null) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + args[0]);
@@ -705,7 +705,7 @@ public class CommandProcessor
       ware.setQuantity(quantity);
 
       // report success
-      Config.commandInterface.printToUser(playerID, ware.getWareID() + "'s stock is now " + ware.getQuantity());
+      Config.commandInterface.printToUser(playerID, ware.getWareID() + "'s stock is now " + Integer.toString(ware.getQuantity()));
       return;
    }
 
@@ -736,7 +736,7 @@ public class CommandProcessor
       }
 
       // try to set the account
-      if (Account.setDefaultAccount(playerID, args[0])) {
+      if (Account.setDefaultAccount(playerID, args[0].intern())) {
          // report success
          Config.commandInterface.printToUser(playerID, args[0] + " will now be used in place of your personal account");
       }

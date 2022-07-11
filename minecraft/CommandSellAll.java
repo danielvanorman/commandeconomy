@@ -68,7 +68,7 @@ public class CommandSellAll extends CommandBase {
          // translate coordinates
          BlockPos position = sender.getPosition();
          if (position == null) {
-            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELLALL);
+            InterfaceMinecraft.forwardErrorToUser(sender, PlatformStrings.ERROR_POSITION_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELLALL);
             return;
          }
 

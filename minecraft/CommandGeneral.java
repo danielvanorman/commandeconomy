@@ -165,7 +165,7 @@ public class CommandGeneral extends CommandBase {
                         .append(CommandEconomy.CMD_USAGE_SELL).append(CommandEconomy.CMD_DESC_SELL)
                         .append(CommandEconomy.CMD_USAGE_CHECK).append(CommandEconomy.CMD_DESC_CHECK)
                         .append(CommandEconomy.CMD_USAGE_SELLALL).append(CommandEconomy.CMD_DESC_SELLALL)
-                        .append(CommandEconomy.CMD_USAGE_NOSELL).append(CommandEconomy.CMD_DESC_NOSELL)
+                        .append(PlatformStrings.CMD_USAGE_NOSELL).append(PlatformStrings.CMD_DESC_NOSELL)
                         .append(CommandEconomy.CMD_USAGE_MONEY).append(CommandEconomy.CMD_DESC_MONEY)
                         .append(CommandEconomy.CMD_USAGE_SEND).append(CommandEconomy.CMD_DESC_SEND)
                         .append(CommandEconomy.CMD_USAGE_CREATE).append(CommandEconomy.CMD_DESC_CREATE)
