@@ -37,6 +37,17 @@ public class Marketplace {
     */
    private static HashMap<String, String> wareAliasTranslations = new HashMap<String, String>(550);
 
+   // prices
+   /** used to signal what price should be returned */
+   enum PriceType {
+      CURRENT_SELL,     // current asking price
+      CURRENT_BUY,      // current purchasing price
+      EQUILIBRIUM_SELL, // asking price without considering supply and demand
+      EQUILIBRIUM_BUY,  // purchasing price without considering supply and demand
+      FLOOR_SELL,       // lowest the asking price may be
+      FLOOR_BUY         // lowest the purchasing price may be
+   }
+
    // saving
    /** holds ware entries which failed to load */
    private static ArrayDeque<String> waresErrored = new ArrayDeque<String>();
@@ -69,7 +80,7 @@ public class Marketplace {
     */
    public static class Stock
    {
-      /** the original ware ID of the items,
+      /** the original ware ID of the item,
         * useful for removing the correct item from the inventory */
       public String wareID;
       /** the amount of wares with the given quality */
@@ -780,9 +791,9 @@ public class Marketplace {
             // only print alias if ware has one
             alias = ware.getAlias();
             if (alias != null && !alias.isEmpty())
-               lineEntry.append(wareID).append('\t').append(alias).append('\t').append(getPrice(null, wareID, 1, false)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
+               lineEntry.append(wareID).append('\t').append(alias).append('\t').append(getPrice(null, ware, 1, false, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
             else
-               lineEntry.append(wareID).append('\t').append(getPrice(null, wareID, 1, false)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
+               lineEntry.append(wareID).append('\t').append(getPrice(null, ware, 1, false, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
 
             // write to file
             fileWriter.write(lineEntry.toString());
@@ -801,90 +812,100 @@ public class Marketplace {
    }
 
    /**
-    * Returns the current price of a ware in the marketplace.
+    * Returns a ware's price, either for selling, buying,
+    * without considering supply and demand, or floor.
     * <p>
     * Complexity: O(1)
-    * @param playerID    who to send any error messages to
-    * @param wareID      key used to retrieve ware information
-    * @param quanToTrade how much to buy or sell; used for price sliding
-    * @param isPurchase  <code>true</code> if the price should reflect buying the ware
-    *                    <code>false</code> if the price should reflect selling the ware
+    * @param playerID          who to send any error messages to
+    * @param ware              ware whose price should be calculated
+    * @param quanToTrade       how much to buy or sell; used for price sliding
     * @param shouldManufacture if amount to buy is above quantity for sale,
     *                          then true means to factor in purchasing
     *                          missing components and manufacturing the ware
-    * @return the modified price of an ware
-    * @see    Ware
+    * @param priceType         which price should be returned
+    * @return ware's price
     */
-   public static float getPrice(UUID playerID, String wareID, int quanToTrade,
-                                boolean isPurchase, boolean shouldManufacture) {
-      // check if ware id is empty
-      if (wareID == null || wareID.isEmpty()) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_ID);
+   public static float getPrice(UUID playerID, Ware ware, int quanToTrade,
+                                boolean shouldManufacture, PriceType priceType) {
+      // check if no ware is given
+      if (ware == null)
          return Float.NaN;
-      }
-
-      // if ware is not in the market, stop
-      Ware ware = wares.get(wareID);
-      if (ware == null) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
-         return Float.NaN;
-      }
 
       // if the quantity specified is invalid, set it to 1
         if (quanToTrade <= 0)
             quanToTrade = 1;
 
-      // if the ware is a linked ware, return the base price
-      if (ware instanceof WareLinked) {
-         return ((WareLinked) ware).getCurrentPrice(quanToTrade, isPurchase);
-      }
+      // check whether the price should be fixed
+      // or handled in as a special case
+      if (priceType == PriceType.CURRENT_SELL ||
+          priceType == PriceType.CURRENT_BUY) {
+         // if ware cannot be bought or sold in its current form
+         if ((ware instanceof WareUntradeable))
+            priceType = PriceType.EQUILIBRIUM_BUY;
 
-      // get ware information
-      final float priceBase       = ware.getBasePrice();
-      final int   quanCeiling     = Config.quanHigh[ware.getLevel()];
-      final int   quanFloor       = Config.quanLow[ware.getLevel()];
-      final int   quanEquilibrium = Config.quanMid[ware.getLevel()];
-            int   quanOnMarket    = ware.getQuantity();
+         // if all prices should be fixed
+         else if (Config.pricesIgnoreSupplyAndDemand) {
+            if (priceType == PriceType.CURRENT_BUY)
+               priceType = PriceType.EQUILIBRIUM_BUY;
+            else
+               priceType = PriceType.EQUILIBRIUM_SELL;
+         }
+
+         // check whether price should be handled by
+         // linked ware's method
+         else if (ware instanceof WareLinked)
+            return ((WareLinked) ware).getCurrentPrice(quanToTrade, priceType == PriceType.CURRENT_BUY);
+      }
 
       // initialize variables
+      final float PRICE_BASE = ware.getBasePrice();
       float spreadAdjustment = 0.0f; // spread's effect on price
       float priceNoQuantityEffect;   // ware's price without considering supply and demand
-      float priceTotal       = 0.0f; // total price of quantity traded
-      int   quanPartialTrade = 0;    // quantity to be traded in a particular price quadrant
-
-      // precalculate repeatedly used information
-      float quanFloorFromEquilibrium   = (float) (quanEquilibrium - quanFloor);   // how much quantity is between the price floor stock and equilibrium stock
-      float quanCeilingFromEquilibrium = (float) (quanCeiling - quanEquilibrium); // cast as a float now since it will only be used as a float
 
       // if spread is normal or base is 0, make no adjustment
-      if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
+      if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f)
          // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
-      }
+         spreadAdjustment = ((float) priceBaseAverage - PRICE_BASE) * (1.0f - Config.priceSpread);
 
       // check if purchasing upcharge should be applied
-      if (isPurchase && Config.priceBuyUpchargeMult != 1.0f)
+      if (Config.priceBuyUpchargeMult != 1.0f &&
+          (priceType == PriceType.CURRENT_BUY || priceType == PriceType.EQUILIBRIUM_BUY || priceType == PriceType.FLOOR_BUY))
          // calculate price with upcharge multiplier
-         priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult * Config.priceBuyUpchargeMult;
+         priceNoQuantityEffect = (PRICE_BASE + spreadAdjustment) * Config.priceMult * Config.priceBuyUpchargeMult;
       else
          // calculate price without upcharge multiplier
-         priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult;
+         priceNoQuantityEffect = (PRICE_BASE + spreadAdjustment) * Config.priceMult;
 
       // factor in components' prices affecting manufactured prices
       if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents() && !Config.pricesIgnoreSupplyAndDemand)
          priceNoQuantityEffect *= ware.getLinkedPriceMultiplier();
 
-      // if the ware is untradeable, don't evaluate its supply and demand
-      if ((ware instanceof WareUntradeable) || Config.pricesIgnoreSupplyAndDemand)
+      // check whether price should be returned
+      // without considering supply and demand
+      if (priceType == PriceType.EQUILIBRIUM_SELL || priceType == PriceType.EQUILIBRIUM_BUY)
          return CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect);
 
       // find price floor to be enforced for this purchase
-      float priceMinimum = CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect * Config.priceFloor);
+      final float PRICE_MIN = CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect * Config.priceFloor);
+
+      // check whether price floor should be returned
+      if (priceType == PriceType.FLOOR_BUY || priceType == PriceType.FLOOR_SELL)
+         return PRICE_MIN;
+
+      // prepare to calculate current price
+      final int   QUAN_CEILING                  = Config.quanHigh[ware.getLevel()];
+      final int   QUAN_FLOOR                    = Config.quanLow[ware.getLevel()];
+      final int   QUAN_EQUILIBRIUM              = Config.quanMid[ware.getLevel()];
+      final float QUAN_FLOOR_TO_EQUILIBRIUM     = (float) (QUAN_EQUILIBRIUM - QUAN_FLOOR);   // how much quantity is between the price floor stock and equilibrium stock
+      final float QUAN_CEILING_FROM_EQUILIBRIUM = (float) (QUAN_CEILING - QUAN_EQUILIBRIUM); // cast as a float now since it will only be used as a float
+            int   quanOnMarket                  = ware.getQuantity();
+            float priceTotal                    = 0.0f; // total price of quantity traded
+            int   quanPartialTrade              = 0;    // quantity to be traded in a particular price quadrant
 
       // find the total price
       // if buying, adjust the price first
       // so buying and selling are reciprocal
-      if (isPurchase) {
+      if (priceType == PriceType.CURRENT_BUY) {
          quanOnMarket -= quanToTrade;
 
          // if manufacturing wares should be included and
@@ -909,12 +930,12 @@ public class Marketplace {
       }
 
       // if understocked, enforce a price ceiling
-      if (quanToTrade > 0 && quanOnMarket < quanFloor) {
+      if (quanToTrade > 0 && quanOnMarket < QUAN_FLOOR) {
          // figure how how much should be sold in this price quadrant
-         if ((quanOnMarket + quanToTrade) <= quanFloor)
+         if ((quanOnMarket + quanToTrade) <= QUAN_FLOOR)
             quanPartialTrade += quanToTrade;
          else
-            quanPartialTrade += quanFloor - quanOnMarket;
+            quanPartialTrade += QUAN_FLOOR - quanOnMarket;
 
          // trade within the price quadrant
          priceTotal   += quanPartialTrade * priceNoQuantityEffect * Config.priceCeiling;
@@ -923,60 +944,80 @@ public class Marketplace {
       }
 
       // if below equilibrium, raise the price
-      if (quanToTrade > 0 && quanOnMarket < quanEquilibrium) {
+      if (quanToTrade > 0 && quanOnMarket < QUAN_EQUILIBRIUM) {
          // figure how how much should be sold in this price quadrant
-         if ((quanOnMarket + quanToTrade) <= quanEquilibrium)
+         if ((quanOnMarket + quanToTrade) <= QUAN_EQUILIBRIUM)
             quanPartialTrade = quanToTrade;
          else
-            quanPartialTrade = quanEquilibrium - quanOnMarket;
+            quanPartialTrade = QUAN_EQUILIBRIUM - quanOnMarket;
 
          // trade within the price quadrant
          // price in a price quadrant = (cost of first unit to trade + cost of last unit to trade) / 2 * quantity sold
          // scarcity price rise percent = price ceiling multiplier - percent distance away from equilibrium toward stock floor
-         priceTotal   += quanPartialTrade * priceNoQuantityEffect * (1.0f + Config.priceCeilingAdjusted * (((quanOnMarket + ((float) (quanPartialTrade + 1) / 2) - quanEquilibrium)) / quanFloorFromEquilibrium));
+         priceTotal   += quanPartialTrade * priceNoQuantityEffect * (1.0f + Config.priceCeilingAdjusted * (((quanOnMarket + ((float) (quanPartialTrade + 1) / 2) - QUAN_EQUILIBRIUM)) / QUAN_FLOOR_TO_EQUILIBRIUM));
          quanOnMarket += quanPartialTrade;
          quanToTrade  -= quanPartialTrade;
       }
 
       // if at equilibrium, use balanced price
-      if (quanToTrade > 0 && quanOnMarket == quanEquilibrium) {
+      if (quanToTrade > 0 && quanOnMarket == QUAN_EQUILIBRIUM) {
          priceTotal += priceNoQuantityEffect;
          quanOnMarket++;
          quanToTrade--;
       }
 
       // if above equilibrium, lower the price
-      if (quanToTrade > 0 && quanCeiling > quanOnMarket && quanOnMarket > quanEquilibrium) {
+      if (quanToTrade > 0 && QUAN_CEILING > quanOnMarket && quanOnMarket > QUAN_EQUILIBRIUM) {
          // figure how how much should be sold in this price quadrant
-         if ((quanOnMarket + quanToTrade) <= quanCeiling)
+         if ((quanOnMarket + quanToTrade) <= QUAN_CEILING)
             quanPartialTrade = quanToTrade;
          else
-            quanPartialTrade = quanCeiling - quanOnMarket;
+            quanPartialTrade = QUAN_CEILING - quanOnMarket;
 
          // trade within the price quadrant
          // price in a price quadrant = (cost of first unit to trade + cost of last unit to trade) / 2 * quantity sold
          // saturation price drop percent = price floor multiplier - percent distance away from equilibrium toward overstocked
-         priceTotal   += quanPartialTrade * priceNoQuantityEffect * (1.0f - Config.priceFloorAdjusted * (((quanOnMarket + ((float) (quanPartialTrade + 1) / 2) - quanEquilibrium)) / quanCeilingFromEquilibrium));
+         priceTotal   += quanPartialTrade * priceNoQuantityEffect * (1.0f - Config.priceFloorAdjusted * (((quanOnMarket + ((float) (quanPartialTrade + 1) / 2) - QUAN_EQUILIBRIUM)) / QUAN_CEILING_FROM_EQUILIBRIUM));
          quanOnMarket += quanPartialTrade;
          quanToTrade  -= quanPartialTrade;
       }
 
       // if overstocked, enforce a price floor
-      if (quanToTrade > 0 && quanOnMarket >= quanCeiling) {
+      if (quanToTrade > 0 && quanOnMarket >= QUAN_CEILING) {
          priceTotal   += quanToTrade * priceNoQuantityEffect * Config.priceFloor;
          quanOnMarket += quanToTrade;
       }
 
       // enforce a price floor
-      if (priceTotal >= priceMinimum)
+      if (priceTotal >= PRICE_MIN)
          // truncate the price to avoid rounding and multiplication errors
          return CommandEconomy.truncatePrice(priceTotal);
       else
-         return priceMinimum;
+         return PRICE_MIN;
    }
 
    /**
-    * Returns the current price of a ware in the marketplace.
+    * Returns a ware's price, either for selling, buying,
+    * without considering supply and demand, or floor.
+    * This function is used to ease changing
+    * manufacturing wares to be more automatic later on.
+    * <p>
+    * Complexity: O(1)
+    * @param playerID    who to send any error messages to
+    * @param wareID      key used to retrieve ware information
+    * @param quanToTrade how much to buy or sell; used for price sliding
+    * @param priceType   which price should be returned
+    * @return ware's price
+    */
+   public static float getPrice(UUID playerID, Ware ware, int quanToTrade, PriceType priceType) {
+      return getPrice(playerID, ware, quanToTrade, false, priceType);
+   }
+
+   /**
+    * Returns a ware's price, either for selling, buying,
+    * without considering supply and demand, or floor.
+    * This function is used as a temporary solution for the test suite
+    * until tester functions may be created to ease code changes.
     * <p>
     * Complexity: O(1)
     * @param playerID    who to send any error messages to
@@ -984,11 +1025,26 @@ public class Marketplace {
     * @param quanToTrade how much to buy or sell; used for price sliding
     * @param isPurchase  <code>true</code> if the price should reflect buying the ware
     *                    <code>false</code> if the price should reflect selling the ware
-    * @return the modified price of an ware
-    * @see    Ware
+    * @return ware's current price
     */
    public static float getPrice(UUID playerID, String wareID, int quanToTrade, boolean isPurchase) {
-      return getPrice(playerID, wareID, quanToTrade, isPurchase, false);
+      // check if ware id is empty
+      if (wareID == null || wareID.isEmpty()) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_ID);
+         return Float.NaN;
+      }
+
+      // if ware is not in the market, stop
+      Ware ware = wares.get(wareID);
+      if (ware == null) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
+         return Float.NaN;
+      }
+
+      if (isPurchase)
+         return getPrice(playerID, ware, quanToTrade, false, PriceType.CURRENT_BUY);
+      else
+         return getPrice(playerID, ware, quanToTrade, false, PriceType.CURRENT_SELL);
    }
 
    /**
@@ -1235,7 +1291,6 @@ public class Marketplace {
       if (wareID == null || wareID.isEmpty())
          return "";
 
-
       // if ware is in the market, just return it
       if (wares.containsKey(wareID))
          return wareID;
@@ -1462,7 +1517,7 @@ public class Marketplace {
          quantityToBuy = inventorySpaceAvailable;
 
       // get ware's price and player's funds to figure out how much is affordable
-      float price          = getPrice(playerID, wareID, quantityToBuy, true) * pricePercent;
+      float price          = getPrice(playerID, ware, quantityToBuy, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
       float moneyAvailable = account.getMoney();
 
       // if there are transaction fees,
@@ -1511,7 +1566,7 @@ public class Marketplace {
       // if the ware isn't free, figure out how much is affordable
       if (price > moneyAvailable && price > 0.0f) {
          quantityToBuy = getPurchasableQuantity(ware, moneyAvailable / pricePercent);
-         price = getPrice(playerID, wareID, quantityToBuy, true) * pricePercent;
+         price = getPrice(playerID, ware, quantityToBuy, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
 
          // if not enough money to buy one ware, stop
          if (quantityToBuy <= 0) {
@@ -1694,14 +1749,14 @@ public class Marketplace {
       LinkedList<Stock> waresFound;
       // if the given ware ID is an alias,
       // only use the translated ID
-      if (!wareID.startsWith("#") && // not an ore name
-          !wareID.contains(":"))     // not a base ID
+      if (wareID.startsWith("#") || // is a Forge ore dictionary name
+          !wareID.contains(":"))    // not a base ID
          waresFound = Config.commandInterface.checkInventory(playerID, coordinates, translatedID);
       else
          waresFound = Config.commandInterface.checkInventory(playerID, coordinates, wareID);
 
       // if player doesn't have the ware, stop
-      if (waresFound.getFirst().quantity == 0)
+      if (waresFound.isEmpty())
          return;
 
       // check whether an inventory was found
@@ -1745,7 +1800,7 @@ public class Marketplace {
           Config.transactionFeeSelling != 0.0f &&
           minUnitPrice >= 0.0f) {
          // calculate potential income and fee
-         float price = getPrice(null, wareID, quantityToSell, false) * pricePercent;
+         float price = getPrice(null, ware, quantityToSell, false, PriceType.CURRENT_SELL) * pricePercent;
          float fee   = Config.transactionFeeSelling;
          if (Config.transactionFeeSellingIsMult)
             fee *= price;
@@ -1759,7 +1814,6 @@ public class Marketplace {
       }
 
       // sell the ware
-      waresFound.removeFirst(); // remove the total quantity entry
       float[] salesResults = sellStock(playerID, coordinates, waresFound, quantityToSell, minUnitPrice, pricePercent);
       int quantitySold = (int) salesResults[1];
 
@@ -1905,6 +1959,7 @@ public class Marketplace {
 
       return;
    }
+
    /**
     * Removes wares from a player's inventory and
     * tallies up money gained from selling those wares
@@ -1932,23 +1987,25 @@ public class Marketplace {
       if (Float.isNaN(pricePercent))
          pricePercent = 1.0f;
 
+      // set up variables
+      LinkedList<Stock> unsoldStocks = null; // holds wares to be sold if the transaction turns out to be profitable despite paying a flat fee
+      Ware    ware;                          // ware currently being sold
+      float   totalEarnings    = 0.0f;
+      float   price;                         // value of the ware being processed
+      int     quantityToSell   = 0;          // how much should be sold from the current stack
+      int     quantitySold     = 0;          // how much quantity has been sold
+      int     quantityDistFromFloor;         // how much quantity may be sold before reaching the price floor
+      boolean isProfitable     = true;       // whether the transaction is profitable despite paying a flat fee
+
       // if a flat fee should be used,
-      // call on another function to handle it
+      // store wares until it is known
+      // whether the transaction is profitable
       if (Config.chargeTransactionFees &&
           !Config.transactionFeeSellingIsMult &&
           Config.transactionFeeSelling > 0.0f) {
-         return sellStockFlatFee(playerID, coordinates, stocks, quantity, minUnitPrice, pricePercent);
+         isProfitable = false;
+         unsoldStocks = new LinkedList<Stock>();
       }
-
-      // set up variables
-      String translatedID;
-      Ware   ware;                        // ware currently being sold
-      float  totalEarnings    = 0.0f;
-      float  price;                       // value of the ware being processed
-      int    quantityLeftover = 1;        // the stock's quantity if all quantity to be removed is taken from it
-      int    quantityToBeSold = quantity; // how much quantity still needs to be sold
-      int    quantitySold     = 0;        // how much quantity has been sold
-      int    quantityDistFromFloor;       // how much quantity may be sold before reaching the price floor
 
       // prevents other threads from adjusting the marketplace's wares
       acquireMutex();
@@ -1960,10 +2017,9 @@ public class Marketplace {
          // if ware is not in the market, stop
          if (ware == null)
             continue;
-         translatedID = ware.getWareID();
 
          // if the price isn't high enough, stop
-         price = CommandEconomy.truncatePrice(getPrice(playerID, translatedID, 1, false) * stock.percentWorth * pricePercent);
+         price = CommandEconomy.truncatePrice(getPrice(playerID, ware, 1, false, PriceType.CURRENT_SELL) * stock.percentWorth * pricePercent);
          if (price < minUnitPrice)
             continue;
 
@@ -1986,59 +2042,73 @@ public class Marketplace {
 
          // try to sell the ware
          try {
-            if (quantity == 0) {
-               // get the money
-               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth;
+            // figure how much to sell from the current stack
+            if (quantity == 0 || quantity > quantitySold + stock.quantity)
+               quantityToSell = stock.quantity;
+            else
+               quantityToSell = quantity - quantitySold;
 
+            // get the money
+            totalEarnings += getPrice(playerID, ware, quantityToSell, false, PriceType.CURRENT_SELL) * stock.percentWorth;
+
+            // if a flat fee should be used,
+            // check whether the transaction became profitable
+            isProfitable = isProfitable || totalEarnings * pricePercent > Config.transactionFeeSelling || minUnitPrice < 0.0f;
+
+            // if the transaction is profitable, sell the ware
+            if (isProfitable) {
                // take the ware
-               Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
-               quantitySold += stock.quantity;
+               Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, quantityToSell);
+               quantitySold += quantityToSell;
 
                // add quantity sold to the marketplace
-               ware.addQuantity(stock.quantity);
-
-               continue;
+               ware.addQuantity(quantityToSell);
             }
 
-            // find how much can be sold
-            quantityLeftover = stock.quantity - quantityToBeSold;
+            // if a flat fee should be used,
+            // hold off taking the ware until it is known
+            // whether the transaction is profitable
+            else
+               unsoldStocks.add(stock);
 
-            // if the current stock has more than enough quantity, take from it
-            // otherwise, remove it
-            if (quantityLeftover > 0) {
-               // get the money
-               totalEarnings += getPrice(playerID, translatedID, quantityToBeSold, false) * stock.percentWorth;
-
-               // take the ware
-               Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, quantityToBeSold);
-               quantitySold += quantityToBeSold;
-
-               // add quantity sold to the marketplace
-               ware.addQuantity(quantityToBeSold);
+            // if enough quantity has been sold,
+            // stop searching for more
+            if (quantity == quantitySold)
                break;
-            } else {
-               // get the money
-               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth;
-
-               // update remainder needing to be sold
-               quantityToBeSold = (-1 * quantityLeftover);
-
-               // take the ware
-               Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
-               quantitySold += stock.quantity;
-
-               // add quantity sold to the marketplace
-               ware.addQuantity(stock.quantity);
-
-               // if enough quantity has been sold,
-               // stop searching for more
-               if (quantityToBeSold == 0)
-                  break;
-            }
          } catch (Exception e) {
             Config.commandInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
             e.printStackTrace();
             // don't return, keep trying to sell wares and pay the player
+         }
+      }
+
+      // if a flat fee should be used and
+      // the transaction is not profitable,
+      // don't process it
+      if (!isProfitable) {
+         releaseMutex(); // allow other threads to adjust wares' properties
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
+         return new float[]{0.0f, 0.0f};
+      }
+
+      // if a flat fee should be used,
+      // check whether any remaining goods should be sold
+      else if (unsoldStocks != null && unsoldStocks.size() > 0) {
+         // sell each stack of unsold wares
+         for (Stock stock : unsoldStocks) {
+            try {
+               // take the ware
+               Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
+               quantitySold += stock.quantity;
+
+               // add quantity sold to the marketplace
+               ware = translateAndGrab(stock.wareID);
+               ware.addQuantity(stock.quantity);
+            } catch (Exception e) {
+               Config.commandInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
+               e.printStackTrace();
+               // don't return, keep trying to sell wares and pay the player
+            }
          }
       }
 
@@ -2047,193 +2117,6 @@ public class Marketplace {
 
       // truncate to reduce error
       totalEarnings = CommandEconomy.truncatePrice(totalEarnings * pricePercent);
-
-      // return total money gained and total quantity sold
-      return new float[]{totalEarnings, (float) quantitySold};
-   }
-
-   /**
-    * Removes wares from a player's inventory and
-    * tallies up money gained from selling those wares
-    * as well as the total quantity of wares sold.
-    * <p>
-    * If a flat transaction fee is used, then processing is delayed
-    * until it is known whether the fee to be charged
-    * still allows the transaction to profitable.
-    * <p>
-    * Complexity: O(n^2)
-    * @param playerID     user responsible for the trade
-    * @param coordinates  where wares may be found
-    * @param stocks       wares to be sold and their information
-    * @param quantity     how much wares should be sold; 0 means sell everything
-    * @param minUnitPrice stop selling if unit price is below this amount
-    * @param pricePercent percentage multiplier for ware's price
-    * @return total money from selling wares and the quantity sold
-    */
-   protected static float[] sellStockFlatFee(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                                             LinkedList<Stock> stocks, int quantity,
-                                             float minUnitPrice, float pricePercent) {
-      if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
-          quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
-         return null;
-
-      // set up variables
-      String translatedID;
-      Ware   ware;                        // ware currently being sold
-      float  totalEarnings    = 0.0f;
-      float  price;                       // value of the ware being processed
-      int    quantityLeftover = 1;        // the stock's quantity if all quantity to be removed is taken from it
-      int    quantityToBeSold = quantity; // how much quantity still needs to be sold
-      int    quantitySold     = 0;        // how much quantity has been sold
-
-      // if a flat transaction fee is used,
-      // ensure the transaction is profitable
-      boolean           isProfitable = false; // whether the transaction is profitable despite the fee
-      LinkedList<Stock> unsoldStocks = new LinkedList<Stock>(); // holds wares to be sold if the transaction turns out to be profitable
-
-      // prevents other threads from adjusting the marketplace's wares
-      acquireMutex();
-
-      // loop through wares owned and get prices according to quality
-      for (Stock stock : stocks) {
-         // grab the ware to be used
-         ware = translateAndGrab(stock.wareID);
-         // if ware is not in the market, stop
-         if (ware == null)
-            continue;
-         translatedID = ware.getWareID();
-
-         // if the price isn't high enough, stop
-         price = getPrice(playerID, translatedID, 1, false) * stock.percentWorth * pricePercent;
-         price = CommandEconomy.truncatePrice(price);
-         if (price < minUnitPrice)
-            continue;
-
-         // try to sell the ware
-         try {
-            if (quantity == 0) {
-               // get the money
-               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth * pricePercent;
-
-               // check whether the transaction became profitable
-               isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
-
-               // if the transaction is profitable,
-               // sell the ware
-               if (isProfitable) {
-                  // take the ware
-                  Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
-                  quantitySold += stock.quantity;
-
-                  // add quantity sold to the marketplace
-                  ware.addQuantity(stock.quantity);
-               }
-
-               // hold off taking the ware until it is known
-               // whether the transaction is profitable
-               else
-                  unsoldStocks.add(stock);
-
-               continue;
-            }
-
-            // find how much can be sold
-            quantityLeftover = stock.quantity - quantityToBeSold;
-
-            // if the current stock has more than enough quantity, take from it
-            // otherwise, remove it
-            if (quantityLeftover > 0) {
-               // get the money
-               totalEarnings += getPrice(playerID, translatedID, quantityToBeSold, false) * stock.percentWorth * pricePercent;
-
-               // check whether the transaction became profitable
-               isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
-
-               // if the transaction is profitable,
-               // sell the ware
-               if (isProfitable) {
-                  // take the ware
-                  Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, quantityToBeSold);
-                  quantitySold += quantityToBeSold;
-
-                  // add quantity sold to the marketplace
-                  ware.addQuantity(quantityToBeSold);
-               }
-
-               // hold off taking the ware until it is known
-               // whether the transaction is profitable
-               else {
-                  stock.quantity = quantityToBeSold;
-                  unsoldStocks.add(stock);
-               }
-
-               break;
-            } else {
-               // get the money
-               totalEarnings += getPrice(playerID, translatedID, stock.quantity, false) * stock.percentWorth * pricePercent;
-
-               // update remainder needing to be sold
-               quantityToBeSold = (-1 * quantityLeftover);
-
-               // check whether the transaction became profitable
-               isProfitable = totalEarnings > Config.transactionFeeSelling || minUnitPrice < 0.0f;
-
-               // if the transaction is profitable,
-               // sell the ware
-               if (isProfitable) {
-                  // take the ware
-                  Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
-                  quantitySold += stock.quantity;
-
-                  // add quantity sold to the marketplace
-                  ware.addQuantity(stock.quantity);
-               }
-
-               // hold off taking the ware until it is known
-               // whether the transaction is profitable
-               else {
-                  unsoldStocks.add(stock);
-               }
-
-               // if enough quantity has been sold,
-               // stop searching for more
-               if (quantityToBeSold == 0)
-                  break;
-            }
-         } catch (Exception e) {
-            Config.commandInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
-            e.printStackTrace();
-            // don't return, keep trying to sell wares and pay the player
-         }
-      }
-
-      // check whether any goods should be sold now that
-      // it is known whether the transaction is profitable
-      if (isProfitable && unsoldStocks.size() > 0) {
-         // sell each stack of unsold wares
-         for (Stock stock : unsoldStocks) {
-            // take the ware
-            Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
-            quantitySold += stock.quantity;
-
-            // add quantity sold to the marketplace
-            ware = translateAndGrab(stock.wareID);
-            ware.addQuantity(stock.quantity);
-         }
-      }
-
-      // if the transaction is not profitable,
-      // don't process it
-      else if (!isProfitable) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
-         return new float[]{0.0f, 0.0f};
-      }
-
-      // allow other threads to adjust wares' properties
-      releaseMutex();
-
-      // truncate to reduce error
-      totalEarnings = CommandEconomy.truncatePrice(totalEarnings);
 
       // return total money gained and total quantity sold
       return new float[]{totalEarnings, (float) quantitySold};
@@ -2294,7 +2177,7 @@ public class Marketplace {
       // if ware is untradeable, stop
       if (ware instanceof WareUntradeable) {
          // find unit price for buying
-         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture) * pricePercent;
+         priceBuy = getPrice(playerID, ware, 1, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
 
          // if necessary, factor in transaction fee
          if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
@@ -2319,9 +2202,9 @@ public class Marketplace {
       // prepare to print prices
       final boolean PRINT_BOTH_PRICES = Config.priceBuyUpchargeMult != 1.0f ||
                                         (Config.chargeTransactionFees && (Config.transactionFeeBuying != 0.00f || Config.transactionFeeSelling != 0.00f));
-      priceSell = getPrice(playerID, wareID, 1, false, false) * pricePercent;
+      priceSell = getPrice(playerID, ware, 1, false, PriceType.CURRENT_SELL) * pricePercent;
       if (PRINT_BOTH_PRICES || shouldManufacture) {
-         priceBuy = getPrice(playerID, wareID, 1, true, shouldManufacture) * pricePercent;
+         priceBuy = getPrice(playerID, ware, 1, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
 
          // if necessary, factor in transaction fee
          if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
@@ -2394,8 +2277,8 @@ public class Marketplace {
       // if a specific quantity is specified,
       // print prices for buying and selling
       else {
-         priceBuy = getPrice(playerID, wareID, quantity, true, shouldManufacture) * pricePercent;
-         priceSell = getPrice(playerID, wareID, quantity, false, false) * pricePercent;
+         priceBuy = getPrice(playerID, ware, quantity, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
+         priceSell = getPrice(playerID, ware, quantity, false, PriceType.CURRENT_SELL) * pricePercent;
 
          // if necessary, include transaction fees
          if (Config.chargeTransactionFees) {
@@ -2466,7 +2349,7 @@ public class Marketplace {
 
          if (quantity < 2) {
             // find selling price
-            priceSell = getPrice(playerID, ware.getWareID(), 1, false) * percentWorth * pricePercent;
+            priceSell = getPrice(playerID, ware, 1, false, PriceType.CURRENT_SELL) * percentWorth * pricePercent;
 
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
@@ -2484,7 +2367,7 @@ public class Marketplace {
          }
          else {
             // find selling price
-            priceSell = getPrice(playerID, ware.getWareID(), quantity, false) * percentWorth * pricePercent;
+            priceSell = getPrice(playerID, ware, quantity, false, PriceType.CURRENT_SELL) * percentWorth * pricePercent;
 
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
@@ -2594,46 +2477,6 @@ public class Marketplace {
 
       // if necessary, stop automatic marketplace rebalancing
       MarketRebalancer.end();
-   }
-
-   /**
-    * Returns a ware's price when supply and demand are equal.
-    * <p>
-    * Complexity: O(1)
-    * @param ware       ware to find equilibrium price of
-    * @param isPurchase <code>true</code> if the price should reflect buying the ware
-    *                   <code>false</code> if the price should reflect selling the ware
-    * @return ware's unit price without supply and demand
-    */
-   public static float getEquilibriumPrice(Ware ware, boolean isPurchase) {
-      // if something's wrong with the ware, don't do anything
-      if (ware == null || Float.isNaN(ware.getBasePrice()))
-         return 0.0f;
-
-      // initialize variables
-      float priceBase        = ware.getBasePrice();
-      float spreadAdjustment = 0.0f; // spread's effect on price
-      float priceNoQuantityEffect;   // ware's price without considering supply and demand
-
-      // if spread is normal or price base is 0, make no adjustment
-      if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
-         // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
-      }
-
-      // check if purchasing upcharge should be applied
-      if (isPurchase && Config.priceBuyUpchargeMult != 1.0f)
-         // calculate price with upcharge multiplier
-         priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult * Config.priceBuyUpchargeMult;
-      else
-         // calculate price without upcharge multiplier
-         priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceMult;
-
-      // factor in components' prices affecting manufactured prices
-      if (Config.shouldComponentsCurrentPricesAffectWholesPrice && ware.hasComponents() && !Config.pricesIgnoreSupplyAndDemand)
-         priceNoQuantityEffect *= ware.getLinkedPriceMultiplier();
-
-      return priceNoQuantityEffect;
    }
 
    /**

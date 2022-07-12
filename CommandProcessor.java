@@ -804,7 +804,7 @@ public class CommandProcessor
       }
 
       // find investment cost
-      float priceInvestment = Marketplace.getPrice(playerID, wareID, 0, false) * ware.getLevel() * Config.investmentCostPerHierarchyLevel;
+      float priceInvestment = Marketplace.getPrice(playerID, ware, 0, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.investmentCostPerHierarchyLevel;
       if (Config.investmentCostIsAMultOfAvgPrice)
          priceInvestment *= Marketplace.getCurrentPriceAverage();
 

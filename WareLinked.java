@@ -20,8 +20,6 @@ public class WareLinked extends Ware
    int[] componentsAmounts;
    /** amount of sold stock which could not be converted evenly into components */
    int remainder;
-   /** quantity required for the most demanded component */
-   transient int largestDenominator;
 
    /**
     * Linked Constructor: Creates a ware representing
@@ -96,6 +94,8 @@ public class WareLinked extends Ware
       this.componentsAmounts = componentsAmounts;
       // Java's garbage collection will delete the old lists
 
+      // calculate base price
+      priceBase = 0.0f; // reset base price to prepare for calculation
       // search for each component among the marketplace's loaded wares and grab component prices
       Ware component = null; // holds a component for the current ware
       for (int i = 0; i < componentsIDs.length; i++) {
@@ -105,6 +105,9 @@ public class WareLinked extends Ware
          // if the component is found, use it
          if (component != null) {
             components[i] = component;
+
+            // add component's base price to the linked ware's base price
+            priceBase += components[i].getBasePrice() * componentsAmounts[i] / yield;
 
             // in case some features need it,
             // set level to match highest level component
@@ -119,8 +122,10 @@ public class WareLinked extends Ware
          }
       }
 
+      // truncate the price to avoid rounding and multiplication errors
+      priceBase = CommandEconomy.truncatePrice(priceBase);
+
       // if there were no problems loading the current ware
-      priceBase = 1.0f;
       return true;
    }
 
@@ -150,6 +155,7 @@ public class WareLinked extends Ware
          components = new Ware[componentsIDs.length];
 
       // calculate base price
+      priceBase = 0.0f; // reset base price to prepare for calculation
       // search for each component among the marketplace's loaded wares and grab component prices
       Ware component = null; // holds a component for the current ware
       for (int i = 0; i < componentsIDs.length; i++) {
@@ -159,6 +165,9 @@ public class WareLinked extends Ware
          // if the component is found, use it
          if (component != null) {
             components[i] = component;
+
+            // add component's base price to the linked ware's base price
+            priceBase += components[i].getBasePrice() * componentsAmounts[i] / yield;
 
             // in case some features need it,
             // set level to match highest level component
@@ -173,8 +182,10 @@ public class WareLinked extends Ware
          }
       }
 
+      // truncate the price to avoid rounding and multiplication errors
+      priceBase = CommandEconomy.truncatePrice(priceBase);
+
       // if there were no problems reloading the current ware
-      priceBase = 1.0f;
       return "";
    }
 
@@ -302,34 +313,6 @@ public class WareLinked extends Ware
    }
 
    /**
-    * Returns the price of the ware when supply and demand are balanced.
-    * <p>
-    * Complexity: O(n), whether n is the number of wares used to create this ware
-    * @return equilibrium price of the ware
-    */
-   @Override
-   public float getBasePrice() {
-      // if something's wrong with the components, set the invalid flag
-      if (Float.isNaN(priceBase))
-         return Float.NaN;
-
-      // prepare to get components' current prices
-      priceBase = 0.0f;
-
-      // loop through components to get their current prices
-      for (int i = 0; i < componentsAmounts.length; i++) {
-         priceBase += components[i].getBasePrice() * componentsAmounts[i] / yield;
-      }
-
-      // avoid division by zero
-      if (priceBase == 0.0f)
-         return 0.0f;
-
-      // truncate the price to avoid rounding and multiplication errors
-      return CommandEconomy.truncatePrice(priceBase);
-   }
-
-   /**
     * Returns the current price of the ware, factoring in supply and demand.
     * <p>
     * Complexity: O(n), whether n is the number of wares used to create this ware
@@ -348,19 +331,25 @@ public class WareLinked extends Ware
          quantity = this.quantity;
 
       // prepare to get components' current prices
-      priceBase = 0.0f;
+      float price = 0.0f;
 
       // loop through components to get their current prices
-      for (int i = 0; i < componentsAmounts.length; i++) {
-         priceBase += Marketplace.getPrice(null, components[i].getWareID(), quantity * componentsAmounts[i], isPurchase)  / yield;
+      if (isPurchase) {
+         for (int i = 0; i < componentsAmounts.length; i++) {
+            price += Marketplace.getPrice(null, components[i], quantity * componentsAmounts[i], Marketplace.PriceType.CURRENT_BUY)  / yield;
+         }
+      } else {
+         for (int i = 0; i < componentsAmounts.length; i++) {
+            price += Marketplace.getPrice(null, components[i], quantity * componentsAmounts[i], Marketplace.PriceType.CURRENT_SELL)  / yield;
+         }
       }
 
       // avoid division by zero
-      if (priceBase == 0.0f)
+      if (price == 0.0f)
          return 0.0f;
 
       // truncate the price to avoid rounding and multiplication errors
-      return CommandEconomy.truncatePrice(priceBase);
+      return CommandEconomy.truncatePrice(price);
    }
 
    /**

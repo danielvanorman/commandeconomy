@@ -171,7 +171,7 @@ public class AI {
             if (ware.getQuantity() >= -tradeQuantity) {
                // if paying transaction fees based on price, record the price
                if (PAY_MULT_BUYING_FEES)
-                  fee = Marketplace.getPrice(null, ware.getWareID(), -tradeQuantity, true);
+                  fee = Marketplace.getPrice(null, ware, -tradeQuantity, Marketplace.PriceType.CURRENT_BUY);
 
                // purchase the ware
                ware.addQuantity(tradeQuantity);
@@ -181,7 +181,7 @@ public class AI {
             else {
                // if paying transaction fees based on price, record the price
                if (PAY_MULT_BUYING_FEES)
-                  fee = Marketplace.getPrice(null, ware.getWareID(), ware.getQuantity(), true);
+                  fee = Marketplace.getPrice(null, ware, ware.getQuantity(), Marketplace.PriceType.CURRENT_BUY);
 
                // buyout the ware
                ware.setQuantity(0);
@@ -234,7 +234,7 @@ public class AI {
 
                // find fee's charge
                if (Config.transactionFeeSellingIsMult)
-                  fee *= Marketplace.getPrice(null, ware.getWareID(), tradeQuantity, false);
+                  fee *= Marketplace.getPrice(null, ware, tradeQuantity, Marketplace.PriceType.CURRENT_SELL);
 
                // if the fee is negative, adjust by how much may be paid
                if (Config.transactionFeeSelling < 0.0f)
@@ -637,8 +637,8 @@ public class AI {
                continue;
 
             // get ware's prices
-            priceEquilibrium = Marketplace.getEquilibriumPrice(ware, true);
-            priceCurrent     = Marketplace.getPrice(null, ware.getWareID(), 1, true);
+            priceEquilibrium = Marketplace.getPrice(null, ware, 1, Marketplace.PriceType.EQUILIBRIUM_BUY);
+            priceCurrent     = Marketplace.getPrice(null, ware, 1, Marketplace.PriceType.CURRENT_BUY);
 
             // By enforcing a current price percentage floor, pseudorandomness' influence
             // is protected from excessive effects of supply and demand.
@@ -705,8 +705,8 @@ public class AI {
                continue;
 
             // get ware's prices
-            priceEquilibrium = Marketplace.getEquilibriumPrice(ware, false);
-            priceCurrent     = Marketplace.getPrice(null, ware.getWareID(), 1, false);
+            priceEquilibrium = Marketplace.getPrice(null, ware, 1, Marketplace.PriceType.EQUILIBRIUM_SELL);
+            priceCurrent     = Marketplace.getPrice(null, ware, 1, Marketplace.PriceType.CURRENT_SELL);
 
             // prevent division by zero errors
             if (priceEquilibrium <= 0.01f)

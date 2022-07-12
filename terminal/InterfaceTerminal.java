@@ -75,9 +75,7 @@ public class InterfaceTerminal implements InterfaceCommand
     *
     * @return directory of local save and config files
     */
-   public String getSaveDirectory() {
-      return "saves";
-   }
+   public String getSaveDirectory() { return "saves"; }
 
    /**
     * Returns how many more stacks of wares the given inventory may hold.
@@ -97,9 +95,8 @@ public class InterfaceTerminal implements InterfaceCommand
          if (inventoryToUse == null)
             return -1;
       }
-      else {
+      else
          inventoryToUse = inventory;
-      }
 
       // return space available
       if (inventorySpace - inventoryToUse.size() < 0)
@@ -132,9 +129,8 @@ public class InterfaceTerminal implements InterfaceCommand
          if (inventoryToUse == null)
             return;
       }
-      else {
+      else
          inventoryToUse = inventory;
-      }
 
       // check available inventory space before adding an item
       if (inventorySpace - inventoryToUse.size() > 0)
@@ -164,9 +160,8 @@ public class InterfaceTerminal implements InterfaceCommand
          if (inventoryToUse == null)
             return;
       }
-      else {
+      else
          inventoryToUse = inventory;
-      }
 
       // check availability before removing
       if (inventoryToUse.containsKey(wareID)) {
@@ -182,8 +177,6 @@ public class InterfaceTerminal implements InterfaceCommand
    /**
     * Returns the quantities and corresponding qualities of
     * wares with the given id the user has.
-    * <p>
-    * The first entry has the total quantity of wares found.
     * The list is ordered by their position within the user's inventory.
     *
     * @param wareID      unique ID used to refer to the ware
@@ -195,12 +188,6 @@ public class InterfaceTerminal implements InterfaceCommand
       String wareID) {
       // prepare a container for the wares
       LinkedList<Marketplace.Stock> waresFound = new LinkedList<Marketplace.Stock>();
-      wareID = Marketplace.translateWareID(wareID);
-      waresFound.add(new Marketplace.Stock(wareID, 0, 1.0f));
-
-      // check if ware id is empty
-      if (wareID == null || wareID.isEmpty())
-         return waresFound;
 
       // grab the right inventory
       HashMap<String, Integer> inventoryToUse;
@@ -209,22 +196,17 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if no inventory was found
          if (inventoryToUse == null) {
-            waresFound.getFirst().quantity = -1;
+            waresFound.add(new Marketplace.Stock(wareID, -1, 1.0f));
             return waresFound;
          }
       }
-      else {
+      else
          inventoryToUse = inventory;
-      }
 
       // if the ware is in the inventory, grab it
       if (inventoryToUse.containsKey(wareID) &&
-          inventoryToUse.get(wareID) >= 0) {
+          inventoryToUse.get(wareID) > 0)
          waresFound.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
-
-         // update record for total quantity
-         waresFound.getFirst().quantity = inventoryToUse.get(wareID);
-      }
 
          return waresFound;
    }

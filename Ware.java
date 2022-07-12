@@ -101,8 +101,9 @@ public abstract class Ware
    }
 
    /**
-    * Returns the price of the ware when supply and demand are balanced.
-    * @return equilibrium price of the ware
+    * Returns the price of the ware without considering
+    * supply and demand or additional multipliers/factors.
+    * @return unadjusted price of the ware
     */
    public float getBasePrice() {
       return priceBase;
@@ -110,7 +111,7 @@ public abstract class Ware
 
    /**
     * Returns the preferred human-readable alternate name for the ware.
-    * @return preferred alternate name for the ware
+    * @return ware's preferred alternate name
     */
    public String getAlias() {
       return alias;
@@ -503,10 +504,10 @@ public abstract class Ware
       // get components' prices
       for (Ware component : components) {
          // tally up base prices
-         priceComponentsEquilibrium += Marketplace.getEquilibriumPrice(component, true);
+         priceComponentsEquilibrium += Marketplace.getPrice(null, component, 1, Marketplace.PriceType.EQUILIBRIUM_BUY);
 
          // get current prices
-         priceComponentsCurrent += Marketplace.getPrice(null, component.getWareID(), 1, true);
+         priceComponentsCurrent += Marketplace.getPrice(null, component, 1, Marketplace.PriceType.CURRENT_BUY);
       }
 
       // solve for linked price effect
@@ -590,7 +591,7 @@ public abstract class Ware
       // sum ordering each component
       else {
          for (Ware componentRef : componentsAmounts.keySet())
-            totalCost += Marketplace.getPrice(null, componentRef.getWareID(), quantityToManufacture, true, false);
+            totalCost += Marketplace.getPrice(null, componentRef, quantityToManufacture, true, Marketplace.PriceType.CURRENT_BUY);
 
          // factor in manufacturing overhead
          if (this instanceof WareCrafted)
@@ -695,16 +696,16 @@ public abstract class Ware
          for (Map.Entry<Ware, Integer> entry : componentsAmounts.entrySet()) {
             // unfortunately, fluctuating prices necessitate
             // recalculating prices for different order quantities
-            totalCost += Marketplace.getPrice(null, entry.getKey().getWareID(),
+            totalCost += Marketplace.getPrice(null, entry.getKey(),
                                               acceptableQuantity * entry.getValue() / yield,
-                                              true, false);
+                                              true, Marketplace.PriceType.CURRENT_BUY);
 
             // calculate the cost of manufacturing one less ware since
             // unit price is the cost of manufacturing everything
             // minus the cost of manufacturing everything minus one
-            totalCostMinusOne += Marketplace.getPrice(null, entry.getKey().getWareID(),
+            totalCostMinusOne += Marketplace.getPrice(null, entry.getKey(),
                                                       (acceptableQuantity - 1) * entry.getValue() / yield,
-                                                      true, false);
+                                                      true, Marketplace.PriceType.CURRENT_BUY);
          }
 
          // factor in manufacturing overhead

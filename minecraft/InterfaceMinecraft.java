@@ -389,11 +389,6 @@ public class InterfaceMinecraft implements InterfaceCommand
       String wareID) {
       // prepare a container for the wares
       LinkedList<Marketplace.Stock> waresFound = new LinkedList<Marketplace.Stock>();
-      waresFound.add(new Marketplace.Stock(wareID, 0, 1.0f));
-
-      // check if ware id is empty
-      if (wareID == null || wareID.isEmpty())
-         return waresFound;
 
       // prepare to message the player
       EntityPlayer player = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
@@ -402,7 +397,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       IItemHandler inventory = getInventory(playerID, coordinates);
       // if no inventory was found
       if (inventory == null) {
-         waresFound.getFirst().quantity = -1;
+         waresFound.add(new Marketplace.Stock(wareID, -1, 1.0f));
          return waresFound;
       }
 
@@ -411,7 +406,6 @@ public class InterfaceMinecraft implements InterfaceCommand
       int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
       ItemStack itemStack;    // wares in the slot being parsed
       String itemID = "";      // temporary variable for writing ware IDs for each item stack
-      int quantity = 0;       // total amount of wares found
       float percentWorth;     // holds ware's worth based on how damaged the ware is
       int maxSlots = 0;        // size of the inventory
       String oreName = "";       // holds the Forge OreDictionary name being used
@@ -454,14 +448,12 @@ public class InterfaceMinecraft implements InterfaceCommand
       }
 
       // search for the ware within the player's inventory
-      if (inventory instanceof PlayerInvWrapper) {
+      if (inventory instanceof PlayerInvWrapper)
          // Only check slots 0-35 since those compose the main inventory and the hotbar.
          maxSlots = 36;
-      }
       // for other inventories, check everything
-      else {
+      else
          maxSlots = inventory.getSlots();
-      }
 
       for (int slot = 0; slot < maxSlots; slot++) {
          // grab wares in current inventory slot
@@ -485,8 +477,6 @@ public class InterfaceMinecraft implements InterfaceCommand
               (itemStack.getMetadata() == meta || itemStack.isItemStackDamageable())) ||
              (usingOreName &&
                doesItemstackUseOreName(oreName, itemStack))) {
-            // update total amount of wares found
-            quantity += itemStack.getCount();
 
             // if an OreDictionary name is being used
             // and the item exists in the market,
@@ -516,9 +506,6 @@ public class InterfaceMinecraft implements InterfaceCommand
             }
          }
       }
-
-      // update record for total quantity
-      waresFound.getFirst().quantity = quantity;
 
       return waresFound;
    }

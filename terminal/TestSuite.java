@@ -12839,7 +12839,7 @@ public class TestSuite
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1] + 10;
          testWare4.setQuantity(wareQuantity); // set stock to be high
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, true) * wareLevel * Config.investmentCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -13056,7 +13056,7 @@ public class TestSuite
          }
 
          testWare4.setQuantity(wareQuantity - 1);
-         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, true) * wareLevel * Config.investmentCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
          baosOut.reset(); // clear buffer holding console output
@@ -13084,7 +13084,7 @@ public class TestSuite
          InterfaceTerminal.serviceRequestInvest(new String[]{"minecraft:material4"});
 
          testWare4.setQuantity((int) (testWare4.getQuantity() * 1.04));
-         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.investmentCostPerHierarchyLevel;
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, true) * wareLevel * Config.investmentCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
          InterfaceTerminal.serviceRequestInvest(new String[]{"yes"});
@@ -20743,8 +20743,11 @@ public class TestSuite
                             ", should be " + quantityExpected +
                             "\n      quantity traded:   " + quantityTraded +
                             "\n      quantity expected: " + quantityToTrade +
-                            "\n      diff:              " + (quantityTraded - quantityToTrade) +
-                            "\n      unit price:        " + Marketplace.getPrice(TRADER_ID, WARE_ID, 1, isPurchase, false));
+                            "\n      diff:              " + (quantityTraded - quantityToTrade));
+         if (isPurchase)
+            TEST_OUTPUT.println("      unit price:        " + Marketplace.getPrice(TRADER_ID, ware, 1, false, Marketplace.PriceType.CURRENT_BUY));
+         else
+            TEST_OUTPUT.println("      unit price:        " + Marketplace.getPrice(TRADER_ID, ware, 1, false, Marketplace.PriceType.CURRENT_SELL));
          errorFound = true;
       }
       // check account funds
