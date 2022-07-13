@@ -1674,9 +1674,7 @@ public class Marketplace {
       if (Config.chargeTransactionFees &&
           Config.transactionFeeBuying != 0.0f) {
          // find fee's charge
-         float fee = Config.transactionFeeBuying;
-         if (Config.transactionFeeBuyingIsMult)
-            fee *= price;
+         float fee = calcTransactionFeeBuying(price);
 
          // check whether a fee collection account should be used
          if (Config.transactionFeesShouldPutFeesIntoAccount)
@@ -1801,9 +1799,7 @@ public class Marketplace {
           minUnitPrice >= 0.0f) {
          // calculate potential income and fee
          float price = getPrice(null, ware, quantityToSell, false, PriceType.CURRENT_SELL) * pricePercent;
-         float fee   = Config.transactionFeeSelling;
-         if (Config.transactionFeeSellingIsMult)
-            fee *= price;
+         float fee   = calcTransactionFeeSelling(price);
 
          // if selling is guaranteed to lose money, don't sell
          if (fee != 0.0f && // if the fee is zero, it cannot incur costs
@@ -1843,14 +1839,11 @@ public class Marketplace {
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSelling != 0.0f) {
          // find fee's charge
-         float fee = Config.transactionFeeSelling;
-         if (Config.transactionFeeSellingIsMult) {
-            fee *= salesResults[0];
+         float fee = calcTransactionFeeSelling(salesResults[0]);
 
-            // stop if the fee is zero
-            if (fee == 0.0f)
-               return;
-         }
+         // stop if the fee is zero
+         if (fee == 0.0f)
+            return;
 
          // check whether a fee collection account should be used
          if (Config.transactionFeesShouldPutFeesIntoAccount)
@@ -1940,9 +1933,7 @@ public class Marketplace {
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSelling != 0.0f) {
          // find fee's charge
-         float fee = Config.transactionFeeSelling;
-         if (Config.transactionFeeSellingIsMult)
-            fee *= salesResults[0];
+         float fee = calcTransactionFeeSelling(salesResults[0]);
 
          // check whether a fee collection account should be used
          if (Config.transactionFeesShouldPutFeesIntoAccount)
@@ -2180,12 +2171,8 @@ public class Marketplace {
          priceBuy = getPrice(playerID, ware, 1, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
 
          // if necessary, factor in transaction fee
-         if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
-               if (Config.transactionFeeBuyingIsMult)
-                  priceBuy += priceBuy * Config.transactionFeeBuying;
-               else
-                  priceBuy += Config.transactionFeeBuying;
-         }
+         if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f)
+            priceBuy += calcTransactionFeeBuying(priceBuy);
 
          // print the untradeable ware's price
          if (ALIAS != null &&
@@ -2207,21 +2194,13 @@ public class Marketplace {
          priceBuy = getPrice(playerID, ware, 1, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
 
          // if necessary, factor in transaction fee
-         if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f) {
-               if (Config.transactionFeeBuyingIsMult)
-                  priceBuy += priceBuy * Config.transactionFeeBuying;
-               else
-                  priceBuy += Config.transactionFeeBuying;
-         }
+         if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f)
+            priceBuy += calcTransactionFeeBuying(priceBuy);
       }
 
       // if necessary, factor in selling transaction fee
-      if (Config.chargeTransactionFees && Config.transactionFeeSelling != 0.00f) {
-         if (Config.transactionFeeSellingIsMult)
-            priceSell -= priceSell * Config.transactionFeeSelling;
-         else
-            priceSell -= Config.transactionFeeSelling;
-      }
+      if (Config.chargeTransactionFees && Config.transactionFeeSelling != 0.00f)
+         priceSell -= calcTransactionFeeSelling(priceSell);
 
       // if the ware has an alias, use it
       if (ALIAS != null &&
@@ -2282,20 +2261,10 @@ public class Marketplace {
 
          // if necessary, include transaction fees
          if (Config.chargeTransactionFees) {
-            if (Config.transactionFeeBuying != 0.00f) {
-               if (Config.transactionFeeBuyingIsMult)
-                  priceBuy += priceBuy * Config.transactionFeeBuying;
-               else
-                  priceBuy += Config.transactionFeeBuying;
-            }
-
-            // find selling fee
-            if (Config.transactionFeeSelling != 0.00f) {
-               if (Config.transactionFeeSellingIsMult)
-                  priceSell -= priceSell * Config.transactionFeeSelling;
-               else
-                  priceSell -= Config.transactionFeeSelling;
-            }
+            if (Config.transactionFeeBuying != 0.00f)
+               priceBuy += calcTransactionFeeBuying(priceBuy);
+            if (Config.transactionFeeSelling != 0.00f)
+               priceSell -= calcTransactionFeeSelling(priceSell);
          }
 
          // report prices
@@ -2354,12 +2323,8 @@ public class Marketplace {
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
                // add on fee
-               if (Config.transactionFeeSelling != 0.00f) {
-                  if (Config.transactionFeeSellingIsMult)
-                     priceSell -= priceSell * Config.transactionFeeSelling;
-                  else
-                     priceSell -= Config.transactionFeeSelling;
-               }
+               if (Config.transactionFeeSelling != 0.00f)
+                  priceSell -= calcTransactionFeeSelling(priceSell);
             }
 
             // report price
@@ -2372,12 +2337,8 @@ public class Marketplace {
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
                // add on fee
-               if (Config.transactionFeeSelling != 0.00f) {
-                  if (Config.transactionFeeSellingIsMult)
-                     priceSell -= priceSell * Config.transactionFeeSelling;
-                  else
-                     priceSell -= Config.transactionFeeSelling;
-               }
+               if (Config.transactionFeeSelling != 0.00f)
+                  priceSell -= calcTransactionFeeSelling(priceSell);
             }
 
             // report price
@@ -2580,5 +2541,49 @@ public class Marketplace {
 
       // truncate the price to avoid rounding and multiplication errors
       return CommandEconomy.truncatePrice(currentPriceAverage);
+   }
+
+   /**
+    * Returns the fee to be paid based on a given price.
+    * <p>
+    * Complexity: O(1)
+    * @return purchasing fee
+    */
+   public static float calcTransactionFeeBuying(float price) {
+      // find fee's charge
+      float fee = Config.transactionFeeBuying;
+      if (Config.transactionFeeBuyingIsMult) {
+         fee *= price;
+
+         // if the price and fee percentage have opposite signs, flip the fee's sign
+         // so positive rates don't pay out anything and negative rates don't take anything
+         if ((fee < 0.0f && Config.transactionFeeBuying > 0.0f) ||
+             (Config.transactionFeeBuying < 0.0f && fee > 0.0f))
+            fee = -fee;
+      }
+
+      return fee;
+   }
+
+   /**
+    * Returns the fee to be paid based on a given price.
+    * <p>
+    * Complexity: O(1)
+    * @return offering fee
+    */
+   public static float calcTransactionFeeSelling(float price) {
+      // find fee's charge
+      float fee = Config.transactionFeeSelling;
+      if (Config.transactionFeeSellingIsMult) {
+         fee *= price;
+
+         // if the price and fee percentage have opposite signs, flip the fee's sign
+         // so positive rates don't pay out anything and negative rates don't take anything
+         if ((fee < 0.0f && Config.transactionFeeSelling > 0.0f) ||
+             (Config.transactionFeeSelling < 0.0f && fee > 0.0f))
+            fee = -fee;
+      }
+
+      return fee;
    }
 }

@@ -728,8 +728,15 @@ public class Account {
           Config.transactionFeeSending != 0.0f) {
          // find fee's charge
          fee = Config.transactionFeeSending;
-         if (Config.transactionFeeSendingIsMult)
+         if (Config.transactionFeeSendingIsMult) {
             fee *= quantity;
+
+            // if the price and fee percentage have opposite signs, flip the fee's sign
+            // so positive rates don't pay out anything and negative rates don't take anything
+            if ((fee < 0.0f && Config.transactionFeeSending > 0.0f) ||
+                (Config.transactionFeeSending < 0.0f && fee > 0.0f))
+               fee = -fee;
+         }
 
          // stop if there isn't enough money
          if (money + canNegativeFeeBePaid(fee) < quantity + fee) {

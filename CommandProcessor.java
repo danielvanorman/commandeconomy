@@ -312,8 +312,15 @@ public class CommandProcessor
          if (Config.chargeTransactionFees &&
              Config.transactionFeeInvesting != 0.0f) {
             // find fee's charge
-            if (Config.transactionFeeInvestingIsMult)
+            if (Config.transactionFeeInvestingIsMult) {
                fee = investmentOffer.price * Config.transactionFeeInvesting;
+
+               // if the price and fee percentage have opposite signs, flip the fee's sign
+               // so positive rates don't pay out anything and negative rates don't take anything
+               if ((fee < 0.0f && Config.transactionFeeInvesting > 0.0f) ||
+                   (Config.transactionFeeInvesting < 0.0f && fee > 0.0f))
+                  fee = -fee;
+            }
             else
                fee = Config.transactionFeeInvesting;
 
@@ -358,8 +365,15 @@ public class CommandProcessor
          if (Config.chargeTransactionFees &&
              Config.transactionFeeInvesting != 0.0f) {
             // find fee's charge
-            if (Config.transactionFeeInvestingIsMult)
+            if (Config.transactionFeeInvestingIsMult) {
                fee = investmentOffer.price * Config.transactionFeeInvesting;
+
+               // if the price and fee percentage have opposite signs, flip the fee's sign
+               // so positive rates don't pay out anything and negative rates don't take anything
+               if ((fee < 0.0f && Config.transactionFeeInvesting > 0.0f) ||
+                   (Config.transactionFeeInvesting < 0.0f && fee > 0.0f))
+                  fee = -fee;
+            }
             else
                fee = Config.transactionFeeInvesting;
 

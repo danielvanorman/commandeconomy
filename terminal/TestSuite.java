@@ -15212,74 +15212,147 @@ public class TestSuite
 
    /**
     * Evaluates whether a transaction fee was processed correctly
-    * for a typical case when buying something.
+    * for a typical case when buying or selling something.
     * Prints errors, if found.
     * <p>
     * Complexity: O(1)
-    * @param ware                  the ware to be purchased
+    * @param ware                  the ware to be purchased or sold
     * @param quantityWare          what to set the ware's quantity available for sale to
-    * @param quantityToTrade       how much of the ware to purchase
+    * @param quantityInventory     how many units the player's inventory should have when selling
+    * @param quantityToTrade       how much of the ware to purchase or sell
     * @param transactionFeesAmount transaction fee rate to charge
     * @param accountMoney          what to set the player's account funds to
-    * @param testNumber            test number to use when printing errors
-    * @param printTestNumber       whether to print test numbers
+    * @param testNumber            test number to use when printing errors; 0 means don't print a number
     * @param shouldOverorder       whether to request trading more than the quantity specified while
     *                              constraining resources to only accommodate the quantity specified
+    * @param isPurchase            whether the transaction should buy wares
     * @return true if an error was discovered
     */
-   private static boolean testTransActFeeBuy(Ware ware, int quantityWare, int quantityToTrade,
-                                             float transactionFeesAmount, float accountMoney,
-                                             int testNumber, boolean printTestNumber,
-                                             boolean shouldOverorder) {
+   private static boolean testerTransActFeeTrade(Ware ware, int quantityWare, int quantityInventory,
+                                                 int quantityToTrade, float transactionFeesAmount,
+                                                 float accountMoney, int testNumber,
+                                                 boolean shouldOverorder, boolean isPurchase) {
       String  testIdentifier;     // can be added to printed errors to differentiate between tests
       boolean errorFound = false; // assume innocence until proven guilty
 
-      float price;         // how much traded wares should cost
-      float fee;           // transaction fee to be paid
-      float expectedMoney; // what buyer's funds should be after transferring
+      String  expectedOutput = "";   // what console output should be
+      float   price;                 // how much traded wares should cost
+      float   fee;                   // transaction fee to be paid
+      float   expectedMoney;         // what seller's funds should be after transferring
+      boolean isProfitable   = true; // whether selling will make the seller money
 
-      if (printTestNumber)
+      // repeatedly-used constants
+      final String WARE_ID = ware.getWareID();
+
+      if (testNumber != 0)
          testIdentifier = " (#" + testNumber + ")";
       else
          testIdentifier = "";
 
       // set up test conditions
-      Config.transactionFeeBuying = transactionFeesAmount;
+      if (isPurchase)
+         Config.transactionFeeBuying = transactionFeesAmount;
+      else {
+         Config.transactionFeeSelling = transactionFeesAmount;
+         InterfaceTerminal.inventory.clear();
+         InterfaceTerminal.inventory.put(ware.getWareID(), quantityInventory);
+      }
       ware.setQuantity(quantityWare);
       playerAccount.setMoney(accountMoney);
 
       // set up test oracles
       Config.chargeTransactionFees = false; // calculate transaction price and fee separately
-      price                        = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, true);
-      Config.chargeTransactionFees = true;
-      if (Config.transactionFeeBuying != 0.00f) { // only expect a fee if feature is enabled
-         fee                       = Config.transactionFeeBuying;
-         if (Config.transactionFeeBuyingIsMult)       // if fee is a multiplier rather than a flat rate
-            fee                   *= price;
-         fee                       = CommandEconomy.truncatePrice(fee); // avoid precision errors using truncation
+      if (isPurchase) {
+         price                     = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
+         if (Config.transactionFeeBuying != 0.00f) { // only expect a fee if feature is enabled
+            fee                    = Config.transactionFeeBuying;
+            if (Config.transactionFeeBuyingIsMult) { // if fee is a multiplier rather than a flat rate
+               fee                *= price;
+
+               // if the price and fee percentage have opposite signs, flip the fee's sign
+               // so positive rates don't pay out anything and negative rates don't take anything
+               if ((Config.transactionFeeBuying > 0.0f && fee < 0.0f) ||
+                   (Config.transactionFeeBuying < 0.0f && fee > 0.0f))
+                  fee = -fee;
+            }
+            fee                    = CommandEconomy.truncatePrice(fee); // avoid precision errors using truncation
+         }
+         else
+            fee                    = 0.0f;
       }
-      else
-         fee                       = 0.0f;
-      if (shouldOverorder)                  // if ordering more than can be fulfilled, don't expect to fill the order
+      else {
+         price                     = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
+         if (Config.transactionFeeSelling != 0.00f) { // only expect a fee if feature is enabled
+            fee                    = Config.transactionFeeSelling;
+            if (Config.transactionFeeSellingIsMult) { // if fee is a multiplier rather than a flat rate
+               fee                *= price;
+
+               // if the price and fee percentage have opposite signs, flip the fee's sign
+               // so positive rates don't pay out anything and negative rates don't take anything
+               if ((Config.transactionFeeSelling > 0.0f && fee < 0.0f) ||
+                   (Config.transactionFeeSelling < 0.0f && fee > 0.0f))
+                  fee = -fee;
+            }
+            fee                    = CommandEconomy.truncatePrice(fee); // avoid precision errors using truncation
+         }
+         else
+            fee                    = 0.0f;
+      }
+      Config.chargeTransactionFees = true;
+      if (shouldOverorder) // if ordering more than can be fulfilled, don't expect to fill the order
             accountMoney           = CommandEconomy.truncatePrice(price + fee + 0.5f); // avoid precision errors using truncation
-      expectedMoney                = CommandEconomy.truncatePrice(accountMoney - price - fee);
+      // if buying, subtract money from account funds
+      if (isPurchase) {
+         expectedMoney             = CommandEconomy.truncatePrice(accountMoney - price - fee);
+         expectedOutput            = Config.transactionFeeBuyingMsg + CommandEconomy.PRICE_FORMAT.format(fee);
+      }
+      // evaluate whether selling will make a profit
+      // to determine whether to sell anything
+      else {
+         if (price >= 0.0f) // if the ware's price is negative, assume it is okay to sell at a negative unit price
+            isProfitable           = price - fee > 0.0f;
+         if (!isProfitable) // if selling won't make a profit, don't sell
+            expectedMoney          = accountMoney;
+         else {
+            expectedMoney          = CommandEconomy.truncatePrice(accountMoney + price - fee);
+            expectedOutput         = Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee);
+         }
+      }
 
       // test as normal
       baosOut.reset(); // clear buffer holding console output
       if (!shouldOverorder) {
-         Marketplace.buy(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 0.0f, 1.0f, false);
+         if (isPurchase)
+            Marketplace.buy(PLAYER_ID, null, null, WARE_ID, quantityToTrade, 0.0f, 1.0f, false);
+         else {
+            // if the ware's price is negative, assume it is okay to sell at a negative unit price
+            if (price < 0.0f)
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityToTrade, -100.0f, 1.0f);
+            else
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityToTrade, 0.1f, 1.0f);
+         }
       }
 
       // order more than can be fulfilled
       else {
          playerAccount.setMoney(accountMoney); // constrain resources
-         Marketplace.buy(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade * 2, 0.0f, 1.0f, false);
+         if (isPurchase)
+            Marketplace.buy(PLAYER_ID, null, null, WARE_ID, quantityToTrade * 2, 0.0f, 1.0f, false);
+         else {
+            // if the ware's price is negative, assume it is okay to sell at a negative unit price
+            if (price < 0.0f)
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityInventory, -100.0f, 1.0f);
+            else
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityInventory, 0.1f, 1.0f);
+         }
       }
 
       // check ware properties
-      if (ware.getQuantity() != quantityWare - quantityToTrade) {
+      if (isPurchase)
+         quantityToTrade = -quantityToTrade; // to ease checking ware's quantity available for sale
+      if (isProfitable && ware.getQuantity() != quantityWare + quantityToTrade) {
          TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
-                            ", should be " + (quantityWare - quantityToTrade));
+                            ", should be " + (quantityWare + quantityToTrade));
          errorFound = true;
       }
       // check account funds
@@ -15293,10 +15366,10 @@ public class TestSuite
          errorFound = true;
       }
       // check console output
-      if (fee != 0.0f && !baosOut.toString().contains(Config.transactionFeeBuyingMsg + CommandEconomy.PRICE_FORMAT.format(fee))) {
+      if (isProfitable && fee != 0.0f && !baosOut.toString().contains(expectedOutput)) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
-      } else if (fee == 0.0f && baosOut.toString().contains(Config.transactionFeeBuyingMsg)) {
+      } else if ((!isProfitable || fee == 0.0f) && (baosOut.toString().contains(Config.transactionFeeBuyingMsg) || baosOut.toString().contains(Config.transactionFeeSellingMsg))) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
          errorFound = true;
       }
@@ -15309,16 +15382,13 @@ public class TestSuite
     * for a typical case when buying something.
     * Prints errors, if found.
     * <p>
-    * Assumes ware quantity and account funds should be high,
-    * and that testing numbers should be used.
-    * If the given testing number is 0, then testing numbers are not used.
+    * Assumes ware quantity and account funds should be high.
     * <p>
     * Complexity: O(1)
     * @param ware                  the ware to be purchased
     * @param quantityToTrade       how much of the ware to purchase
     * @param transactionFeesAmount transaction fee rate to charge
-    * @param testNumber            test number to use when printing errors
-    * @param printTestNumber       whether to print test numbers
+    * @param testNumber            test number to use when printing errors; 0 means don't print a number
     * @return true if an error was discovered
     */
    private static boolean testTransActFeeBuy(Ware ware, int quantityToTrade,
@@ -15335,8 +15405,8 @@ public class TestSuite
       // find appropriate funds
       float accountMoney = CommandEconomy.truncatePrice((float) Math.pow(10.0, exponent));
 
-      return testTransActFeeBuy(ware, Config.quanMid[ware.getLevel()], quantityToTrade,
-                                transactionFeesAmount, accountMoney, testNumber, testNumber != 0, false);
+      return testerTransActFeeTrade(ware, Config.quanMid[ware.getLevel()], 0, quantityToTrade,
+                                    transactionFeesAmount, accountMoney, testNumber, false, true);
    }
 
    /**
@@ -15428,124 +15498,19 @@ public class TestSuite
     * for a typical case of selling something.
     * Prints errors, if found.
     * <p>
-    * Complexity: O(1)
-    * @param ware                  the ware to be sold
-    * @param quantityInventory     how many units the player's inventory should have
-    * @param quantityToTrade       how much of the ware to sell
-    * @param transactionFeesAmount transaction fee rate to charge
-    * @param accountMoney          what to set the player's account funds to
-    * @param testNumber            test number to use when printing errors
-    * @param printTestNumber       whether to print test numbers
-    * @param shouldOverorder       whether to request trading more than the quantity specified while
-    *                              constraining resources to only accommodate the quantity specified
-    * @return true if an error was discovered
-    */
-   private static boolean testTransActFeeSell(Ware ware, int quantityInventory, int quantityToTrade,
-                                              float transactionFeesAmount, float accountMoney,
-                                              int testNumber, boolean printTestNumber,
-                                              boolean shouldOverorder) {
-      String  testIdentifier;     // can be added to printed errors to differentiate between tests
-      boolean errorFound = false; // assume innocence until proven guilty
-
-      float   price;               // how much traded wares should cost
-      float   fee;                 // transaction fee to be paid
-      float   expectedMoney;       // what seller's funds should be after transferring
-      int     quantityWare;        // how much quantity available for sale the ware has
-      boolean isProfitable = true; // whether selling will make the seller money
-
-      if (printTestNumber)
-         testIdentifier = " (#" + testNumber + ")";
-      else
-         testIdentifier = "";
-
-      // set up test conditions
-      Config.transactionFeeSelling = transactionFeesAmount;
-      quantityWare = Config.quanMid[ware.getLevel()];
-      ware.setQuantity(quantityWare);
-      playerAccount.setMoney(accountMoney);
-      InterfaceTerminal.inventory.clear();
-      InterfaceTerminal.inventory.put(ware.getWareID(), quantityInventory);
-
-      // set up test oracles
-      Config.chargeTransactionFees = false;  // calculate transaction price and fee separately
-      price                        = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, false);
-      Config.chargeTransactionFees = true;
-      if (Config.transactionFeeSelling != 0.00f) { // only expect a fee if feature is enabled
-         fee                       = Config.transactionFeeSelling;
-         if (Config.transactionFeeSellingIsMult)       // if fee is a multiplier rather than a flat rate
-            fee                   *= price;
-         fee                       = CommandEconomy.truncatePrice(fee); // avoid precision errors using truncation
-      }
-      else
-         fee                       = 0.0f;
-      if (shouldOverorder)    // if ordering more than can be fulfilled, don't expect to fill the order
-            accountMoney           = CommandEconomy.truncatePrice(price + fee + 0.5f); // avoid precision errors using truncation
-      isProfitable                 = price - fee > 0.0f;
-      if (!isProfitable) // if selling won't make a profit, don't sell
-         expectedMoney             = accountMoney;
-      else
-         expectedMoney             = CommandEconomy.truncatePrice(accountMoney + price - fee);
-
-      // test as normal
-      baosOut.reset(); // clear buffer holding console output
-      if (!shouldOverorder) {
-         Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 0.1f, 1.0f);
-      }
-
-      // order more than can be fulfilled
-      else {
-         playerAccount.setMoney(accountMoney); // constrain resources
-         Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityInventory, 0.1f, 1.0f);
-      }
-
-      // check ware properties
-      if (isProfitable && ware.getQuantity() != quantityWare + quantityToTrade) {
-         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
-                            ", should be " + (quantityWare + quantityToTrade));
-         errorFound = true;
-      }
-      // check account funds
-      if (expectedMoney + FLOAT_COMPARE_PRECISION < playerAccount.getMoney() ||
-          playerAccount.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
-         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + playerAccount.getMoney() + ", should be " + expectedMoney +
-                            "\n      price - fee paid: " + (playerAccount.getMoney() - accountMoney) +
-                            "\n      price expected:   " + price +
-                            "\n      diff:             " + (playerAccount.getMoney() - accountMoney - price) +
-                            "\n      fee expected:     " + fee);
-         errorFound = true;
-      }
-      // check console output
-      if (isProfitable && fee != 0.0f && !baosOut.toString().contains(Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee))) {
-         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
-         errorFound = true;
-      } else if ((!isProfitable || fee == 0.0f) && baosOut.toString().contains(Config.transactionFeeSellingMsg)) {
-         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
-         errorFound = true;
-      }
-
-      return errorFound;
-   }
-
-   /**
-    * Evaluates whether a transaction fee was processed correctly
-    * for a typical case of selling something.
-    * Prints errors, if found.
-    * <p>
-    * Assumes inventory quantity and account funds should be high,
-    * and that testing numbers should be used.
+    * Assumes inventory quantity and account funds should be high.
     * <p>
     * Complexity: O(1)
     * @param ware                  the ware to be purchased
     * @param quantityToTrade       how much of the ware to purchase
     * @param transactionFeesAmount transaction fee rate to charge
-    * @param testNumber            test number to use when printing errors
-    * @param printTestNumber       whether to print test numbers
+    * @param testNumber            test number to use when printing errors; 0 means don't print a number
     * @return true if an error was discovered
     */
    private static boolean testTransActFeeSell(Ware ware, int quantityToTrade,
                                               float transactionFeesAmount, int testNumber) {
-      return testTransActFeeSell(ware, Config.quanMid[ware.getLevel()], quantityToTrade,
-                                 transactionFeesAmount, 1000.0f, testNumber, testNumber != 0, false);
+      return testerTransActFeeTrade(ware, Config.quanMid[ware.getLevel()], Config.quanMid[ware.getLevel()], quantityToTrade,
+                                    transactionFeesAmount, 1000.0f, testNumber, false, false);
    }
 
    /**
@@ -16359,6 +16324,10 @@ public class TestSuite
       resetTestEnvironment();
       Config.chargeTransactionFees = true;
       FileWriter fileWriter;
+      // add a ware with a negative price
+      Ware wareWithNegativePrice = new WareMaterial("minecraft:rotten_flesh", "rotten_flesh", -1.0f, 1000, (byte) 0);
+      wares.put("minecraft:rotten_flesh", wareWithNegativePrice);
+      wareAliasTranslations.put("rotten_flesh", "minecraft:rotten_flesh");
 
       // track changes to variables
       Account accountFeeCollection;
@@ -16382,12 +16351,12 @@ public class TestSuite
 
          TEST_OUTPUT.println("transaction fees - buy(): zero rates");
          Config.transactionFeeBuyingIsMult = true;
-         errorFound |= testTransActFeeBuy(testWare1, Config.quanMid[testWare1.getLevel()],
-                                          16, 0.0f, 17.0f, 1, true, false);
+         errorFound |= testerTransActFeeTrade(testWare1, Config.quanMid[testWare1.getLevel()], 0,
+                                              16, 0.0f, 17.0f, 1, false, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testTransActFeeBuy(testWare4, Config.quanMid[testWare4.getLevel()],
-                                          1, 0.0f, testWare4.getBasePrice(), 2, true, false);
+         errorFound |= testerTransActFeeTrade(testWare4, Config.quanMid[testWare4.getLevel()], 0,
+                                              1, 0.0f, testWare4.getBasePrice(), 2, false, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): flat rates, positive");
          errorFound |= testTransActFeeBuy(testWare2, 48, 10.00f, 1);
@@ -16402,6 +16371,24 @@ public class TestSuite
          errorFound |= testTransActFeeBuy(testWareC2, 24, -124.50f, 2);
 
          errorFound |= testTransActFeeBuy(testWareP2, 7, -0.86f, 3);
+
+         TEST_OUTPUT.println("transaction fees - buy(): flat rates, positive, negative prices");
+         // enable negative prices
+         Config.priceFloor         = 1.0f;
+         Config.priceFloorAdjusted = 0.0f;
+
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice,  10,  10.00f, 1);
+
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice, 100,   5.00f, 2);
+
+         TEST_OUTPUT.println("transaction fees - buy(): flat rates, negative, negative prices");
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice,  10, -10.00f, 1);
+
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice, 100,  -5.00f, 2);
+
+         // disable negative prices
+         Config.priceFloor         =  0.0f;
+         Config.priceFloorAdjusted =  1.0f;
 
          TEST_OUTPUT.println("transaction fees - buy(): percent rates, positive");
          Config.transactionFeeBuyingIsMult = true;
@@ -16418,31 +16405,49 @@ public class TestSuite
 
          errorFound |= testTransActFeeBuy(testWareC1, 74, -0.24f, 3);
 
+         TEST_OUTPUT.println("transaction fees - buy(): percent rates, positive, negative prices");
+         // enable negative prices
+         Config.priceFloor         = 1.0f;
+         Config.priceFloorAdjusted = 0.0f;
+
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice,  10,  1.00f, 1);
+
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice, 100,  0.50f, 2);
+
+         TEST_OUTPUT.println("transaction fees - buy(): percent rates, negative, negative prices");
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice,  10, -1.00f, 1);
+
+         errorFound |= testTransActFeeBuy(wareWithNegativePrice, 100, -0.50f, 2);
+
+         // disable negative prices
+         Config.priceFloor         =  0.0f;
+         Config.priceFloorAdjusted =  1.0f;
+
          TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, positive");
-         errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          10, 1.00f, 0.0f, 1, true, true);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+                                              10, 1.00f, 0.0f, 1, true, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          10, 10.00f, 0.0f, 2, true, true);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+                                              10, 10.00f, 0.0f, 2, true, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, negative");
          Config.transactionFeeBuyingIsMult = true;
-         errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          10, -0.10f, 0.0f, 1, true, true);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+                                              10, -0.10f, 0.0f, 1, true, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          10, -5.00f, 0.0f, 2, true, true);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+                                              10, -5.00f, 0.0f, 2, true, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, extremely negative");
          Config.transactionFeeBuyingIsMult = true;
-         errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          64, -1.00f, 0.0f, 1, true, false);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+                                              64, -1.00f, 0.0f, 1, false, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testTransActFeeBuy(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          10, testWareC1.getBasePrice() * -11.0f, 0.0f, 2, true, false);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+                                              10, testWareC1.getBasePrice() * -11.0f, 0.0f, 2, false, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): changing fee applied message");
          // create test config file
@@ -16600,6 +16605,10 @@ public class TestSuite
          if (accountFeeCollection == null)
             accountFeeCollection = Account.makeAccount(Config.transactionFeesAccount, null);
 
+         // add a ware with a negative price
+         wares.put("minecraft:rotten_flesh", wareWithNegativePrice);
+         wareAliasTranslations.put("rotten_flesh", "minecraft:rotten_flesh");
+
          TEST_OUTPUT.println("transaction fees - buy(): fee account, positive rates");
          errorFound |= testTransActFeeBuyAccount(testWare4,   10, 0.87f,    0.0f, 1, true);
 
@@ -16637,12 +16646,12 @@ public class TestSuite
 
          TEST_OUTPUT.println("transaction fees - sell(): zero rates");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testTransActFeeSell(testWare1, Config.quanMid[testWare1.getLevel()],
-                                           16, 0.0f, 0.0f, 1, true, false);
+         errorFound |= testerTransActFeeTrade(testWare1, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare1.getLevel()],
+                                              16, 0.0f, 0.0f, 1, false, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testTransActFeeSell(testWare4, Config.quanMid[testWare4.getLevel()],
-                                           Config.quanMid[testWare4.getLevel()], 0.0f, 0.0f, 2, true, false);
+         errorFound |= testerTransActFeeTrade(testWare4, Config.quanMid[testWare4.getLevel()], Config.quanMid[testWare4.getLevel()],
+                                              Config.quanMid[testWare4.getLevel()], 0.0f, 0.0f, 2, false, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): flat rates, positive");
          Config.transactionFeeSellingIsMult = false;
@@ -16674,38 +16683,56 @@ public class TestSuite
 
          errorFound |= testTransActFeeSell(testWareC1, 74, -0.24f, 3);
 
+         TEST_OUTPUT.println("transaction fees - sell(): percent rates, positive, negative prices");
+         // enable negative prices
+         Config.priceFloor         = 1.0f;
+         Config.priceFloorAdjusted = 0.0f;
+
+         errorFound |= testTransActFeeSell(wareWithNegativePrice,  10,  0.10f, 1);
+
+         errorFound |= testTransActFeeSell(wareWithNegativePrice, 100,  0.50f, 2);
+
+         TEST_OUTPUT.println("transaction fees - sell(): percent rates, negative, negative prices");
+         errorFound |= testTransActFeeSell(wareWithNegativePrice,  10, -0.10f, 1);
+
+         errorFound |= testTransActFeeSell(wareWithNegativePrice, 100, -0.50f, 2);
+
+         // disable negative prices
+         Config.priceFloor         =  0.0f;
+         Config.priceFloorAdjusted =  1.0f;
+
          TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, positive");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                           Config.quanMid[testWareC1.getLevel()] / 2,
-                                           1.10f, 0.0f, 1, true, true);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
+                                              Config.quanMid[testWareC1.getLevel()] / 2,
+                                              1.10f, 0.0f, 1, true, false);
 
-         errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                           Config.quanMid[testWareC1.getLevel()] / 2,
-                                           1.00f, 0.0f, 2, true, true);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
+                                              Config.quanMid[testWareC1.getLevel()] / 2,
+                                              1.00f, 0.0f, 2, true, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                           Config.quanMid[testWareC1.getLevel()] / 2,
-                                           10000.00f, 0.0f, 3, true, true);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
+                                              Config.quanMid[testWareC1.getLevel()] / 2,
+                                              10000.00f, 0.0f, 3, true, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, negative");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testTransActFeeSell(testWareC1, 300, 300,
-                                           -0.10f, 0.0f, 1, true, false);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 300, 300,
+                                              -0.10f, 0.0f, 1, false, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testTransActFeeSell(testWareC1, 300, 300,
-                                           -10.00f, 0.0f, 2, true, false);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], 300, 300,
+                                              -10.00f, 0.0f, 2, false, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, extremely negative");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          64, -1.00f, 0.0f, 1, true, false);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
+                                              64, -1.00f, 0.0f, 1, false, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testTransActFeeSell(testWareC1, Config.quanMid[testWareC1.getLevel()],
-                                          64, -(testWareC1.getBasePrice() * 2.0f), 0.0f, 2, true, false);
+         errorFound |= testerTransActFeeTrade(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
+                                              64, -(testWareC1.getBasePrice() * 2.0f), 0.0f, 2, false, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): changing fee applied message");
          // create test config file
@@ -20438,7 +20465,7 @@ public class TestSuite
       baosOut.reset(); // clear buffer holding console output
       if (isPurchase) {
          Marketplace.buy(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 1000.0f, 1.0f, false);
-         quantityToTrade *= -1; // to ease checking ware's quantity available for sale
+         quantityToTrade = -quantityToTrade; // to ease checking ware's quantity available for sale
       }
       else
          Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 0.0f, 1.0f);
