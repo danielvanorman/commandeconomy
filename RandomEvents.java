@@ -830,7 +830,7 @@ public class RandomEvents extends TimerTask {
       public void fire() {
          int  size = changedWares.length; // how many wares should be affected
          int  quanChange;                 // how much to alter the ware's quantity available for sale
-         int  quanCeiling = 0;            // if a maximum for how much quantity a ware may have is enforced, keep track of that maximum for selling
+         int  quantityDistFromFloor = 0;  // how much quantity may be sold before reaching the price floor
          Ware ware;                       // current ware being affected
 
          // change wares' quantities for sale
@@ -838,17 +838,20 @@ public class RandomEvents extends TimerTask {
          for (int i = 0; i < size; i++) {
             ware = changedWares[i];
 
-            // if a quantity ceiling should be enforced,
-            // check whether the ware's quantity is at or past its ceiling
+            // check whether stock should not be sold past the price floor
             if (Config.noGarbageDisposing) {
-               // find the ware's maximum quantity
-               if (ware instanceof WareLinked)
-                  quanCeiling = ((WareLinked) ware).getQuanWhenReachedPriceFloor();
-               else
-                  quanCeiling = Config.quanHigh[ware.getLevel()] - 1;
+               // find out if the ware can be sold
+               if (Marketplace.hasReachedPriceFloor(ware))
+                  continue; // if nothing may be sold, skip this ware
 
-               // skip the ware if its quantity is at or past its ceiling
-               if (ware.getQuantity() >= quanCeiling)
+               // find how much may be sold
+               if (ware instanceof WareLinked)
+                  quantityDistFromFloor = ((WareLinked) ware).getQuanWhenReachedPriceFloor() - ware.getQuantity();
+               else
+                  quantityDistFromFloor = Marketplace.getQuantityUntilPrice(ware, Marketplace.getPrice(null, ware, 1, false, Marketplace.PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
+
+               // if nothing may be sold, skip this ware
+               if (quantityDistFromFloor <= 0)
                   continue;
             }
 
@@ -884,8 +887,8 @@ public class RandomEvents extends TimerTask {
             // if necessary, ensure selling does not exceed the ware's quantity ceiling
             if (Config.noGarbageDisposing &&                    // if quantity ceilings are enforced,
                 quanChange > 0            &&                    // the event is adding quantity,
-                ware.getQuantity() + quanChange >= quanCeiling) // and that quantity is too much,
-               quanChange = quanCeiling - ware.getQuantity();   // reduce quantity to an acceptable value
+                quantityDistFromFloor < quanChange)             // and that quantity is too much,
+               quanChange = quantityDistFromFloor;              // reduce quantity to an acceptable value
 
             // increase or reduce the ware's quantity available for sale
             ware.addQuantity(quanChange);

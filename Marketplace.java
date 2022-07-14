@@ -1736,9 +1736,7 @@ public class Marketplace {
 
       // if selling at or past the price floor is prohibited,
       // then stop and warn players if they are about to
-      if (Config.noGarbageDisposing &&
-          (((!(ware instanceof WareLinked)) && ware.getQuantity() >= Config.quanHigh[ware.getLevel()] - 1) ||
-           ((ware instanceof WareLinked) && ware.getQuantity() >= ((WareLinked) ware).getQuanWhenReachedPriceFloor()))) {
+      if (Config.noGarbageDisposing && hasReachedPriceFloor(ware)) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_SELL_NO_GARBAGE_DISPOSING);
          return;
       }
@@ -2016,18 +2014,22 @@ public class Marketplace {
 
          // check whether stock should not be sold past the price floor
          if (Config.noGarbageDisposing) {
+            // find out if the ware can be sold
+            if (hasReachedPriceFloor(ware))
+               continue; // if nothing may be sold, skip this ware
+
             // find how much may be sold
             if (ware instanceof WareLinked)
                quantityDistFromFloor = ((WareLinked) ware).getQuanWhenReachedPriceFloor() - ware.getQuantity();
             else
-               quantityDistFromFloor = Config.quanHigh[ware.getLevel()] - ware.getQuantity() - 1;
+               quantityDistFromFloor = getQuantityUntilPrice(ware, getPrice(null, ware, 1, false, PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
 
             // if nothing may be sold, skip this ware
             if (quantityDistFromFloor <= 0)
                continue;
 
             // otherwise, sell the most possible
-            if (quantityDistFromFloor - stock.quantity <= 0)
+            if (quantityDistFromFloor < stock.quantity)
                stock.quantity = quantityDistFromFloor;
          }
 
@@ -2585,5 +2587,19 @@ public class Marketplace {
       }
 
       return fee;
+   }
+
+   /**
+    * Determines whether a ware is currently at or past its price floor.
+    * <p>
+    * Complexity:<br>
+    * Average-Case: O(1)<br>
+    * Worst-Case: O(n), whether n is the number of the ware's components
+    * @param ware tradeable item whose status regarding its price floor should be determined
+    * @return <code>true</code> if the ware's current price is at or past its price floor
+    *         <code>false</code> if the ware's current price is below its price floor
+    */
+   public static boolean hasReachedPriceFloor(Ware ware) {
+      return getPrice(null, ware, 1, false, PriceType.CURRENT_SELL) <= getPrice(null, ware, 1, false, PriceType.FLOOR_SELL);
    }
 }

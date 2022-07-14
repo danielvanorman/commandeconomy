@@ -138,7 +138,7 @@ public class AI {
       Ware    ware;
       Integer tradeQuantityObject;
       int     tradeQuantity;
-      int     quanCeiling     = 0;    // if a maximum for how much quantity a ware may have is enforced, keep track of that maximum for selling
+      int     quantityDistFromFloor;  // how much quantity may be sold before reaching the price floor
       float   transactionFees = 0.0f; // if transaction fees are enabled, sum the total amount AI should pay
       float   fee             = 0.0f; // fee currently being calculated
 
@@ -210,22 +210,25 @@ public class AI {
 
          // sell a ware
          else {
-            // if a quantity ceiling should be enforced,
-            // check whether the ware's quantity is at or past its ceiling
+            // check whether stock should not be sold past the price floor
             if (Config.noGarbageDisposing) {
-               // find the ware's maximum quantity
-               if (ware instanceof WareLinked)
-                  quanCeiling = ((WareLinked) ware).getQuanWhenReachedPriceFloor();
-               else
-                  quanCeiling = Config.quanHigh[ware.getLevel()] - 1;
+               // find out if the ware can be sold
+               if (Marketplace.hasReachedPriceFloor(ware))
+                  continue; // if nothing may be sold, skip this ware
 
-               // skip the ware if its quantity is at or past its ceiling
-               if (ware.getQuantity() >= quanCeiling)
+               // find how much may be sold
+               if (ware instanceof WareLinked)
+                  quantityDistFromFloor = ((WareLinked) ware).getQuanWhenReachedPriceFloor() - ware.getQuantity();
+               else
+                  quantityDistFromFloor = Marketplace.getQuantityUntilPrice(ware, Marketplace.getPrice(null, ware, 1, false, Marketplace.PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
+
+               // if nothing may be sold, skip this ware
+               if (quantityDistFromFloor <= 0)
                   continue;
 
-               // ensure selling does not exceed the ware's quantity ceiling
-               if (ware.getQuantity() + tradeQuantity  >= quanCeiling)
-                  tradeQuantity = quanCeiling - ware.getQuantity();
+               // otherwise, sell the most possible
+               if (quantityDistFromFloor < tradeQuantity)
+                  tradeQuantity = quantityDistFromFloor;
             }
 
             // if necessary, find the transaction fee to be paid
