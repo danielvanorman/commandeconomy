@@ -117,9 +117,9 @@ public class CommandNoSell extends CommandBase {
 
             // report success
             if (heldItem.hasDisplayName())
-               errorMessage = new TextComponentString(heldItem.getDisplayName() + PlatformStrings.MSG_NOSELL_ON_HELD);
+               errorMessage = new TextComponentString(heldItem.getDisplayName() + PlatformStrings.MSG_NOSELL_ON_HELD_NAMED);
             else
-               errorMessage = new PlatformStrings(CommandEconomy.MSG_NOSELL_ON_HELD_NAMED);
+               errorMessage = new TextComponentString(PlatformStrings.MSG_NOSELL_ON_HELD);
 
             sender.sendMessage(errorMessage);
          }

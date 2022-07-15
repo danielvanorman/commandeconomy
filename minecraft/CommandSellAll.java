@@ -34,24 +34,6 @@ public class CommandSellAll extends CommandBase {
          return;
       }
 
-      // command must have the right number of args
-      if (args != null &&
-          (args.length < 0 ||
-           args.length > 3)) {
-         System.out.println();
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
-         return;
-      }
-
-      // check for zero-length args
-      if (args != null &&
-          ((args.length >= 1 && (args[0] == null || args[0].length() == 0)) ||
-           (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
-           (args.length == 3 && (args[2] == null || args[2].length() == 0)))) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
-         return;
-      }
-
       // set up variables
       String      username        = null;
       InterfaceCommand.Coordinates coordinates     = null;
@@ -59,10 +41,55 @@ public class CommandSellAll extends CommandBase {
       // prepare a reformatted container for the wares
       LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
       IItemHandler inventoryToUse = null;
+      int   baseArgsLength; // number of args, not counting special keywords
+      float pricePercent = 1.0f;
+
+      // avoid null pointer exception
+      if (args == null)
+         baseArgsLength = 0;
+      else {
+         baseArgsLength = args.length;
+
+         // check for and process special keywords and zero-length args
+         for (String arg : args) {
+            // if a zero-length arg is detected, stop
+            if (arg == null || arg.length() == 0) {
+               InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+               return;
+            }
+
+            // special keywords start with certain symbols
+            if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+               continue;
+
+            // if a special keyword is detected,
+            // adjust the arg length count for non-special args
+            baseArgsLength--;
+
+            // check whether user is specifying the transaction price multiplier
+            if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+               pricePercent = CommandProcessor.parsePricePercentArgument(sender.getCommandSenderEntity().getUniqueID(), arg, true);
+
+               // check for error
+               if (Float.isNaN(pricePercent))
+                  return; // an error message has already been printed
+
+               continue; // skip to the next argument
+            }
+         }
+      }
+
+      // command must have the right number of args
+      if (args != null &&
+          (baseArgsLength < 0 ||
+           baseArgsLength > 3)) {
+         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
+         return;
+      }
 
       // if there are at least two arguments,
       // a username and a direction must be given
-      if (args != null && args.length >= 2) {
+      if (args != null && baseArgsLength >= 2) {
          username = args[0];
 
          // translate coordinates
@@ -113,7 +140,7 @@ public class CommandSellAll extends CommandBase {
          coordinates = new InterfaceCommand.Coordinates(position.getX(), position.getY(), position.getZ(), sender.getEntityWorld().provider.getDimension());
 
          // if an account ID was given, use it
-         if (args.length == 3)
+         if (baseArgsLength == 3)
             accountID = args[2];
          // If an account ID wasn't given, leave the ID as null.
       } else {
@@ -121,7 +148,7 @@ public class CommandSellAll extends CommandBase {
          coordinates = null;
 
          // if an account ID was given, use it
-         if (args != null && args.length == 1)
+         if (args != null && baseArgsLength == 1)
             accountID = args[0];
          // If an account ID wasn't given, leave the ID as null.
       }
@@ -221,7 +248,7 @@ public class CommandSellAll extends CommandBase {
          }
       }
 
-      Marketplace.sellAll(userID, coordinates, formattedInventory, accountID);
+      Marketplace.sellAll(userID, coordinates, formattedInventory, accountID, pricePercent);
       return;
   }
 

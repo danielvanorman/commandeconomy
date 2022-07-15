@@ -27,11 +27,12 @@ public class CommandBuy extends CommandBase {
       // set up variables
       String  username          = null;
       InterfaceCommand.Coordinates coordinates = null;
+      String  accountID         = null;
       String  wareID            = null;
+      int     baseArgsLength    = args.length; // number of args, not counting special keywords
       int     quantity          = 0;
       float   priceUnit         = 0.0f;
-      String  accountID         = null;
-      int     baseArgsLength    = args.length; // number of args, not counting special keywords
+      float   pricePercent      = 1.0f;
       boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
       // check for and process special keywords and zero-length args
@@ -42,13 +43,24 @@ public class CommandBuy extends CommandBase {
             return;
          }
 
-         // special keywords start with &
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX))
+         // special keywords start with certain symbols
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
             continue;
 
          // if a special keyword is detected,
          // adjust the arg length count for non-special args
          baseArgsLength--;
+
+         // check whether user is specifying the transaction price multiplier
+         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+            pricePercent = CommandProcessor.parsePricePercentArgument(sender.getCommandSenderEntity().getUniqueID(), arg, true);
+
+            // check for error
+            if (Float.isNaN(pricePercent))
+               return; // an error message has already been printed
+
+            continue; // skip to the next argument
+         }
 
          // check whether user specifies manufacturing the ware
          if (arg.equals(CommandEconomy.MANUFACTURING))
@@ -229,7 +241,7 @@ public class CommandBuy extends CommandBase {
       }
 
       // call corresponding function
-      Marketplace.buy(userID, coordinates, wareID, quantity, priceUnit, accountID, shouldManufacture);
+      Marketplace.buy(userID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent, shouldManufacture);
       return;
   }
 

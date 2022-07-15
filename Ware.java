@@ -27,12 +27,8 @@ public abstract class Ware
    private static transient JsonParser jsonParser = new JsonParser();
 
    // linked prices
-   /** wares whose linked price multipliers have recently been calculated */
-   private static Ware[] recentLinkedPriceSearches;
    /** multipliers for wares whose linked price multipliers have recently been calculated */
-   private static float[] recentLinkedPieceResults;
-   /** index to write next within a circular queue storing recently calculated linked price multipliers */
-   private static int recentLinkedPricePointer = 0;
+   private static HashMap<Ware, Float> recentLinkedPriceResults = null;
 
    // INSTANCE VARIABLES
    /** wares used to create this ware */
@@ -75,7 +71,7 @@ public abstract class Ware
     */
    public void setQuantity(int quantity) {
       this.quantity = quantity;
-      Marketplace.markAsChanged(wareID);
+      Marketplace.markAsChanged(this);
    }
 
    /**
@@ -86,7 +82,7 @@ public abstract class Ware
     */
    public void addQuantity(int adjustment) {
       quantity += adjustment;
-      Marketplace.markAsChanged(wareID);
+      Marketplace.markAsChanged(this);
    }
 
    /**
@@ -97,7 +93,7 @@ public abstract class Ware
     */
    public void subtractQuantity(int adjustment) {
       quantity -= adjustment;
-      Marketplace.markAsChanged(wareID);
+      Marketplace.markAsChanged(this);
    }
 
    /**
@@ -133,7 +129,7 @@ public abstract class Ware
       } else {
          this.alias = null;
       }
-      Marketplace.markAsChanged(wareID);
+      Marketplace.markAsChanged(this);
    }
 
    /**
@@ -162,7 +158,7 @@ public abstract class Ware
       else
          this.level = level;
 
-      Marketplace.markAsChanged(wareID);
+      Marketplace.markAsChanged(this);
    }
 
    /**
@@ -182,7 +178,7 @@ public abstract class Ware
       else if (level > 5)
          level = 5;
 
-      Marketplace.markAsChanged(wareID);
+      Marketplace.markAsChanged(this);
    }
 
    /**
@@ -253,7 +249,7 @@ public abstract class Ware
          // Use multipliers in getBasePrice() to ensure prices are accurate
          // when wares are reloading after multipliers are changed.
 
-         Marketplace.markAsChanged(wareID);
+         Marketplace.markAsChanged(this);
          return true;
       } else {
          return false;
@@ -480,20 +476,39 @@ public abstract class Ware
       if (!Config.shouldComponentsCurrentPricesAffectWholesPrice || componentsIDs == null || this instanceof WareLinked)
          return 1.0f;
 
-      // set up or remake circular queue if necessary
-      if ((recentLinkedPriceSearches == null ||
-           recentLinkedPriceSearches.length != Config.linkedPriceMultsSaved)
-         && Config.linkedPriceMultsSaved > 0) {
-            recentLinkedPriceSearches = new Ware[Config.linkedPriceMultsSaved];
-            recentLinkedPieceResults  = new float[Config.linkedPriceMultsSaved];
-            recentLinkedPricePointer  = 0;
-      }
+      // set up or remake hashmap if necessary
+      if (recentLinkedPriceResults == null)
+            recentLinkedPriceResults = new HashMap<Ware, Float>();
 
-      // search among recently calculated multipliers
-      if (recentLinkedPriceSearches != null) {
-         for (int i = 0; i < Config.linkedPriceMultsSaved; i++) {
-            if (recentLinkedPriceSearches[i] == this)
-               return recentLinkedPieceResults[i];
+      // check if a recently calculated multiplier is available
+      else {
+         // try to grab the multiplier
+         Float multiplierSaved = recentLinkedPriceResults.get(this);
+
+         // if the multiplier exists, check whether components
+         // have changed since its calculation
+         if (multiplierSaved != null) {
+            if (components != null) {
+               boolean useSavedValue = true; // flag for whether to use the saved multiplier
+
+               // check whether cascading effects need to be calculated
+               // by checking for components' saved multipliers
+               for (Ware component : components) {
+                  // if multiplier doesn't exist, there must be recalculations
+                  if (recentLinkedPriceResults.get(component) == null) {
+                     useSavedValue = false;
+                     break;
+                  }
+               }
+
+               // if possible, use the saved multiplier
+               if (useSavedValue)
+                  return multiplierSaved.floatValue();
+            }
+
+            // no components means the multiplier must be up-to-date
+            else
+               return multiplierSaved.floatValue();
          }
       }
 
@@ -514,17 +529,22 @@ public abstract class Ware
       float multiplier = (Config.linkedPricesPercent * priceComponentsCurrent / priceComponentsEquilibrium) + (1 - Config.linkedPricesPercent);
 
       // add multiplier to recently calculated multipliers
-      if (recentLinkedPriceSearches != null) {
-         recentLinkedPriceSearches[recentLinkedPricePointer] = this;
-         recentLinkedPieceResults[recentLinkedPricePointer]  = multiplier;
-         recentLinkedPricePointer++;
-      }
-
-      // reset pointer if it is too large
-      if (recentLinkedPricePointer >= Config.linkedPriceMultsSaved)
-         recentLinkedPricePointer = 0;
+      if (recentLinkedPriceResults != null)
+         recentLinkedPriceResults.put(this, new Float(multiplier));
 
       return multiplier;
+   }
+
+
+   /**
+    * Removes any stored, recent calculations for this ware,
+    * forcing them to be recalculated based on current values.
+    * <p>
+    * Complexity: O(1)
+    */
+   public void removeSavedCalculations() {
+      if (recentLinkedPriceResults != null)
+         recentLinkedPriceResults.remove(this);
    }
 
    /**

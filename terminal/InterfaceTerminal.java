@@ -1074,21 +1074,10 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
       }
 
-      // check for zero-length args
-      if (args[0] == null || args[0].length() == 0 ||
-          (baseArgsLength >= 2 && (args[1] == null || args[1].length() == 0)) ||
-          (baseArgsLength >= 3 && (args[2] == null || args[2].length() == 0)) ||
-          (baseArgsLength >= 4 && (args[3] == null || args[3].length() == 0)) ||
-          (baseArgsLength >= 5 && (args[4] == null || args[4].length() == 0)) ||
-          (baseArgsLength == 6 && (args[5] == null || args[5].length() == 0))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELL);
-         return;
-      }
-
       // if the second argument is a number, no username or direction should be given
       // if the second argument is a direction, a username and a direction should be given
       // if a username and a direction should be given
-      if (args.length >= 2 &&
+      if (baseArgsLength >= 2 &&
           (args[1].equals(CommandEconomy.INVENTORY_NONE) ||
            args[1].equals(CommandEconomy.INVENTORY_DOWN) ||
            args[1].equals(CommandEconomy.INVENTORY_UP) ||
@@ -1465,15 +1454,6 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
       }
 
-      // check for zero-length args
-      if (args != null &&
-          ((baseArgsLength >= 1 && (args[0] == null || args[0].length() == 0)) ||
-           (baseArgsLength >= 2 && (args[1] == null || args[1].length() == 0)) ||
-           (baseArgsLength == 3 && (args[2] == null || args[2].length() == 0)))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
-         return;
-      }
-
       // if there are at least two arguments,
       // a username and a direction must be given
       if (args != null && baseArgsLength >= 2) {
@@ -1546,6 +1526,8 @@ public class InterfaceTerminal implements InterfaceCommand
          System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
          return;
       }
+
+      // grab user's UUID once
       UUID playerID = getPlayerIDStatic(username);
 
       // check if command sender has permission to

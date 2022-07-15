@@ -31,10 +31,10 @@ public class PlatformStrings {
    // no sell messages
    public final static String MSG_NOSELL_ON_ALL         = "All inventory items will not be sold";
    public final static String MSG_NOSELL_ON_HELD        = "The item stack will not be sold";
-   public final static String MSG_NOSELL_ON_HELD_NAMED  = " will not be sold.";
+   public final static String MSG_NOSELL_ON_HELD_NAMED  = " will not be sold";
    public final static String MSG_NOSELL_OFF_ALL        = "All inventory items may now be sold";
    public final static String MSG_NOSELL_OFF_HELD       = "The item stack may now be sold";
-   public final static String MSG_NOSELL_OFF_HELD_NAMED = " may now be sold.";
+   public final static String MSG_NOSELL_OFF_HELD_NAMED = " may now be sold";
 
    // random events
    // +++ --> Dark Green

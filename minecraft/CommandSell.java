@@ -27,36 +27,55 @@ public class CommandSell extends CommandBase {
          return;
       }
 
-      // command must have the right number of args
-      if (args.length < 1 ||
-          args.length > 6) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELL);
-         return;
-      }
-
-      // check for zero-length args
-      if (args[0] == null || args[0].length() == 0 ||
-          (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
-          (args.length >= 3 && (args[2] == null || args[2].length() == 0)) ||
-          (args.length >= 4 && (args[3] == null || args[3].length() == 0)) ||
-          (args.length >= 5 && (args[4] == null || args[4].length() == 0)) ||
-          (args.length == 6 && (args[5] == null || args[5].length() == 0))) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SELL);
-         return;
-      }
-
       // set up variables
       String username  = null;
       InterfaceCommand.Coordinates coordinates = null;
+      String accountID = null;
       String wareID    = null;
+      int    baseArgsLength = args.length; // number of args, not counting special keywords
       int    quantity  = -1;
       float  priceUnit = 0.0f;
-      String accountID = null;
+      float  pricePercent   = 1.0f;
+
+      // check for and process special keywords and zero-length args
+      for (String arg : args) {
+         // if a zero-length arg is detected, stop
+         if (arg == null || arg.length() == 0) {
+            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+            return;
+         }
+
+         // special keywords start with certain symbols
+         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+            continue;
+
+         // if a special keyword is detected,
+         // adjust the arg length count for non-special args
+         baseArgsLength--;
+
+         // check whether user is specifying the transaction price multiplier
+         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+            pricePercent = CommandProcessor.parsePricePercentArgument(sender.getCommandSenderEntity().getUniqueID(), arg, true);
+
+            // check for error
+            if (Float.isNaN(pricePercent))
+               return; // an error message has already been printed
+
+            continue; // skip to the next argument
+         }
+      }
+
+      // command must have the right number of args
+      if (baseArgsLength < 1 ||
+          baseArgsLength > 6) {
+         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELL);
+         return;
+      }
 
       // if the second argument is a number, no username or direction should be given
       // if the second argument is a direction, a username and a direction should be given
       // if a username and a direction should be given
-      if (args.length >= 2 &&
+      if (baseArgsLength >= 2 &&
           (args[1].equals(CommandEconomy.INVENTORY_NONE) ||
            args[1].equals(CommandEconomy.INVENTORY_DOWN) ||
            args[1].equals(CommandEconomy.INVENTORY_UP) ||
@@ -67,7 +86,7 @@ public class CommandSell extends CommandBase {
          // ensure passed args are valid types
          // if at least four arguments are given,
          // the fourth must be a quantity
-         if (args.length >= 4) {
+         if (baseArgsLength >= 4) {
             try {
                quantity = Integer.parseInt(args[3]);
             } catch (NumberFormatException e) {
@@ -78,7 +97,7 @@ public class CommandSell extends CommandBase {
 
          // if five arguments are given,
          // the fifth must either be a price or an account ID
-         if (args.length == 5) {
+         if (baseArgsLength == 5) {
             try {
                // assume the third argument is a price
                priceUnit = Float.parseFloat(args[4]);
@@ -91,7 +110,7 @@ public class CommandSell extends CommandBase {
 
          // if six arguments are given,
          // they must be a price and an account ID
-         else if (args.length == 6) {
+         else if (baseArgsLength == 6) {
             try {
                   priceUnit = Float.parseFloat(args[4]);
             } catch (NumberFormatException e) {
@@ -158,7 +177,7 @@ public class CommandSell extends CommandBase {
          // ensure passed args are valid types
          // if at least two arguments are given,
          // the second must be a quantity
-         if (args.length > 1) {
+         if (baseArgsLength > 1) {
             try {
                quantity = Integer.parseInt(args[1]);
             } catch (NumberFormatException e) {
@@ -169,7 +188,7 @@ public class CommandSell extends CommandBase {
 
          // if three arguments are given,
          // the third must either be a price or an account ID
-         if (args.length == 3) {
+         if (baseArgsLength == 3) {
             try {
                // assume the third argument is a price
                priceUnit = Float.parseFloat(args[2]);
@@ -182,7 +201,7 @@ public class CommandSell extends CommandBase {
 
          // if four arguments are given,
          // they must be a price and an account ID
-         else if (args.length == 4) {
+         else if (baseArgsLength == 4) {
             try {
                   priceUnit = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
@@ -281,7 +300,7 @@ public class CommandSell extends CommandBase {
          quantity = 0;
 
       // call corresponding function
-      Marketplace.sell(userID, coordinates, wareID, quantity, priceUnit, accountID);
+      Marketplace.sell(userID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent);
       return;
   }
 

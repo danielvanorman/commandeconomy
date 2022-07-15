@@ -770,7 +770,6 @@ public class TestSuite
       Config.investmentCostIsAMultOfAvgPrice = false;
 
       Config.shouldComponentsCurrentPricesAffectWholesPrice = false;
-      Config.linkedPriceMultsSaved = 0;
 
       Config.buyingOutOfStockWaresAllowed = false;
 
@@ -18978,7 +18977,6 @@ public class TestSuite
          // enable linked prices and set to known values
          Config.shouldComponentsCurrentPricesAffectWholesPrice = true;
          Config.linkedPricesPercent   = 0.50f;
-         Config.linkedPriceMultsSaved = 0; // recalculate every value every time
 
          TEST_OUTPUT.println("Cross Interactions - Linked Prices: Manufacturing Contracts, surplus");
          // enable manufacturing contracts and set to known values

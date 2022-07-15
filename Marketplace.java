@@ -678,9 +678,13 @@ public class Marketplace {
     * Complexity: O(1)
     * @param wareID unique identifier of the ware to be saved
     */
-   public static void markAsChanged(String wareID) {
-      if (wares.containsKey(wareID))
-         waresChangedSinceLastSave.add(wareID);
+   public static void markAsChanged(Ware ware) {
+      // add to list of wares to be saved
+      if (wares.containsKey(ware.getWareID()))
+         waresChangedSinceLastSave.add(ware.getWareID());
+
+      // recalculate any saved values based on outdated information
+      ware.removeSavedCalculations();
    }
 
    /**
@@ -2552,19 +2556,22 @@ public class Marketplace {
     * @return purchasing fee
     */
    public static float calcTransactionFeeBuying(float price) {
-      // find fee's charge
-      float fee = Config.transactionFeeBuying;
+      // if the fee is a percentage of the price, calculate it
       if (Config.transactionFeeBuyingIsMult) {
-         fee *= price;
+         price *= Config.transactionFeeBuying;
 
          // if the price and fee percentage have opposite signs, flip the fee's sign
          // so positive rates don't pay out anything and negative rates don't take anything
-         if ((fee < 0.0f && Config.transactionFeeBuying > 0.0f) ||
-             (Config.transactionFeeBuying < 0.0f && fee > 0.0f))
-            fee = -fee;
+         if ((price < 0.0f && Config.transactionFeeBuying > 0.0f) ||
+             (Config.transactionFeeBuying < 0.0f && price > 0.0f))
+            price = -price;
+
+         return price;
       }
 
-      return fee;
+      // otherwise, return a flat rate
+      else
+         return Config.transactionFeeBuying;
    }
 
    /**
@@ -2574,19 +2581,22 @@ public class Marketplace {
     * @return offering fee
     */
    public static float calcTransactionFeeSelling(float price) {
-      // find fee's charge
-      float fee = Config.transactionFeeSelling;
+      // if the fee is a percentage of the price, calculate it
       if (Config.transactionFeeSellingIsMult) {
-         fee *= price;
+         price *= Config.transactionFeeSelling;
 
          // if the price and fee percentage have opposite signs, flip the fee's sign
          // so positive rates don't pay out anything and negative rates don't take anything
-         if ((fee < 0.0f && Config.transactionFeeSelling > 0.0f) ||
-             (Config.transactionFeeSelling < 0.0f && fee > 0.0f))
-            fee = -fee;
+         if ((price < 0.0f && Config.transactionFeeSelling > 0.0f) ||
+             (Config.transactionFeeSelling < 0.0f && price > 0.0f))
+            price = -price;
+
+         return price;
       }
 
-      return fee;
+      // otherwise, return a flat rate
+      else
+         return Config.transactionFeeSelling;
    }
 
    /**
@@ -2594,7 +2604,7 @@ public class Marketplace {
     * <p>
     * Complexity:<br>
     * Average-Case: O(1)<br>
-    * Worst-Case: O(n), whether n is the number of the ware's components
+    * Worst-Case: O(2n), whether n is the number of the ware's components
     * @param ware tradeable item whose status regarding its price floor should be determined
     * @return <code>true</code> if the ware's current price is at or past its price floor
     *         <code>false</code> if the ware's current price is below its price floor

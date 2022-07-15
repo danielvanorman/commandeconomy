@@ -57,7 +57,7 @@ public class CommandGeneral extends CommandBase {
             InterfaceMinecraft.commandSellAll.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
-         case CommandEconomy.CMD_NOSELL_LOWER:
+         case PlatformStrings.CMD_NOSELL_LOWER:
             InterfaceMinecraft.commandNoSell.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
@@ -394,7 +394,7 @@ public class CommandGeneral extends CommandBase {
             case CommandEconomy.CMD_MONEY:
                return InterfaceMinecraft.commandMoney.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
-            case CommandEconomy.CMD_NOSELL_LOWER:
+            case PlatformStrings.CMD_NOSELL_LOWER:
                return InterfaceMinecraft.commandNoSell.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_RELOAD:
