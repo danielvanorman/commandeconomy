@@ -345,6 +345,17 @@ public class InterfaceTerminal implements InterfaceCommand
    }
 
    /**
+    * Returns whether a player with the given unique identifier is currently logged into the server.
+    * <p>
+    * Complexity: O(1)
+    * @param playerID UUID of player whose current status is needed
+    * @return <code>true</code> if the player is currently online
+    */
+   public boolean isPlayerOnline(UUID playerID) {
+      return getDisplayNameStatic(playerID).equals(playername);
+   }
+
+   /**
     * Returns whether the given string matches a player's name.
     *
     * @param playername player to check the existence of

@@ -129,6 +129,14 @@ public interface InterfaceCommand
    public UUID getPlayerID(String playername);
 
    /**
+    * Returns whether a player with the given unique identifier is currently logged into the server.
+    *
+    * @param playerID UUID of player whose current status is needed
+    * @return <code>true</code> if the player is currently online
+    */
+   public boolean isPlayerOnline(UUID playerID);
+
+   /**
     * Returns whether the given string matches a player name.
     *
     * @param username player to check the existence of

@@ -95,10 +95,21 @@ public class AccountInterestApplier extends TimerTask  {
       // wait for permission to adjust ware's properties
       Account.acquireMutex();
 
-      // apply compound interest to every account
-      for (Account account : Account.getAllAccounts()) {
-         // apply compound interest
-         account.setMoney(account.getMoney() * Config.accountPeriodicInterestPercent);
+      // check whether interest should be applied
+      if (Config.accountPeriodicInterestOnlyWhenPlaying) {
+         // apply compound interest to every account
+         for (Account account : Account.getAllAccounts()) {
+            // apply compound interest
+            // if the account's owner is online
+            if (Config.commandInterface.isPlayerOnline(account.getOwner()))
+               account.setMoney(account.getMoney() * Config.accountPeriodicInterestPercent);
+         }
+      }
+      else {
+         // apply compound interest to every account
+         for (Account account : Account.getAllAccounts())
+            // apply compound interest
+            account.setMoney(account.getMoney() * Config.accountPeriodicInterestPercent);
       }
 
       // allow other threads to adjust wares' properties

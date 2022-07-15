@@ -234,6 +234,8 @@ public class Config
    public static float accountPeriodicInterestPercent = 1.015f;
    /** how often compound interest is compounded */
    public static int accountPeriodicInterestFrequency = 7200000; // 120 minutes
+   /** if true, interest is only applied when account owners are logged onto the server */
+   public static boolean accountPeriodicInterestOnlyWhenPlaying = false;
 
    // no garbage disposing
    /** if true, wares with prices at or below the price floor cannot be sold */
@@ -500,6 +502,9 @@ public class Config
 
          case "accountPeriodicInterestEnabled":
             accountPeriodicInterestEnabled = value;
+            break;
+         case "accountPeriodicInterestOnlyWhenPlaying":
+            accountPeriodicInterestOnlyWhenPlaying = value;
             break;
 
          case "noGarbageDisposing":
@@ -899,9 +904,10 @@ public class Config
       automaticStockRebalancingPercent   = 0.005f;
 
       // account interest
-      accountPeriodicInterestEnabled  = false;
-      accountPeriodicInterestPercent  = 1.015f;
-      accountPeriodicInterestFrequency = 7200000;
+      accountPeriodicInterestEnabled         = false;
+      accountPeriodicInterestPercent         = 1.015f;
+      accountPeriodicInterestFrequency       = 7200000;
+      accountPeriodicInterestOnlyWhenPlaying = false;
 
       // no garbage disposing
       noGarbageDisposing = false;

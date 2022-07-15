@@ -19722,38 +19722,48 @@ public class TestSuite
       testAccount3.setMoney(money3);
 
       // set up test oracles and test as normal
-         for (int i = 0; i < numIterations; i++) {
-            expectedMoney1 *= Config.accountPeriodicInterestPercent;
-            expectedMoney2 *= Config.accountPeriodicInterestPercent;
-            expectedMoney3 *= Config.accountPeriodicInterestPercent;
+      for (int i = 0; i < numIterations; i++) {
+         expectedMoney1 *= Config.accountPeriodicInterestPercent;
+         expectedMoney2 *= Config.accountPeriodicInterestPercent;
+         expectedMoney3 *= Config.accountPeriodicInterestPercent;
 
-            // test as normal
-            try {
-               applyAccountInterest.invoke(NULL_OBJECT, NULL_OBJECTS);
-            }
-            catch (Exception e) {
-               TEST_OUTPUT.println("   failed to invoke interest-applying method: " + e);
-               baosErr.reset();
-               e.printStackTrace();
-               TEST_OUTPUT.println(baosErr.toString());
-               return true;
-            }
+         // test as normal
+         try {
+            applyAccountInterest.invoke(NULL_OBJECT, NULL_OBJECTS);
          }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   failed to invoke interest-applying method: " + e);
+            baosErr.reset();
+            e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
+            return true;
+         }
+      }
+
+      // if interest should only be applied if players are online,
+      // unapply interest where necessary
+      if (Config.accountPeriodicInterestOnlyWhenPlaying) {
+         if (InterfaceTerminal.playername.equals("possibleID")) {
+            expectedMoney1 = money1;
+            expectedMoney2 = money2;
+         } else
+            expectedMoney3 = money3;
+      }
 
       // check account properties
-         if (testAccount1.getMoney() != expectedMoney1) {
-            TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount1: " + testAccount1.getMoney() + ", should be " + expectedMoney1);
-            errorFound = true;
-         }
+      if (testAccount1.getMoney() != expectedMoney1) {
+         TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount1: " + testAccount1.getMoney() + ", should be " + expectedMoney1);
+         errorFound = true;
+      }
 
-         if (testAccount2.getMoney() != expectedMoney2) {
-            TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount2: " + testAccount2.getMoney() + ", should be " + expectedMoney2);
-            errorFound = true;
-         }
-         if (testAccount3.getMoney() != expectedMoney3) {
-            TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount3: " + testAccount3.getMoney() + ", should be " + expectedMoney3);
-            errorFound = true;
-         }
+      if (testAccount2.getMoney() != expectedMoney2) {
+         TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount2: " + testAccount2.getMoney() + ", should be " + expectedMoney2);
+         errorFound = true;
+      }
+      if (testAccount3.getMoney() != expectedMoney3) {
+         TEST_OUTPUT.println("   unexpected funds" + testIdentifier + " for testAccount3: " + testAccount3.getMoney() + ", should be " + expectedMoney3);
+         errorFound = true;
+      }
 
       return errorFound;
    }
@@ -19797,6 +19807,19 @@ public class TestSuite
 
          errorFound |= testerAccountInterest(-1000.0f, 100.0f, 4.0f,
                                              0.985f, 10, 2, true); // -1.5% interest rate
+
+         TEST_OUTPUT.println("applyAccountInterest() - applying only when online");
+         Config.accountPeriodicInterestOnlyWhenPlaying = true;
+         errorFound |= testerAccountInterest(100.0f, 100.0f, 100.0f,
+                                             1.015f, 1, 0, false);
+
+         String playernameOrig = InterfaceTerminal.playername;
+         InterfaceTerminal.playername = "possibleID";
+
+         errorFound |= testerAccountInterest(100.0f, 100.0f, 100.0f,
+                                             1.015f, 1, 0, false);
+
+         InterfaceTerminal.playername = playernameOrig;
 
          TEST_OUTPUT.println("applyAccountInterest() - toggling feature and changing values by reloading configuration");
          // grab the timer for applying account interest
