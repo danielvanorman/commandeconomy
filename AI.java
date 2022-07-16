@@ -142,10 +142,10 @@ public class AI {
       float   transactionFees = 0.0f; // if transaction fees are enabled, sum the total amount AI should pay
       float   fee             = 0.0f; // fee currently being calculated
 
-      final boolean PAY_BUYING_FEES               = Config.chargeTransactionFees && Config.transactionFeeBuying  != 0.0f;
+      final boolean PAY_BUYING_FEES               = Config.chargeTransactionFees && Config.aiShouldPayTransactionFees && Config.transactionFeeBuying  != 0.0f;
       final boolean PAY_MULT_BUYING_FEES          = PAY_BUYING_FEES && Config.transactionFeeBuyingIsMult;
       final boolean BUYING_SUBSIDIZING_IS_FINITE  = Config.transactionFeeBuying < 0.0f && Config.transactionFeesShouldPutFeesIntoAccount;
-      final boolean PAY_SELLING_FEES              = Config.chargeTransactionFees && Config.transactionFeeSelling != 0.0f;
+      final boolean PAY_SELLING_FEES              = Config.chargeTransactionFees && Config.aiShouldPayTransactionFees && Config.transactionFeeSelling != 0.0f;
       final boolean SELLING_SUBSIDIZING_IS_FINITE = Config.transactionFeeSelling < 0.0f && Config.transactionFeesShouldPutFeesIntoAccount;
 
       // prevent other threads from adjusting wares' properties
@@ -172,6 +172,8 @@ public class AI {
                // if paying transaction fees based on price, record the price
                if (PAY_MULT_BUYING_FEES)
                   fee = Marketplace.getPrice(null, ware, -tradeQuantity, Marketplace.PriceType.CURRENT_BUY);
+               else
+                  fee = 0.0f;
 
                // purchase the ware
                ware.addQuantity(tradeQuantity);
@@ -182,6 +184,8 @@ public class AI {
                // if paying transaction fees based on price, record the price
                if (PAY_MULT_BUYING_FEES)
                   fee = Marketplace.getPrice(null, ware, ware.getQuantity(), Marketplace.PriceType.CURRENT_BUY);
+               else
+                  fee = 0.0f;
 
                // buyout the ware
                ware.setQuantity(0);
@@ -190,10 +194,7 @@ public class AI {
             // if necessary, find the transaction fee to be paid
             if (PAY_BUYING_FEES) {
                // find fee's charge
-               if (PAY_MULT_BUYING_FEES)
-                  fee *= Config.transactionFeeBuying;
-               else
-                  fee = Config.transactionFeeBuying;
+               fee = Marketplace.calcTransactionFeeBuying(fee);
 
                // if the fee is negative, adjust by how much may be paid
                if (Config.transactionFeeBuying < 0.0f)
@@ -233,11 +234,8 @@ public class AI {
 
             // if necessary, find the transaction fee to be paid
             if (PAY_SELLING_FEES) {
-               fee = Config.transactionFeeSelling;
-
                // find fee's charge
-               if (Config.transactionFeeSellingIsMult)
-                  fee *= Marketplace.getPrice(null, ware, tradeQuantity, Marketplace.PriceType.CURRENT_SELL);
+               fee = Marketplace.calcTransactionFeeSelling(Marketplace.getPrice(null, ware, tradeQuantity, Marketplace.PriceType.CURRENT_SELL));
 
                // if the fee is negative, adjust by how much may be paid
                if (Config.transactionFeeSelling < 0.0f)

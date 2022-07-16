@@ -141,6 +141,8 @@ public class Config
    public static float aiRandomness = 0.05f;
    /** whether to print warnings for AI professions' ware IDs or aliases not found within the marketplace */
    public static boolean aiReportInvalidWares = false;
+   /** if true, AI pay transaction fees just like players do */
+   public static boolean aiShouldPayTransactionFees = true;
 
    // investment
    /** decreasing a ware's hierarchy level by 1 costs this much, depending on the ware's level */
@@ -445,6 +447,9 @@ public class Config
             break;
          case "aiReportInvalidWares":
             aiReportInvalidWares = value;
+            break;
+         case "aiShouldPayTransactionFees":
+            aiShouldPayTransactionFees = value;
             break;
 
          case "investmentCostIsAMultOfAvgPrice":
@@ -843,12 +848,13 @@ public class Config
       maxCraftingDepth  = 10;
 
       // AI
-      enableAI               = false;
-      activeAI               = null;
-      aiTradeFrequency       = 3600000;
-      aiTradeQuantityPercent = 0.05f;
-      aiRandomness           = 0.05f;
-      aiReportInvalidWares   = false;
+      enableAI                   = false;
+      activeAI                   = null;
+      aiTradeFrequency           = 3600000;
+      aiTradeQuantityPercent     = 0.05f;
+      aiRandomness               = 0.05f;
+      aiReportInvalidWares       = false;
+      aiShouldPayTransactionFees = false;
 
       // investment
       investmentCostPerHierarchyLevel = 185.0f;
