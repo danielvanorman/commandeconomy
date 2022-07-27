@@ -80,8 +80,7 @@ public class RandomEvents extends TimerTask {
     */
    public static void startOrReconfig() {
       // calculate frequency using settings for frequency and variance
-      long newFrequency = ((long) (Config.randomEventsFrequency * (1.0f - Config.randomEventsVariance)) * 60000L); // 60000 ms per min.
-      // enforce a positive floor
+      long newFrequency = ((long) (Config.randomEventsFrequency * (1.0f - Config.randomEventsVariance)));
       if (newFrequency <= 0.0)
          newFrequency = 60000L; // 60000 ms per min.
 
@@ -255,11 +254,6 @@ public class RandomEvents extends TimerTask {
     * Complexity: O(n^2), where n is events to load
     */
    private static void loadPrivate() {
-      // if the marketplace is uninitialized,
-      // there are no wares for AI to trade
-      if (Marketplace.getAllWares().size() == 0)
-         return;
-
       // try to load the events file
       File fileRandomEvents = new File(Config.filenameRandomEvents); // contains RandomEvent objects
       // if the local file isn't found, use the global file
@@ -452,7 +446,6 @@ public class RandomEvents extends TimerTask {
    private static void loadWaresPrivate() {
       if (randomEvents == null)
          return;
-
 
       // prepare to load wares
       StringBuilder invalidWareIDs       = null;  // if reporting is enabled, prepares invalid ware IDs and aliases before printing them
@@ -733,7 +726,9 @@ public class RandomEvents extends TimerTask {
             return;
 
          // load random events from file
-         if (queue.contains(QueueCommands.LOAD)) {
+         // but only if the marketplace is loaded
+         if (queue.contains(QueueCommands.LOAD) &&
+             Marketplace.getAllWares().size() > 0) {
             queue.remove(QueueCommands.LOAD);
             loadPrivate();
             return;

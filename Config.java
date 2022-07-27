@@ -492,6 +492,9 @@ public class Config
          case "randomEventsPrintChanges":
             randomEventsPrintChanges = value;
             break;
+         case "randomEventsReportInvalidWares":
+            randomEventsReportInvalidWares = value;
+            break;
 
          case "automaticStockRebalancing":
             automaticStockRebalancing = value;
@@ -854,7 +857,7 @@ public class Config
       aiTradeQuantityPercent     = 0.05f;
       aiRandomness               = 0.05f;
       aiReportInvalidWares       = false;
-      aiShouldPayTransactionFees = false;
+      aiShouldPayTransactionFees = true;
 
       // investment
       investmentCostPerHierarchyLevel = 185.0f;
@@ -894,6 +897,7 @@ public class Config
       randomEventsLargeChange        = 0.15f;
       randomEventsAreChangesPercents = true;
       randomEventsPrintChanges       = false;
+      randomEventsReportInvalidWares = false;
 
       // automatic market rebalancing
       automaticStockRebalancing          = false;
