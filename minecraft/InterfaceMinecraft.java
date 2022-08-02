@@ -22,17 +22,19 @@ import net.minecraftforge.items.IItemHandler;                      // for handli
 import net.minecraft.tileentity.TileEntity;                        // for handling block inventories
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraft.util.math.BlockPos;                           // for finding block inventories
-import net.minecraft.util.NonNullList;                          // for checking the existence of item subtypes when validating ware IDs
+import net.minecraft.util.NonNullList;                             // for checking the existence of item subtypes when validating ware IDs
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.command.ICommandSender;                    // for checking for server operator permissions, converting sender names to UUIDs, and simplifying sending error messages
-import net.minecraftforge.oredict.OreDictionary;                // for checking Forge OreDictionary names
-import net.minecraft.server.management.PlayerList;              // for checking server operator permissions
-import java.util.UUID;                                          // for more securely tracking users internally
-import java.util.HashMap;                                       // for mapping server and command block UUIDs to displayable names
-import net.minecraft.command.EntitySelector;                    // for using command block selectors
-import net.minecraft.command.CommandBase;                   // for providing other classes access to command handlers
-import net.minecraftforge.common.DimensionManager;          // for getting paths to per-world save and config files
-import java.io.File;                                        // for adding a file separator to the singleplayer save directory
+import net.minecraft.command.ICommandSender;                       // for checking for server operator permissions, converting sender names to UUIDs, and simplifying sending error messages
+import net.minecraftforge.oredict.OreDictionary;                   // for checking Forge OreDictionary names
+import net.minecraft.server.management.PlayerList;                 // for checking server operator permissions
+import java.util.UUID;                                             // for more securely tracking users internally
+import java.util.HashMap;                                          // for mapping server and command block UUIDs to displayable names
+import net.minecraft.command.EntitySelector;                       // for using command block selectors
+import net.minecraft.command.CommandBase;                          // for providing other classes access to command handlers
+import net.minecraftforge.common.DimensionManager;                 // for getting paths to per-world save and config files
+import java.io.File;                                               // for adding a file separator to the singleplayer save directory
+import java.util.TreeSet;                                          // for autocompleting arguments
+import java.util.Set;
 
 /**
  * Contains functions for interacting with chat commands within Minecraft.
@@ -83,6 +85,10 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
    /** valid arguments for referring to an inventory */
    public static final String[] INVENTORY_KEYWORDS = new String[] {CommandEconomy.INVENTORY_NONE, CommandEconomy.INVENTORY_DOWN, CommandEconomy.INVENTORY_UP, CommandEconomy.INVENTORY_NORTH, CommandEconomy.INVENTORY_EAST, CommandEconomy.INVENTORY_WEST, CommandEconomy.INVENTORY_SOUTH};
+   /** valid arguments for referring to accounts */
+   private static TreeSet<String> accountIDs = null;
+   /** valid arguments for referring to wares' alternate names */
+   private static TreeSet<String> wareAliases = null;
 
    // FUNCTIONS
    /**
@@ -103,6 +109,10 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // set up and run the market
       CommandEconomy.start(null);
+
+      // prepare for autocompleting arguments
+      sortAccountIDs();
+      sortWareAliases();
    }
 
    /**
@@ -1050,45 +1060,39 @@ public class InterfaceMinecraft implements InterfaceCommand
    /**
     * Returns a list of strings with a specific prefix for autocompleting command arguments.
     *
-    * @param arg            what each string in the list should start with; can be empty or null
+    * @param prefix         what each string in the list should start with; can be empty or null
     * @param stringCategory enumeration value referencing a specific list of strings
     * @return list of strings starting with the given argument
     */
-   public static List<String> getAutoCompletionStrings(String arg, AutoCompletionStringCategories stringCategory) {
+   public static List<String> getAutoCompletionStrings(String prefix, AutoCompletionStringCategories stringCategory) {
       LinkedList<String> autoCompletionStrings = new LinkedList<String>();
 
       // prevent null pointer exception
-      if (arg == null)
-         arg = "";
+      if (prefix == null)
+         prefix = "";
 
       // generate list based on category requested
       switch (stringCategory) {
          case ACCOUNTS:
-            for (String account : Account.getAllAccountNames()) {
-               if (account.startsWith(arg))
-                  autoCompletionStrings.add(account);
-            }
+            findAutoCompletionStrings(prefix, accountIDs, autoCompletionStrings);
             break;
 
          case INVENTORY:
             for (String direction : INVENTORY_KEYWORDS) {
-               if (direction.startsWith(arg))
+               if (direction.startsWith(prefix))
                   autoCompletionStrings.add(direction);
             }
             break;
 
          case PLAYERS:
             for (String username : FMLCommonHandler.instance().getMinecraftServerInstance().getOnlinePlayerNames()) {
-               if (username.startsWith(arg))
+               if (username.startsWith(prefix))
                   autoCompletionStrings.add(username);
             }
             break;
 
          case WARES:
-            for (String ware : Marketplace.getAllWareAliases()) {
-               if (ware.startsWith(arg))
-                  autoCompletionStrings.add(ware);
-            }
+            findAutoCompletionStrings(prefix, wareAliases, autoCompletionStrings);
       }
 
       return autoCompletionStrings;
@@ -1097,28 +1101,84 @@ public class InterfaceMinecraft implements InterfaceCommand
    /**
     * Returns a list of strings with a specific prefix for autocompleting command arguments.
     *
-    * @param arg what each string in the list should start with; can be empty or null
+    * @param prefix what each string in the list should start with; can be empty or null
     * @param possibleCompletionStrings possible choices
     * @return list of strings starting with the given argument
     */
-   public static List<String> getAutoCompletionStrings(String arg, String[] possibleCompletionStrings) {
+   public static List<String> getAutoCompletionStrings(String prefix, String[] possibleCompletionStrings) {
       if (possibleCompletionStrings == null || possibleCompletionStrings.length == 0)
          return null;
 
       LinkedList<String> autoCompletionStrings = new LinkedList<String>();
 
       // prevent null pointer exception
-      if (arg == null)
-         arg = "";
+      if (prefix == null)
+         prefix = "";
 
       // traverse through all possible values and
       // grab each plausible one
       for (String possibleCompletionString : possibleCompletionStrings) {
-         if (possibleCompletionString.startsWith(arg))
+         if (possibleCompletionString.startsWith(prefix))
             autoCompletionStrings.add(possibleCompletionString);
       }
 
       return autoCompletionStrings;
+   }
+
+   /**
+    * Adds strings with a specific prefix to a given string list.
+    * <br>
+    * Complexity: O(ln n), where n is the number of potential matches
+    * @param prefix                term to be finished
+    * @param potentialMatches      all valid possibilities for finishing the term
+    * @param autoCompletionStrings string list to be augmented
+    */
+   private static void findAutoCompletionStrings(String prefix, TreeSet<String> potentialMatches,
+                                          List<String> autoCompletionStrings) {
+      // if no matches are given or can be returned, stop
+      if (prefix == null || potentialMatches == null || autoCompletionStrings == null)
+         return;
+
+      // grab all potential matches that might contain the prefix
+      Set<String> tailSet = potentialMatches.tailSet(prefix);
+
+      // add all potential matches starting with the prefix
+      for (String potentialMatch : tailSet) {
+         if (potentialMatch.startsWith(prefix))
+            autoCompletionStrings.add(potentialMatch);
+         else // matches beginning with the prefix are listed first, so stop when the prefix isn't found
+            break;
+      }
+
+      return;
+   }
+
+   /**
+    * Updates a tree of account IDs used for autocompletion with current values.
+    * <br>
+    * Complexity: O(n ln n), where n is the number of account IDs
+    */
+   public static void sortAccountIDs() {
+      // use a tree to sort unique IDs
+      // to optimize lookup times
+      accountIDs = new TreeSet<String>();
+
+      // add each ID to the tree
+      accountIDs.addAll(Account.getAllAccountNames());
+   }
+
+   /**
+    * Updates a tree of ware aliases used for autocompletion with current values.
+    * <br>
+    * Complexity: O(n ln n), where n is the number of ware aliases
+    */
+   public static void sortWareAliases() {
+      // use a tree to sort unique aliases
+      // to optimize lookup times
+      wareAliases = new TreeSet<String>();
+
+      // add each ID to the tree
+      wareAliases.addAll(Marketplace.getAllWareAliases());
    }
 
    /**

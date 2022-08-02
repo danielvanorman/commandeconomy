@@ -235,6 +235,11 @@ public class CommandGeneral extends CommandBase {
       }
 
       CommandProcessor.reload(InterfaceMinecraft.getSenderID(sender), args, 1);
+
+      // reload autocompletion strings for ware aliases and account IDs
+      // in case they were changed if wares or accounts were reloaded
+      InterfaceMinecraft.sortAccountIDs();
+      InterfaceMinecraft.sortWareAliases();
       return;
    }
 
