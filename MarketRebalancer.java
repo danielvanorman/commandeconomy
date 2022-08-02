@@ -12,7 +12,7 @@ import java.util.TimerTask;           // for disabling features relying on timer
  *
  * @author  Daniel Van Orman
  * @version %I%, %G%
- * @since   2022-06-28
+ * @since   2021-09-02
  */
 public class MarketRebalancer extends TimerTask  {
    // STATIC ATTRIBUTES

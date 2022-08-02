@@ -24,7 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequen
  *
  * @author  Daniel Van Orman
  * @version %I%, %G%
- * @since   2022-06-11
+ * @since   2021-12-30
  */
 @SuppressWarnings("deprecation") // unfortunately, Minecraft 1.12.2's gson requires a JSONParser object
 public class RandomEvents extends TimerTask {
@@ -785,7 +785,7 @@ public class RandomEvents extends TimerTask {
     *
     * @author  Daniel Van Orman
     * @version %I%, %G%
-    * @since   2022-06-11
+    * @since   2021-12-30
     */
    private class RandomEvent
    {

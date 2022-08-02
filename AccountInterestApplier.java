@@ -12,7 +12,7 @@ import java.util.TimerTask;           // for disabling features relying on timer
  *
  * @author  Daniel Van Orman
  * @version %I%, %G%
- * @since   2022-06-29
+ * @since   2021-12-21
  */
 public class AccountInterestApplier extends TimerTask  {
    // STATIC ATTRIBUTES

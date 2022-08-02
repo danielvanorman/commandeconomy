@@ -16,7 +16,7 @@ import java.util.Arrays;                       // for sorting trade decisions by
  *
  * @author  Daniel Van Orman
  * @version %I%, %G%
- * @since   2021-4-23
+ * @since   2022-4-23
  */
 public class AI {
    // STATIC ATTRIBUTES

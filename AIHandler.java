@@ -28,7 +28,7 @@ import java.util.HashSet;                      // for storing AI before their ac
  *
  * @author  Daniel Van Orman
  * @version %I%, %G%
- * @since   2021-4-23
+ * @since   2022-4-23
  */
 @SuppressWarnings("deprecation") // unfortunately, Minecraft 1.12.2's gson requires a JSONParser object
 public class AIHandler extends TimerTask {
