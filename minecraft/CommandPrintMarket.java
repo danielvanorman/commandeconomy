@@ -4,9 +4,7 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;            // for finding who to send messages to
 import net.minecraft.util.text.TextComponentString;         // for sending messages to players
-import net.minecraft.util.text.TextFormatting;
 import java.util.List;                                      // for sending command aliases
 import java.util.Arrays;                                    // for storing command aliases
 
@@ -22,7 +20,6 @@ public class CommandPrintMarket extends CommandBase {
       Marketplace.printMarket();
       message = new TextComponentString(CommandEconomy.MSG_PRINT_MARKET);
       sender.sendMessage(message);
-      return;
   }
 
   @Override

@@ -4,8 +4,6 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.text.TextComponentString;         // for sending messages to players
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.math.BlockPos;                    // for handling coordinates
 import net.minecraftforge.items.IItemHandler;               // for checking player and block inventories
 import net.minecraft.command.EntitySelector;                // for using command block selectors
@@ -242,7 +240,6 @@ public class CommandBuy extends CommandBase {
 
       // call corresponding function
       Marketplace.buy(userID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent, shouldManufacture);
-      return;
   }
 
    @Override
@@ -301,7 +298,7 @@ public class CommandBuy extends CommandBase {
    }
 
    @Override
-   public boolean isUsernameIndex(java.lang.String[] args, int index)
+   public boolean isUsernameIndex(String[] args, int index)
    {
       // there doesn't appear to be a good way to check
       // whether to use the command block variant

@@ -13,7 +13,6 @@ import java.util.Scanner;             // for parsing files
 import java.io.FileWriter;            // for writing to files
 import java.io.FileNotFoundException; // for handling missing file errors
 import java.io.IOException;           // for handling miscellaneous file errors
-import java.text.DecimalFormat;       // for formatting prices when displaying
 import java.util.UUID;                // for more securely tracking users internally
 import java.util.Collection;          // for returning all wares within the marketplace
 
@@ -101,7 +100,7 @@ public class Marketplace {
          quantity     = pQuantity;
          percentWorth = pPercentWorth;
       }
-   };
+   }
 
    // FUNCTIONS
    /**
@@ -148,7 +147,7 @@ public class Marketplace {
 
       // if there are already wares in the market, remove them
       // useful for reloading
-      if (wares.size() > 0) {
+      if (!wares.isEmpty()) {
          wares.clear();
          wareAliasTranslations.clear();
          waresErrored.clear();
@@ -333,7 +332,7 @@ public class Marketplace {
       processWaresWithUnloadedComponents(waresWithUnloadedComponents, hierarchyLevelTotals);
 
       // check if any wares were added
-      if (wares.size() == 0) {
+      if (wares.isEmpty()) {
          // if a blank save file was loaded,
          // try to load a market-starting file instead
          if (fileWares.getPath().equals(Config.filenameWaresSave)) {
@@ -384,8 +383,6 @@ public class Marketplace {
          AIHandler.loadWares();
       if (Config.randomEvents)
          RandomEvents.loadWares();
-
-      return;
    }
 
    /**
@@ -405,10 +402,8 @@ public class Marketplace {
 
       // set up variables
       int    depth              = 0;    // counter for repeatedly trying to load wares
-      int    compIndex          = 0;    // index for traversing ware's components
       String wareID;                    // ID for ware currently being processed
       String missingComponent;          // tracks which of the current ware's components is missing, if any
-      Ware   component          = null; // holds a component for the current ware
       // prepare a place to put wares who loaded successfully
       ArrayDeque<Ware> waresSuccessfullyLoaded = new ArrayDeque<Ware>();
 
@@ -649,8 +644,6 @@ public class Marketplace {
             ware.setQuantity(Config.startQuan[ware.getLevel()]);
          }
       }
-
-      return;
    }
 
    /**
@@ -694,10 +687,9 @@ public class Marketplace {
     */
    public static void saveWares() {
       // if there is nothing to save, do nothing
-      if (waresChangedSinceLastSave.size() == 0)
+      if (waresChangedSinceLastSave.isEmpty())
          return;
 
-      Ware ware; // ware currently being written
       StringBuilder lineEntry = new StringBuilder();
       StringBuilder json;
 
@@ -712,9 +704,10 @@ public class Marketplace {
       }
       waresChangedSinceLastSave.clear();
 
+      BufferedWriter fileWriter = null; // use a handle to ensure the file gets closed
       try {
          // open the save file for wares, create it if it doesn't exist
-         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(Config.filenameWaresSave, false));
+         fileWriter = new BufferedWriter(new FileWriter(Config.filenameWaresSave, false));
 
          // warn users file may be overwritten
          fileWriter.write(CommandEconomy.WARN_FILE_OVERWRITE);
@@ -745,16 +738,18 @@ public class Marketplace {
             fileWriter.write(CommandEconomy.FILE_HEADER_ALT_ALIASES);
             fileWriter.write(alternateAliasEntries.toString());
          }
-
-         // close the file
-         fileWriter.close();
       } catch (IOException e) {
          Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_SAVE_WARES);
          e.printStackTrace();
       }
 
+      // ensure the file is closed
+      try {
+         if (fileWriter != null)
+            fileWriter.close();
+      } catch (Exception e) { }
+
       releaseMutex();
-      return;
    }
 
    /**
@@ -765,9 +760,10 @@ public class Marketplace {
    public static void printMarket() {
       StringBuilder lineEntry = new StringBuilder();
 
+      BufferedWriter fileWriter = null; // use a handle to ensure the file gets closed
       try {
          // open the file for printing wares, create it if it doesn't exist
-         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(Config.filenameMarket, false));
+         fileWriter = new BufferedWriter(new FileWriter(Config.filenameMarket, false));
 
          // warn users file may be overwritten and print the header
          // tabs are used to allow easy pasting into Microsoft Excel spreadsheets
@@ -803,16 +799,18 @@ public class Marketplace {
             fileWriter.write(lineEntry.toString());
             lineEntry.setLength(0);
          }
-
-         // close the file
-         fileWriter.close();
       } catch (IOException e) {
          Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_PRINT_MARKET);
          e.printStackTrace();
       }
 
+      // ensure the file is closed
+      try {
+         if (fileWriter != null)
+            fileWriter.close();
+      } catch (Exception e) { }
+
       Config.commandInterface.printToConsole(CommandEconomy.MSG_PRINT_MARKET);
-      return;
    }
 
    /**
@@ -1062,22 +1060,20 @@ public class Marketplace {
     */
    public static int getPurchasableQuantity(Ware ware, float moneyAvailable) {
       // get ware information
-      final float priceBase       = ware.getBasePrice();
-      final int   quanCeiling     = Config.quanHigh[ware.getLevel()];
-      final int   quanFloor       = Config.quanLow[ware.getLevel()];
-      final int   quanEquilibrium = Config.quanMid[ware.getLevel()];
-            int   quanOnMarket    = ware.getQuantity();
+      final float PRICE_BASE                    = ware.getBasePrice();
+      final int   QUAN_CEILING                  = Config.quanHigh[ware.getLevel()];
+      final int   QUAN_FLOOR                    = Config.quanLow[ware.getLevel()];
+      final int   QUAN_EQUILIBRIUM              = Config.quanMid[ware.getLevel()];
+      final float QUAN_FLOOR_TO_EQUILIBRIUM     = (float) (QUAN_EQUILIBRIUM - QUAN_FLOOR);   // how much quantity is between the price floor stock and equilibrium stock
+      final float QUAN_CEILING_FROM_EQUILIBRIUM = (float) (QUAN_CEILING - QUAN_EQUILIBRIUM); // cast as a float now since it will only be used as a float
+            int   quanOnMarket                  = ware.getQuantity();
 
       // initialize variables
-      float spreadAdjustment = 0.0f; // spread's effect on price
-      float priceNoQuantityEffect;   // ware's price without considering supply and demand
-      float priceUnit;               // multiplier for how much supply and demand are affecting price
-      int   quanPartialTrade;        // quantity to be traded in a particular price quadrant
-      int   purchasableQuantity = 0; // how much quantity many be purchased
-
-      // precalculate repeatedly used information
-      float quanFloorFromEquilibrium   = (float) (quanEquilibrium - quanFloor);   // how much quantity is between the price floor stock and equilibrium stock
-      float quanCeilingFromEquilibrium = (float) (quanCeiling - quanEquilibrium); // cast as a float now since it will only be used as a float
+      float spreadAdjustment   = 0.0f; // spread's effect on price
+      float priceNoQuantityEffect;     // ware's price without considering supply and demand
+      float priceUnit;                 // multiplier for how much supply and demand are affecting price
+      int   quanPartialTrade;          // quantity to be traded in a particular price quadrant
+      int   purchasableQuantity = 0;   // how much quantity many be purchased
 
       // prepare to use quadratic formula to solve for purchasable quantity
       float quadraticFormulaA;
@@ -1085,18 +1081,18 @@ public class Marketplace {
       float quadraticFormulaC;
 
       // if spread is normal or base is 0, make no adjustment
-      if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
+      if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f) {
          // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
+         spreadAdjustment = ((float) priceBaseAverage - PRICE_BASE) * (1.0f - Config.priceSpread);
       }
 
       // calculate price when unaffected by supply and demand
-      priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceBuyUpchargeMult * Config.priceMult;
+      priceNoQuantityEffect = (PRICE_BASE + spreadAdjustment) * Config.priceBuyUpchargeMult * Config.priceMult;
 
       // find price quadrant and grab values
       // (quad 1) if at or below price floor
-      if (quanOnMarket > quanCeiling) {
-         quanPartialTrade = quanOnMarket - quanCeiling;
+      if (quanOnMarket > QUAN_CEILING) {
+         quanPartialTrade = quanOnMarket - QUAN_CEILING;
          priceUnit        = priceNoQuantityEffect * Config.priceFloor;
 
          // find how much quantity until crossing
@@ -1118,17 +1114,17 @@ public class Marketplace {
       }
 
       // (quad 2) if above equilibrium
-      if (moneyAvailable > 0.0f  && quanOnMarket > quanEquilibrium) {
+      if (moneyAvailable > 0.0f  && quanOnMarket > QUAN_EQUILIBRIUM) {
          // find the average price of price quadrant's remaining quantity until crossing
-         quanPartialTrade = quanOnMarket - quanEquilibrium - 1;
-         priceUnit        = priceNoQuantityEffect * (1.0f - Config.priceFloorAdjusted * (((quanOnMarket - ((float) quanPartialTrade / 2) - quanEquilibrium)) / quanCeilingFromEquilibrium));
+         quanPartialTrade = quanOnMarket - QUAN_EQUILIBRIUM - 1;
+         priceUnit        = priceNoQuantityEffect * (1.0f - Config.priceFloorAdjusted * (((quanOnMarket - ((float) quanPartialTrade / 2) - QUAN_EQUILIBRIUM)) / QUAN_CEILING_FROM_EQUILIBRIUM));
 
          // find how much quantity until crossing
          if (priceUnit * quanPartialTrade > moneyAvailable) {
             // if not crossing, use quadratic formula to solve for purchasable quantity
             quadraticFormulaA = 0.5f * Config.priceFloorAdjusted;
-            quadraticFormulaB = quanCeilingFromEquilibrium + Config.priceFloorAdjusted * (quanEquilibrium - quanOnMarket - 0.5f);
-            quadraticFormulaC = -moneyAvailable * quanCeilingFromEquilibrium / priceNoQuantityEffect;
+            quadraticFormulaB = QUAN_CEILING_FROM_EQUILIBRIUM + Config.priceFloorAdjusted * (QUAN_EQUILIBRIUM - quanOnMarket - 0.5f);
+            quadraticFormulaC = -moneyAvailable * QUAN_CEILING_FROM_EQUILIBRIUM / priceNoQuantityEffect;
             purchasableQuantity += (int) ((-quadraticFormulaB + Math.sqrt(Math.pow(quadraticFormulaB, 2) - (4 * quadraticFormulaA * quadraticFormulaC))) / (2 * quadraticFormulaA));
 
             // zero out money to avoid checking next price quadrants
@@ -1144,17 +1140,17 @@ public class Marketplace {
       }
 
       // (quad3) if below equilibrium
-      if (moneyAvailable > 0.0f && quanFloor < quanOnMarket) {
+      if (moneyAvailable > 0.0f && QUAN_FLOOR < quanOnMarket) {
          // find the average price of price quadrant's remaining quantity until crossing
-         quanPartialTrade = quanOnMarket - quanFloor + 1;
-         priceUnit        = priceNoQuantityEffect * (1.0f + Config.priceCeilingAdjusted * (((quanOnMarket - ((float) quanPartialTrade / 2) - quanEquilibrium)) / quanFloorFromEquilibrium));
+         quanPartialTrade = quanOnMarket - QUAN_FLOOR + 1;
+         priceUnit        = priceNoQuantityEffect * (1.0f + Config.priceCeilingAdjusted * (((quanOnMarket - ((float) quanPartialTrade / 2) - QUAN_EQUILIBRIUM)) / QUAN_FLOOR_TO_EQUILIBRIUM));
 
          // find how much quantity until crossing
          if (priceUnit * quanPartialTrade > moneyAvailable) {
             // if not crossing, use quadratic formula to solve for purchasable quantity
             quadraticFormulaA = -0.5f * Config.priceCeilingAdjusted;
-            quadraticFormulaB = quanFloorFromEquilibrium + Config.priceCeilingAdjusted * (quanOnMarket - quanEquilibrium + 0.5f);
-            quadraticFormulaC = -moneyAvailable * quanFloorFromEquilibrium / priceNoQuantityEffect;
+            quadraticFormulaB = QUAN_FLOOR_TO_EQUILIBRIUM + Config.priceCeilingAdjusted * (quanOnMarket - QUAN_EQUILIBRIUM + 0.5f);
+            quadraticFormulaC = -moneyAvailable * QUAN_FLOOR_TO_EQUILIBRIUM / priceNoQuantityEffect;
             purchasableQuantity += (int) ((-quadraticFormulaB + Math.sqrt(Math.pow(quadraticFormulaB, 2) - (4 * quadraticFormulaA * quadraticFormulaC))) / (2 * quadraticFormulaA));
 
             // zero out money to avoid checking next price quadrants
@@ -1170,7 +1166,7 @@ public class Marketplace {
       }
 
       // (quad 4) if at price ceiling
-      if (moneyAvailable > 0.0f && quanOnMarket <= quanFloor + 1) {
+      if (moneyAvailable > 0.0f && quanOnMarket <= QUAN_FLOOR + 1) {
          // divide money by constant price
          purchasableQuantity += (int) ((moneyAvailable / (priceNoQuantityEffect * Config.priceCeiling)) + 0.5f);
       }
@@ -1195,54 +1191,52 @@ public class Marketplace {
     */
    public static int getQuantityUntilPrice(Ware ware, float priceUnit, boolean isPurchase) {
       // get ware information
-      final float priceBase       = ware.getBasePrice();
-      final int   quanCeiling     = Config.quanHigh[ware.getLevel()];
-      final int   quanFloor       = Config.quanLow[ware.getLevel()];
-      final int   quanEquilibrium = Config.quanMid[ware.getLevel()];
-      final int   quanOnMarket    = ware.getQuantity();
+      final float PRICE_BASE       = ware.getBasePrice();
+      final int   QUAN_CEILING                  = Config.quanHigh[ware.getLevel()];
+      final int   QUAN_FLOOR                    = Config.quanLow[ware.getLevel()];
+      final int   QUAN_EQUILIBRIUM              = Config.quanMid[ware.getLevel()];
+      final float QUAN_FLOOR_TO_EQUILIBRIUM     = (float) (QUAN_EQUILIBRIUM - QUAN_FLOOR);   // how much quantity is between the price floor stock and equilibrium stock
+      final float QUAN_CEILING_FROM_EQUILIBRIUM = (float) (QUAN_CEILING - QUAN_EQUILIBRIUM); // cast as a float now since it will only be used as a float
+      final int   QUAN_ON_MARKET    = ware.getQuantity();
 
       // initialize variables
       float spreadAdjustment = 0.0f; // spread's effect on price
       float priceNoQuantityEffect;   // ware's price without considering supply and demand
       int quantityUntilPrice;        // units until given price is reached
 
-      // precalculate repeatedly used information
-      float quanFloorFromEquilibrium   = (float) (quanEquilibrium - quanFloor);   // how much quantity is between the price floor stock and equilibrium stock
-      float quanCeilingFromEquilibrium = (float) (quanCeiling - quanEquilibrium); // cast as a float now since it will only be used as a float
-
       // if spread is normal or base is 0, make no adjustment
-      if (Config.priceSpread != 1.0f && priceBase != 0.0f) {
+      if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f) {
          // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = ((float) priceBaseAverage - priceBase) * (1.0f - Config.priceSpread);
+         spreadAdjustment = ((float) priceBaseAverage - PRICE_BASE) * (1.0f - Config.priceSpread);
       }
 
       // calculate price when unaffected by supply and demand
-      priceNoQuantityEffect = (priceBase + spreadAdjustment) * Config.priceBuyUpchargeMult * Config.priceMult;
+      priceNoQuantityEffect = (PRICE_BASE + spreadAdjustment) * Config.priceBuyUpchargeMult * Config.priceMult;
 
       // quad1/quad2, if acceptable price is above base price
-      if (priceUnit > priceBase) {
+      if (priceUnit > PRICE_BASE) {
          // quad1, if price is above ceiling
-         if (priceUnit >= priceBase * Config.priceCeiling) {
+         if (priceUnit >= PRICE_BASE * Config.priceCeiling) {
             // if the highest possible price is acceptable,
             // everything is acceptable
-            return quanOnMarket;
+            return QUAN_ON_MARKET;
          }
          // quad2, if price is below ceiling and above equilibrium
          else {
             // find quantity at acceptable price
-            quantityUntilPrice = (int) -((((-priceUnit / priceNoQuantityEffect + 1.0f) / Config.priceCeilingAdjusted) * quanFloorFromEquilibrium) + 1 - quanEquilibrium);
+            quantityUntilPrice = (int) -((((-priceUnit / priceNoQuantityEffect + 1.0f) / Config.priceCeilingAdjusted) * QUAN_FLOOR_TO_EQUILIBRIUM) + 1 - QUAN_EQUILIBRIUM);
 
             // find delta between current quantity and acceptable quantity
             if (isPurchase)
-               quantityUntilPrice = quanOnMarket - quantityUntilPrice;
+               quantityUntilPrice = QUAN_ON_MARKET - quantityUntilPrice;
             else
-               quantityUntilPrice -= quanOnMarket;
+               quantityUntilPrice -= QUAN_ON_MARKET;
          }
       }
       // quad3/quad4, if acceptable price is below base price
       else {
          // quad4, if price is below price floor
-         if (priceUnit <= priceBase * Config.priceFloor) {
+         if (priceUnit <= PRICE_BASE * Config.priceFloor) {
             if (isPurchase)
                // if the lowest possible price is unacceptable,
                // nothing is acceptable
@@ -1250,18 +1244,18 @@ public class Marketplace {
             else
                // if the lowest possible price is acceptable,
                // everything is acceptable
-               return quanOnMarket;
+               return QUAN_ON_MARKET;
          }
          // quad3, if price is above floor and below equilibrium
          else {
             // find quantity at acceptable price
-            quantityUntilPrice = (int) (((-priceUnit / priceNoQuantityEffect + 1.0f) / Config.priceFloorAdjusted * quanCeilingFromEquilibrium) - 1 + quanEquilibrium);
+            quantityUntilPrice = (int) (((-priceUnit / priceNoQuantityEffect + 1.0f) / Config.priceFloorAdjusted * QUAN_CEILING_FROM_EQUILIBRIUM) - 1 + QUAN_EQUILIBRIUM);
 
             // find delta between current quantity and acceptable quantity
             if (isPurchase)
-               quantityUntilPrice = quanOnMarket - quantityUntilPrice;
+               quantityUntilPrice = QUAN_ON_MARKET - quantityUntilPrice;
             else
-               quantityUntilPrice -= quanOnMarket;
+               quantityUntilPrice -= QUAN_ON_MARKET;
          }
       }
 
@@ -1692,8 +1686,6 @@ public class Marketplace {
          // report fee payment
          Config.commandInterface.printToUser(playerID, Config.transactionFeeBuyingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
-
-      return;
    }
 
    /**
@@ -1859,8 +1851,6 @@ public class Marketplace {
          // report fee payment
          Config.commandInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
-
-      return;
    }
 
    /**
@@ -1876,7 +1866,7 @@ public class Marketplace {
    public static void sellAll(UUID playerID, InterfaceCommand.Coordinates coordinates,
       LinkedList<Stock> inventory, String accountID, float pricePercent) {
       if ((coordinates == null &&                            // if the given inventory is empty and no coordinates are given,
-          (inventory   == null || inventory.size() == 0)) || // there is nothing to sell
+          (inventory   == null || inventory.isEmpty())) || // there is nothing to sell
           playerID     == null)                              // if no player was given, there is no party responsible for the purchase
          return;
 
@@ -1949,8 +1939,6 @@ public class Marketplace {
          // report fee payment
          Config.commandInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
-
-      return;
    }
 
    /**
@@ -2090,7 +2078,7 @@ public class Marketplace {
 
       // if a flat fee should be used,
       // check whether any remaining goods should be sold
-      else if (unsoldStocks != null && unsoldStocks.size() > 0) {
+      else if (unsoldStocks != null && !unsoldStocks.isEmpty()) {
          // sell each stack of unsold wares
          for (Stock stock : unsoldStocks) {
             try {
@@ -2278,8 +2266,6 @@ public class Marketplace {
             + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
             + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
       }
-
-      return;
    }
 
    /**
@@ -2352,7 +2338,6 @@ public class Marketplace {
             + " of held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
          }
       }
-      return;
    }
 
    /**
@@ -2420,14 +2405,9 @@ public class Marketplace {
     * Complexity: O(1)
     */
    public static void startOrReconfigPeriodicEvents() {
-      // if necessary, start, reload, or stop AI
-      AIHandler.startOrReconfig();
-
-      // if necessary, start, reload, or stop random events
-      RandomEvents.startOrReconfig();
-
-      // if necessary, start, reload, or stop automatic market rebalancing
-      MarketRebalancer.startOrReconfig();
+      AIHandler.startOrReconfig();        // if necessary, start, reload, or stop AI
+      RandomEvents.startOrReconfig();     // if necessary, start, reload, or stop random events
+      MarketRebalancer.startOrReconfig(); // if necessary, start, reload, or stop automatic market rebalancing
    }
 
    /**
@@ -2436,14 +2416,9 @@ public class Marketplace {
     * Complexity: O(1)
     */
    public static void endPeriodicEvents() {
-      // if necessary, stop AI
-      AIHandler.end();
-
-      // if necessary, stop random events
-      RandomEvents.end();
-
-      // if necessary, stop automatic marketplace rebalancing
-      MarketRebalancer.end();
+      AIHandler.end();        // if necessary, stop AI
+      RandomEvents.end();     // if necessary, stop random events
+      MarketRebalancer.end(); // if necessary, stop automatic marketplace rebalancing
    }
 
    /**

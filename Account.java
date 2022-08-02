@@ -62,100 +62,6 @@ public class Account {
 
    // FUNCTIONS
    /**
-    * Creates an account with default starting money.
-    * This constructor is private to allow for not making an account
-    * to handle spam attacks and to condense code.
-    *
-    * @param accountID    internal name of account
-    * @param accountOwner player who should have access to the account
-    * @return a newly opened account or null if the account could not be created
-    */
-   public static Account makeAccount(String accountID, UUID accountOwner) {
-      // grab the account owner's name once
-      String accountOwnerName = Config.commandInterface.getDisplayName(accountOwner);
-
-      // avoid creating an account whose ID matches an existing player's name
-      // if the player isn't the one creating the account
-      if (Config.commandInterface.doesPlayerExist(accountID) && // if the account ID is a player's name and
-         !accountOwnerName.equals(accountID))            // if the player isn't the account owner
-         return null;
-
-      // avoid creating an account whose ID is a number
-      try {
-         float number = Float.parseFloat(accountID);
-         Config.commandInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_NUMERICAL_ID);
-         return null;
-      } catch (Exception e) {}
-
-      // try to grab the account in case it is a duplicate
-      Account account = accounts.get(accountID);
-
-      // avoid overwriting an existing account
-      // unless a personal account is being made
-      if (account != null) {
-         // if a new personal account is being made,
-         // delete the non-personal account and send its money to its owner
-         if (!account.getOwner().equals(accountOwner) &&
-            accountID.equals(accountOwnerName)) {
-            // send non-personal account's money to its owner
-            UUID nonpersonalAccountOwner = account.getOwner();
-            // if the non-personal account owner doesn't
-            // have a personal account, open one for them
-            if (!accounts.containsKey(Config.commandInterface.getDisplayName(nonpersonalAccountOwner))) {
-               Account newPersonal = makeAccount(Config.commandInterface.getDisplayName(nonpersonalAccountOwner), nonpersonalAccountOwner,
-                  account.getMoney() + Config.accountStartingMoney);
-            } else {
-               accounts.get(Config.commandInterface.getDisplayName(nonpersonalAccountOwner)).addMoney(account.getMoney());
-            }
-
-            // delete the non-personal account
-            waitForMutex(); // check if another thread is adjusting accounts' properties
-            accounts.remove(accountID);
-
-            // tell the non-personal account owner about
-            // the non-personal account being deleted
-            Config.commandInterface.printErrorToUser(nonpersonalAccountOwner, accountID + "'s funds have been sent to your personal account." + System.lineSeparator() +
-               accountID + " is now another player's personal account.");
-         }
-         // non-personal accounts cannot take the IDs of existing accounts
-         // additionally, accounts cannot be reset by attempting to recreate them
-         else {
-            return null;
-         }
-      }
-
-      // if there is no player creating the account or
-      // if the account is personal (account ID == player's name),
-      // don't check account creation limit and
-      // don't increment per-player account creation count
-      if (accountOwner != null &&
-         !(accountID != null && !accountID.isEmpty() && accountID.equals(accountOwnerName))) {
-         // if the account isn't personal,
-         // check account creation limit
-         if (Config.accountMaxCreatedByIndividual != -1 &&
-            Config.accountMaxCreatedByIndividual <= Account.getNumAccountsCreatedByUser(accountOwner)) {
-            Config.commandInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_TOO_MANY);
-            return null;
-         }
-
-         // if the account creation limit isn't reached,
-         // increment the per-player account creation count
-         else {
-            // increment account creation count
-            accountsCreatedPerUser.put(accountOwner, accountsCreatedPerUser.getOrDefault(accountOwner, 0) + 1);
-
-            // generate record to ease saving later
-            // format: #,playername,count
-            accountCreationRecords.append("#," + accountOwner.toString() + ',' + accountsCreatedPerUser.get(accountOwner) + '\n');
-         }
-      }
-
-      // pass parameters to constructor
-      waitForMutex(); // check if another thread is adjusting accounts' properties
-      return new Account(accountID, accountOwner, Config.accountStartingMoney);
-   }
-
-   /**
     * Creates an account with specified amount of starting money.
     * This constructor is private to allow for not making an account
     * to handle spam attacks and to condense code.
@@ -197,7 +103,7 @@ public class Account {
             // if the non-personal account owner doesn't
             // have a personal account, open one for them
             if (!accounts.containsKey(Config.commandInterface.getDisplayName(nonpersonalAccountOwner))) {
-               Account newPersonal = makeAccount(Config.commandInterface.getDisplayName(nonpersonalAccountOwner), nonpersonalAccountOwner,
+               makeAccount(Config.commandInterface.getDisplayName(nonpersonalAccountOwner), nonpersonalAccountOwner,
                   account.getMoney() + Config.accountStartingMoney);
             } else {
                accounts.get(Config.commandInterface.getDisplayName(nonpersonalAccountOwner)).addMoney(account.getMoney());
@@ -248,6 +154,19 @@ public class Account {
       // pass parameters to constructor
       waitForMutex(); // check if another thread is adjusting accounts' properties
       return new Account(accountID, accountOwner, startingMoney);
+   }
+
+   /**
+    * Creates an account with default starting money.
+    * This constructor is private to allow for not making an account
+    * to handle spam attacks and to condense code.
+    *
+    * @param accountID    internal name of account
+    * @param accountOwner player who should have access to the account
+    * @return a newly opened account or null if the account could not be created
+    */
+   public static Account makeAccount(String accountID, UUID accountOwner) {
+      return makeAccount(accountID, accountOwner, Config.accountStartingMoney);
    }
 
    /**
@@ -507,7 +426,6 @@ public class Account {
 
       // mark the new account as needing to be saved
       accountsChangedSinceLastSave.add(this);
-      return;
    }
 
    /**
@@ -527,7 +445,6 @@ public class Account {
 
       // mark the new account as needing to be saved
       accountsChangedSinceLastSave.add(this);
-      return;
    }
 
    /**
@@ -549,7 +466,6 @@ public class Account {
 
       // mark the new account as needing to be saved
       accountsChangedSinceLastSave.add(this);
-      return;
    }
 
    /**
@@ -616,7 +532,6 @@ public class Account {
 
       // mark the new account as needing to be saved
       accountsChangedSinceLastSave.add(this);
-      return;
    }
 
    /**
@@ -665,7 +580,6 @@ public class Account {
 
       // mark the new account as needing to be saved
       accountsChangedSinceLastSave.add(this);
-      return;
    }
 
    /**
@@ -689,7 +603,6 @@ public class Account {
       // print the quantity in the given account
       Config.commandInterface.printToUser(playerID, accountID + ": " +
          CommandEconomy.PRICE_FORMAT.format(money));
-      return;
    }
 
    /**
@@ -835,7 +748,6 @@ public class Account {
 
       // mark the new account as needing to be saved
       accountsChangedSinceLastSave.add(this);
-      return;
    }
 
    /**
@@ -922,7 +834,7 @@ public class Account {
 
       // if there are already accounts usable in the market, remove them
       // this is useful for reloading
-      if (accounts.size() > 0) {
+      if (!accounts.isEmpty()) {
          accounts.clear();
          accountEntries.clear();
          accountsCreatedPerUser.clear();
@@ -1077,7 +989,6 @@ public class Account {
 
       // allow other threads to adjust accounts' properties
       releaseMutex();
-      return;
    }
 
    /**
@@ -1088,13 +999,12 @@ public class Account {
     */
    public static void saveAccounts() {
       // if there is nothing to save, do nothing
-      if (accountsChangedSinceLastSave.size() == 0 && !regenerateDefaultAccountEntries)
+      if (accountsChangedSinceLastSave.isEmpty() && !regenerateDefaultAccountEntries)
          return;
 
       String  accountID;  // ID for the account currently being written
       Account account;    // the account currently being written
       UUID    playerID;   // ID for the player whose account creation count is currently being written
-      Integer count;      // the account creation count currently being written
       StringBuilder json; // for regenerating account written states
 
       // loop through accounts and regenerate written states as needed
@@ -1142,9 +1052,10 @@ public class Account {
       }
       regenerateDefaultAccountEntries = false;
 
+      BufferedWriter fileWriter = null; // use a handle to ensure the file gets closed
       try {
          // open the accounts file, create it if it doesn't exist
-         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(Config.filenameAccounts, false));
+         fileWriter = new BufferedWriter(new FileWriter(Config.filenameAccounts, false));
 
          // warn users file may be overwritten
          fileWriter.write(CommandEconomy.WARN_FILE_OVERWRITE);
@@ -1172,14 +1083,16 @@ public class Account {
          // they might be nonexistent until fixed by a server administrator
          if (accountsErrored.length() > 0)
             fileWriter.write(CommandEconomy.WARN_FILE_WARES_INVALID + accountsErrored + '\n');
-
-         // close the file
-         fileWriter.close();
       } catch (IOException e) {
          Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_SAVE_ACCOUNTS);
          e.printStackTrace();
       }
-      return;
+
+      // ensure the file is closed
+      try {
+         if (fileWriter != null)
+            fileWriter.close();
+      } catch (Exception e) { }
    }
 
    /**
@@ -1284,8 +1197,7 @@ public class Account {
     * Complexity: O(1)
     */
    public static void startOrReconfigPeriodicEvents() {
-      // if necessary, start, reload, or stop applying account interest
-      AccountInterestApplier.startOrReconfig();
+      AccountInterestApplier.startOrReconfig(); // if necessary, start, reload, or stop applying account interest
    }
 
    /**
@@ -1294,8 +1206,7 @@ public class Account {
     * Complexity: O(1)
     */
    public static void endPeriodicEvents() {
-      // if necessary, stop applying account interest
-      AccountInterestApplier.end();
+      AccountInterestApplier.end(); // if necessary, stop applying account interest
    }
 
    /**
@@ -1358,4 +1269,4 @@ public class Account {
       feeCollectionAccount.addMoney(fee);
       return false;
    }
-};
+}

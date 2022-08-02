@@ -20,11 +20,6 @@ public class Autosaver extends TimerTask  {
 
    // INSTANCE METHODS
    /**
-    * Constructor: Initializes the periodic event.
-    */
-   public Autosaver() { }
-
-   /**
     * Calls on the appropriate function for
     * periodically saving the marketplace.
     */

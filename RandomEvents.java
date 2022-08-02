@@ -1,8 +1,6 @@
 package commandeconomy;
 
 import com.google.gson.Gson;                    // for saving and loading
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import java.io.File;                            // for handling files
 import java.io.FileReader;
 import com.google.gson.JsonSyntaxException;     // for more specific error messages when parsing files
@@ -26,7 +24,6 @@ import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequen
  * @version %I%, %G%
  * @since   2021-12-30
  */
-@SuppressWarnings("deprecation") // unfortunately, Minecraft 1.12.2's gson requires a JSONParser object
 public class RandomEvents extends TimerTask {
    // STATIC VARIABLES
    // events
@@ -279,7 +276,6 @@ public class RandomEvents extends TimerTask {
       try {
          fileReader = new FileReader(fileRandomEvents);
          randomEvents = gson.fromJson(fileReader, RandomEvent[].class);
-         fileReader.close();
       }
       catch (JsonSyntaxException e) {
          randomEvents = null; // disable random events
@@ -290,6 +286,12 @@ public class RandomEvents extends TimerTask {
          Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_RANDOM_EVENTS_PARSING + Config.filenameRandomEvents);
          e.printStackTrace();
       }
+
+      // ensure the file is closed
+      try {
+         if (fileReader != null)
+            fileReader.close();
+      } catch (Exception e) { }
 
       // check whether any events were loaded
       if (randomEvents == null || randomEvents.length <= 0) {
@@ -451,7 +453,6 @@ public class RandomEvents extends TimerTask {
       StringBuilder invalidWareIDs       = null;  // if reporting is enabled, prepares invalid ware IDs and aliases before printing them
       Ware[]        newChangedWares      = null;  // holds a reference to a newly allocated array of wares when resizing an array of affected wares
       QuantityForSaleChangeMagnitudes[] newChangeMagnitudes = null; // holds a reference to a newly allocated array of change magnitudes when resizing an array of change magnitudes affecting wares
-      Ware          changedWares         = null;
       Ware          ware;                         // holds ware reference before adding to array
       int           invalidEvents        = 0;     // track whether any events failed to reload
       int           size                 = 0;     // how many ware IDs should be processed
@@ -576,7 +577,6 @@ public class RandomEvents extends TimerTask {
       // prepare to generate descriptions
       Ware changedWare      = null; // holds current change's affected ware
       int  changedWareIndex = 0;    // tracks which ware is currently being parsed
-      int  size             = 0;    // holds how many wares should be parsed
 
       // prepare a buffer for each change order of magnitude
       // to eliminate the needs for ware changes to be sorted
@@ -700,11 +700,6 @@ public class RandomEvents extends TimerTask {
 
    // INSTANCE METHODS
    /**
-    * Constructor: Initializes random events.
-    */
-   public RandomEvents() { }
-
-   /**
     * Calls on the appropriate function for
     * periodically triggering random events.
     */
@@ -720,7 +715,7 @@ public class RandomEvents extends TimerTask {
          return;
 
       // check the queue
-      if (queue.size() > 0) {
+      if (!queue.isEmpty()) {
          // check flag for stopping
          if (stop)
             return;
@@ -811,13 +806,6 @@ public class RandomEvents extends TimerTask {
 
       // INSTANCE METHODS
       /**
-       * Creates a random event for GSON.
-       * <p>
-       * Complexity: O(1)
-       */
-      public RandomEvent() { }
-
-      /**
        * Prints the event's description and adjusts wares' quantities for sale.
        * <p>
        * Complexity: O(n^2), where n is characters in the event's description
@@ -899,5 +887,5 @@ public class RandomEvents extends TimerTask {
          if (Config.randomEventsPrintChanges && descriptionChangedWares != null)
             Config.commandInterface.printToAllUsers(descriptionChangedWares.toString());
       }
-   };
-};
+   }
+}

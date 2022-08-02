@@ -88,4 +88,4 @@ public class WareCrafted extends Ware
 
       return jsonObject.toString();
    }
-};
+}

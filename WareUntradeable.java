@@ -135,4 +135,4 @@ public class WareUntradeable extends Ware
 
       return jsonObject.toString();
    }
-};
+}

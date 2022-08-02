@@ -27,7 +27,7 @@ public interface InterfaceCommand
     * @version %I%, %G%
     * @since   2021-05-19
     */
-   public class Coordinates
+   class Coordinates
    {
       /** container's x-axis coordinate */
       public int x;
@@ -54,7 +54,7 @@ public interface InterfaceCommand
          this.z = z;
          this.dimension = dimension;
       }
-   };
+   }
 
    // FUNCTIONS
    /**
@@ -62,7 +62,7 @@ public interface InterfaceCommand
     *
     * @return directory of local save and config files
     */
-   public String getSaveDirectory();
+   String getSaveDirectory();
 
    /**
     * Returns how many more stacks of wares the given inventory may hold.
@@ -71,7 +71,7 @@ public interface InterfaceCommand
     * @param coordinates where the inventory may be found
     * @return number of free slots in the given inventory
     */
-   public int getInventorySpaceAvailable(UUID playerID,
+   int getInventorySpaceAvailable(UUID playerID,
       InterfaceCommand.Coordinates coordinates);
 
    /**
@@ -83,7 +83,7 @@ public interface InterfaceCommand
     * @param playerID    user responsible for the trading
     * @param coordinates where the inventory may be found
     */
-   public void addToInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   void addToInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID, int quantity);
 
    /**
@@ -94,7 +94,7 @@ public interface InterfaceCommand
     * @param playerID    user responsible for the trading
     * @param coordinates where the inventory may be found
     */
-   public void removeFromInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   void removeFromInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID, int quantity);
 
    /**
@@ -109,7 +109,7 @@ public interface InterfaceCommand
     * @param coordinates where the inventory may be found
     * @return quantities and qualities of wares found
     */
-   public LinkedList<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   LinkedList<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID);
 
    /**
@@ -118,7 +118,7 @@ public interface InterfaceCommand
     * @param playerID UUID of whose name should be found
     * @return player name corresponding to given UUID
     */
-   public String getDisplayName(UUID playerID);
+   String getDisplayName(UUID playerID);
 
    /**
     * Returns the UUID associated with the given player name.
@@ -126,7 +126,7 @@ public interface InterfaceCommand
     * @param playername player name corresponding UUID
     * @return player UUID corresponding to given player name
     */
-   public UUID getPlayerID(String playername);
+   UUID getPlayerID(String playername);
 
    /**
     * Returns whether a player with the given unique identifier is currently logged into the server.
@@ -134,7 +134,7 @@ public interface InterfaceCommand
     * @param playerID UUID of player whose current status is needed
     * @return <code>true</code> if the player is currently online
     */
-   public boolean isPlayerOnline(UUID playerID);
+   boolean isPlayerOnline(UUID playerID);
 
    /**
     * Returns whether the given string matches a player name.
@@ -142,7 +142,7 @@ public interface InterfaceCommand
     * @param username player to check the existence of
     * @return whether the given string is in use as a player's name
     */
-   public boolean doesPlayerExist(String username);
+   boolean doesPlayerExist(String username);
 
    /**
     * Returns whether or not a given Forge OreDictionary name exists outside of the market.
@@ -150,7 +150,7 @@ public interface InterfaceCommand
     * @param name the Forge OreDictionary name
     * @return true if the name exists outside of the market
     */
-   public boolean doesOreDictionaryNameExist(String name);
+   boolean doesOreDictionaryNameExist(String name);
 
    /**
     * Returns whether or not a given ware exists outside of the market.
@@ -158,7 +158,7 @@ public interface InterfaceCommand
     * @param wareID unique ID used to refer to the ware
     * @return true if the ware exists outside of the market
     */
-   public boolean doesWareExist(String wareID);
+   boolean doesWareExist(String wareID);
 
    /**
     * Returns how many a stack of the ware may hold outside of the market.
@@ -166,7 +166,7 @@ public interface InterfaceCommand
     * @param wareID unique ID used to refer to the ware
     * @return the maximum amount a single stack may hold
     */
-   public int getStackSize(String wareID);
+   int getStackSize(String wareID);
 
    /**
     * Forwards a message to the specified user.
@@ -174,14 +174,14 @@ public interface InterfaceCommand
     * @param playerID who to give the message to
     * @param message what to tell the user
     */
-   public void printToUser(UUID playerID, String message);
+   void printToUser(UUID playerID, String message);
 
    /**
     * Forwards a message to all users.
     *
     * @param message what to tell the users
     */
-   public void printToAllUsers(String message);
+   void printToAllUsers(String message);
 
    /**
     * Forwards an error message to the specified user.
@@ -189,14 +189,14 @@ public interface InterfaceCommand
     * @param playerID who to give the message to
     * @param message what to tell the user
     */
-   public void printErrorToUser(UUID playerID, String message);
+   void printErrorToUser(UUID playerID, String message);
 
    /**
     * Handles the contents for an error message normal users shouldn't necessarily see.
     *
     * @param message error encountered and possible details
     */
-   public void printToConsole(String message);
+   void printToConsole(String message);
 
    /**
     * Returns whether the player is a server administrator.
@@ -204,10 +204,10 @@ public interface InterfaceCommand
     * @param playerID player whose server operator permissions should be checked
     * @return whether the player is an op
     */
-   public boolean isAnOp(UUID playerID);
+   boolean isAnOp(UUID playerID);
 
    /**
     * Fulfills commands given through the interface.
     */
-   public void serviceRequests();
+   void serviceRequests();
 }

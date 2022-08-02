@@ -106,7 +106,6 @@ public class CommandProcessor
       // only report success if the account was actually created
       if (Account.getAccount(args[0].intern()) != null)
          Config.commandInterface.printToUser(playerID, "Created new account: " + args[0]);
-      return;
    }
 
    /**
@@ -137,7 +136,6 @@ public class CommandProcessor
 
       // call corresponding function
       Account.deleteAccount(args[0].intern(), playerID);
-      return;
    }
 
    /**
@@ -173,7 +171,6 @@ public class CommandProcessor
 
       // call corresponding function
       account.grantAccess(playerID, Config.commandInterface.getPlayerID(args[0]), args[1].intern());
-      return;
    }
 
    /**
@@ -209,7 +206,6 @@ public class CommandProcessor
 
       // call corresponding function
       account.revokeAccess(playerID, Config.commandInterface.getPlayerID(args[0]), args[1].intern());
-      return;
    }
 
    /**
@@ -439,7 +435,6 @@ public class CommandProcessor
 
       // remove any old offer
       investmentOffers.remove(playerID);
-      return;
    }
 
    /**
@@ -491,7 +486,6 @@ public class CommandProcessor
       else {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ARG + CommandEconomy.CMD_USAGE_RELOAD);
       }
-      return;
    }
 
    /**
@@ -570,8 +564,6 @@ public class CommandProcessor
          // tell the player about the money
          Config.commandInterface.printToUser(playerID, "Received " + CommandEconomy.PRICE_FORMAT.format(quantity));
       }
-
-      return;
    }
 
    /**
@@ -652,8 +644,6 @@ public class CommandProcessor
          // tell the player about the money
          Config.commandInterface.printToUser(playerID, "Personal funds set to " + CommandEconomy.PRICE_FORMAT.format(quantity));
       }
-
-      return;
    }
 
    /**
@@ -720,7 +710,6 @@ public class CommandProcessor
 
       // report success
       Config.commandInterface.printToUser(playerID, ware.getWareID() + "'s stock is now " + Integer.toString(ware.getQuantity()));
-      return;
    }
 
    /**
@@ -755,8 +744,6 @@ public class CommandProcessor
          Config.commandInterface.printToUser(playerID, args[0] + " will now be used in place of your personal account");
       }
       // if it didn't work, an error has already been printed
-
-      return;
    }
 
    /**
@@ -874,4 +861,4 @@ public class CommandProcessor
          return Float.NaN;
       }
    }
-};
+}

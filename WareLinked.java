@@ -432,4 +432,4 @@ public class WareLinked extends Ware
       quanHigh *= yield;
       return quanHigh - yield;
    }
-};
+}

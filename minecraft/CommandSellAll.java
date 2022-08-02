@@ -5,14 +5,10 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.text.TextComponentString;         // for sending messages to players
-import net.minecraft.util.text.TextFormatting;
-import java.util.HashMap;                                   // for convert the player's inventory into a format usable within the marketplace
 import net.minecraftforge.items.IItemHandler;               // for handling player and block inventories
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;                 // for finding namespaced ids based on items
 import net.minecraft.util.math.BlockPos;                    // for handling coordinates
 import net.minecraft.command.EntitySelector;                // for using command block selectors
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage
@@ -185,7 +181,6 @@ public class CommandSellAll extends CommandBase {
       // set up variables
       ItemStack itemStack; // wares in the slot being parsed
       String itemID = "";  // temporary variable for writing ware IDs for each item stack
-      float percentWorth;  // holds ware's worth based on how damaged the ware is
       int maxSlots = 0;    // size of the inventory
 
       // search for sellable wares within the player's inventory
@@ -249,7 +244,6 @@ public class CommandSellAll extends CommandBase {
       }
 
       Marketplace.sellAll(userID, coordinates, formattedInventory, accountID, pricePercent);
-      return;
   }
 
    @Override
@@ -308,7 +302,7 @@ public class CommandSellAll extends CommandBase {
    }
 
    @Override
-   public boolean isUsernameIndex(java.lang.String[] args, int index)
+   public boolean isUsernameIndex(String[] args, int index)
    {
       // there doesn't appear to be a good way to check
       // whether to use the command block variant

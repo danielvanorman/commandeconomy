@@ -4,9 +4,7 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;            // for finding who to send messages to
 import net.minecraft.util.text.TextComponentString;         // for sending messages to players
-import net.minecraft.util.text.TextFormatting;
 
 public class CommandSaveCE extends CommandBase {
 
@@ -20,7 +18,6 @@ public class CommandSaveCE extends CommandBase {
       Account.saveAccounts();
       errorMessage = new TextComponentString(CommandEconomy.MSG_SAVED_ECONOMY);
       sender.sendMessage(errorMessage);
-      return;
   }
 
   @Override

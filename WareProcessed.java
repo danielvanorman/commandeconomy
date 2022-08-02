@@ -89,4 +89,4 @@ public class WareProcessed extends Ware
 
       return jsonObject.toString();
    }
-};
+}

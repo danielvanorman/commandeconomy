@@ -4,10 +4,9 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;            // for finding who to send messages to
+import net.minecraft.entity.player.EntityPlayer;            // for finding who to send messages to and accessing the command-issuing player's inventory
 import net.minecraft.util.text.TextComponentString;         // for sending messages to players
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.entity.player.EntityPlayer;            // for accessing the command-issuing player's inventory
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;                    // for accessing marking itemstacks to not be sold
 import java.util.List;                                      // for autocompleting arguments and sending command aliases
@@ -146,8 +145,6 @@ public class CommandNoSell extends CommandBase {
             sender.sendMessage(errorMessage);
          }
       }
-
-      return;
   }
 
   @Override
@@ -197,7 +194,7 @@ public class CommandNoSell extends CommandBase {
    }
 
    @Override
-   public boolean isUsernameIndex(java.lang.String[] args, int index)
+   public boolean isUsernameIndex(String[] args, int index)
    {
       return false;
    }

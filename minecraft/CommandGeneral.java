@@ -4,13 +4,10 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;            // for finding who to send messages to
 import net.minecraft.util.text.TextComponentString;         // for sending messages to players
-import net.minecraft.util.text.TextFormatting;
 import java.util.List;                                      // for autocompleting arguments
 import java.util.LinkedList;
 import net.minecraft.util.math.BlockPos;
-import java.util.UUID;                                      // for more securely tracking users internally
 import java.util.Arrays;                                    // for removing the first element of args before passing it to other commands
 
 public class CommandGeneral extends CommandBase {
@@ -126,8 +123,6 @@ public class CommandGeneral extends CommandBase {
             InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_INVALID_CMD);
             break;
       }
-
-      return;
   }
 
    /**
@@ -151,7 +146,7 @@ public class CommandGeneral extends CommandBase {
             CommandEconomy.CMD_USAGE_BLOCK_SELLALL + CommandEconomy.CMD_DESC_SELLALL +
             CommandEconomy.CMD_USAGE_BLOCK_MONEY + CommandEconomy.CMD_DESC_MONEY +
             CommandEconomy.CMD_USAGE_BLOCK_SEND + CommandEconomy.CMD_DESC_SEND +
-            "inventory_direction is none, down, up, north, east, west, or south\n"
+            CommandEconomy.CMD_DESC_INVENTORY_DIRECTION
          );
       } else {
          // in necessary, regenerate help output
@@ -196,7 +191,6 @@ public class CommandGeneral extends CommandBase {
       }
 
       sender.sendMessage(message);
-      return;
    }
 
    /**
@@ -217,7 +211,6 @@ public class CommandGeneral extends CommandBase {
       Marketplace.saveWares();
       Account.saveAccounts();
       InterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_SAVED_ECONOMY);
-      return;
    }
 
    /**
@@ -231,7 +224,6 @@ public class CommandGeneral extends CommandBase {
       // permission to execute this command
       if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
          InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
-         return;
       }
 
       CommandProcessor.reload(InterfaceMinecraft.getSenderID(sender), args, 1);
@@ -240,7 +232,6 @@ public class CommandGeneral extends CommandBase {
       // in case they were changed if wares or accounts were reloaded
       InterfaceMinecraft.sortAccountIDs();
       InterfaceMinecraft.sortWareAliases();
-      return;
    }
 
    /**
@@ -251,7 +242,6 @@ public class CommandGeneral extends CommandBase {
     */
    protected static void serviceRequestVersion(ICommandSender sender, String[] args) {
       sender.sendMessage(new TextComponentString(CommandEconomy.MSG_VERSION + CommandEconomy.VERSION));
-      return;
    }
 
    /**
@@ -269,7 +259,6 @@ public class CommandGeneral extends CommandBase {
       }
 
       CommandProcessor.set(InterfaceMinecraft.getSenderID(sender), args, 1);
-      return;
    }
 
    /**
@@ -288,7 +277,6 @@ public class CommandGeneral extends CommandBase {
       }
 
       CommandProcessor.changeStock(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
-      return;
    }
 
    /**
@@ -308,7 +296,6 @@ public class CommandGeneral extends CommandBase {
       // call corresponding functions
       Marketplace.printMarket();
       InterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_PRINT_MARKET);
-      return;
    }
 
    @Override
@@ -426,15 +413,10 @@ public class CommandGeneral extends CommandBase {
    }
 
    @Override
-   public boolean isUsernameIndex(java.lang.String[] args, int index)
+   public boolean isUsernameIndex(String[] args, int index)
    {
-      if (index == 1 && args.length >= 2 &&
-          (args[0].equalsIgnoreCase(CommandEconomy.CMD_GRANT_ACCESS_LOWER) ||
-           args[0].equalsIgnoreCase(CommandEconomy.CMD_REVOKE_ACCESS_LOWER)))
-      {
-         return true;
-      }
-
-      return false;
+      return index == 1 && args.length >= 2 &&
+             (args[0].equalsIgnoreCase(CommandEconomy.CMD_GRANT_ACCESS_LOWER) ||
+              args[0].equalsIgnoreCase(CommandEconomy.CMD_REVOKE_ACCESS_LOWER));
    }
 }

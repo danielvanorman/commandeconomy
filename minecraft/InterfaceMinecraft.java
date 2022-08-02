@@ -29,10 +29,8 @@ import net.minecraftforge.oredict.OreDictionary;                   // for checki
 import net.minecraft.server.management.PlayerList;                 // for checking server operator permissions
 import java.util.UUID;                                             // for more securely tracking users internally
 import java.util.HashMap;                                          // for mapping server and command block UUIDs to displayable names
-import net.minecraft.command.EntitySelector;                       // for using command block selectors
 import net.minecraft.command.CommandBase;                          // for providing other classes access to command handlers
 import net.minecraftforge.common.DimensionManager;                 // for getting paths to per-world save and config files
-import java.io.File;                                               // for adding a file separator to the singleplayer save directory
 import java.util.TreeSet;                                          // for autocompleting arguments
 import java.util.Set;
 
@@ -298,7 +296,6 @@ public class InterfaceMinecraft implements InterfaceCommand
       int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
       ItemStack itemStack;     // wares in the slot being parsed
       int maxSlots = 0;        // size of the inventory
-      int quantityLeftover;    // the parsed slot's quantity if all quantity to be removed is taken from it
       String oreName = "";       // holds the Forge OreDictionary name being used
       boolean usingOreName = wareID.startsWith("#");
 
@@ -416,7 +413,6 @@ public class InterfaceMinecraft implements InterfaceCommand
       int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
       ItemStack itemStack;    // wares in the slot being parsed
       String itemID = "";      // temporary variable for writing ware IDs for each item stack
-      float percentWorth;     // holds ware's worth based on how damaged the ware is
       int maxSlots = 0;        // size of the inventory
       String oreName = "";       // holds the Forge OreDictionary name being used
       boolean usingOreName = wareID.startsWith("#");
@@ -721,10 +717,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       EntityPlayer user = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
 
       // report whether the specified user was found
-      if (user != null)
-         return true;
-
-      return false;
+      return user != null;
    }
 
    /**
@@ -985,9 +978,7 @@ public class InterfaceMinecraft implements InterfaceCommand
    /**
     * CommandBase classes handle servicing requests.
     */
-   public void serviceRequests() {
-      return;
-   }
+   public void serviceRequests() { }
 
    /**
     * Returns whether the player is a server administrator.
@@ -996,15 +987,7 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @return whether the player is an op
     */
    public boolean isAnOp(UUID playerID) {
-      if (playerID == null)
-         return false;
-
-      // check for player among server operators
-      PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
-      if (playerList.canSendCommands(playerList.getPlayerByUUID(playerID).getGameProfile()))
-         return true;
-
-      return false;
+      return isAnOpStatic(playerID);
    }
 
    /**
@@ -1019,10 +1002,7 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // check for player among server operators
       PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
-      if (playerList.canSendCommands(playerList.getPlayerByUUID(playerID).getGameProfile()))
-         return true;
-
-      return false;
+      return playerList.canSendCommands(playerList.getPlayerByUUID(playerID).getGameProfile());
    }
 
    /**
@@ -1203,12 +1183,8 @@ public class InterfaceMinecraft implements InterfaceCommand
          return true;
 
       // check for sender among server operators
-      if (FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile()))
-         return true;
-
-      // if the sender is not a server operator,
-      // they may not execute commands for other players
-      return false;
+      // to determine whether they may execute commands for other players
+      return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile());
    }
 
    /**
@@ -1234,11 +1210,7 @@ public class InterfaceMinecraft implements InterfaceCommand
          return true;
 
       // check for sender among server operators
-      if (FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile()))
-         return true;
-
-      // if the sender is not a server operator,
-      // they may not execute commands for other players
-      return false;
+      // to determine whether they may execute commands for other players
+      return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile());
    }
 }

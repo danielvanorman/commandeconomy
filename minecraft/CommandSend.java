@@ -5,21 +5,16 @@ import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.text.TextComponentString;         // for sending messages to players
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.command.EntitySelector;                // for using command block selectors
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage
 import java.util.List;                                      // for autocompleting arguments
 import java.util.LinkedList;
 import net.minecraft.util.math.BlockPos;
-import java.util.UUID;                                      // for more securely tracking users internally
 
 public class CommandSend extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      // prepare to tell the user if something is wrong
-      TextComponentString errorMessage;
-
       // request should not be null
       if (args == null || args.length == 0) {
          InterfaceMinecraft.forwardErrorToUser(sender, getUsage(sender));
@@ -109,8 +104,6 @@ public class CommandSend extends CommandBase {
       if (account != null)
          // transfer the money
          account.sendMoney(InterfaceMinecraft.getPlayerIDStatic(username), quantity, senderAccountID, recipientAccountID);
-
-      return;
   }
 
    @Override
@@ -166,7 +159,7 @@ public class CommandSend extends CommandBase {
    }
 
    @Override
-   public boolean isUsernameIndex(java.lang.String[] args, int index)
+   public boolean isUsernameIndex(String[] args, int index)
    {
       // there doesn't appear to be a good way to check
       // whether to use the command block variant

@@ -386,7 +386,6 @@ public class Config
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
                                             CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
       }
-      return;
    }
 
    /**
@@ -414,7 +413,6 @@ public class Config
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
       }
-      return;
    }
 
    /**
@@ -518,7 +516,6 @@ public class Config
          default:
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
       }
-      return;
    }
 
    /**
@@ -571,7 +568,6 @@ public class Config
             commandInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption
                                             + CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
       }
-      return;
    }
 
    /**
@@ -637,7 +633,6 @@ public class Config
 
      // set up variables for parsing config options
      float input       = 0.0f;  // for individual values
-     boolean inputBool = false;
      String[] inputArray; // for arrays of values
 
      // parse through the file line-by-line
@@ -807,7 +802,6 @@ public class Config
       // change or close any threads needed for features based on configuration settings
       Marketplace.startOrReconfigPeriodicEvents();
       Account.startOrReconfigPeriodicEvents();
-      return;
    }
 
    /**
@@ -952,4 +946,4 @@ public class Config
          directoryLocal.mkdir();
       }
    }
-};
+}

@@ -1,8 +1,6 @@
 package commandeconomy;
 
-import com.google.gson.Gson;                    // for loading
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.Gson;                    // for loading AI
 import java.lang.reflect.Type;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;                            // for handling files
@@ -13,10 +11,9 @@ import java.util.TimerTask;                     // for disabling AI mid-executio
 import java.util.Collections;                   // for communication between the main thread and the thread handling AI
 import java.util.Set;
 import java.util.EnumSet;
-import java.util.concurrent.ThreadLocalRandom;  // for randomizing trade frequency and decisions
 import java.util.HashMap;                       // for storing AI professions and trade decisions
 import java.util.Map;                           // for iterating through hashmaps
-import java.util.HashSet;                      // for storing AI before their activation
+import java.util.HashSet;                       // for storing AI before their activation
 
 /**
  * Creating an instance of this class initializes
@@ -30,7 +27,6 @@ import java.util.HashSet;                      // for storing AI before their ac
  * @version %I%, %G%
  * @since   2022-4-23
  */
-@SuppressWarnings("deprecation") // unfortunately, Minecraft 1.12.2's gson requires a JSONParser object
 public class AIHandler extends TimerTask {
    // STATIC ATTRIBUTES
    // AI management
@@ -235,7 +231,6 @@ public class AIHandler extends TimerTask {
          fileReader = new FileReader(fileAIProfessions);
          Type typeProfessions = new TypeToken<HashMap<String, AI>>(){}.getType(); // use TypeToken since the profession object may not have been initialized yet
          professions = gson.fromJson(fileReader, typeProfessions);
-         fileReader.close();
       }
       catch (JsonSyntaxException e) {
          professions = null; // disable AI
@@ -247,15 +242,15 @@ public class AIHandler extends TimerTask {
          e.printStackTrace();
       }
 
-      // check whether any AI professions were loaded
-      if (professions == null || professions.size() <= 0) {
-         professions = null; // disable AI
+      // ensure the file is closed
+      try {
+         if (fileReader != null)
+            fileReader.close();
+      } catch (Exception e) { }
 
-         // ensure the file is closed
-         try {
-            if (fileReader != null)
-               fileReader.close();
-         } catch (Exception e) { }
+      // check whether any AI professions were loaded
+      if (professions == null || professions.isEmpty()) {
+         professions = null; // disable AI
 
          Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
          return;
@@ -277,7 +272,7 @@ public class AIHandler extends TimerTask {
       }
 
       // check whether any AI professions are valid
-      if (professions.size() <= 0) {
+      if (professions.isEmpty()) {
          professions = null; // disable AI
          Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID);
          return;
@@ -311,7 +306,7 @@ public class AIHandler extends TimerTask {
          }
 
          // if no AI were found
-         if (aiToActivate.size() == 0) {
+         if (aiToActivate.isEmpty()) {
             Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
             end();
          }
@@ -361,11 +356,6 @@ public class AIHandler extends TimerTask {
 
    // INSTANCE METHODS
    /**
-    * Constructor: Initializes the AI handler.
-    */
-   public AIHandler() { }
-
-   /**
     * Calls on the appropriate function for
     * handling AI trade events.
     */
@@ -381,7 +371,7 @@ public class AIHandler extends TimerTask {
          return;
 
       // check the queue
-      if (queue.size() > 0) {
+      if (!queue.isEmpty()) {
          // check flag for stopping
          if (stop)
             return;
@@ -427,4 +417,4 @@ public class AIHandler extends TimerTask {
       // finalize trades
       AI.finalizeTrades(tradesPending);
    }
-};
+}

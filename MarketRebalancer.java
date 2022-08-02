@@ -170,15 +170,9 @@ public class MarketRebalancer extends TimerTask  {
 
       // allow other threads to adjust wares' properties
       Marketplace.releaseMutex();
-      return;
    }
 
    // INSTANCE METHODS
-   /**
-    * Constructor: Initializes the periodic event.
-    */
-   public MarketRebalancer() { }
-
    /**
     * Calls on the appropriate function for
     * periodically rebalancing the marketplace.

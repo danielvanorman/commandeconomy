@@ -67,7 +67,7 @@ public class AI {
          this.desirability = desirability;
          this.isPurchase   = isPurchase;
       }
-   };
+   }
 
    /**
     * Evaluates the worth of two trades an AI could make.
@@ -76,7 +76,7 @@ public class AI {
     * @version %I%, %G%
     * @since   2021-04-28
     */
-   private class comparatorTradeDecision implements Comparator<TradeDecision>
+   private class ComparatorTradeDecision implements Comparator<TradeDecision>
    {
    /**
     * Compares two trade decisions for order in a min heap.
@@ -104,7 +104,7 @@ public class AI {
          else
             return 0;  // lhs is equally desirable
       }
-   };
+   }
 
    // STATIC METHODS
    /**
@@ -131,7 +131,7 @@ public class AI {
     * @param tradesPending initialized map of ware references and changes to their quantities for sale
     */
    public static void finalizeTrades(HashMap<Ware, Integer> tradesPending) {
-      if (tradesPending == null || tradesPending.size() <= 0)
+      if (tradesPending == null || tradesPending.isEmpty())
          return;
 
       // prepare to trade
@@ -418,7 +418,7 @@ public class AI {
       // if preferences exist, ensure their ware IDs and aliases
       // correspond to purchasable and sellable IDs
       if (preferences != null) {
-         if (preferences.size() > 0) {
+         if (!preferences.isEmpty()) {
             Iterator<Map.Entry<String, Float>> iterator = preferences.entrySet().iterator(); // get hashmap iterator
             Map.Entry<String, Float> entry;  // contains preference currently being processed
             String                   wareID; // identifier for ware AI has an opinion of
@@ -627,7 +627,7 @@ public class AI {
       // if multiple trade decisions should be made,
       // prepare a min heap for holding all trade decisions
       if (makeMultipleDecisions)
-         tradeDecisions = new PriorityQueue<TradeDecision>(decisionsPerTradeEvent, new comparatorTradeDecision());
+         tradeDecisions = new PriorityQueue<TradeDecision>(decisionsPerTradeEvent, new ComparatorTradeDecision());
 
       // if necessary, consider wares able to be bought
       if (purchasables != null) {
@@ -828,7 +828,5 @@ public class AI {
          else
             tradesPending.put(wareBest, intValue + tradeQuantities[wareBest.getLevel()]);
       }
-
-      return;
    }
-};
+}

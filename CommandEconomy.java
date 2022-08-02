@@ -189,7 +189,6 @@ public class CommandEconomy {
 
       // run the market
       Config.commandInterface.serviceRequests(); // runs commands until a stop command is used
-      return;
    }
 
    /**
@@ -311,6 +310,7 @@ public class CommandEconomy {
    public final static String CMD_DESC_SAVECE              = " - saves market wares and accounts\n";
    public final static String CMD_DESC_RELOAD              = " - reloads part or all of the marketplace from file\n";
    public final static String CMD_DESC_PRINT_MARKET        = " - writes all wares currently tradeable to a file\n";
+   public final static String CMD_DESC_INVENTORY_DIRECTION = "inventory_direction is " + INVENTORY_NONE +  ", " + INVENTORY_DOWN + ", " + INVENTORY_UP + ", " + INVENTORY_NORTH + ", " + INVENTORY_EAST + ", " + INVENTORY_WEST + ", or " + INVENTORY_SOUTH + "\n";
 
    // command errors
    public final static String ERROR_NUM_ARGS          = "error - wrong number of arguments: ";

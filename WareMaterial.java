@@ -57,4 +57,4 @@ public class WareMaterial extends Ware
 
       return jsonObject.toString();
    }
- };
+ }

@@ -67,7 +67,6 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // set up and run the market
       CommandEconomy.start(null);
-      return;
    }
 
    /**
@@ -374,10 +373,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @return whether the given string is in use as a player's name
     */
    protected static boolean doesPlayerExistStatic(String playername) {
-      if (playername != null && playername.equals(InterfaceTerminal.playername))
-         return true;
-      else
-         return false; // don't assume any other players exist
+      return playername != null && playername.equals(InterfaceTerminal.playername); // don't assume any players other than the one currently logged in exists
    }
 
    /**
@@ -533,7 +529,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if the command starts with the mod's ID, skip the mod ID
          if (userInput[0].startsWith("commandeconomy"))
-            userInput[0] = userInput[1];
+            userInput = Arrays.copyOfRange(userInput, 1, userInput.length);
 
          // parse request parameters and pass them to the right function
          switch(userInput[0].toLowerCase()) 
@@ -618,6 +614,8 @@ public class InterfaceTerminal implements InterfaceCommand
                // end any threads needed by features
                Marketplace.endPeriodicEvents();
                Account.endPeriodicEvents();
+
+               consoleInput.close();
                return;
 
             case CommandEconomy.CMD_RELOAD:
@@ -697,12 +695,8 @@ public class InterfaceTerminal implements InterfaceCommand
          return true;
 
       // check for sender among server operators
-      if (ops.contains(senderID))
-         return true;
-
-      // if the sender is not a server operator,
-      // they may not execute commands for other players
-      return false;
+      // to determine whether they may execute commands for other players
+      return ops.contains(senderID);
    }
 
    /**
@@ -726,7 +720,7 @@ public class InterfaceTerminal implements InterfaceCommand
             CommandEconomy.CMD_USAGE_BLOCK_SELLALL + CommandEconomy.CMD_DESC_SELLALL +
             CommandEconomy.CMD_USAGE_BLOCK_MONEY + CommandEconomy.CMD_DESC_MONEY +
             CommandEconomy.CMD_USAGE_BLOCK_SEND + CommandEconomy.CMD_DESC_SEND +
-            "inventory_direction is none, down, up, north, east, west, or south" + System.lineSeparator()
+            CommandEconomy.CMD_DESC_INVENTORY_DIRECTION
          );
       } else {
          // in necessary, regenerate help output
@@ -770,13 +764,11 @@ public class InterfaceTerminal implements InterfaceCommand
                         .append(PlatformStrings.CMD_USAGE_GIVE).append(PlatformStrings.CMD_DESC_GIVE)
                         .append(PlatformStrings.CMD_USAGE_TAKE).append(PlatformStrings.CMD_DESC_TAKE)
                         .append(PlatformStrings.CMD_USAGE_CHANGE_NAME).append(PlatformStrings.CMD_DESC_CHANGE_NAME)
-                        .append("/stop || exit - shutdowns the market").append(System.lineSeparator());
+                        .append(PlatformStrings.CMD_USAGE_STOP).append(PlatformStrings.CMD_DESC_STOP).append(System.lineSeparator());
          }
 
          System.out.println(sbHelpOutput.toString());
       }
-
-      return;
    }
 
    /**
@@ -1009,7 +1001,6 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // call corresponding function
       Marketplace.buy(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent, shouldManufacture);
-      return;
    }
 
    /**
@@ -1253,7 +1244,6 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // call corresponding function
       Marketplace.sell(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent);
-      return;
    }
 
    /**
@@ -1386,7 +1376,6 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // call corresponding function
       Marketplace.check(playerID, wareID, quantity, pricePercent, shouldManufacture);
-      return;
    }
 
    /**
@@ -1550,7 +1539,6 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       Marketplace.sellAll(playerID, coordinates, formattedInventory, accountID, pricePercent);
-      return;
    }
 
    /**
@@ -1624,8 +1612,6 @@ public class InterfaceTerminal implements InterfaceCommand
       if (account != null)
          account.check(playerID, accountID);
       // if the account was not found, an error message has already been printed
-
-      return;
    }
 
    /**
@@ -1744,7 +1730,6 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    protected static void serviceRequestCreate(String[] args) {
       CommandProcessor.accountCreate(getPlayerIDStatic(playername), args);
-      return;
    }
 
    /**
@@ -1755,7 +1740,6 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    protected static void serviceRequestDelete(String[] args) {
       CommandProcessor.accountDelete(getPlayerIDStatic(playername), args);
-      return;
    }
 
    /**
@@ -1766,7 +1750,6 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    protected static void serviceRequestGrantAccess(String[] args) {
       CommandProcessor.accountGrantAccess(getPlayerIDStatic(playername), args);
-      return;
    }
 
    /**
@@ -1777,7 +1760,6 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    protected static void serviceRequestRevokeAccess(String[] args) {
       CommandProcessor.accountRevokeAccess(getPlayerIDStatic(playername), args);
-      return;
    }
 
    /**
@@ -1791,7 +1773,6 @@ public class InterfaceTerminal implements InterfaceCommand
       Marketplace.saveWares();
       Account.saveAccounts();
       System.out.println(CommandEconomy.MSG_SAVED_ECONOMY);
-      return;
    }
 
    /**
@@ -1826,7 +1807,6 @@ public class InterfaceTerminal implements InterfaceCommand
          timerAutosaver.cancel();
          timerAutosaver = null;
       }
-      return;
    }
 
    /**
@@ -1846,7 +1826,6 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       CommandProcessor.add(playerID, args);
-      return;
    }
 
    /**
@@ -1866,7 +1845,6 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       CommandProcessor.set(playerID, args, 0);
-      return;
    }
 
    /**
@@ -1885,7 +1863,6 @@ public class InterfaceTerminal implements InterfaceCommand
       }
 
       CommandProcessor.changeStock(getPlayerIDStatic(playername), args);
-      return;
    }
 
    /**
@@ -1896,7 +1873,6 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    protected static void serviceRequestSetDefaultAccount(String[] args) {
       CommandProcessor.setDefaultAccount(getPlayerIDStatic(playername), args);
-      return;
    }
 
    /**
@@ -1915,7 +1891,6 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // call corresponding functions
       Marketplace.printMarket();
-      return;
    }
 
    /**
@@ -1929,7 +1904,6 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    protected static void serviceRequestInvest(String[] args) {
       CommandProcessor.invest(getPlayerIDStatic(playername), args);
-      return;
    }
 
    /**
@@ -1940,7 +1914,6 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    protected static void serviceRequestVersion(String[] args) {
       System.out.println(CommandEconomy.MSG_VERSION + CommandEconomy.VERSION);
-      return;
    }
 
    /**
@@ -1984,7 +1957,6 @@ public class InterfaceTerminal implements InterfaceCommand
 
       if (!ops.contains(getPlayerIDStatic(username)))
          ops.add(getPlayerIDStatic(username));
-      return;
    }
 
    /**
@@ -2027,7 +1999,6 @@ public class InterfaceTerminal implements InterfaceCommand
          username = playername;
 
       ops.remove(getPlayerIDStatic(username));
-      return;
    }
 
    /**
@@ -2054,8 +2025,6 @@ public class InterfaceTerminal implements InterfaceCommand
       } else {
          printInventory(CommandEconomy.INVENTORY_NONE);
       }
-
-      return;
    }
 
    /**
@@ -2157,8 +2126,6 @@ public class InterfaceTerminal implements InterfaceCommand
          // report failure
          System.out.println(CommandEconomy.ERROR_INVENTORY_SPACE);
       }
-
-      return;
    }
 
    /**
@@ -2257,8 +2224,6 @@ public class InterfaceTerminal implements InterfaceCommand
             inventoryToUse.put(wareID, inventoryToUse.get(wareID) - quantity);
          }
       }
-
-      return;
    }
 
    /**
@@ -2289,7 +2254,6 @@ public class InterfaceTerminal implements InterfaceCommand
 
       System.out.println("Your name is now " + args[0] + ".\nYour old name was " + playername + ".");
       playername = args[0];
-      return;
    }
 
    /**
@@ -2367,8 +2331,6 @@ public class InterfaceTerminal implements InterfaceCommand
          System.out.println(" " + i + ". " + key + ": " + inventoryToUse.get(key));
          i++;
       }
-
-      return;
    }
 
    /**
@@ -2418,6 +2380,5 @@ public class InterfaceTerminal implements InterfaceCommand
          System.out.println("/give " + playername +  " " + itemID + " " + quantity + " " + itemMeta);
       else
          System.out.println("/give " + playername +  " " + itemID + " " + quantity);
-      return;
    }
 }

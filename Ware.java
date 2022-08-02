@@ -530,7 +530,7 @@ public abstract class Ware
 
       // add multiplier to recently calculated multipliers
       if (recentLinkedPriceResults != null)
-         recentLinkedPriceResults.put(this, new Float(multiplier));
+         recentLinkedPriceResults.put(this, Float.valueOf(multiplier));
 
       return multiplier;
    }
@@ -795,4 +795,4 @@ public abstract class Ware
       // return total cost and quantity purchased
       return new float[] {totalCost, (float) quantityToManufacture};
    }
- };
+ }

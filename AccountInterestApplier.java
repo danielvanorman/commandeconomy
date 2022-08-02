@@ -114,14 +114,7 @@ public class AccountInterestApplier extends TimerTask  {
 
       // allow other threads to adjust wares' properties
       Account.releaseMutex();
-      return;
    }
-
-   // INSTANCE METHODS
-   /**
-    * Constructor: Initializes the periodic event.
-    */
-   public AccountInterestApplier() { }
 
    /**
     * Calls on the appropriate function for
