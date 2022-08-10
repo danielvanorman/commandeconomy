@@ -33,6 +33,9 @@ import net.minecraft.command.CommandBase;                          // for provid
 import net.minecraftforge.common.DimensionManager;                 // for getting paths to per-world save and config files
 import java.util.TreeSet;                                          // for autocompleting arguments
 import java.util.Set;
+import net.minecraft.command.ICommandSender;                       // for extracting command-issuing entities' positions and permissions
+import net.minecraft.command.EntitySelector;                       // for using command block selectors
+import net.minecraft.server.MinecraftServer;                       // for obtaining player information when checking players' hands
 
 /**
  * Contains functions for interacting with chat commands within Minecraft.
@@ -135,6 +138,181 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
 
    /**
+    * Returns an inventory's coordinates using a given position and direction.
+    * If the direction is invalid, sends an error message to the user.
+    *
+    * @param playerID  user responsible for the trading; used to send error messages
+    * @param sender    player or command block executing the command; determines original position
+    * @param direction string representing where the inventory may be relative to the original position
+    * @return inventory's coordinates, all zeros, or null if the direction is invalid
+    */
+   public InterfaceCommand.Coordinates getInventoryCoordinates(UUID playerID, Object sender, String direction) {
+      BlockPos position = ((ICommandSender) sender).getPosition();
+      if (position == null)
+         return null;
+
+      switch(direction)
+      {
+         // x-axis: west  = +x, east  = -x
+         // y-axis: up    = +y, down  = -y
+         // z-axis: south = +z, north = -z
+
+         case CommandEconomy.INVENTORY_NONE:
+            position = new BlockPos(0, 0, 0);
+            break;
+
+         case CommandEconomy.INVENTORY_DOWN:
+            position = position.down();
+            break;
+
+         case CommandEconomy.INVENTORY_UP:
+            position = position.up();
+            break;
+
+         case CommandEconomy.INVENTORY_NORTH:
+            position = position.north();
+            break;
+
+         case CommandEconomy.INVENTORY_EAST:
+            position = position.east();
+            break;
+
+         case CommandEconomy.INVENTORY_WEST:
+            position = position.west();
+            break;
+
+         case CommandEconomy.INVENTORY_SOUTH:
+            position = position.south();
+            break;
+
+         default:
+            return null;
+      }
+      return new InterfaceCommand.Coordinates(position.getX(), position.getY(), position.getZ(), ((ICommandSender) sender).getEntityWorld().provider.getDimension());
+   }
+
+   /**
+    * Returns the inventory which should be used.
+    *
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    * @return inventory to be manipulated
+    */
+   public static IItemHandler getInventoryContainer(UUID playerID,
+      InterfaceCommand.Coordinates coordinates) {
+      // if no coordinates are given, use the user's personal inventory
+      if (coordinates == null ||
+          (coordinates.x == 0 &&
+           coordinates.y == 0 &&
+           coordinates.z == 0 &&
+           coordinates.dimension == 0)) {
+         // search for the player
+         EntityPlayer player = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
+
+         if (player == null)
+            return null;
+         else
+            return new PlayerInvWrapper(player.inventory);
+      }
+
+      // search for an inventory
+      TileEntity tileentity = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(coordinates.dimension).getTileEntity(new BlockPos(coordinates.x, coordinates.y, coordinates.z));
+      IItemHandler itemHandler = null;
+
+      if (tileentity != null) {
+         itemHandler = tileentity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
+      }
+      if (itemHandler != null)
+            return itemHandler;
+
+      // if the inventory hasn't been found,
+      // return null to signal an invalid coordinate
+      return null;
+   }
+
+   /**
+    * Returns an inventory of wares to be sold or null.
+    * Used by /sellAll.
+    * <br>
+    * Complexity: O(n), where n is the number of slots the inventory has
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    * @return inventory to be manipulated or null
+    */
+   public List<Marketplace.Stock> getInventoryContents(UUID playerID,
+      InterfaceCommand.Coordinates coordinates) {
+      IItemHandler inventoryToUse = getInventoryContainer(playerID, coordinates);
+      if (inventoryToUse == null)
+         return null;
+
+      // set up variables
+      ItemStack itemStack;     // wares in the slot being parsed
+      String    itemID   = ""; // temporary variable for writing ware IDs for each item stack
+      int       maxSlots = 0;  // size of the inventory
+      LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
+
+      // search for sellable wares within the player's inventory
+      if (inventoryToUse instanceof PlayerInvWrapper)
+         // Only check slots 0-35 since those compose the main inventory and the hotbar.
+         maxSlots = 36;
+      // for other inventories, check everything
+      else
+         maxSlots = inventoryToUse.getSlots();
+
+      for (int slot = 0; slot < maxSlots; slot++) {
+         // grab wares in current inventory slot
+         itemStack = inventoryToUse.getStackInSlot(slot);
+
+         // if the slot is empty, skip it
+         if (itemStack == null   ||        // prevents null pointer exception
+             itemStack.isEmpty() ||        // checks for air blocks
+             itemStack == ItemStack.EMPTY) // checks for special empty token
+            continue;
+
+         // check whether the wares in the slot are marked as unsellable
+         if (itemStack.hasTagCompound() &&
+             itemStack.getTagCompound().hasKey("nosell") &&
+             itemStack.getTagCompound().getBoolean("nosell"))
+            continue;
+
+            // get item's ware ID
+            itemID = Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata());
+            // if the item and its variation is not in the market,
+            // check whether the item has an ore name within the market
+            if (itemID.isEmpty() && Config.allowOreDictionarySubstitution) {
+               // get the item stack's numerical OreDictionary IDs
+               int[] oreIDs = OreDictionary.getOreIDs(itemStack);
+
+               // loop through item stack's used ore names and
+               // use the first one which is used within the market
+               for (int oreID : oreIDs) {
+                  // get current ore ID's model ware ID
+                  itemID = Marketplace.translateAlias("#" + OreDictionary.getOreName(oreID));
+
+                  // if a model ware is found, use it
+                  if (itemID != null)
+                     break;
+               }
+            }
+
+         // add item stack to list of potentially sellable wares
+         // if the wares are damageable, handle potential damage
+         if (itemStack.isItemStackDamageable() && itemStack.isItemDamaged()) {
+            // add wares to the container
+            // if the wares are damaged,
+            // record how badly they are damaged
+            formattedInventory.add(new Marketplace.Stock(itemID
+               + "&" + itemStack.getMetadata(), itemStack.getCount(),
+               ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage()));
+         } else {
+            formattedInventory.add(new Marketplace.Stock(itemID,
+               itemStack.getCount(), 1.0f));
+         }
+      }
+      return formattedInventory;
+   }
+
+   /**
     * Returns how many more stacks of wares the given inventory may hold.
     *
     * @param playerID    user responsible for the trading
@@ -144,7 +322,7 @@ public class InterfaceMinecraft implements InterfaceCommand
    public int getInventorySpaceAvailable(UUID playerID,
       InterfaceCommand.Coordinates coordinates) {
       // grab the right inventory
-      IItemHandler inventory = getInventory(playerID, coordinates);
+      IItemHandler inventory = getInventoryContainer(playerID, coordinates);
 
       int maxSlots = 0;
       int freeSlots = 0;
@@ -170,8 +348,9 @@ public class InterfaceMinecraft implements InterfaceCommand
       }
 
       for (int i = 0; i < maxSlots; i++) {
-         if (inventory.getStackInSlot(i).isEmpty() ||        // checks for air blocks
-             inventory.getStackInSlot(i) == ItemStack.EMPTY) // checks for empty/null
+         if (inventory.getStackInSlot(i) == null   ||        // prevents null pointer exception
+             inventory.getStackInSlot(i).isEmpty() ||        // checks for air blocks
+             inventory.getStackInSlot(i) == ItemStack.EMPTY) // checks for special empty token
             freeSlots++;
       }
 
@@ -197,7 +376,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       EntityPlayer player = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
 
       // grab the right inventory
-      IItemHandler inventory = getInventory(playerID, coordinates);
+      IItemHandler inventory = getInventoryContainer(playerID, coordinates);
 
       // check if the given ID is a variant
       int meta = 0;
@@ -286,7 +465,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       EntityPlayer player = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
 
       // grab the right inventory
-      IItemHandler inventory = getInventory(playerID, coordinates);
+      IItemHandler inventory = getInventoryContainer(playerID, coordinates);
       // if no inventory was found
       if (inventory == null)
          return;
@@ -350,8 +529,9 @@ public class InterfaceMinecraft implements InterfaceCommand
          itemStack = inventory.getStackInSlot(slot);
 
          // if the slot is empty, skip it
-         if (itemStack.isEmpty() ||        // checks for air blocks
-             itemStack == ItemStack.EMPTY) // checks for empty/null
+         if (itemStack == null   ||        // prevents null pointer exception
+             itemStack.isEmpty() ||        // checks for air blocks
+             itemStack == ItemStack.EMPTY) // checks for special empty token
             continue;
 
          // check whether the item stack is marked as unsellable
@@ -392,7 +572,7 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @param coordinates where the inventory may be found
     * @return quantities and qualities of wares found
     */
-   public LinkedList<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public List<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID) {
       // prepare a container for the wares
       LinkedList<Marketplace.Stock> waresFound = new LinkedList<Marketplace.Stock>();
@@ -401,7 +581,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       EntityPlayer player = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
 
       // grab the right inventory
-      IItemHandler inventory = getInventory(playerID, coordinates);
+      IItemHandler inventory = getInventoryContainer(playerID, coordinates);
       // if no inventory was found
       if (inventory == null) {
          waresFound.add(new Marketplace.Stock(wareID, -1, 1.0f));
@@ -466,8 +646,9 @@ public class InterfaceMinecraft implements InterfaceCommand
          itemStack = inventory.getStackInSlot(slot);
 
          // if the slot is empty, skip it
-         if (itemStack.isEmpty() ||        // checks for air blocks
-             itemStack == ItemStack.EMPTY) // checks for empty/null
+         if (itemStack == null   ||        // prevents null pointer exception
+             itemStack.isEmpty() ||        // checks for air blocks
+             itemStack == ItemStack.EMPTY) // checks for special empty token
             continue;
 
          // check whether the wares in the slot are marked as unsellable
@@ -517,78 +698,62 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
 
    /**
-    * Returns whether the item stack uses the given ore name.
+    * Returns the ID and quantity of whatever a payer is holding or
+    * null if they are not holding anything.
+    * Prints an error if nothing is found.
+    * <br>
+    * The idea for the ware the user's is currently holding
+    * is from DynamicEconomy ( https://dev.bukkit.org/projects/dynamiceconomy-v-01 ).  
     *
-    * @param oreName   the Forge OreDictionary name
-    * @param itemstack the item stack to be checked
-    * @return whether the item stack uses the given ore name
+    * @param playerID user responsible for the trading; used to send error messages
+    * @param sender   player or command block executing the command
+    * @param server   host running the game instance; used for obtaining information regarding players
+    * @param username display name of user responsible for the trading
+    * @return ware player is holding and how much or null
     */
-   private static boolean doesItemstackUseOreName(String oreName,
-      ItemStack itemStack) {
-      if (!OreDictionary.doesOreNameExist(oreName) || itemStack.isEmpty() || itemStack == ItemStack.EMPTY)
-         return false;
+   public InterfaceCommand.Handful checkHand(UUID playerID, Object sender, Object server, String username) {
+      String wareID;
+      ICommandSender iSender = (ICommandSender) sender;
 
-      // Below, numerical ore IDs are used to find
-      // whether the item stack uses the given ore name.
-      // This method is used since comparing the given ore ID to
-      // all of the item stack's ore IDs is given  faster than
-      // the alternative of comparing the item stack to
-      // all item stacks using the given ore name.
-      // Item stacks generally use fewer ore IDs than
-      // there are item stacks using a given ore name.
+      // get player information
+      EntityPlayer player = null;
+      if (username.equals(iSender.getName()) &&
+          (iSender instanceof EntityPlayer))
+         player = (EntityPlayer) iSender;
+      else
+         player = ((MinecraftServer) server).getPlayerList().getPlayerByUsername(username);
 
-      // convert the ore name to its corresponding numerical ID
-      int keyID = OreDictionary.getOreID(oreName);
+      if (player == null)
+         return null; // no message to avoid needless messaging when automated
 
-      // get the item stack's numerical OreDictionary IDs
-      int[] oreIDs = OreDictionary.getOreIDs(itemStack);
+      // get whatever is in the player's hand
+      ItemStack itemStack = player.getCommandSenderEntity().getHeldEquipment().iterator().next();
 
-      // compare the given ore ID to the item stack's ore IDs
-      for (int oreID : oreIDs)
-         if (oreID == keyID)
-            return true;
+      // check if nothing is in the player's hand
+      if (itemStack == null ||            // prevents null pointer exception
+          itemStack.isEmpty() ||          // checks for air blocks
+          itemStack == ItemStack.EMPTY) { // checks for special empty token
+         InterfaceMinecraft.forwardErrorToUser(iSender, PlatformStrings.ERROR_HANDS);
+         return null;
+      }
 
-      // if the given ore ID was not found
-         return false;
-   }
+      // get the ware ID of whatever is in the player's hand
+      if (itemStack.isItemStackDamageable()) {
+         wareID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString();
+      } else {
+         if (itemStack.getMetadata() == 0) {
+            wareID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString();
 
-   /**
-    * Returns the inventory which should be used.
-    *
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
-    * @return inventory to be manipulated
-    */
-   public static IItemHandler getInventory(UUID playerID,
-      InterfaceCommand.Coordinates coordinates) {
-      // if no coordinates are given, use the user's personal inventory
-      if (coordinates == null ||
-          (coordinates.x == 0 &&
-           coordinates.y == 0 &&
-           coordinates.z == 0 &&
-           coordinates.dimension == 0)) {
-         // search for the player
-         EntityPlayer player = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
-
-         if (player == null)
-            return null;
+            // in case metadata of 0 is necessary
+            if (Marketplace.translateWareID(wareID).isEmpty())
+               wareID += "&0";
+         }
          else
-            return new PlayerInvWrapper(player.inventory);
+            wareID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata();
       }
 
-      // search for an inventory
-      TileEntity tileentity = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(coordinates.dimension).getTileEntity(new BlockPos(coordinates.x, coordinates.y, coordinates.z));
-      IItemHandler itemHandler = null;
-
-      if (tileentity != null) {
-         itemHandler = tileentity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-      }
-      if (itemHandler != null)
-            return itemHandler;
-
-      // if the inventory hasn't been found,
-      // return null to signal an invalid coordinate
-      return null;
+      // get the amount of whatever is in the player's hand
+      return new InterfaceCommand.Handful(wareID, itemStack.getCount());
    }
 
    /**
@@ -598,19 +763,7 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @return player name corresponding to given UUID
     */
    public String getDisplayName(UUID playerID) {
-      if (playerID == null)
-         return "";
-
-      // try to get the player's name
-      try {
-         return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerProfileCache().getProfileByUUID(playerID).getName();
-      } catch (Exception e) {}
-
-      // try to get the server or command block's name if there is one
-      if (uuidToNames.containsKey(playerID))
-         return uuidToNames.get(playerID);
-      else
-         return "";
+      return getDisplayNameStatic(playerID);
    }
 
    /**
@@ -644,19 +797,7 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @return player UUID corresponding to given player name
     */
    public UUID getPlayerID(String playername) {
-      if (playername == null || playername.isEmpty())
-         return null;
-
-      // try to get the player's UUID
-      try {
-         return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerProfileCache().getGameProfileForUsername(playername).getId();
-      } catch (Exception e) {}
-
-      // create a UUID for command blocks and the server
-      // map the UUID to the given, displayable name
-      UUID uuid = UUID.nameUUIDFromBytes(playername.getBytes());
-      uuidToNames.put(uuid, playername);
-      return uuid;
+      return getPlayerIDStatic(playername);
    }
 
    /**
@@ -703,6 +844,34 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
 
    /**
+    * Returns whether the given string matches a player's name.
+    * <p>
+    * Warning: This function only checks players who have logged in recently.
+    * Players who have not logged in recently will be marked as nonexistent.
+    *
+    * @param playername player to check the existence of
+    * @return whether the given string is in use as a player's name
+    */
+   public boolean doesPlayerExist(String playername) {
+      return doesPlayerExistStatic(playername);
+   }
+
+   /**
+    * Returns whether the given string matches a player's name.
+    * Used to make doesPlayerExist() part of an interface,
+    * but also usable in command base methods.
+    *
+    * @param playername player to check the existence of
+    * @return whether the given string is in use as a player's name
+    */
+   protected static boolean doesPlayerExistStatic(String playername) {
+      try {
+         return (FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerProfileCache().getGameProfileForUsername(playername) == null);
+      } catch (Exception e) {}
+      return false;
+   }
+
+   /**
     * Returns whether a player with the given unique identifier is currently logged into the server.
     * <p>
     * Complexity: O(1)
@@ -721,37 +890,146 @@ public class InterfaceMinecraft implements InterfaceCommand
    }
 
    /**
-    * Returns whether the given string matches a player's name.
-    * <p>
-    * Warning: This function only checks players who have logged in recently.
-    * Players who have not logged in recently will be marked as nonexistent.
+    * Returns whether the player is a server administrator.
     *
-    * @param playername player to check the existence of
-    * @return whether the given string is in use as a player's name
+    * @param playerID player whose server operator permissions should be checked
+    * @return whether the player is an op
     */
-   public boolean doesPlayerExist(String playername) {
-      try {
-         for (String username : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerProfileCache().getUsernames()) {
-            if (username.equals(playername))
-               return true;
-         }
-      } catch (Exception e) {}
-      return false;
+   public boolean isAnOp(UUID playerID) {
+      return isAnOpStatic(playerID);
    }
 
    /**
-    * Returns whether the given string matches a player's name.
-    * Used to make doesPlayerExist() part of an interface,
-    * but also usable in command base methods.
+    * Returns whether the player is a server administrator.
     *
-    * @param playername player to check the existence of
-    * @return whether the given string is in use as a player's name
+    * @param playerID player whose server operator permissions should be checked
+    * @return whether the player is an op
     */
-   protected static boolean doesPlayerExistStatic(String playername) {
+   public static boolean isAnOpStatic(UUID playerID) {
+      if (playerID == null)
+         return false;
+
+      // check for player among server operators
+      PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
+      return playerList.canSendCommands(playerList.getPlayerByUUID(playerID).getGameProfile());
+   }
+
+   /**
+    * Returns whether or not a command-issuer may execute a given command.
+    * Useful for when a command is executed for another player,
+    * such as when a command block is autobuying.
+    *
+    * @param playerID    the player being affected by the issued command or the entity being acted upon
+    * @param sender      command-issuing entity or the entity acting upon another
+    * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
+    * @return true if the sender has permission to execute the command
+    */
+   public boolean permissionToExecute(UUID playerID, Object sender, boolean isOpCommand) {
+      if (playerID == null || sender == null)
+         return false;
+
+      ICommandSender iSender = (ICommandSender) sender;
+
+      // command blocks and the server console always have permission
+      if (!(iSender instanceof EntityPlayer))
+         return true;
+
+      // check if the sender is only affecting themself
+      if (!isOpCommand && playerID.equals(iSender.getCommandSenderEntity().getUniqueID()))
+         return true;
+
+      // check for sender among server operators
+      // to determine whether they may execute commands for other players
+      return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().canSendCommands(((EntityPlayer) iSender).getGameProfile());
+   }
+
+   /**
+    * Returns whether or not a command-issuer may execute a given command.
+    * Useful for when a command is executed for another player,
+    * such as when a command block is autobuying.
+    *
+    * @param playerID    name of the player being affected by the issued command or the entity being acted upon
+    * @param sender      command-issuing entity or the entity acting upon another
+    * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
+    * @return true if the sender has permission to execute the command even if the command only affects themself
+    */
+   public static boolean permissionToExecuteStatic(UUID playerID, ICommandSender sender, boolean isOpCommand) {
+      if (playerID == null || sender == null)
+         return false;
+
+      // command blocks and the server console always have permission
+      if (!(sender instanceof EntityPlayer))
+         return true;
+
+      // check if the sender is only affecting themself
+      if (!isOpCommand && playerID.equals(sender.getCommandSenderEntity().getUniqueID()))
+         return true;
+
+      // check for sender among server operators
+      // to determine whether they may execute commands for other players
+      return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile());
+   }
+
+   /**
+    * Returns the value of a special token referring to a player name,
+    * null if the token is invalid, or an error message for the user
+    * if the user lacks permission to use such tokens.
+    * Does not print an error if one occurs
+    * in case multiple selectors are processed in series.
+    * The appropriate error to print is CommandEconomy.ERROR_ENTITY_SELECTOR.
+    *
+    * @param sender   player or command block executing the command
+    * @param selector string which might be an entity selector
+    * @return player being referred to, an empty string if an error occurs, or the input string if the string is not an entity selector
+    */
+   public String parseEntitySelector(Object sender, String selector) {
+      if (selector == null)
+         return null;
+
       try {
-         return (FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerProfileCache().getGameProfileForUsername(playername) == null);
-      } catch (Exception e) {}
-      return false;
+         if (EntitySelector.isSelector(selector))
+            return EntitySelector.matchOnePlayer((ICommandSender) sender, selector).getName();
+      } catch (Exception e) {
+         return "";
+      }
+
+      return selector;
+   }
+
+   /**
+    * Returns whether the item stack uses the given ore name.
+    *
+    * @param oreName   the Forge OreDictionary name
+    * @param itemstack the item stack to be checked
+    * @return whether the item stack uses the given ore name
+    */
+   private static boolean doesItemstackUseOreName(String oreName,
+      ItemStack itemStack) {
+      if (!OreDictionary.doesOreNameExist(oreName) || itemStack == null || itemStack.isEmpty() || itemStack == ItemStack.EMPTY)
+         return false;
+
+      // Below, numerical ore IDs are used to find
+      // whether the item stack uses the given ore name.
+      // This method is used since comparing the given ore ID to
+      // all of the item stack's ore IDs is given  faster than
+      // the alternative of comparing the item stack to
+      // all item stacks using the given ore name.
+      // Item stacks generally use fewer ore IDs than
+      // there are item stacks using a given ore name.
+
+      // convert the ore name to its corresponding numerical ID
+      int keyID = OreDictionary.getOreID(oreName);
+
+      // get the item stack's numerical OreDictionary IDs
+      int[] oreIDs = OreDictionary.getOreIDs(itemStack);
+
+      // compare the given ore ID to the item stack's ore IDs
+      for (int oreID : oreIDs)
+         if (oreID == keyID)
+            return true;
+
+      // if the given ore ID was not found
+         return false;
    }
 
    /**
@@ -981,31 +1259,6 @@ public class InterfaceMinecraft implements InterfaceCommand
    public void serviceRequests() { }
 
    /**
-    * Returns whether the player is a server administrator.
-    *
-    * @param playerID player whose server operator permissions should be checked
-    * @return whether the player is an op
-    */
-   public boolean isAnOp(UUID playerID) {
-      return isAnOpStatic(playerID);
-   }
-
-   /**
-    * Returns whether the player is a server administrator.
-    *
-    * @param playerID player whose server operator permissions should be checked
-    * @return whether the player is an op
-    */
-   public static boolean isAnOpStatic(UUID playerID) {
-      if (playerID == null)
-         return false;
-
-      // check for player among server operators
-      PlayerList playerList = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList();
-      return playerList.canSendCommands(playerList.getPlayerByUUID(playerID).getGameProfile());
-   }
-
-   /**
     * Registers serviceable chat commands.
     *
     * @param event information concerning Minecraft's current state
@@ -1170,7 +1423,7 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @param sender   command-issuing entity or the entity acting upon other
     * @return true if the sender has permission to execute the command
     */
-   public static boolean permissionToExecute(UUID playerID, ICommandSender sender) {
+   public static boolean permissionToExecuteStatic(UUID playerID, ICommandSender sender) {
       if (playerID == null || sender == null)
          return false;
 
@@ -1180,33 +1433,6 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // check if the sender is only affecting themself
       if (playerID.equals(sender.getCommandSenderEntity().getUniqueID()))
-         return true;
-
-      // check for sender among server operators
-      // to determine whether they may execute commands for other players
-      return FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().canSendCommands(((EntityPlayer) sender).getGameProfile());
-   }
-
-   /**
-    * Returns whether or not a command-issuer may execute a given command.
-    * Useful for when a command is executed for another player,
-    * such as when a command block is autobuying.
-    *
-    * @param playerID name of the player being affected by the issued command or the entity being acted upon
-    * @param sender   command-issuing entity or the entity acting upon other
-    * @param mustBeOp whether the sender must be an admin to execute
-    * @return true if the sender has permission to execute the command even if the command only affects themself
-    */
-   public static boolean permissionToExecute(UUID playerID, ICommandSender sender, boolean mustBeOp) {
-      if (playerID == null || sender == null)
-         return false;
-
-      // command blocks and the server console always have permission
-      if (!(sender instanceof EntityPlayer))
-         return true;
-
-      // check if the sender is only affecting themself
-      if (!mustBeOp && playerID.equals(sender.getCommandSenderEntity().getUniqueID()))
          return true;
 
       // check for sender among server operators

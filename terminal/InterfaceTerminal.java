@@ -3,6 +3,7 @@ package commandeconomy;
 import java.util.Scanner;              // for reading from the console
 import java.util.HashMap;              // for storing wares in the user's inventory
 import java.util.LinkedList;           // for returning properties of wares found in an inventory and tracking server administrators
+import java.util.List;
 import java.util.Arrays;               // for removing the first element of user input before passing it to service request functions
 import java.util.UUID;                 // for more securely tracking users internally
 import java.util.Timer;                // for autosaving
@@ -30,19 +31,19 @@ public class InterfaceTerminal implements InterfaceCommand
    /** maximum inventory capacity */
    protected static int inventorySpace = 36;
    /** terminal user's personal inventory */
-   protected static HashMap<String, Integer> inventory = new HashMap<String, Integer>();
+   protected static HashMap<String, Integer> inventory      = new HashMap<String, Integer>();
    /** northward inventory */
    protected static HashMap<String, Integer> inventoryNorth = new HashMap<String, Integer>();
    /** eastward inventory */
-   protected static HashMap<String, Integer> inventoryEast = new HashMap<String, Integer>();
+   protected static HashMap<String, Integer> inventoryEast  = new HashMap<String, Integer>();
    /** westward inventory */
-   protected static HashMap<String, Integer> inventoryWest = new HashMap<String, Integer>();
+   protected static HashMap<String, Integer> inventoryWest  = new HashMap<String, Integer>();
    /** southward inventory */
    protected static HashMap<String, Integer> inventorySouth = new HashMap<String, Integer>();
    /** upward inventory */
-   protected static HashMap<String, Integer> inventoryUp = new HashMap<String, Integer>();
+   protected static HashMap<String, Integer> inventoryUp    = new HashMap<String, Integer>();
    /** downward inventory */
-   protected static HashMap<String, Integer> inventoryDown = new HashMap<String, Integer>();
+   protected static HashMap<String, Integer> inventoryDown  = new HashMap<String, Integer>();
 
    /** speeds up concatenation for /help */
    private static StringBuilder sbHelpOutput   = new StringBuilder(2200);
@@ -77,137 +78,31 @@ public class InterfaceTerminal implements InterfaceCommand
    public String getSaveDirectory() { return "saves"; }
 
    /**
-    * Returns how many more stacks of wares the given inventory may hold.
-    *
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
-    * @return number of free slots in the given inventory
+    * Returns an inventory's coordinates using a given position and direction.
+    * If the direction is invalid, returns null.
+    * <br>
+    * Complexity: O(1)
+    * @param playerID  user responsible for the trading; used to send error messages
+    * @param sender    player or command block executing the command; determines original position
+    * @param direction string representing where the inventory may be relative to the original position
+    * @return inventory's coordinates, all zeros if no inventory should be used, or null if the direction is invalid
     */
-   public int getInventorySpaceAvailable(UUID playerID,
-      InterfaceCommand.Coordinates coordinates) {
-      // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
-      if (coordinates != null) {
-         inventoryToUse = getInventory(playerID, coordinates);
+   public InterfaceCommand.Coordinates getInventoryCoordinates(UUID playerID, Object sender, String direction) {
+      switch(direction)
+      {
+         // x-axis: west  = +x, east  = -x
+         // y-axis: up    = +y, down  = -y
+         // z-axis: south = +z, north = -z
 
-         // if no inventory was found
-         if (inventoryToUse == null)
-            return -1;
+         case CommandEconomy.INVENTORY_NONE:  return new Coordinates( 0,  0,  0, 0);
+         case CommandEconomy.INVENTORY_DOWN:  return new Coordinates( 0, -1,  0, 0);
+         case CommandEconomy.INVENTORY_UP:    return new Coordinates( 0,  1,  0, 0);
+         case CommandEconomy.INVENTORY_NORTH: return new Coordinates( 0,  0, -1, 0);
+         case CommandEconomy.INVENTORY_EAST:  return new Coordinates(-1,  0,  0, 0);
+         case CommandEconomy.INVENTORY_WEST:  return new Coordinates( 1,  0,  0, 0);
+         case CommandEconomy.INVENTORY_SOUTH: return new Coordinates( 0,  0,  1, 0);
+         default:                             return null;
       }
-      else
-         inventoryToUse = inventory;
-
-      // return space available
-      if (inventorySpace - inventoryToUse.size() < 0)
-         return 0;
-      else
-         return inventorySpace - inventoryToUse.size();
-   }
-
-   /**
-    * Gives a specified quantity of a ware ID to a user.
-    * If there is no space for the ware, does nothing.
-    *
-    * @param wareID      unique ID used to refer to the ware
-    * @param quantity    how much to give the user
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
-    */
-   public void addToInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      String wareID, int quantity) {
-      // if no items should be added, do nothing
-      if (quantity <= 0)
-         return;
-
-      // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
-      if (coordinates != null) {
-         inventoryToUse = getInventory(playerID, coordinates);
-
-         // if no inventory was found
-         if (inventoryToUse == null)
-            return;
-      }
-      else
-         inventoryToUse = inventory;
-
-      // check available inventory space before adding an item
-      if (inventorySpace - inventoryToUse.size() > 0)
-         inventoryToUse.put(wareID, inventoryToUse.getOrDefault(wareID, 0) + quantity);
-   }
-
-   /**
-    * Takes a specified quantity of a ware ID from a user.
-    *
-    * @param wareID      unique ID used to refer to the ware
-    * @param quantity    how much to take from the user
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
-    */
-   public void removeFromInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      String wareID, int quantity) {
-      // if no items should be removed, do nothing
-      if (quantity <= 0)
-         return;
-
-      // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
-      if (coordinates != null) {
-         inventoryToUse = getInventory(playerID, coordinates);
-
-         // if no inventory was found
-         if (inventoryToUse == null)
-            return;
-      }
-      else
-         inventoryToUse = inventory;
-
-      // check availability before removing
-      if (inventoryToUse.containsKey(wareID)) {
-         // if the amount to remove is greater than the amount available,
-         // remove everything
-         if (inventoryToUse.get(wareID) < quantity)
-            inventoryToUse.remove(wareID);
-         else
-            inventoryToUse.put(wareID, inventoryToUse.get(wareID) - quantity);
-      }
-   }
-
-   /**
-    * Returns the quantities and corresponding qualities of
-    * wares with the given id the user has.
-    * The list is ordered by their position within the user's inventory.
-    *
-    * @param wareID      unique ID used to refer to the ware
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
-    * @return quantities and qualities of wares found
-    */
-   public LinkedList<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      String wareID) {
-      // prepare a container for the wares
-      LinkedList<Marketplace.Stock> waresFound = new LinkedList<Marketplace.Stock>();
-
-      // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
-      if (coordinates != null) {
-         inventoryToUse = getInventory(playerID, coordinates);
-
-         // if no inventory was found
-         if (inventoryToUse == null) {
-            waresFound.add(new Marketplace.Stock(wareID, -1, 1.0f));
-            return waresFound;
-         }
-      }
-      else
-         inventoryToUse = inventory;
-
-      // if the ware is in the inventory, grab it
-      if (inventoryToUse.containsKey(wareID) &&
-          inventoryToUse.get(wareID) > 0)
-         waresFound.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
-
-         return waresFound;
    }
 
    /**
@@ -217,7 +112,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param coordinates where the inventory may be found
     * @return inventory to be manipulated
     */
-   public static HashMap<String, Integer> getInventory(UUID playerID,
+   private static HashMap<String, Integer> getInventoryContainer(UUID playerID,
       InterfaceCommand.Coordinates coordinates) {
       // if no coordinates are given, use the user's personal inventory
       if (coordinates == null)
@@ -277,7 +172,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param direction where the inventory may be found
     * @return inventory to be manipulated
     */
-   public static HashMap<String, Integer> getInventory(UUID playerID,
+   private static HashMap<String, Integer> getInventoryContainer(UUID playerID,
       String direction) {
       switch(direction)
       {
@@ -288,8 +183,182 @@ public class InterfaceTerminal implements InterfaceCommand
          case CommandEconomy.INVENTORY_EAST:  return inventoryEast;
          case CommandEconomy.INVENTORY_WEST:  return inventoryWest;
          case CommandEconomy.INVENTORY_SOUTH: return inventorySouth;
-         default:      return null;
+         default:                             return null;
       }
+   }
+
+   /**
+    * Returns an inventory of wares to be sold or null.
+    * Used by /sellAll.
+    * <br>
+    * Complexity: O(n), where n is the number of wares in an inventory
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    * @return inventory to be manipulated or null
+    */
+   public List<Marketplace.Stock> getInventoryContents(UUID playerID,
+      InterfaceCommand.Coordinates coordinates) {
+      // get the inventory
+      HashMap<String, Integer> inventoryToUse = getInventoryContainer(playerID, coordinates);
+      if (inventoryToUse == null)
+         return null;
+
+      // convert the inventory to the right format
+      LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
+      for (String wareID : inventoryToUse.keySet()) {
+         formattedInventory.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
+      }
+      return formattedInventory;
+   }
+
+   /**
+    * Returns how many more stacks of wares the given inventory may hold.
+    *
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    * @return number of free slots in the given inventory
+    */
+   public int getInventorySpaceAvailable(UUID playerID,
+      InterfaceCommand.Coordinates coordinates) {
+      // grab the right inventory
+      HashMap<String, Integer> inventoryToUse;
+      if (coordinates != null) {
+         inventoryToUse = getInventoryContainer(playerID, coordinates);
+
+         // if no inventory was found
+         if (inventoryToUse == null)
+            return -1;
+      }
+      else
+         inventoryToUse = inventory;
+
+      // return space available
+      if (inventorySpace - inventoryToUse.size() < 0)
+         return 0;
+      else
+         return inventorySpace - inventoryToUse.size();
+   }
+
+   /**
+    * Gives a specified quantity of a ware ID to a user.
+    * If there is no space for the ware, does nothing.
+    *
+    * @param wareID      unique ID used to refer to the ware
+    * @param quantity    how much to give the user
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    */
+   public void addToInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+      String wareID, int quantity) {
+      // if no items should be added, do nothing
+      if (quantity <= 0)
+         return;
+
+      // grab the right inventory
+      HashMap<String, Integer> inventoryToUse;
+      if (coordinates != null) {
+         inventoryToUse = getInventoryContainer(playerID, coordinates);
+
+         // if no inventory was found
+         if (inventoryToUse == null)
+            return;
+      }
+      else
+         inventoryToUse = inventory;
+
+      // check available inventory space before adding an item
+      if (inventorySpace - inventoryToUse.size() > 0)
+         inventoryToUse.put(wareID, inventoryToUse.getOrDefault(wareID, 0) + quantity);
+   }
+
+   /**
+    * Takes a specified quantity of a ware ID from a user.
+    *
+    * @param wareID      unique ID used to refer to the ware
+    * @param quantity    how much to take from the user
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    */
+   public void removeFromInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+      String wareID, int quantity) {
+      // if no items should be removed, do nothing
+      if (quantity <= 0)
+         return;
+
+      // grab the right inventory
+      HashMap<String, Integer> inventoryToUse;
+      if (coordinates != null) {
+         inventoryToUse = getInventoryContainer(playerID, coordinates);
+
+         // if no inventory was found
+         if (inventoryToUse == null)
+            return;
+      }
+      else
+         inventoryToUse = inventory;
+
+      // check availability before removing
+      if (inventoryToUse.containsKey(wareID)) {
+         // if the amount to remove is greater than the amount available,
+         // remove everything
+         if (inventoryToUse.get(wareID) < quantity)
+            inventoryToUse.remove(wareID);
+         else
+            inventoryToUse.put(wareID, inventoryToUse.get(wareID) - quantity);
+      }
+   }
+
+   /**
+    * Returns the quantities and corresponding qualities of
+    * wares with the given id the user has.
+    * The list is ordered by their position within the user's inventory.
+    *
+    * @param wareID      unique ID used to refer to the ware
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    * @return quantities and qualities of wares found
+    */
+   public LinkedList<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+      String wareID) {
+      // prepare a container for the wares
+      LinkedList<Marketplace.Stock> waresFound = new LinkedList<Marketplace.Stock>();
+
+      // grab the right inventory
+      HashMap<String, Integer> inventoryToUse;
+      if (coordinates != null) {
+         inventoryToUse = getInventoryContainer(playerID, coordinates);
+
+         // if no inventory was found
+         if (inventoryToUse == null) {
+            waresFound.add(new Marketplace.Stock(wareID, -1, 1.0f));
+            return waresFound;
+         }
+      }
+      else
+         inventoryToUse = inventory;
+
+      // if the ware is in the inventory, grab it
+      if (inventoryToUse.containsKey(wareID) &&
+          inventoryToUse.get(wareID) > 0)
+         waresFound.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
+
+         return waresFound;
+   }
+
+   /**
+    * Returns the ID and quantity of whatever a payer is holding or
+    * null if they are not holding anything.
+    * Prints an error if nothing is found.
+    *
+    * @param playerID user responsible for the trading; used to send error messages
+    * @param sender   player or command block executing the command
+    * @param server   host running the game instance; used for obtaining player information
+    * @param username display name of user responsible for the trading
+    * @return ware player is holding and how much or null
+    */
+   public InterfaceCommand.Handful checkHand(UUID playerID, Object sender, Object server, String username) {
+      System.out.println(PlatformStrings.ERROR_HANDS);
+      return null;
    }
 
    /**
@@ -344,6 +413,16 @@ public class InterfaceTerminal implements InterfaceCommand
    }
 
    /**
+    * Returns whether the given string matches a player's name.
+    *
+    * @param username player to check the existence of
+    * @return whether the given string is in use as a player's name
+    */
+   public boolean doesPlayerExist(String username) {
+      return username != null && username.equals(InterfaceTerminal.playername); // don't assume any players other than the one currently logged in exists
+   }
+
+   /**
     * Returns whether a player with the given unique identifier is currently logged into the server.
     * <p>
     * Complexity: O(1)
@@ -355,25 +434,76 @@ public class InterfaceTerminal implements InterfaceCommand
    }
 
    /**
-    * Returns whether the given string matches a player's name.
+    * Returns whether the player is a server administrator.
     *
-    * @param playername player to check the existence of
-    * @return whether the given string is in use as a player's name
+    * @param playerID player whose server operator permissions should be checked
+    * @return whether the player is an op
     */
-   public boolean doesPlayerExist(String playername) {
-      return doesPlayerExistStatic(playername);
+   public boolean isAnOp(UUID playerID) {
+      if (playerID == null)
+         return false;
+
+      return ops.contains(playerID);
    }
 
    /**
-    * Returns whether the given string matches a player's name.
-    * Used to make doesPlayerExist() part of an interface,
-    * but also usable in static or Minecraft's command bases' methods.
+    * Returns whether or not a command-issuer may execute a given command.
+    * Useful for when a command is executed for another player,
+    * such as when a command block is autobuying.
     *
-    * @param playername player to check the existence of
-    * @return whether the given string is in use as a player's name
+    * @param playerID the player being affected by the issued command or the entity being acted upon
+    * @param senderID name of the command-issuing entity or the entity acting upon other
+    * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
+    * @return true if the sender has permission to execute the command
     */
-   protected static boolean doesPlayerExistStatic(String playername) {
-      return playername != null && playername.equals(InterfaceTerminal.playername); // don't assume any players other than the one currently logged in exists
+   public boolean permissionToExecute(UUID playerID, Object sender, boolean isOpCommand) {
+      return permissionToExecuteStatic(playerID, (UUID) sender, isOpCommand);
+   }
+
+   /**
+    * Returns whether or not a command-issuer may execute a given command.
+    * Useful for when a command is executed for another player,
+    * such as when a command block is autobuying.
+    *
+    * @param playerID the player being affected by the issued command or the entity being acted upon
+    * @param senderID name of the command-issuing entity or the entity acting upon other
+    * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
+    * @return true if the sender has permission to execute the command
+    */
+   public static boolean permissionToExecuteStatic(UUID playerID, UUID senderID, boolean isOpCommand) {
+      if (playerID == null || senderID == null)
+         return false;
+
+      // check if the sender is only affecting themself
+      if (!isOpCommand && playerID.equals(senderID))
+         return true;
+
+      // check for sender among server operators
+      // to determine whether they may execute commands for other players
+      return ops.contains(senderID);
+   }
+
+   /**
+    * Returns the value of a special token referring to a player name,
+    * null if the token is invalid, or an error message for the user
+    * if the user lacks permission to use such tokens.
+    * Does not print an error if the user lacks permissions.
+    * <br>
+    * Complexity: O(1)
+    * @param sender   player or command block executing the command
+    * @param selector string which might be an entity selector
+    * @return player being referred to, null if user lacks permission, or the input string if the string is not an entity selector
+    */
+   public String parseEntitySelector(Object sender, String selector) {
+      if (selector == null)
+         return null;
+
+      if (selector.equals("@p") || selector.equals("@r"))
+         return playername;
+      else if (selector.startsWith("@"))
+         return "";
+      else
+         return selector;
    }
 
    /**
@@ -466,19 +596,6 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
 
       System.err.println(message);
-   }
-
-   /**
-    * Returns whether the player is a server administrator.
-    *
-    * @param playerID player whose server operator permissions should be checked
-    * @return whether the player is an op
-    */
-   public boolean isAnOp(UUID playerID) {
-      if (playerID == null)
-         return false;
-
-      return ops.contains(playerID);
    }
 
    /**
@@ -674,32 +791,6 @@ public class InterfaceTerminal implements InterfaceCommand
    }
 
    /**
-    * Returns whether or not a command-issuer may execute a given command.
-    * Useful for when a command is executed for another player,
-    * such as when a command block is autobuying.
-    *
-    * @param playerID the player being affected by the issued command or the entity being acted upon
-    * @param senderID name of the command-issuing entity or the entity acting upon other
-    * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
-    * @return true if the sender has permission to execute the command
-    */
-   public static boolean permissionToExecute(UUID playerID, UUID senderID, boolean isOpCommand) {
-      if (playerID == null || senderID == null)
-         return false;
-
-      // command blocks and the server console always have permission
-      // but only Minecraft has them
-
-      // check if the sender is only affecting themself
-      if (!isOpCommand && playerID.equals(senderID))
-         return true;
-
-      // check for sender among server operators
-      // to determine whether they may execute commands for other players
-      return ops.contains(senderID);
-   }
-
-   /**
     * Prints possible commands.
     * <p>
     * Expected Formats:
@@ -782,225 +873,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestBuy(String[] args) {
-      // request should not be null
-      if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_BUY);
-         return;
-      }
-
-      // set up variables
-      String  username          = null;
-      InterfaceCommand.Coordinates coordinates = null;
-      String  accountID         = null;
-      String  wareID            = null;
-      int     baseArgsLength    = args.length; // number of args, not counting special keywords
-      int     quantity          = 0;
-      float   priceUnit         = 0.0f;
-      float   pricePercent      = 1.0f;
-      boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
-
-      // check for and process special keywords and zero-length args
-      for (String arg : args) {
-         // if a zero-length arg is detected, stop
-         if (arg == null || arg.length() == 0) {
-            System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
-            return;
-         }
-
-         // special keywords start with certain symbols
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
-            continue;
-
-         // if a special keyword is detected,
-         // adjust the arg length count for non-special args
-         baseArgsLength--;
-
-         // check whether user is specifying the transaction price multiplier
-         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
-            pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, true);
-
-            // check for error
-            if (Float.isNaN(pricePercent))
-               return; // an error message has already been printed
-
-            continue; // skip to the next argument
-         }
-
-         // check whether user specifies manufacturing the ware
-         if (arg.equals(CommandEconomy.MANUFACTURING))
-            shouldManufacture = true;
-      }
-
-      // command must have the right number of args
-      if (baseArgsLength < 2 ||
-          baseArgsLength > 6) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_BUY);
-         return;
-      }
-
-      // if the second argument is a direction, a username and a direction should be given
-      // otherwise, the second argument should be a number and, no username or direction should be given
-      if (args[1].equals(CommandEconomy.INVENTORY_NONE) ||
-          args[1].equals(CommandEconomy.INVENTORY_DOWN) ||
-          args[1].equals(CommandEconomy.INVENTORY_UP) ||
-          args[1].equals(CommandEconomy.INVENTORY_NORTH) ||
-          args[1].equals(CommandEconomy.INVENTORY_EAST) ||
-          args[1].equals(CommandEconomy.INVENTORY_WEST) ||
-          args[1].equals(CommandEconomy.INVENTORY_SOUTH)) {
-         // ensure passed args are valid types
-         try {
-            quantity = Integer.parseInt(args[3]);
-         } catch (NumberFormatException e) {
-            System.out.println(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_BUY);
-            return;
-         }
-
-         // if five arguments are given,
-         // the fifth must either be a price or an account ID
-         if (baseArgsLength == 5) {
-            try {
-               // assume the fifth argument is a price
-               priceUnit = Float.parseFloat(args[4]);
-            } catch (NumberFormatException e) {
-               // if the fifth argument is not a price,
-               // it must be an account ID
-               accountID = args[4];
-            }
-         }
-
-         // if seven arguments are given,
-         // they must be a price and an account ID
-         else if (baseArgsLength == 6) {
-            try {
-               priceUnit = Float.parseFloat(args[4]);
-            } catch (NumberFormatException e) {
-               System.out.println(CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BLOCK_BUY);
-               return;
-            }
-            accountID = args[5];
-         }
-
-         // grab remaining variables
-         username = args[0];
-         wareID   = args[2];
-
-         // translate coordinates
-         switch(args[1])
-         {
-            // x-axis: west  = +x, east  = -x
-            // y-axis: up    = +y, down  = -y
-            // z-axis: south = +z, north = -z
-
-            case CommandEconomy.INVENTORY_NONE:
-               coordinates = new Coordinates(0, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_DOWN:
-               coordinates = new Coordinates(0, -1, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_UP:
-               coordinates = new Coordinates(0, 1, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_NORTH:
-               coordinates = new Coordinates(0, 0, -1, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_EAST:
-               coordinates = new Coordinates(-1, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_WEST:
-               coordinates = new Coordinates(1, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_SOUTH:
-               coordinates = new Coordinates(0, 0, 1, 0);
-               break;
-
-            default:
-               System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_BUY);
-               return;
-         }
-      }
-
-      // if no username or direction should be given
-      else {
-         // ensure passed args are valid types
-         try {
-            quantity = Integer.parseInt(args[1]);
-         } catch (NumberFormatException e) {
-            System.out.println(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BUY);
-            return;
-         }
-
-         // if three arguments are given,
-         // the third must either be a price or an account ID
-         if (baseArgsLength == 3) {
-            try {
-               // assume the third argument is a price
-               priceUnit = Float.parseFloat(args[2]);
-            } catch (NumberFormatException e) {
-               // if the third argument is not a price,
-               // it must be an account ID
-               accountID = args[2];
-            }
-         }
-
-         // if four arguments are given,
-         // they must be a price and an account ID
-         else if (baseArgsLength == 4) {
-            try {
-               priceUnit = Float.parseFloat(args[2]);
-            } catch (NumberFormatException e) {
-               System.out.println(CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BUY);
-               return;
-            }
-            accountID = args[3];
-         }
-
-         // grab remaining variables
-         username = playername;
-         wareID   = args[0];
-      }
-
-      // check for entity selectors
-      if (username != null &&
-          (username.equals("@p") || username.equals("@r")))
-         username = playername;
-
-      if (accountID != null &&
-          (accountID.equals("@p") || accountID.equals("@r")))
-         accountID = playername;
-
-      if ((username != null && username.startsWith("@")) || (accountID != null && accountID.startsWith("@"))) {
-         System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         return;
-      }
-
-      // grab user's UUID once
-      UUID playerID = getPlayerIDStatic(username);
-
-      // check if command sender has permission to
-      // execute this command for other players
-      if (!permissionToExecute(playerID, getPlayerIDStatic(playername), false)) {
-         System.out.println(CommandEconomy.ERROR_PERMISSION);
-         return;
-      }
-
-      // check inventory existence
-      if (coordinates != null) {
-         HashMap<String, Integer> inventoryToUse = InterfaceTerminal.getInventory(playerID, coordinates);
-
-         if (inventoryToUse == null) {
-            System.out.println(CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_BUY);
-            return;
-         }
-      }
-
-      // call corresponding function
-      Marketplace.buy(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent, shouldManufacture);
+      CommandProcessor.buy(getPlayerIDStatic(playername), getPlayerIDStatic(playername), args);
    }
 
    /**
@@ -1014,236 +887,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestSell(String[] args) {
-      // request should not be null
-      if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_SELL);
-         return;
-      }
-
-      // set up variables
-      String username       = null;
-      InterfaceCommand.Coordinates coordinates = null;
-      String accountID      = null;
-      String wareID         = null;
-      int    baseArgsLength = args.length; // number of args, not counting special keywords
-      int    quantity       = 0;
-      float  priceUnit      = 0.0f;
-      float  pricePercent   = 1.0f;
-
-      // check for and process special keywords and zero-length args
-      for (String arg : args) {
-         // if a zero-length arg is detected, stop
-         if (arg == null || arg.length() == 0) {
-            System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
-            return;
-         }
-
-         // special keywords start with certain symbols
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
-            continue;
-
-         // if a special keyword is detected,
-         // adjust the arg length count for non-special args
-         baseArgsLength--;
-
-         // check whether user is specifying the transaction price multiplier
-         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
-            pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, true);
-
-            // check for error
-            if (Float.isNaN(pricePercent))
-               return; // an error message has already been printed
-
-            continue; // skip to the next argument
-         }
-      }
-
-      // command must have the right number of args
-      if (baseArgsLength < 1 ||
-          baseArgsLength > 6) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELL);
-         return;
-      }
-
-      // if the second argument is a number, no username or direction should be given
-      // if the second argument is a direction, a username and a direction should be given
-      // if a username and a direction should be given
-      if (baseArgsLength >= 2 &&
-          (args[1].equals(CommandEconomy.INVENTORY_NONE) ||
-           args[1].equals(CommandEconomy.INVENTORY_DOWN) ||
-           args[1].equals(CommandEconomy.INVENTORY_UP) ||
-           args[1].equals(CommandEconomy.INVENTORY_NORTH) ||
-           args[1].equals(CommandEconomy.INVENTORY_EAST) ||
-           args[1].equals(CommandEconomy.INVENTORY_WEST) ||
-           args[1].equals(CommandEconomy.INVENTORY_SOUTH))) {
-         // ensure passed args are valid types
-         // if at least four arguments are given,
-         // the fourth must be a quantity
-         if (baseArgsLength >= 4) {
-            try {
-               quantity = Integer.parseInt(args[3]);
-            } catch (NumberFormatException e) {
-               System.out.println(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-               return;
-            }
-         }
-
-         // if five arguments are given,
-         // the fifth must either be a price or an account ID
-         if (baseArgsLength == 5) {
-            try {
-               // assume the third argument is a price
-               priceUnit = Float.parseFloat(args[4]);
-            } catch (NumberFormatException e) {
-               // if the third argument is not a price,
-               // it must be an account ID
-               accountID = args[4];
-            }
-         }
-
-         // if six arguments are given,
-         // they must be a price and an account ID
-         else if (baseArgsLength == 6) {
-            try {
-                  priceUnit = Float.parseFloat(args[4]);
-            } catch (NumberFormatException e) {
-               System.out.println(CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-               return;
-            }
-            accountID = args[5];
-         }
-
-         // grab remaining variables
-         username = args[0];
-         wareID   = args[2];
-
-         // translate coordinates
-         switch(args[1])
-         {
-            // x-axis: west  = +x, east  = -x
-            // y-axis: up    = +y, down  = -y
-            // z-axis: south = +z, north = -z
-
-            case CommandEconomy.INVENTORY_NONE:
-               coordinates = new Coordinates(0, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_DOWN:
-               coordinates = new Coordinates(0, -1, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_UP:
-               coordinates = new Coordinates(0, 1, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_NORTH:
-               coordinates = new Coordinates(0, 0, -1, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_EAST:
-               coordinates = new Coordinates(-1, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_WEST:
-               coordinates = new Coordinates(1, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_SOUTH:
-               coordinates = new Coordinates(0, 0, 1, 0);
-               break;
-
-            default:
-               System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-               return;
-         }
-      }
-
-      // if no username or direction should be given
-      else {
-         // ensure passed args are valid types
-         // if at least two arguments are given,
-         // the second must be a quantity
-         if (baseArgsLength > 1) {
-            try {
-               quantity = Integer.parseInt(args[1]);
-            } catch (NumberFormatException e) {
-               System.out.println(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_SELL);
-               return;
-            }
-         }
-
-         // if three arguments are given,
-         // the third must either be a price or an account ID
-         if (baseArgsLength == 3) {
-            try {
-               // assume the third argument is a price
-               priceUnit = Float.parseFloat(args[2]);
-            } catch (NumberFormatException e) {
-               // if the third argument is not a price,
-               // it must be an account ID
-               accountID = args[2];
-            }
-         }
-
-         // if four arguments are given,
-         // they must be a price and an account ID
-         else if (baseArgsLength == 4) {
-            try {
-                  priceUnit = Float.parseFloat(args[2]);
-            } catch (NumberFormatException e) {
-               System.out.println(CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_SELL);
-               return;
-            }
-            accountID = args[3];
-         }
-
-         // grab remaining variables
-         username = playername;
-         wareID   = args[0];
-      }
-
-      // check for entity selectors
-      if (username != null &&
-          (username.equals("@p") || username.equals("@r")))
-         username = playername;
-
-      if (accountID != null &&
-          (accountID.equals("@p") || accountID.equals("@r")))
-         accountID = playername;
-
-      if ((username != null && username.startsWith("@")) || (accountID != null && accountID.startsWith("@"))) {
-         System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         return;
-      }
-      UUID playerID = getPlayerIDStatic(username);
-
-      // check if command sender has permission to
-      // execute this command for other players
-      if (!permissionToExecute(playerID, getPlayerIDStatic(playername), false)) {
-         System.out.println(CommandEconomy.ERROR_PERMISSION);
-         return;
-      }
-
-      // check inventory existence
-      if (coordinates != null) {
-         HashMap<String, Integer> inventoryToUse = InterfaceTerminal.getInventory(playerID, coordinates);
-
-         if (inventoryToUse == null) {
-            System.out.println(CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELL);
-            return;
-         }
-      }
-
-      // check whether the ware the user's is currently holding should be sold
-      // the idea of selling the user's held item is from
-      // DynamicEconomy ( https://dev.bukkit.org/projects/dynamiceconomy-v-01 )
-      if (wareID.equalsIgnoreCase(CommandEconomy.HELD_ITEM)) {
-         System.out.println(PlatformStrings.ERROR_HANDS);
-         return;
-      }
-
-      // call corresponding function
-      Marketplace.sell(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent);
+      CommandProcessor.sell(getPlayerIDStatic(playername), getPlayerIDStatic(playername), null, args);
    }
 
    /**
@@ -1256,126 +900,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestCheck(String[] args) {
-      // request should not be null
-      if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_CHECK);
-         return;
-      }
-
-      // set up variables
-      String  username          = null;
-      String  wareID            = null;
-      int     baseArgsLength    = args.length; // number of args, not counting special keywords
-      int     quantity          = 0;           // holds ware quantities
-      float   pricePercent      = 1.0f;
-      boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
-
-      // check for and process special keywords and zero-length args
-      for (String arg : args) {
-         // if a zero-length arg is detected, stop
-         if (arg == null || arg.length() == 0) {
-            System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHECK);
-            return;
-         }
-
-         // special keywords start with certain symbols
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
-            continue;
-
-         // if a special keyword is detected,
-         // adjust the arg length count for non-special args
-         baseArgsLength--;
-
-         // check whether user is specifying the transaction price multiplier
-         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
-            pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, false);
-
-            // check for error
-            if (Float.isNaN(pricePercent))
-               return; // an error message has already been printed
-
-            continue; // skip to the next argument
-         }
-
-         // check whether user specifies manufacturing the ware
-         if (arg.equals(CommandEconomy.MANUFACTURING))
-            shouldManufacture = true;
-      }
-
-      // command must have the right number of args
-      if (baseArgsLength < 1 ||
-          baseArgsLength > 3) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHECK);
-         return;
-      }
-
-      // if one argument is given,
-      // the it is a ware ID
-      if (baseArgsLength == 1) {
-         username = playername;
-         wareID = args[0];
-      }
-
-      // if two arguments are given,
-      // the second must be a quantity
-      else if (baseArgsLength == 2) {
-         try {
-            // assume the second argument is a number
-            quantity = Integer.parseInt(args[1]);
-         } catch (NumberFormatException e) {
-            System.out.println(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_CHECK);
-            return;
-         }
-
-         // grab remaining variables
-         username = playername;
-         wareID   = args[0];
-      }
-
-      // if three arguments are given,
-      // then they include a username and a quantity
-      else if (baseArgsLength == 3) {
-         // try to process quantity
-         try {
-            quantity = Integer.parseInt(args[2]);
-         } catch (NumberFormatException e) {
-            System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BLOCK_CHECK);
-            return;
-         }
-
-         // grab remaining variables
-         username = args[0];
-         wareID   = args[1];
-      }
-
-      // check for entity selectors
-      if (username != null &&
-          (username.equals("@p") || username.equals("@r")))
-         username = playername;
-
-      if (username != null && username.startsWith("@")) {
-         System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         return;
-      }
-      UUID playerID = getPlayerIDStatic(username);
-
-      // check if command sender has permission to
-      // execute this command for other players
-      if (!permissionToExecute(playerID, getPlayerIDStatic(playername), false)) {
-         System.out.println(CommandEconomy.ERROR_PERMISSION);
-         return;
-      }
-
-      // check whether the ware the user's is currently holding should be checked
-      // the idea of checking the user's held item is from
-      // DynamicEconomy ( https://dev.bukkit.org/projects/dynamiceconomy-v-01 )
-      if (wareID.equalsIgnoreCase(CommandEconomy.HELD_ITEM)) {
-         System.out.println(PlatformStrings.ERROR_HANDS);
-         return;
-      }
-
-      // call corresponding function
-      Marketplace.check(playerID, wareID, quantity, pricePercent, shouldManufacture);
+      CommandProcessor.check(getPlayerIDStatic(playername), getPlayerIDStatic(playername), null, args);
    }
 
    /**
@@ -1388,157 +913,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestSellAll(String[] args) {
-      // request can be null or have zero arguments
-
-      // set up variables
-      String username  = null;
-      InterfaceCommand.Coordinates coordinates = null;
-      String accountID = null;
-      // prepare a reformatted container for the wares
-      LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
-      HashMap<String, Integer> inventoryToUse = null;
-      int   baseArgsLength; // number of args, not counting special keywords
-      float pricePercent = 1.0f;
-
-      // avoid null pointer exception
-      if (args == null)
-         baseArgsLength = 0;
-      else {
-         baseArgsLength = args.length;
-
-         // check for and process special keywords and zero-length args
-         for (String arg : args) {
-            // if a zero-length arg is detected, stop
-            if (arg == null || arg.length() == 0) {
-               System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
-               return;
-            }
-
-            // special keywords start with certain symbols
-            if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
-               continue;
-
-            // if a special keyword is detected,
-            // adjust the arg length count for non-special args
-            baseArgsLength--;
-
-            // check whether user is specifying the transaction price multiplier
-            if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
-               pricePercent = CommandProcessor.parsePricePercentArgument(getPlayerIDStatic(playername), arg, true);
-
-               // check for error
-               if (Float.isNaN(pricePercent))
-                  return; // an error message has already been printed
-
-               continue; // skip to the next argument
-            }
-         }
-      }
-
-      // command must have the right number of args
-      if (args != null &&
-          (baseArgsLength < 0 ||
-           baseArgsLength > 3)) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
-         return;
-      }
-
-      // if there are at least two arguments,
-      // a username and a direction must be given
-      if (args != null && baseArgsLength >= 2) {
-         username = args[0];
-
-         // translate coordinates
-         switch(args[1])
-         {
-            // x-axis: west  = +x, east  = -x
-            // y-axis: up    = +y, down  = -y
-            // z-axis: south = +z, north = -z
-
-            case CommandEconomy.INVENTORY_NONE:
-               coordinates = new Coordinates(0, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_DOWN:
-               coordinates = new Coordinates(0, -1, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_UP:
-               coordinates = new Coordinates(0, 1, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_NORTH:
-               coordinates = new Coordinates(0, 0, -1, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_EAST:
-               coordinates = new Coordinates(-1, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_WEST:
-               coordinates = new Coordinates(1, 0, 0, 0);
-               break;
-
-            case CommandEconomy.INVENTORY_SOUTH:
-               coordinates = new Coordinates(0, 0, 1, 0);
-               break;
-
-            default:
-               System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_SELLALL);
-               return;
-         }
-
-         // if an account ID was given, use it
-         if (baseArgsLength == 3)
-            accountID = args[2];
-         // If an account ID wasn't given, leave the ID as null.
-      } else {
-         username    = playername;
-         coordinates = null;
-
-         // if an account ID was given, use it
-         if (args != null && baseArgsLength == 1)
-            accountID = args[0];
-         // If an account ID wasn't given, leave the ID as null.
-      }
-
-      // check for entity selectors
-      if (username != null &&
-          (username.equals("@p") || username.equals("@r")))
-         username = playername;
-
-      if (accountID != null &&
-          (accountID.equals("@p") || accountID.equals("@r")))
-         accountID = playername;
-
-      if ((username != null && username.startsWith("@")) || (accountID != null && accountID.startsWith("@"))) {
-         System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         return;
-      }
-
-      // grab user's UUID once
-      UUID playerID = getPlayerIDStatic(username);
-
-      // check if command sender has permission to
-      // execute this command for other players
-      if (!permissionToExecute(playerID, getPlayerIDStatic(playername), false)) {
-         System.out.println(CommandEconomy.ERROR_PERMISSION);
-         return;
-      }
-
-      // get the inventory
-      inventoryToUse = InterfaceTerminal.getInventory(playerID, coordinates);
-      if (inventoryToUse == null) {
-         System.out.println(CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELLALL);
-         return;
-      }
-
-      // convert the inventory to the right format
-      for (String wareID : inventoryToUse.keySet()) {
-         formattedInventory.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
-      }
-
-      Marketplace.sellAll(playerID, coordinates, formattedInventory, accountID, pricePercent);
+      CommandProcessor.sellAll(getPlayerIDStatic(playername), getPlayerIDStatic(playername), args);
    }
 
    /**
@@ -1551,67 +926,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestMoney(String[] args) {
-      // request can be null or have zero arguments
-
-      // check for zero-length args
-      if (args != null && 
-          ((args.length >= 1 && (args[0] == null || args[0].length() == 0)) ||
-           (args.length >= 2 && (args[1] == null || args[1].length() == 0)))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_MONEY);
-         return;
-      }
-
-      // if nothing is given,
-      // use the player's personal account or default account
-      if (args == null || args.length == 0) {
-         Account account = Account.grabAndCheckAccount(null, getPlayerIDStatic(playername));
-
-         account.check(getPlayerIDStatic(playername), CommandEconomy.MSG_PERSONAL_ACCOUNT);
-         return;
-      }
-
-      // set up variables
-      String username  = null;
-      String accountID = null;
-
-      // if only an account ID is given
-      if (args.length == 1) {
-         username  = playername;
-         accountID = args[0];
-      }
-      // if a username and an account ID are given
-      else if (args.length >= 2) {
-         username  = args[0];
-         accountID = args[1];
-      }
-
-      // check for entity selectors
-      if (username != null &&
-          (username.equals("@p") || username.equals("@r")))
-         username = playername;
-
-      if (accountID != null &&
-          (accountID.equals("@p") || accountID.equals("@r")))
-         accountID = playername;
-
-      if ((username != null && username.startsWith("@")) || (accountID != null && accountID.startsWith("@"))) {
-         System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
-         return;
-      }
-      UUID playerID = getPlayerIDStatic(username);
-
-      // check if command sender has permission to
-      // execute this command for other players
-      if (!permissionToExecute(playerID, getPlayerIDStatic(playername), false)) {
-         System.out.println(CommandEconomy.ERROR_PERMISSION);
-         return;
-      }
-
-      // grab the account using the given account ID
-      Account account = Account.grabAndCheckAccount(accountID, playerID);
-      if (account != null)
-         account.check(playerID, accountID);
-      // if the account was not found, an error message has already been printed
+      CommandProcessor.money(getPlayerIDStatic(playername), getPlayerIDStatic(playername), args);
    }
 
    /**
@@ -1624,102 +939,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestSend(String[] args) {
-      // request should not be null
-      if (args == null || args.length == 0) {
-         System.out.println(CommandEconomy.CMD_USAGE_SEND);
-         return;
-      }
-
-      // command must have the right number of args
-      if (args.length < 2 ||
-          args.length > 4) {
-         System.out.println(CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SEND);
-         return;
-      }
-
-      // check for zero-length args
-      if (args[0] == null || args[0].length() == 0 ||
-          args[1] == null || args[1].length() == 0 ||
-          (args.length == 3 && (args[2] == null || args[2].length() == 0)) ||
-          (args.length == 4 && (args[3] == null || args[3].length() == 0))) {
-         System.out.println(CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SEND);
-         return;
-      }
-
-      // set up variables
-      String username           = null;
-      float  quantity           = 0.0f;
-      String recipientAccountID = null;
-      String senderAccountID    = null;
-      Account account           = null;
-
-      // if the first argument is a number,
-      // the other arguments must be account IDs
-      // otherwise, the first argument is a username
-      try {
-         quantity = Float.parseFloat(args[0]);
-         username = playername;
-         recipientAccountID = args[1];
-
-         // if a sender account ID is given, use it
-         if (args.length == 3)
-            senderAccountID = args[2];
-
-         // if no sender account is given,
-         // use the player's personal account
-         else
-            senderAccountID = playername;
-      } catch (NumberFormatException e) {
-         // try to parse quantity
-         try {
-            quantity = Float.parseFloat(args[1]);
-         } catch (NumberFormatException nfe) {
-            System.out.println(CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SEND);
-            return;
-         }
-
-         // if a sender account ID is given, use it
-         if (args.length == 4) {
-            username           = args[0];
-            recipientAccountID = args[2];
-            senderAccountID    = args[3];
-         }
-         // if no sender account is given,
-         // use the player's personal account
-         else if (args.length == 3) {
-            username           = args[0];
-            recipientAccountID = args[2];
-            senderAccountID    = args[0];
-         }
-
-         // check for entity selectors
-         if (username != null &&
-             (username.equals("@p") || username.equals("@r")))
-            username = playername;
-
-         if (recipientAccountID != null &&
-             (recipientAccountID.equals("@p") || recipientAccountID.equals("@r")))
-            recipientAccountID = playername;
-
-         if (senderAccountID != null &&
-             (senderAccountID.equals("@p") || senderAccountID.equals("@r")))
-            senderAccountID = playername;
-
-         if ((username != null && username.startsWith("@")) ||
-             (recipientAccountID != null && recipientAccountID.startsWith("@")) ||
-             (senderAccountID != null && senderAccountID.startsWith("@"))) {
-            System.out.println(CommandEconomy.ERROR_ENTITY_SELECTOR);
-            return;
-         }
-      }
-
-      // if a valid account is given, use it
-      account = Account.grabAndCheckAccount(senderAccountID, getPlayerIDStatic(username));
-      if (account != null)
-         // transfer the money
-         account.sendMoney(getPlayerIDStatic(username), quantity, senderAccountID, recipientAccountID);
-
-      return;
+      CommandProcessor.send(getPlayerIDStatic(playername), null, args);
    }
 
    /**
@@ -1786,7 +1006,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecute(playerID, playerID, true)) {
+      if (!permissionToExecuteStatic(playerID, playerID, true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -1820,7 +1040,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecute(playerID, playerID, true)) {
+      if (!permissionToExecuteStatic(playerID, playerID, true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -1839,7 +1059,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecute(playerID, playerID, true)) {
+      if (!permissionToExecuteStatic(playerID, playerID, true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -1857,7 +1077,7 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestChangeStock(String[] args) {
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecute(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
+      if (!permissionToExecuteStatic(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -1884,7 +1104,7 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestPrintMarket(String[] args) {
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecute(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
+      if (!permissionToExecuteStatic(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -1925,7 +1145,7 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestOp(String[] args) {
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecute(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
+      if (!permissionToExecuteStatic(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -1968,7 +1188,7 @@ public class InterfaceTerminal implements InterfaceCommand
    protected static void serviceRequestDeop(String[] args) {
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecute(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
+      if (!permissionToExecuteStatic(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -2019,12 +1239,10 @@ public class InterfaceTerminal implements InterfaceCommand
              args[0].equals(CommandEconomy.INVENTORY_WEST) ||
              args[0].equals(CommandEconomy.INVENTORY_SOUTH)) {
             printInventory(args[0]);
-         } else {
+         } else
             System.out.println(CommandEconomy.ERROR_INVENTORY_DIR + PlatformStrings.CMD_USAGE_INVENTORY);
-         }
-      } else {
+      } else
          printInventory(CommandEconomy.INVENTORY_NONE);
-      }
    }
 
    /**
@@ -2080,7 +1298,7 @@ public class InterfaceTerminal implements InterfaceCommand
          } catch (NumberFormatException e) {
             // if the second argument isn't a quantity,
             // it might be a direction
-            inventoryToUse = getInventory(getPlayerIDStatic(playername), args[1]);
+            inventoryToUse = getInventoryContainer(getPlayerIDStatic(playername), args[1]);
 
             // check whether the inventory was found
             if (inventoryToUse == null) {
@@ -2098,7 +1316,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // validate direction, if quantity and direction are given
       if (args.length == 3) {
-         inventoryToUse = getInventory(getPlayerIDStatic(playername), args[2]);
+         inventoryToUse = getInventoryContainer(getPlayerIDStatic(playername), args[2]);
 
          // check whether the inventory was found
          if (inventoryToUse == null) {
@@ -2178,7 +1396,7 @@ public class InterfaceTerminal implements InterfaceCommand
          } catch (NumberFormatException e) {
             // if the second argument isn't a quantity,
             // it might be a direction
-            inventoryToUse = getInventory(getPlayerIDStatic(playername), args[1]);
+            inventoryToUse = getInventoryContainer(getPlayerIDStatic(playername), args[1]);
 
             // check whether the inventory was found
             if (inventoryToUse == null) {
@@ -2196,7 +1414,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
       // validate direction, if quantity and direction are given
       if (args.length == 3) {
-         inventoryToUse = getInventory(getPlayerIDStatic(playername), args[2]);
+         inventoryToUse = getInventoryContainer(getPlayerIDStatic(playername), args[2]);
 
          // check whether the inventory was found
          if (inventoryToUse == null) {

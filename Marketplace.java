@@ -5,6 +5,7 @@ import java.util.Map;                 // for iterating through hashmaps
 import java.util.HashSet;             // for returning all ware aliases and storing IDs of wares changed since last save
 import java.util.Set;                 // for returning all ware aliases
 import java.util.LinkedList;          // for returning properties of wares found in an inventory
+import java.util.List;
 import java.util.ArrayDeque;          // for storing ware entries for saving
 import java.lang.StringBuilder;        // for faster saving, so the same line entries may be stored in two data structures
 import java.io.BufferedWriter;        // for faster saving, so fewer file writes are used
@@ -1738,7 +1739,7 @@ public class Marketplace {
       }
 
       // get the quality and quantity of wares the player has
-      LinkedList<Stock> waresFound;
+      List<Stock> waresFound;
       // if the given ware ID is an alias,
       // only use the translated ID
       if (wareID.startsWith("#") || // is a Forge ore dictionary name
@@ -1752,7 +1753,7 @@ public class Marketplace {
          return;
 
       // check whether an inventory was found
-      if (waresFound.getFirst().quantity == -1) {
+      if (waresFound.get(0).quantity == -1) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
          return;
       }
@@ -1864,7 +1865,7 @@ public class Marketplace {
     * @param pricePercent percentage multiplier for ware's price
     */
    public static void sellAll(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      LinkedList<Stock> inventory, String accountID, float pricePercent) {
+      List<Stock> inventory, String accountID, float pricePercent) {
       if ((coordinates == null &&                            // if the given inventory is empty and no coordinates are given,
           (inventory   == null || inventory.isEmpty())) || // there is nothing to sell
           playerID     == null)                              // if no player was given, there is no party responsible for the purchase
@@ -1958,7 +1959,7 @@ public class Marketplace {
     * @return total money from selling wares and the quantity sold
     */
    protected static float[] sellStock(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                                      LinkedList<Stock> stocks, int quantity,
+                                      List<Stock> stocks, int quantity,
                                       float minUnitPrice, float pricePercent) {
       if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
           quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything

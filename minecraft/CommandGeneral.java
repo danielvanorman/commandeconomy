@@ -202,7 +202,7 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestSave(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
+      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
          InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -222,7 +222,7 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestReload(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
+      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
          InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
       }
 
@@ -253,7 +253,7 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestSet(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
+      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
          InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -271,7 +271,7 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestChangeStock(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
+      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
          InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
@@ -288,7 +288,7 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestPrintMarket(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecute(InterfaceMinecraft.getSenderID(sender), sender, true)) {
+      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
          InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }

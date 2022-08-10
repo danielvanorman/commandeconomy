@@ -1,6 +1,6 @@
 package commandeconomy;
 
-import java.util.LinkedList; // for returning properties of wares found in an inventory
+import java.util.List;       // for returning properties of wares found in an inventory
 import java.util.UUID;       // for more securely tracking users internally
 
 /**
@@ -56,6 +56,34 @@ public interface InterfaceCommand
       }
    }
 
+   /**
+    * Used to return a string and an integer when
+    * checking what a player is holding.
+    *
+    * @author  Daniel Van Orman
+    * @version %I%, %G%
+    * @since   2022-08-02
+    */
+   class Handful
+   {
+      /** ID for the ware a player is holding */
+      public String wareID;
+      /** how much of the ware a player is holding */
+      public int quantity;
+
+      /**
+       * Handful Constructor: Fills fields describing
+       * whatever a player might be holding.
+       *
+       * @param wareID   ID for the ware a player is holding
+       * @param quantity how much of the ware a player is holding
+       */
+      public Handful (String wareID, int quantity) {
+         this.wareID =  wareID;
+         this.quantity = quantity;
+      }
+   }
+
    // FUNCTIONS
    /**
     * Returns the path to the local game's save directory.
@@ -63,6 +91,28 @@ public interface InterfaceCommand
     * @return directory of local save and config files
     */
    String getSaveDirectory();
+
+   /**
+    * Returns an inventory's coordinates using a given position and direction.
+    * If the direction is invalid, returns null.
+    *
+    * @param playerID  user responsible for the trading; used to send error messages
+    * @param sender    player or command block executing the command; determines original position
+    * @param direction string representing where the inventory may be relative to the original position
+    * @return inventory's coordinates, all zeros, or null if the direction is invalid
+    */
+   InterfaceCommand.Coordinates getInventoryCoordinates(UUID playerID, Object sender, String direction);
+
+   /**
+    * Returns an inventory of wares to be sold or null.
+    * Used by /sellAll.
+    *
+    * @param playerID    user responsible for the trading
+    * @param coordinates where the inventory may be found
+    * @return inventory to be manipulated or null
+    */
+   List<Marketplace.Stock> getInventoryContents(UUID playerID,
+      InterfaceCommand.Coordinates coordinates);
 
    /**
     * Returns how many more stacks of wares the given inventory may hold.
@@ -109,8 +159,21 @@ public interface InterfaceCommand
     * @param coordinates where the inventory may be found
     * @return quantities and qualities of wares found
     */
-   LinkedList<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   List<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID);
+
+   /**
+    * Returns the ID and quantity of whatever a payer is holding or
+    * null if they are not holding anything.
+    * Prints an error if nothing is found.
+    *
+    * @param playerID user responsible for the trading; used to send error messages
+    * @param sender   player or command block executing the command
+    * @param server   host running the game instance; used for obtaining player information
+    * @param username display name of user responsible for the trading
+    * @return ware player is holding and how much or null
+    */
+   InterfaceCommand.Handful checkHand(UUID playerID, Object sender, Object server, String username);
 
    /**
     * Returns the player name associated with the given UUID.
@@ -129,6 +192,14 @@ public interface InterfaceCommand
    UUID getPlayerID(String playername);
 
    /**
+    * Returns whether the given string matches a player name.
+    *
+    * @param username player to check the existence of
+    * @return whether the given string is in use as a player's name
+    */
+   boolean doesPlayerExist(String username);
+
+   /**
     * Returns whether a player with the given unique identifier is currently logged into the server.
     *
     * @param playerID UUID of player whose current status is needed
@@ -137,12 +208,38 @@ public interface InterfaceCommand
    boolean isPlayerOnline(UUID playerID);
 
    /**
-    * Returns whether the given string matches a player name.
+    * Returns whether the player is a server administrator.
     *
-    * @param username player to check the existence of
-    * @return whether the given string is in use as a player's name
+    * @param playerID player whose server operator permissions should be checked
+    * @return whether the player is an op
     */
-   boolean doesPlayerExist(String username);
+   boolean isAnOp(UUID playerID);
+
+   /**
+    * Returns whether or not a command-issuer may execute a given command.
+    * Useful for when a command is executed for another player,
+    * such as when a command block is autobuying.
+    *
+    * @param playerID    the player being affected by the issued command or the entity being acted upon
+    * @param sender      command-issuing entity or the entity acting upon another
+    * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
+    * @return true if the sender has permission to execute the command
+    */
+   boolean permissionToExecute(UUID playerID, Object sender, boolean isOpCommand);
+
+   /**
+    * Returns the value of a special token referring to a player name,
+    * null if the token is invalid, or an error message for the user
+    * if the user lacks permission to use such tokens.
+    * Does not print an error if one occurs
+    * in case multiple selectors are processed in series.
+    * The appropriate error to print is CommandEconomy.ERROR_ENTITY_SELECTOR.
+    *
+    * @param sender   player or command block executing the command
+    * @param selector string which might be an entity selector
+    * @return player being referred to, an empty string if an error occurs, or the input string if the string is not an entity selector
+    */
+   String parseEntitySelector(Object sender, String selector);
 
    /**
     * Returns whether or not a given Forge OreDictionary name exists outside of the market.
@@ -197,14 +294,6 @@ public interface InterfaceCommand
     * @param message error encountered and possible details
     */
    void printToConsole(String message);
-
-   /**
-    * Returns whether the player is a server administrator.
-    *
-    * @param playerID player whose server operator permissions should be checked
-    * @return whether the player is an op
-    */
-   boolean isAnOp(UUID playerID);
 
    /**
     * Fulfills commands given through the interface.
