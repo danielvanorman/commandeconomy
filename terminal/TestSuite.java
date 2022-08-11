@@ -17311,7 +17311,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario1)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario1)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 1: " + baosOut.toString());
             errorFound = true;
          }
@@ -17319,7 +17319,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario2)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario2)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 2: " + baosOut.toString());
             errorFound = true;
          }
@@ -17327,7 +17327,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario3)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario3)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 3: " + baosOut.toString());
             errorFound = true;
          }
@@ -17372,7 +17372,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario1 + descriptionWareChanges1)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario1 + descriptionWareChanges1)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 1: " + baosOut.toString());
             errorFound = true;
          }
@@ -17380,7 +17380,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario2 + descriptionWareChanges2)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario2 + descriptionWareChanges2)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 2: " + baosOut.toString());
             errorFound = true;
          }
@@ -17388,7 +17388,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario3 + descriptionWareChanges3)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario3 + descriptionWareChanges3)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 3: " + baosOut.toString());
             errorFound = true;
          }
@@ -17416,7 +17416,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario1)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario1)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 1: " + baosOut.toString());
             errorFound = true;
          }
@@ -17424,7 +17424,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario2)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario2)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 2: " + baosOut.toString());
             errorFound = true;
          }
@@ -17432,7 +17432,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario3)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario3)) {
             TEST_OUTPUT.println("    unexpected scenario for test event 3: " + baosOut.toString());
             errorFound = true;
          }
@@ -17454,7 +17454,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario1 + descriptionWareChanges1)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario1 + descriptionWareChanges1)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 1: " + baosOut.toString());
             errorFound = true;
          }
@@ -17462,7 +17462,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent2, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario2 + descriptionWareChanges2)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario2 + descriptionWareChanges2)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 2: " + baosOut.toString());
             errorFound = true;
          }
@@ -17470,7 +17470,7 @@ public class TestSuite
          baosOut.reset(); // clear buffer holding console output
          randomEventFire.invoke(testEvent3, NULL_OBJECTS);
 
-         if (!baosOut.toString().equals(descriptionScenario3 + descriptionWareChanges3)) {
+         if (!baosOut.toString().equals(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + descriptionScenario3 + descriptionWareChanges3)) {
             TEST_OUTPUT.println("    unexpected descriptions for test event 3: " + baosOut.toString());
             errorFound = true;
          }

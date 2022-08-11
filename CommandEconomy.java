@@ -466,13 +466,14 @@ public class CommandEconomy {
 
    public final static String WARN_RANDOM_EVENTS_NONE_LOADED        = "warning - no random events were loaded";
 
+   public final static String MSG_RANDOM_EVENT_OCCURRED             = "Breaking News!\n";
    public final static String MSG_RANDOM_EVENT_DESC                 = System.lineSeparator() + "   event's description: ";
-   public final static String MSG_RANDOM_EVENTS_CHANGES             = System.lineSeparator() + "   magnitudes must be: -3, -2, -1, 1, 2, or 3";
+   public final static String MSG_RANDOM_EVENTS_CHANGES             = System.lineSeparator() + "   magnitudes must be: NEGATIVE_LARGE, NEGATIVE_MEDIUM, NEGATIVE_SMALL, POSITIVE_SMALL, POSITIVE_MEDIUM, or POSITIVE_LARGE";
 
    public final static String ERROR_RANDOM_EVENT_DESC_MISSING       = "error - random event is missing an event description" + System.lineSeparator();
    public final static String ERROR_RANDOM_EVENT_MAGNITUDES_MISSING = "error - random event is missing changeMagnitudes; events must affect at least one ware";
    public final static String ERROR_RANDOM_EVENT_MAGNITUDES_BLANK   = "error - random event has no changeMagnitudes entries; events must affect at least one ware";
-   public final static String ERROR_RANDOM_EVENT_MAGNITUDES_INVALID = "error - random event's changeMagnitudes entry is invalid: ";
+   public final static String ERROR_RANDOM_EVENT_MAGNITUDES_INVALID = "error - random event's changeMagnitudes entry is invalid";
    public final static String ERROR_RANDOM_EVENT_WARES_MISSING      = "error - random event is missing changedWaresIDs; events must affect at least one ware";
    public final static String ERROR_RANDOM_EVENT_WARES_BLANK        = "error - random event has no changedWaresIDs entries; events must affect at least one ware";
    public final static String ERROR_RANDOM_EVENT_WARES_INVALID      = "error - random event is using invalid ware ID or alias" + System.lineSeparator();

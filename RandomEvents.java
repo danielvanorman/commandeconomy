@@ -316,7 +316,7 @@ public class RandomEvents extends TimerTask {
       int           invalidEntries         = 0;                     // how many random events failed to load
       int           compressedIndex        = 0;                     // index into array containing only valid random events
 
-      for (int i = 0; i < size; i++) {
+      outerLoop: for (int i = 0; i < size; i++) { // outerLoop label is used for skipping an iteration when parsing through change magnitudes
          randomEvent = randomEvents[i];
 
          // validate description
@@ -339,6 +339,15 @@ public class RandomEvents extends TimerTask {
             loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
             invalidEntries++;
             continue;
+         }
+
+         // check whether magnitudes entries are valid
+         for (QuantityForSaleChangeMagnitudes changeMagnitude : randomEvent.changeMagnitudes) {
+            if (changeMagnitude == null) {
+               loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_INVALID + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+               invalidEntries++;
+               continue outerLoop;
+            }
          }
 
          // validate ware IDs
@@ -446,7 +455,7 @@ public class RandomEvents extends TimerTask {
     * where m is the number of affected wares
     */
    private static void loadWaresPrivate() {
-      if (randomEvents == null)
+      if (randomEvents == null || randomEvents.length == 0)
          return;
 
       // prepare to load wares
@@ -881,7 +890,7 @@ public class RandomEvents extends TimerTask {
          Marketplace.releaseMutex();
 
          // print scenario description
-         Config.commandInterface.printToAllUsers(description);
+         Config.commandInterface.printToAllUsers(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + description);
 
          // print effects on wares
          if (Config.randomEventsPrintChanges && descriptionChangedWares != null)
