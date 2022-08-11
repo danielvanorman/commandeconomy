@@ -36,6 +36,18 @@ public class PlatformStrings {
    public final static String MSG_NOSELL_OFF_HELD       = "The item stack may now be sold";
    public final static String MSG_NOSELL_OFF_HELD_NAMED = " may now be sold";
 
+   // miscellaneous errors
+   public final static String ERROR_ADDING_ITEM    = "error when adding item to inventory - ";
+   public final static String ERROR_REMOVING_ITEM  = "error when removing item from inventory - ";
+   public final static String ERROR_CHECKING_ITEM  = "error when checking item in inventory - ";
+
+   public final static String ERROR_ITEM_NOT_FOUND = "could not find item corresponding to wareID: ";
+   public final static String ERROR_NAME_NOT_FOUND = "Forge OreDictionary name not found: ";
+   public final static String ERROR_META_PARSING   = "could not parse meta for ";
+
+   // miscellaneous
+   public final static String MSG_REGISTER_COMMANDS = "Registering serviceable commands....";
+
    // random events
    // +++ --> Dark Green
    //  ++ --> Green

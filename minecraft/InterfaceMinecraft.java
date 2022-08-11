@@ -50,6 +50,8 @@ public class InterfaceMinecraft implements InterfaceCommand
    // GLOBAL VARIABLES
    /** maps the server and command block's UUIDs to displayable names */
    private static HashMap<UUID, String> uuidToNames = new HashMap<UUID, String>();
+   /** NBT tag marking an item stack as not to be sold */
+   private final static String NBT_TAG_NOSELL = "nosell";
 
    // references to command handlers
    /** handles the /buy command */
@@ -271,12 +273,12 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          // check whether the wares in the slot are marked as unsellable
          if (itemStack.hasTagCompound() &&
-             itemStack.getTagCompound().hasKey("nosell") &&
-             itemStack.getTagCompound().getBoolean("nosell"))
+             itemStack.getTagCompound().hasKey(NBT_TAG_NOSELL) &&
+             itemStack.getTagCompound().getBoolean(NBT_TAG_NOSELL))
             continue;
 
             // get item's ware ID
-            itemID = Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata());
+            itemID = Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + '&' + itemStack.getMetadata());
             // if the item and its variation is not in the market,
             // check whether the item has an ore name within the market
             if (itemID.isEmpty() && Config.allowOreDictionarySubstitution) {
@@ -287,7 +289,7 @@ public class InterfaceMinecraft implements InterfaceCommand
                // use the first one which is used within the market
                for (int oreID : oreIDs) {
                   // get current ore ID's model ware ID
-                  itemID = Marketplace.translateAlias("#" + OreDictionary.getOreName(oreID));
+                  itemID = Marketplace.translateAlias('#' + OreDictionary.getOreName(oreID));
 
                   // if a model ware is found, use it
                   if (itemID != null)
@@ -302,7 +304,7 @@ public class InterfaceMinecraft implements InterfaceCommand
             // if the wares are damaged,
             // record how badly they are damaged
             formattedInventory.add(new Marketplace.Stock(itemID
-               + "&" + itemStack.getMetadata(), itemStack.getCount(),
+               + '&' + itemStack.getMetadata(), itemStack.getCount(),
                ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage()));
          } else {
             formattedInventory.add(new Marketplace.Stock(itemID,
@@ -380,15 +382,15 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // check if the given ID is a variant
       int meta = 0;
-      int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
+      int ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
       if (ampersandPosition != -1) {
          // save meta for item ID to the side
          try {
             meta = Integer.parseInt(wareID.substring(ampersandPosition + 1, wareID.length()));
          } catch (NumberFormatException e) {
-            printToConsole("adding item - could not parse meta for " + wareID);
+            printToConsole(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
             if (player != null) {
-               TextComponentString errorMessage = new TextComponentString("adding item - could not parse meta for " + wareID);
+               TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
                errorMessage.getStyle().setColor(TextFormatting.RED);
                player.sendMessage(errorMessage);
             }
@@ -426,17 +428,11 @@ public class InterfaceMinecraft implements InterfaceCommand
          }
       } catch (Exception e) {
          // warn the server
-         printToConsole(
-            "commandeconomy - InterfaceMinecraft.addToInventory(), error - could not find corresponding item for " + wareID +
-            "\n   is it a modded item which doesn't exist in-game?"
-         );
+         printToConsole(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_ITEM_NOT_FOUND + wareID );
 
          // warn the player
          if (player != null) {
-            TextComponentString errorMessage = new TextComponentString(
-               "error - could not find corresponding item for " + wareID +
-               "\n   is it a modded item which doesn't exist in-game?"
-            );
+            TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_ITEM_NOT_FOUND + wareID);
             errorMessage.getStyle().setColor(TextFormatting.RED);
             player.sendMessage(errorMessage);
          }
@@ -472,7 +468,7 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // set up variables
       int meta = 0;            // represents either the ware's variant type or accumulated damage
-      int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
+      int ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
       ItemStack itemStack;     // wares in the slot being parsed
       int maxSlots = 0;        // size of the inventory
       String oreName = "";       // holds the Forge OreDictionary name being used
@@ -484,9 +480,9 @@ public class InterfaceMinecraft implements InterfaceCommand
          try {
             meta = Integer.parseInt(wareID.substring(ampersandPosition + 1, wareID.length()));
          } catch (NumberFormatException e) {
-            printToConsole("removing item - could not parse meta for " + wareID);
+            printToConsole(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
             if (player != null) {
-               TextComponentString errorMessage = new TextComponentString("removing item - could not parse meta for " + wareID);
+               TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
                errorMessage.getStyle().setColor(TextFormatting.RED);
                player.sendMessage(errorMessage);
             }
@@ -503,11 +499,11 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          if (!OreDictionary.doesOreNameExist(oreName)) {
             // warn the console
-            printToConsole("removing item - Forge OreDictionary name not found: " + oreName);
+            printToConsole(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
 
             // warn the player
             if (player != null) {
-               TextComponentString errorMessage = new TextComponentString("removing item - Forge OreDictionary name not found: " + oreName);
+               TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
                errorMessage.getStyle().setColor(TextFormatting.RED);
                player.sendMessage(errorMessage);
             }
@@ -536,8 +532,8 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          // check whether the item stack is marked as unsellable
          if (itemStack.hasTagCompound() &&
-             itemStack.getTagCompound().hasKey("nosell") &&
-             itemStack.getTagCompound().getBoolean("nosell"))
+             itemStack.getTagCompound().hasKey(NBT_TAG_NOSELL) &&
+             itemStack.getTagCompound().getBoolean(NBT_TAG_NOSELL))
             continue;
 
          // check if current item stack contains the desired item
@@ -590,7 +586,7 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // set up variables
       int meta     = 0;    // represents either the ware's variant type or accumulated damage
-      int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
+      int ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
       ItemStack itemStack;    // wares in the slot being parsed
       String itemID = "";      // temporary variable for writing ware IDs for each item stack
       int maxSlots = 0;        // size of the inventory
@@ -604,7 +600,7 @@ public class InterfaceMinecraft implements InterfaceCommand
             meta = Integer.parseInt(wareID.substring(ampersandPosition + 1, wareID.length()));
          } catch (NumberFormatException e) {
             if (player != null) {
-               TextComponentString errorMessage = new TextComponentString("checking item - could not parse meta for " + wareID);
+               TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
                errorMessage.getStyle().setColor(TextFormatting.RED);
                player.sendMessage(errorMessage);
             }
@@ -621,11 +617,11 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          if (!OreDictionary.doesOreNameExist(oreName)) {
             // warn the console
-            printToConsole("checking item - Forge OreDictionary name not found: " + oreName);
+            printToConsole(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
 
             // warn the player
             if (player != null) {
-               TextComponentString errorMessage = new TextComponentString("checking item - Forge OreDictionary name not found: " + oreName);
+               TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
                errorMessage.getStyle().setColor(TextFormatting.RED);
                player.sendMessage(errorMessage);
             }
@@ -653,8 +649,8 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          // check whether the wares in the slot are marked as unsellable
          if (itemStack.hasTagCompound() &&
-             itemStack.getTagCompound().hasKey("nosell") &&
-             itemStack.getTagCompound().getBoolean("nosell"))
+             itemStack.getTagCompound().hasKey(NBT_TAG_NOSELL) &&
+             itemStack.getTagCompound().getBoolean(NBT_TAG_NOSELL))
             continue;
 
          // check if current item stack contains the desired item
@@ -680,12 +676,12 @@ public class InterfaceMinecraft implements InterfaceCommand
                // add wares to the container
                // if the wares are damaged,
                // record how badly they are damaged
-               waresFound.add(new Marketplace.Stock(itemID + "&" + itemStack.getMetadata(), itemStack.getCount(),
+               waresFound.add(new Marketplace.Stock(itemID + '&' + itemStack.getMetadata(), itemStack.getCount(),
                   ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage()));
             } else {
                if (itemStack.getMetadata() != 0 ||
                    Marketplace.translateWareID(wareID).isEmpty()) {
-                  itemID += "&" + itemStack.getMetadata();
+                  itemID += '&' + itemStack.getMetadata();
                }
 
                waresFound.add(new Marketplace.Stock(itemID,
@@ -749,7 +745,7 @@ public class InterfaceMinecraft implements InterfaceCommand
                wareID += "&0";
          }
          else
-            wareID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata();
+            wareID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + '&' + itemStack.getMetadata();
       }
 
       // get the amount of whatever is in the player's hand
@@ -1051,7 +1047,7 @@ public class InterfaceMinecraft implements InterfaceCommand
    public boolean doesWareExist(String wareID) {
       // set up variables
       int meta = 0; // represents either the ware's variant type or accumulated damage
-      int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
+      int ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
 
       // check if the given ID is a variant
       if (ampersandPosition != -1) {
@@ -1109,7 +1105,7 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // set up variables
       int meta = 0; // represents either the ware's variant type or accumulated damage
-      int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
+      int ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
 
       // check if the given ID is a variant
       if (ampersandPosition != -1) {
@@ -1131,7 +1127,7 @@ public class InterfaceMinecraft implements InterfaceCommand
          return itemstack.getMaxStackSize();
       } catch (Exception e) {
          // warn the console
-         printToConsole("checking item - could not parse " + wareID);
+         printToConsole(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_ITEM_NOT_FOUND + wareID);
       }
 
       return -1; // don't return 0 since it might cause a divide-by-error error
@@ -1264,7 +1260,7 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @param event information concerning Minecraft's current state
     */
    public static void registerCommands(FMLServerStartedEvent event) {
-      System.out.println("Registering serviceable commands...."); // tell the server console
+      System.out.println(PlatformStrings.MSG_REGISTER_COMMANDS); // tell the server console
 
       // set up commands for both clients and the server
       CommandHandler handler = ((CommandHandler) FMLCommonHandler.instance().getSidedDelegate().getServer().getCommandManager());
