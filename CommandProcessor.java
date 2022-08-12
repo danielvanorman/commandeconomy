@@ -226,8 +226,8 @@ public class CommandProcessor
       }
 
       // check for entity selectors
-      username  = Config.commandInterface.parseEntitySelector(null, username);
-      accountID = Config.commandInterface.parseEntitySelector(null, accountID);
+      username  = Config.commandInterface.parseEntitySelector(sender, username);
+      accountID = Config.commandInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
          Config.commandInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
@@ -423,8 +423,8 @@ public class CommandProcessor
       }
 
       // check for entity selectors
-      username  = Config.commandInterface.parseEntitySelector(null, username);
-      accountID = Config.commandInterface.parseEntitySelector(null, accountID);
+      username  = Config.commandInterface.parseEntitySelector(sender, username);
+      accountID = Config.commandInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
          Config.commandInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
@@ -575,7 +575,7 @@ public class CommandProcessor
       }
 
       // check for entity selectors
-      username = Config.commandInterface.parseEntitySelector(null, username);
+      username = Config.commandInterface.parseEntitySelector(sender, username);
       if (username != null && username.equals("")) { // empty string indicates an invalid selector
          Config.commandInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
          return;
@@ -699,8 +699,8 @@ public class CommandProcessor
       }
 
       // check for entity selectors
-      username  = Config.commandInterface.parseEntitySelector(null, username);
-      accountID = Config.commandInterface.parseEntitySelector(null, accountID);
+      username  = Config.commandInterface.parseEntitySelector(sender, username);
+      accountID = Config.commandInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
          Config.commandInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
@@ -772,8 +772,8 @@ public class CommandProcessor
       }
 
       // check for entity selectors
-      username  = Config.commandInterface.parseEntitySelector(null, username);
-      accountID = Config.commandInterface.parseEntitySelector(null, accountID);
+      username  = Config.commandInterface.parseEntitySelector(sender, username);
+      accountID = Config.commandInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
          Config.commandInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
@@ -876,9 +876,9 @@ public class CommandProcessor
          }
 
          // check for entity selectors
-         username           = Config.commandInterface.parseEntitySelector(null, username);
-         recipientAccountID = Config.commandInterface.parseEntitySelector(null, recipientAccountID);
-         senderAccountID    = Config.commandInterface.parseEntitySelector(null, senderAccountID);
+         username           = Config.commandInterface.parseEntitySelector(sender, username);
+         recipientAccountID = Config.commandInterface.parseEntitySelector(sender, recipientAccountID);
+         senderAccountID    = Config.commandInterface.parseEntitySelector(sender, senderAccountID);
          if ((username != null && username.equals("")) ||
              (recipientAccountID != null && recipientAccountID.equals("")) ||
              (senderAccountID != null && senderAccountID.equals(""))) { // empty string indicates an invalid selector
