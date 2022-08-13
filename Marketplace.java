@@ -16,6 +16,7 @@ import java.io.FileNotFoundException; // for handling missing file errors
 import java.io.IOException;           // for handling miscellaneous file errors
 import java.util.UUID;                // for more securely tracking users internally
 import java.util.Collection;          // for returning all wares within the marketplace
+import java.util.Arrays;              // for sorting arrays when finding medians
 
 /**
  * Manages trading and tracking wares for sale.
@@ -61,12 +62,14 @@ public class Marketplace {
    private static StringBuilder alternateAliasEntries = new StringBuilder(955);
 
    // miscellaneous
-   /** average ware starting quantity */
-   private static float startQuanBaseAverage = 0.0f;
+   /** median ware starting quantity */
+   private static float startQuanBaseMedian = 0.0f;
+   /** median ware base price */
+   private static float priceBaseMedian = 0.0f;
    /** average ware base price */
    private static double priceBaseAverage = 0.0;
-   /** how many wares should be excluded from price and other averages */
-   private static int numAverageExcludedWares = 0;
+   /** how many wares should be excluded from statistical calculations */
+   private static int numStatisticExcludedWares = 0;
    /** a loose mutex used to avoid synchronization problems with threads rarely adjusting wares' properties */
    private static volatile boolean doNotAdjustWares = false;
 
@@ -159,13 +162,14 @@ public class Marketplace {
          alternateAliasEntries.setLength(0);
       }
 
-      // for calculating average starting quantity,
+      // for calculating median starting quantity,
       // track number of wares in each level
       int[] hierarchyLevelTotals = new int[]{0, 0, 0, 0, 0, 0};
 
-      // clear ware base averages
-      startQuanBaseAverage = 0.0f;
-      priceBaseAverage     = 0.0;
+      // clear ware base statics
+      startQuanBaseMedian = 0.0f;
+      priceBaseMedian     = 0.0f;
+      priceBaseAverage    = 0.0;
 
       // The variables below are mainly used for saving converted data.
       // Since properly casting data in Java is as expensive as creating a new object,
@@ -315,7 +319,7 @@ public class Marketplace {
 
             // add ware to averages
             if (ware instanceof WareUntradeable || ware instanceof WareLinked) {
-               numAverageExcludedWares++;
+               numStatisticExcludedWares++;
             } else {
                // increment total number of wares in each level
                hierarchyLevelTotals[ware.getLevel()]++;
@@ -361,20 +365,120 @@ public class Marketplace {
          // load wares' additional or alternative aliases
          loadAlternateAliases(alternateAliasesToBeProcessed);
 
-         // calculate average starting quantity
-         startQuanBaseAverage  = hierarchyLevelTotals[0] * Config.startQuanBase[0] +
-                                 hierarchyLevelTotals[1] * Config.startQuanBase[1] +
-                                 hierarchyLevelTotals[2] * Config.startQuanBase[2] +
-                                 hierarchyLevelTotals[3] * Config.startQuanBase[3] +
-                                 hierarchyLevelTotals[4] * Config.startQuanBase[4] +
-                                 hierarchyLevelTotals[5] * Config.startQuanBase[5];
-         startQuanBaseAverage /= wares.size() - numAverageExcludedWares;
+         // calculate median starting quantity
+         // sort starting quantities to guarantee numerical ordering
+         // create a new array to avoid disrupting settings
+         int[][] startQuanBaseSorted = new int[2][Config.startQuanBase.length];
+         System.arraycopy(Config.startQuanBase, 0, startQuanBaseSorted[0], 0, Config.startQuanBase.length);
+
+         // record level corresponding to each starting quantity
+         // to map sorted array to number of wares in each level
+         startQuanBaseSorted[1][0] = 0;
+         startQuanBaseSorted[1][1] = 1;
+         startQuanBaseSorted[1][2] = 2;
+         startQuanBaseSorted[1][3] = 3;
+         startQuanBaseSorted[1][4] = 4;
+         startQuanBaseSorted[1][5] = 5;
+
+         // sort starting quantities
+         Arrays.sort(startQuanBaseSorted[0]);
+
+         // find starting quantity median
+         // Since the array is small, walk halfway across it,
+         // subtracting the number of wares for each level
+         // from a total count, to find where the median lies.
+         // If the count becomes negative,
+         // the median is in the current level.
+
+         // sum counts of statistic-included wares to account for exclusions
+         int totalFrequencies = hierarchyLevelTotals[0] + hierarchyLevelTotals[1] +
+                                hierarchyLevelTotals[2] + hierarchyLevelTotals[3] +
+                                hierarchyLevelTotals[4] + hierarchyLevelTotals[5];
+
+         // subtract the number of wares in each level
+         // from the total count to find median ware's starting quantity
+         for(int i = 0; i < Config.startQuanBase.length; i++) {
+            totalFrequencies -= hierarchyLevelTotals[startQuanBaseSorted[1][i]] + hierarchyLevelTotals[startQuanBaseSorted[1][i]];
+
+            // check if the median lies in the current index
+            if (totalFrequencies < 0) {
+               // assume it lies in the previous index and
+               // not in the current index or between them
+               startQuanBaseMedian = startQuanBaseSorted[0][i];
+               break;
+            }
+            // check if median lies between the current and next index
+            else if (totalFrequencies == 0) {
+               startQuanBaseMedian = (startQuanBaseSorted[0][i] + startQuanBaseSorted[0][i + 1]) / 2;
+               break;
+            }
+         }
+
+         // prepare to record base prices to find base price median
+         float[] priceBases = new float[wares.size()];
+         int     index      = 0; // for entering base prices into the array
+
+         // Base prices are recorded when setting start quantities
+         // rather than when initially loading wares
+         // to obtain greater resource efficiency
+         // than using and resizing a list.
 
          // calculate start quantities
-         setStartQuantities();
+         // if not the starting quantity base median is not greater than zero
+         // and at least one ware needs their starting quantity set,
+         // something is very wrong
+         if (startQuanBaseMedian <= 0.0f) {
+            Config.commandInterface.printToConsole(CommandEconomy.ERROR_STARTING_QUANTITIES + Float.toString(startQuanBaseMedian));
+
+            // record base prices to find median
+            for (Ware wareCurrent : wares.values()) {
+               if (!(wareCurrent instanceof WareUntradeable || wareCurrent instanceof WareLinked)) {
+                  priceBases[index] = wareCurrent.getBasePrice();
+                  index++;
+               }
+            }
+         } else {
+            // calculate starting quantities for each level
+            float quanCalc = 0.0f;
+            for(int level = 0; level < 6; level++) {
+               // find effect of spread
+               quanCalc = (float) Config.startQuanBase[level]; // get base starting quantity
+               if (Config.startQuanSpread != 1.0f && quanCalc != 0.0f) // if spread has any effect, calculate it
+                  quanCalc = quanCalc * ((Config.startQuanSpread * (quanCalc - startQuanBaseMedian) / quanCalc) + 1);
+               else // if spread has no effect, set its effect to zero
+                  quanCalc = 0.0f;
+
+               // startQuan = (base + spreadAdjustment) * multiplier
+               quanCalc = (Config.startQuanBase[level] + quanCalc) * Config.startQuanMult;
+
+               // set starting quantity for corresponding level
+               Config.startQuan[level] = (int) quanCalc;
+            }
+
+            // get all wares whose starting quantities need to be set
+            for (Ware wareCurrent : wares.values()) {
+               // if the ware is flagged to have its starting quantity set,
+               // set its quantity
+               if (wareCurrent.getQuantity() == -1)
+                  wareCurrent.setQuantity(Config.startQuan[wareCurrent.getLevel()]);
+
+               // record ware's base price
+               if (!(wareCurrent instanceof WareUntradeable || wareCurrent instanceof WareLinked)) {
+                  priceBases[index] = wareCurrent.getBasePrice();
+                  index++;
+               }
+            }
+         }
+
+         // find price base median
+         Arrays.sort(priceBases);
+         if (priceBases.length % 2 == 1) // odd number of elements -> pick middle element
+            priceBaseMedian = priceBases[priceBases.length / 2 + 1];
+         else                            // even number of elements -> average middle elements
+            priceBaseMedian = (priceBases[priceBases.length / 2 + 1] + priceBases[priceBases.length / 2]) / 2;
 
          // calculate average base price
-         priceBaseAverage /= wares.size() - numAverageExcludedWares;
+         priceBaseAverage /= wares.size() - numStatisticExcludedWares;
          // truncate the price to avoid rounding and multiplication errors
          priceBaseAverage  = (double) CommandEconomy.truncatePrice((float) priceBaseAverage);
       }
@@ -451,11 +555,10 @@ public class Marketplace {
             if (ware.getAlias() != null)
                wareAliasTranslations.put(ware.getAlias(), wareID);
 
-            // if the ware is not untradeable,
-            // use it in ware averages
+            // if the ware is not untradeable or represents other wares,
+            // use it for calculating ware statistics
             if (ware instanceof WareUntradeable || ware instanceof WareLinked) {
-               // increment the untradeable ware count
-               numAverageExcludedWares++;
+               numStatisticExcludedWares++;
             } else {
                // increment total number of wares in each level
                hierarchyLevelTotals[ware.getLevel()]++;
@@ -611,43 +714,9 @@ public class Marketplace {
     * Searches through the marketplace for wares with quantity -1 and sets their starting quantity.
     * <p>
     * Complexity: O(n), where n is loaded wares
-    * Relies on {@link #startQuanBaseAverage} having been set and valid.
+    * Relies on {@link #startQuanBaseMedian} having been set and valid.
     */
    private static void setStartQuantities() {
-      // if not the starting quantity base average is not greater than zero
-      // and at least one ware needs their starting quantity set,
-      // something is very wrong
-      if (startQuanBaseAverage <= 0.0f) {
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_STARTING_QUANTITIES + Float.toString(startQuanBaseAverage));
-         return;
-      }
-
-      // calculate starting quantities for each level
-      float quanCalc = 0.0f;
-      for(int level = 0; level < 6; level++) {
-         // find effect of spread
-         quanCalc = (float) Config.startQuanBase[level]; // get base starting quantity
-         if (Config.startQuanSpread != 1.0f && quanCalc != 0.0f) { // if spread has any effect, calculate it
-            quanCalc = quanCalc * ((Config.startQuanSpread * (quanCalc - startQuanBaseAverage) / quanCalc) + 1);
-         } else { // if spread has no effect, set its effect to zero
-            quanCalc = 0.0f;
-         }
-
-         // startQuan = (base + spreadAdjustment) * multiplier
-         quanCalc = (Config.startQuanBase[level] + quanCalc) * Config.startQuanMult;
-
-         // set starting quantity for corresponding level
-         Config.startQuan[level] = (int) quanCalc;
-      }
-
-      // get all wares whose starting quantities need to be set
-      for (Ware ware : wares.values()) {
-         // if the ware is flagged to have its starting quantity set,
-         // set its quantity
-         if (ware.getQuantity() == -1) {
-            ware.setQuantity(Config.startQuan[ware.getLevel()]);
-         }
-      }
    }
 
    /**
@@ -797,7 +866,7 @@ public class Marketplace {
             if (alias != null && !alias.isEmpty())
                lineEntry.append(wareID).append('\t').append(alias).append('\t').append(getPrice(null, ware, 1, false, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
             else
-               lineEntry.append(wareID).append('\t').append(getPrice(null, ware, 1, false, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
+               lineEntry.append(wareID).append("\t\t").append(getPrice(null, ware, 1, false, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
 
             // write to file
             fileWriter.write(lineEntry.toString());
@@ -870,8 +939,8 @@ public class Marketplace {
 
       // if spread is normal or base is 0, make no adjustment
       if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f)
-         // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = ((float) priceBaseAverage - PRICE_BASE) * (1.0f - Config.priceSpread);
+         // spreadAdjustment = distance from median * distance multiplier
+         spreadAdjustment = ((float) priceBaseMedian - PRICE_BASE) * (1.0f - Config.priceSpread);
 
       // check if purchasing upcharge should be applied
       if (Config.priceBuyUpchargeMult != 1.0f &&
@@ -1085,10 +1154,9 @@ public class Marketplace {
       float quadraticFormulaC;
 
       // if spread is normal or base is 0, make no adjustment
-      if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f) {
-         // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = ((float) priceBaseAverage - PRICE_BASE) * (1.0f - Config.priceSpread);
-      }
+      if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f)
+         // spreadAdjustment = distance from median * distance multiplier
+         spreadAdjustment = ((float) priceBaseMedian - PRICE_BASE) * (1.0f - Config.priceSpread);
 
       // calculate price when unaffected by supply and demand
       priceNoQuantityEffect = (PRICE_BASE + spreadAdjustment) * Config.priceBuyUpchargeMult * Config.priceMult;
@@ -1209,10 +1277,9 @@ public class Marketplace {
       int quantityUntilPrice;        // units until given price is reached
 
       // if spread is normal or base is 0, make no adjustment
-      if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f) {
-         // spreadAdjustment = distance from average * distance multiplier
-         spreadAdjustment = ((float) priceBaseAverage - PRICE_BASE) * (1.0f - Config.priceSpread);
-      }
+      if (Config.priceSpread != 1.0f && PRICE_BASE != 0.0f)
+         // spreadAdjustment = distance from median * distance multiplier
+         spreadAdjustment = ((float) priceBaseMedian - PRICE_BASE) * (1.0f - Config.priceSpread);
 
       // calculate price when unaffected by supply and demand
       priceNoQuantityEffect = (PRICE_BASE + spreadAdjustment) * Config.priceBuyUpchargeMult * Config.priceMult;
@@ -2479,10 +2546,9 @@ public class Marketplace {
          quanCeilingFromEquilibrium = (float) (quanCeiling - quanEquilibrium);
 
          // if spread is normal or base is 0, make no adjustment
-         if (usePriceSpread && priceBase != 0.0f) {
+         if (usePriceSpread && priceBase != 0.0f)
             // spreadAdjustment = distance from average * distance multiplier
-            spreadAdjustment = ((float) priceBaseAverage - priceBase) * spreadMult;
-         }
+            spreadAdjustment = ((float) priceBaseMedian - priceBase) * spreadMult;
 
          // check if purchasing upcharge should be applied
          if (usePriceBuyUpchargeMult)
@@ -2527,7 +2593,7 @@ public class Marketplace {
       }
 
       // average the prices
-      currentPriceAverage /= wares.size() - numAverageExcludedWares;
+      currentPriceAverage /= wares.size() - numStatisticExcludedWares;
 
       // truncate the price to avoid rounding and multiplication errors
       return CommandEconomy.truncatePrice(currentPriceAverage);

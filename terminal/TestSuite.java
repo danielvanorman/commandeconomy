@@ -80,7 +80,9 @@ public class TestSuite
    /** holds alternate ware aliases and Forge OreDictionary names for saving */
    private static StringBuilder alternateAliasEntries;
    /** reference to average ware starting quantity */
-   private static Field fStartQuanBaseAverage;
+   private static Field fStartQuanBaseMedian;
+   /** reference to average ware base price */
+   private static Field fPriceBaseMedian;
    /** reference to average ware base price */
    private static Field fPriceBaseAverage;
 
@@ -151,7 +153,8 @@ public class TestSuite
 
       // grab Marketplace's and Account's private variables
       try {
-         fStartQuanBaseAverage = Marketplace.class.getDeclaredField("startQuanBaseAverage");
+         fStartQuanBaseMedian = Marketplace.class.getDeclaredField("startQuanBaseMedian");
+         fPriceBaseMedian = Marketplace.class.getDeclaredField("priceBaseMedian");
          fPriceBaseAverage = Marketplace.class.getDeclaredField("priceBaseAverage");
          Field fWares = Marketplace.class.getDeclaredField("wares");
          Field fWareAliasTranslations     = Marketplace.class.getDeclaredField("wareAliasTranslations");
@@ -162,7 +165,8 @@ public class TestSuite
          Field fAlternateAliasEntries     = Marketplace.class.getDeclaredField("alternateAliasEntries");
          Field fAccounts                  = Account.class.getDeclaredField("accounts");
          Field fDefaultAccounts           = Account.class.getDeclaredField("defaultAccounts");
-         fStartQuanBaseAverage.setAccessible(true);
+         fStartQuanBaseMedian.setAccessible(true);
+         fPriceBaseMedian.setAccessible(true);
          fPriceBaseAverage.setAccessible(true);
          fWares.setAccessible(true);
          fWareAliasTranslations.setAccessible(true);
@@ -878,29 +882,70 @@ public class TestSuite
       numTestAccounts = accounts.size();
 
       // calculate price base and starting quantity averages
-      float priceBaseAverage     = 0.0f;
-      float startQuanBaseAverage = 0;
-      int numAverageExcludedWares = 0;
+      int[]   hierarchyLevelTotals      = new int[]{0, 0, 0, 0, 0, 0};  // for calculating median starting quantity, track number of wares in each level
+      float[] priceBases                = new float[numTestWares];      // for finding base price median
+      int     index                     = 0;                            // for entering base prices into the array
+      float   startQuanBaseMedian       = 0.0f;
+      float   priceBaseMedian           = 0.0f;
+      float   priceBaseAverage          = 0.0f;
+      int     numStatisticExcludedWares = 0;
+      int     totalFrequency;
+
+      // calculate price base average
       for (Ware ware : wares.values()) {
-         if (ware instanceof WareUntradeable) {
-            numAverageExcludedWares++;
-         }
+         if (ware instanceof WareUntradeable || ware instanceof WareLinked)
+            numStatisticExcludedWares++;
          else {
-            priceBaseAverage     += ware.getBasePrice();
-            startQuanBaseAverage += ware.getQuantity();
+            // increment total number of wares in each level
+            hierarchyLevelTotals[ware.getLevel()]++;
+
+            // record base prices to find median
+            priceBases[index] = ware.getBasePrice();
+            index++;
+
+            // include base price in average
+            priceBaseAverage += ware.getBasePrice();
+         }
+      }
+      totalFrequency = numTestWares - numStatisticExcludedWares;
+
+      // subtract the number of wares in each level
+      // from the total count to find median ware's starting quantity
+      for(int i = 0; i < Config.startQuanBase.length; i++) {
+         totalFrequency -= hierarchyLevelTotals[i] + hierarchyLevelTotals[i];
+
+         // check if the median lies in the current index
+         if (totalFrequency < 0) {
+            // assume it lies in the previous index and
+            // not in the current index or between them
+            startQuanBaseMedian = Config.startQuanBase[i];
+            break;
+         }
+         // check if median lies between the current and next index
+         else if (totalFrequency == 0) {
+            startQuanBaseMedian = (Config.startQuanBase[i] + Config.startQuanBase[i + 1]) / 2;
+            break;
          }
       }
 
-      priceBaseAverage     /= numTestWares - numAverageExcludedWares;
+      // find price base median
+      Arrays.sort(priceBases);
+      if (priceBases.length % 2 == 1) // odd number of elements -> pick middle element
+         priceBaseMedian = priceBases[priceBases.length / 2 + 1];
+      else                            // even number of elements -> average middle elements
+         priceBaseMedian = (priceBases[priceBases.length / 2 + 1] + priceBases[priceBases.length / 2]) / 2;
+
+      // calculate base price average
+      priceBaseAverage /= numTestWares - numStatisticExcludedWares;
       // truncate the price to avoid rounding and multiplication errors
-      priceBaseAverage     = CommandEconomy.truncatePrice(priceBaseAverage);
-      startQuanBaseAverage /= numTestWares - numAverageExcludedWares;
+      priceBaseAverage = CommandEconomy.truncatePrice(priceBaseAverage);
 
       try {
+         fStartQuanBaseMedian.setFloat(null, startQuanBaseMedian);
+         fPriceBaseMedian.setFloat(null, priceBaseMedian);
          fPriceBaseAverage.setFloat(null, priceBaseAverage);
-         fStartQuanBaseAverage.setFloat(null, startQuanBaseAverage);
       } catch (Exception e) {
-         TEST_OUTPUT.println("could not set Marketplace averages");
+         TEST_OUTPUT.println("could not set Marketplace statistics");
          e.printStackTrace();
       }
 
@@ -1468,16 +1513,22 @@ public class TestSuite
          testWare = wares.get("test:crafted3");
          errorFound = errorFound || testWareFields(testWare, WareCrafted.class, "", (byte) 3, 2.4f, 32);
 
+         TEST_OUTPUT.println("testLoadWares() - checking median for base starting quantities");
+         if ((float) fStartQuanBaseMedian.get(null) != 48) {
+            errorFound = true;
+            TEST_OUTPUT.println("   startQuanBaseMedian is " + (float) fStartQuanBaseMedian.get(null) + ", should be 48");
+         }
+
+         TEST_OUTPUT.println("testLoadWares() - checking median for base price");
+         if ((float) fPriceBaseMedian.get(null) != 3.2f) {
+            errorFound = true;
+            TEST_OUTPUT.println("   priceBaseMedian is " + (float) fPriceBaseMedian.get(null) + ", should be 3.2");
+         }
+
          TEST_OUTPUT.println("testLoadWares() - checking average for base price");
          if ((double) fPriceBaseAverage.get(null) != 7.800000190734863) {
             errorFound = true;
             TEST_OUTPUT.println("   priceBaseAverage is " + (double) fPriceBaseAverage.get(null) + ", should be 7.8");
-         }
-
-         TEST_OUTPUT.println("testLoadWares() - checking average for base starting quantities");
-         if ((float) fStartQuanBaseAverage.get(null) != 76) {
-            errorFound = true;
-            TEST_OUTPUT.println("   startQuanBaseAverage is " + (float) fStartQuanBaseAverage.get(null) + ", should be 76");
          }
 
          TEST_OUTPUT.println("testLoadWares() - checking ware alias translation accuracy");
@@ -4865,7 +4916,7 @@ public class TestSuite
 
          // set average price base and start quantities to values used in expected calculations
          fPriceBaseAverage.setFloat(null, 9.23f);
-         fStartQuanBaseAverage.setFloat(null, 87);
+         fStartQuanBaseMedian.setFloat(null, 87);
 
          Config.priceSpread = 2.0f;
          TEST_OUTPUT.println("getPrice() - using high spread with inexpensive ware");
@@ -4877,68 +4928,68 @@ public class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using high spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
-         if (currentPrice != 29.17f) {
-            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 29.17");
+         if (currentPrice != 30.4f) {
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 30.4");
             errorFound = true;
          }
 
          Config.priceSpread = 1.5f;
          TEST_OUTPUT.println("getPrice() - using fairly high spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
-         if (currentPrice != 1.385f) {
-            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 1.385");
+         if (currentPrice != 2.0f) {
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 2.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using fairly high spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
-         if (currentPrice != 24.185f) {
-            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 24.185");
+         if (currentPrice != 24.8f) {
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 24.8");
             errorFound = true;
          }
 
          Config.priceSpread = 0.75f;
          TEST_OUTPUT.println("getPrice() - using fairly low spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
-         if (currentPrice != 5.3075f) {
-            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 1.385");
+         if (currentPrice != 5.0f) {
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 5.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using fairly low spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
-         if (currentPrice != 16.7075f) {
-            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 16.7075");
+         if (currentPrice != 16.4f) {
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 16.4");
             errorFound = true;
          }
 
          Config.priceSpread = 0.5f;
          TEST_OUTPUT.println("getPrice() - using low spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
-         if (currentPrice != 6.615f) {
-            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 6.615");
+         if (currentPrice != 6.0f) {
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 6.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using low spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
-         if (currentPrice != 14.215f) {
-            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 14.215");
+         if (currentPrice != 13.6f) {
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 13.6");
             errorFound = true;
          }
 
          Config.priceSpread = 0.0f;
          TEST_OUTPUT.println("getPrice() - using zero spread with inexpensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
-         if (currentPrice != 9.2299f) {
-            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 9.23");
+         if (currentPrice != 8.0f) {
+            TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 8.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using zero spread with expensive ware");
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
-         if (currentPrice != 9.2299f) {
-            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 9.23");
+         if (currentPrice != 8.0f) {
+            TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 8.0");
             errorFound = true;
          }
 
