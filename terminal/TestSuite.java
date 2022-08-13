@@ -1021,7 +1021,7 @@ public class TestSuite
 
       // convert the inventory to the right format
       for (String wareID : InterfaceTerminal.inventory.keySet()) {
-         formattedInventory.add(new Marketplace.Stock(wareID, InterfaceTerminal.inventory.get(wareID), 1.0f));
+         formattedInventory.add(new Marketplace.Stock(wareID, Marketplace.translateAndGrab(wareID), InterfaceTerminal.inventory.get(wareID), 1.0f));
       }
 
       return formattedInventory;
@@ -1039,7 +1039,7 @@ public class TestSuite
 
       // convert the inventory to the right format
       for (String wareID : inventoryToUse.keySet()) {
-         formattedInventory.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
+         formattedInventory.add(new Marketplace.Stock(wareID, Marketplace.translateAndGrab(wareID), inventoryToUse.get(wareID), 1.0f));
       }
 
       return formattedInventory;
@@ -17205,6 +17205,55 @@ public class TestSuite
          }
 
 
+         TEST_OUTPUT.println("random events - loading random events with invalid change magnitudes");
+         // create test events file
+         try {
+            // open the save file for events, create it if it doesn't exist
+            fileWriter = new FileWriter(Config.filenameRandomEvents);
+
+            // write test events file
+            fileWriter.write(
+               "[\n" +
+               "  {\"description\":\"This is a test event.\",\"changedWaresIDs\":[\"test:material3\",\"test:invalidWareID\"],\"changeMagnitudes\":[3,-2]},\n" +
+               "  {\"description\":\"This is also a test event.\",\"changedWaresIDs\":[\"test:anotherInvalidWareID\"],\"changeMagnitudes\":[-1]},\n" +
+               "  {\"description\":\"This is yet another test event.\",\"changedWaresIDs\":[\"test:yetAnotherInvalidWareID\",\"minecraft:material4\"],\"changeMagnitudes\":[1,-2]},\n" +
+               "  {\"description\":\"This is the third-to-last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:secondToLastInvalidWareID\",\"test:crafted2\"],\"changeMagnitudes\":[2,-3]},\n" +
+               "  {\"description\":\"This test event was included to ensure untradeable wares are being checked for.\",\"changedWaresIDs\":[\"test:untradeable1\"],\"changeMagnitudes\":[2]},\n" +
+               "  {\"description\":\"This is the last test event. It makes it so four test events should be loaded, instead of two, like the previous test.\",\"changedWaresIDs\":[\"test:lastInvalidWareID\",\"test:untradeable1\",\"test:material1\"],\"changeMagnitudes\":[1,-1,2]}\n" +
+               "]"
+            );
+
+            // close the file
+            fileWriter.close();
+         } catch (Exception e) {
+            TEST_OUTPUT.println("   unable to create test events file");
+            baosErr.reset();
+            e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
+            return false;
+         }
+
+         // try to load the test file
+         try {
+            RandomEvents.load();
+            timerTaskRandomEvents.run();
+         }
+         catch (Exception e) {
+            TEST_OUTPUT.println("   loadRandomEvents() should not throw any exception, but it did while loading test events file");
+            baosErr.reset();
+            e.printStackTrace();
+            TEST_OUTPUT.println(baosErr.toString());
+            errorFound = true;
+         }
+
+         // check loaded random events
+         randomEvents = (Object[]) fRandomEvents.get(null);
+         if (randomEvents != null) {
+            TEST_OUTPUT.println("   random events should not have been loaded, but randomEvents has " + randomEvents.length + " entries");
+            errorFound = true;
+         }
+
+
          TEST_OUTPUT.println("random events - loading only valid random events");
          // create test events file
          try {
@@ -17229,6 +17278,10 @@ public class TestSuite
             TEST_OUTPUT.println(baosErr.toString());
             return false;
          }
+
+         // ensure thread reference is current
+         RandomEvents.startOrReconfig();
+         timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
 
          // try to load the test file
          try {

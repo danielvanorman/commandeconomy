@@ -80,26 +80,29 @@ public class Marketplace {
     */
    public static class Stock
    {
-      /** the original ware ID of the item,
-        * useful for removing the correct item from the inventory */
+      /** original ware ID of the item; for removing the correct item from an inventory */
       public String wareID;
-      /** the amount of wares with the given quality */
+      /** ware or substitute within the marketplace */
+      public Ware ware;
+      /** amount of the ware */
       public int quantity;
-      /** the quality of those wares as a percentage of the ware's price at 100% quality */
+      /** quality of the ware as a percentage of its price */
       public float percentWorth;
 
       /**
-       * Fills fields for a group of wares with the same percentage worth
-       * found in the same position in an inventory.
+       * Fills fields for several units of a ware with the same value
+       * found in the same position of an inventory.
        *
-       * @param pWareID ware ID of the wares
-       * @param pQuantity amount of wares
-       * @param pPercentWorth quality of wares as a percentage of price at 100% quality
+       * @param wareID       unique identifier referring to a ware within an inventory
+       * @param ware         ware within the marketplace to be manipulated
+       * @param quantity     amount of the ware
+       * @param percentWorth quality of the ware as a percentage of its price
        */
-      public Stock (String pWareID, int pQuantity, float pPercentWorth) {
-         wareID       = pWareID;
-         quantity     = pQuantity;
-         percentWorth = pPercentWorth;
+      public Stock (String wareID, Ware ware, int quantity, float percentWorth) {
+         this.wareID       = wareID;
+         this.ware         = ware;
+         this.quantity     = quantity;
+         this.percentWorth = percentWorth;
       }
    }
 
@@ -1715,7 +1718,10 @@ public class Marketplace {
 
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
-      // if ware is not in the market, stop
+      // if ware is not in the market, check for a substitute
+      if (ware == null && Config.allowOreDictionarySubstitution)
+         ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
+      // if no substitute exists or should be used, stop
       if (ware == null) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
          return;
@@ -1741,9 +1747,9 @@ public class Marketplace {
       // get the quality and quantity of wares the player has
       List<Stock> waresFound;
       // if the given ware ID is an alias,
-      // only use the translated ID
-      if (wareID.startsWith("#") || // is a Forge ore dictionary name
-          !wareID.contains(":"))    // not a base ID
+      // use the translated ID
+      if (!wareID.startsWith("#") && // not a Forge ore dictionary name
+          !wareID.contains(":"))     // not a base ID
          waresFound = Config.commandInterface.checkInventory(playerID, coordinates, translatedID);
       else
          waresFound = Config.commandInterface.checkInventory(playerID, coordinates, wareID);
@@ -1888,15 +1894,14 @@ public class Marketplace {
 
       // validate coordinates
       if (coordinates != null) {
-         int inventorySpaceAvailable = Config.commandInterface.getInventorySpaceAvailable(playerID, coordinates);
-         if (inventorySpaceAvailable == -1) {
+         if (Config.commandInterface.getInventorySpaceAvailable(playerID, coordinates) == -1) {
             Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
             return;
          }
       }
 
       // if transaction fees are used,
-      // check whether profit will be made
+      // check whether profit is possible
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSellingIsMult &&
           Config.transactionFeeSelling >= 1.0f) {
@@ -1971,7 +1976,6 @@ public class Marketplace {
 
       // set up variables
       LinkedList<Stock> unsoldStocks = null; // holds wares to be sold if the transaction turns out to be profitable despite paying a flat fee
-      Ware    ware;                          // ware currently being sold
       float   totalEarnings    = 0.0f;
       float   price;                         // value of the ware being processed
       int     quantityToSell   = 0;          // how much should be sold from the current stack
@@ -1994,28 +1998,26 @@ public class Marketplace {
 
       // loop through wares owned and get prices according to quality
       for (Stock stock : stocks) {
-         // grab the ware to be used
-         ware = translateAndGrab(stock.wareID);
          // if ware is not in the market, stop
-         if (ware == null)
+         if (stock.ware == null)
             continue;
 
          // if the price isn't high enough, stop
-         price = CommandEconomy.truncatePrice(getPrice(playerID, ware, 1, false, PriceType.CURRENT_SELL) * stock.percentWorth * pricePercent);
+         price = CommandEconomy.truncatePrice(getPrice(playerID, stock.ware, 1, false, PriceType.CURRENT_SELL) * stock.percentWorth * pricePercent);
          if (price < minUnitPrice)
             continue;
 
          // check whether stock should not be sold past the price floor
          if (Config.noGarbageDisposing) {
             // find out if the ware can be sold
-            if (hasReachedPriceFloor(ware))
+            if (hasReachedPriceFloor(stock.ware))
                continue; // if nothing may be sold, skip this ware
 
             // find how much may be sold
-            if (ware instanceof WareLinked)
-               quantityDistFromFloor = ((WareLinked) ware).getQuanWhenReachedPriceFloor() - ware.getQuantity();
+            if (stock.ware instanceof WareLinked)
+               quantityDistFromFloor = ((WareLinked) stock.ware).getQuanWhenReachedPriceFloor() - stock.ware.getQuantity();
             else
-               quantityDistFromFloor = getQuantityUntilPrice(ware, getPrice(null, ware, 1, false, PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
+               quantityDistFromFloor = getQuantityUntilPrice(stock.ware, getPrice(null, stock.ware, 1, false, PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
 
             // if nothing may be sold, skip this ware
             if (quantityDistFromFloor <= 0)
@@ -2035,7 +2037,7 @@ public class Marketplace {
                quantityToSell = quantity - quantitySold;
 
             // get the money
-            totalEarnings += getPrice(playerID, ware, quantityToSell, false, PriceType.CURRENT_SELL) * stock.percentWorth;
+            totalEarnings += getPrice(playerID, stock.ware, quantityToSell, false, PriceType.CURRENT_SELL) * stock.percentWorth;
 
             // if a flat fee should be used,
             // check whether the transaction became profitable
@@ -2048,7 +2050,7 @@ public class Marketplace {
                quantitySold += quantityToSell;
 
                // add quantity sold to the marketplace
-               ware.addQuantity(quantityToSell);
+               stock.ware.addQuantity(quantityToSell);
             }
 
             // if a flat fee should be used,
@@ -2088,8 +2090,7 @@ public class Marketplace {
                quantitySold += stock.quantity;
 
                // add quantity sold to the marketplace
-               ware = translateAndGrab(stock.wareID);
-               ware.addQuantity(stock.quantity);
+               stock.ware.addQuantity(stock.quantity);
             } catch (Exception e) {
                Config.commandInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
                e.printStackTrace();
@@ -2133,7 +2134,10 @@ public class Marketplace {
 
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
-      // if ware is not in the market, stop
+      // if ware is not in the market, check for a substitute
+      if (ware == null && Config.allowOreDictionarySubstitution)
+         ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
+      // if no substitute exists or should be used, stop
       if (ware == null) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
          return;
@@ -2298,6 +2302,10 @@ public class Marketplace {
 
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
+      // if ware is not in the market, check for a substitute
+      if (ware == null && Config.allowOreDictionarySubstitution)
+         ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
+      // if no substitute exists or should be used, stop
       if (ware == null || Float.isNaN(ware.getBasePrice()) || ware instanceof WareUntradeable)
          return;
 

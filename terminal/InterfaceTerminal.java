@@ -206,7 +206,7 @@ public class InterfaceTerminal implements InterfaceCommand
       // convert the inventory to the right format
       LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
       for (String wareID : inventoryToUse.keySet()) {
-         formattedInventory.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
+         formattedInventory.add(new Marketplace.Stock(wareID, Marketplace.translateAndGrab(wareID), inventoryToUse.get(wareID), 1.0f));
       }
       return formattedInventory;
    }
@@ -330,7 +330,7 @@ public class InterfaceTerminal implements InterfaceCommand
 
          // if no inventory was found
          if (inventoryToUse == null) {
-            waresFound.add(new Marketplace.Stock(wareID, -1, 1.0f));
+            waresFound.add(new Marketplace.Stock(wareID, null, -1, 1.0f));
             return waresFound;
          }
       }
@@ -340,7 +340,7 @@ public class InterfaceTerminal implements InterfaceCommand
       // if the ware is in the inventory, grab it
       if (inventoryToUse.containsKey(wareID) &&
           inventoryToUse.get(wareID) > 0)
-         waresFound.add(new Marketplace.Stock(wareID, inventoryToUse.get(wareID), 1.0f));
+         waresFound.add(new Marketplace.Stock(wareID, Marketplace.translateAndGrab(wareID), inventoryToUse.get(wareID), 1.0f));
 
          return waresFound;
    }
@@ -535,6 +535,19 @@ public class InterfaceTerminal implements InterfaceCommand
     */
    public int getStackSize(String wareID) {
       return 64;
+   }
+
+   /**
+    * Returns a model ware that should be manipulated in place of
+    * a given item being referred to. Uses one of the item's ore names
+    * to determine an appropriate substitution.
+    * Returns null if no substitution is found.
+    *
+    * @param wareID unique ID used to refer to the ware
+    * @return ware corresponding to given ware ID's ore name or null
+    */
+   public Ware getOreDictionarySubstitution(String wareID) {
+      return Marketplace.translateAndGrab(wareID);
    }
 
    /**

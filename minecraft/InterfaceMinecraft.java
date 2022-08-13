@@ -221,9 +221,8 @@ public class InterfaceMinecraft implements InterfaceCommand
       TileEntity tileentity = FMLCommonHandler.instance().getMinecraftServerInstance().getWorld(coordinates.dimension).getTileEntity(new BlockPos(coordinates.x, coordinates.y, coordinates.z));
       IItemHandler itemHandler = null;
 
-      if (tileentity != null) {
+      if (tileentity != null)
          itemHandler = tileentity.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
-      }
       if (itemHandler != null)
             return itemHandler;
 
@@ -248,9 +247,10 @@ public class InterfaceMinecraft implements InterfaceCommand
          return null;
 
       // set up variables
-      ItemStack itemStack;     // wares in the slot being parsed
-      String    itemID   = ""; // temporary variable for writing ware IDs for each item stack
-      int       maxSlots = 0;  // size of the inventory
+      ItemStack itemStack;       // wares in the slot being parsed
+      String    itemID   = "";   // for writing ware IDs for each item stack
+      Ware      ware     = null; // reference to ware within the marketplace to be traded
+      int       maxSlots = 0;    // size of the inventory
       LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
 
       // search for sellable wares within the player's inventory
@@ -262,8 +262,8 @@ public class InterfaceMinecraft implements InterfaceCommand
          maxSlots = inventoryToUse.getSlots();
 
       for (int slot = 0; slot < maxSlots; slot++) {
-         // grab wares in current inventory slot
-         itemStack = inventoryToUse.getStackInSlot(slot);
+         ware      = null; // reset ware corresponding to slot
+         itemStack = inventoryToUse.getStackInSlot(slot); // grab wares in current inventory slot
 
          // if the slot is empty, skip it
          if (itemStack == null   ||        // prevents null pointer exception
@@ -277,25 +277,34 @@ public class InterfaceMinecraft implements InterfaceCommand
              itemStack.getTagCompound().getBoolean(NBT_TAG_NOSELL))
             continue;
 
-            // get item's ware ID
-            itemID = Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + '&' + itemStack.getMetadata());
-            // if the item and its variation is not in the market,
-            // check whether the item has an ore name within the market
-            if (itemID.isEmpty() && Config.allowOreDictionarySubstitution) {
-               // get the item stack's numerical OreDictionary IDs
-               int[] oreIDs = OreDictionary.getOreIDs(itemStack);
+         // get item's ware ID
+         itemID = Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata());
+         // if the item and its variation is not in the market,
+         // check whether the item has an ore name within the market
+         if (itemID.isEmpty() && Config.allowOreDictionarySubstitution) {
+            // get the item stack's numerical OreDictionary IDs
+            int[] oreIDs = OreDictionary.getOreIDs(itemStack);
 
-               // loop through item stack's used ore names and
-               // use the first one which is used within the market
-               for (int oreID : oreIDs) {
-                  // get current ore ID's model ware ID
-                  itemID = Marketplace.translateAlias('#' + OreDictionary.getOreName(oreID));
+            // loop through item stack's used ore names and
+            // use the first one which is used within the market
+            for (int oreID : oreIDs) {
+               // get current ore ID's model ware ID
+               String wareID = Marketplace.translateAlias('#' + OreDictionary.getOreName(oreID));
 
-                  // if a model ware is found, use it
-                  if (itemID != null)
-                     break;
+               // if a model ware is found, use it
+               if (wareID != null) {
+                  ware   = Marketplace.translateAndGrab(wareID);
+                  itemID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata(); // record original ID to remove the item from an inventory
+                  break;
                }
             }
+         }
+
+         // if necessary, search for the ware corresponding to the item ID
+         if (ware == null)
+            ware = Marketplace.translateAndGrab(itemID);
+         if (ware == null)
+            continue; // if the item is not in the marketplace, skip it
 
          // add item stack to list of potentially sellable wares
          // if the wares are damageable, handle potential damage
@@ -304,12 +313,11 @@ public class InterfaceMinecraft implements InterfaceCommand
             // if the wares are damaged,
             // record how badly they are damaged
             formattedInventory.add(new Marketplace.Stock(itemID
-               + '&' + itemStack.getMetadata(), itemStack.getCount(),
+               + "&" + itemStack.getMetadata(), ware, itemStack.getCount(),
                ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage()));
-         } else {
+         } else
             formattedInventory.add(new Marketplace.Stock(itemID,
-               itemStack.getCount(), 1.0f));
-         }
+               ware, itemStack.getCount(), 1.0f));
       }
       return formattedInventory;
    }
@@ -345,9 +353,8 @@ public class InterfaceMinecraft implements InterfaceCommand
          maxSlots = 36;
       }
       // for other inventories, check everything
-      else {
+      else
          maxSlots = inventory.getSlots();
-      }
 
       for (int i = 0; i < maxSlots; i++) {
          if (inventory.getStackInSlot(i) == null   ||        // prevents null pointer exception
@@ -413,9 +420,8 @@ public class InterfaceMinecraft implements InterfaceCommand
             maxSlots = 36;
          }
          // for other inventories, check everything
-         else {
+         else
             maxSlots = inventory.getSlots();
-         }
 
          for (int i = 0; i < maxSlots; i++) {
             // attempt to insert the items into the given slot,
@@ -472,7 +478,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       ItemStack itemStack;     // wares in the slot being parsed
       int maxSlots = 0;        // size of the inventory
       String oreName = "";       // holds the Forge OreDictionary name being used
-      boolean usingOreName = wareID.startsWith("#");
+      final boolean USING_ORE_NAME = wareID.startsWith("#");
 
       // check if the given ID is a variant
       if (ampersandPosition != -1) {
@@ -494,7 +500,7 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // if an Forge OreDictionary name is being used,
       // try to get the ore name
-      if (usingOreName) {
+      if (USING_ORE_NAME) {
          oreName = wareID.substring(1, wareID.length());
 
          if (!OreDictionary.doesOreNameExist(oreName)) {
@@ -517,9 +523,8 @@ public class InterfaceMinecraft implements InterfaceCommand
          maxSlots = 36;
       }
       // for other inventories, check everything
-      else {
+      else
          maxSlots = inventory.getSlots();
-      }
 
       for (int slot = 0; slot < maxSlots; slot++) {
          itemStack = inventory.getStackInSlot(slot);
@@ -538,10 +543,10 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          // check if current item stack contains the desired item
          // or if current item stack contains the desired ore ID
-         if ((!usingOreName &&
+         if ((!USING_ORE_NAME &&
               Item.REGISTRY.getNameForObject(itemStack.getItem()).toString().equals(wareID) &&
               (itemStack.getMetadata() == meta || itemStack.isItemStackDamageable())) ||
-             (usingOreName &&
+             (USING_ORE_NAME &&
                doesItemstackUseOreName(oreName, itemStack))) {
             // pull from the item stack
             itemStack = inventory.extractItem(slot, quantity, false);
@@ -580,18 +585,19 @@ public class InterfaceMinecraft implements InterfaceCommand
       IItemHandler inventory = getInventoryContainer(playerID, coordinates);
       // if no inventory was found
       if (inventory == null) {
-         waresFound.add(new Marketplace.Stock(wareID, -1, 1.0f));
+         waresFound.add(new Marketplace.Stock(wareID, null, -1, 1.0f));
          return waresFound;
       }
 
       // set up variables
-      int meta     = 0;    // represents either the ware's variant type or accumulated damage
-      int ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
-      ItemStack itemStack;    // wares in the slot being parsed
-      String itemID = "";      // temporary variable for writing ware IDs for each item stack
-      int maxSlots = 0;        // size of the inventory
-      String oreName = "";       // holds the Forge OreDictionary name being used
-      boolean usingOreName = wareID.startsWith("#");
+      ItemStack itemStack;                                // wares in the slot being parsed
+      String    itemID             = "";                  // for writing ware IDs for each item stack
+      String    oreName            = "";                  // holds the Forge OreDictionary name being used
+      Ware      ware               = null;                // reference to ware within the marketplace to be traded
+      int       meta               = 0;                   // represents either the ware's variant type or accumulated damage
+      int       ampersandPosition  = wareID.indexOf('&'); // find if and where variation begins
+      int       maxSlots           = 0;                   // size of the inventory
+      final boolean USING_ORE_NAME = wareID.startsWith("#");
 
       // check if the given ID is a variant
       if (ampersandPosition != -1) {
@@ -612,14 +618,11 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // if an Forge OreDictionary name is being used,
       // try to get the ore name
-      if (usingOreName) {
+      if (USING_ORE_NAME) {
          oreName = wareID.substring(1, wareID.length());
 
+         // if the ore name doesn't exist, tell the player
          if (!OreDictionary.doesOreNameExist(oreName)) {
-            // warn the console
-            printToConsole(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
-
-            // warn the player
             if (player != null) {
                TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
                errorMessage.getStyle().setColor(TextFormatting.RED);
@@ -655,37 +658,35 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          // check if current item stack contains the desired item
          // or if current item stack contains the desired ore ID
-         if ((!usingOreName &&
+         if ((!USING_ORE_NAME &&
               Item.REGISTRY.getNameForObject(itemStack.getItem()).toString().equals(wareID) &&
               (itemStack.getMetadata() == meta || itemStack.isItemStackDamageable())) ||
-             (usingOreName &&
-               doesItemstackUseOreName(oreName, itemStack))) {
-
-            // if an OreDictionary name is being used
-            // and the item exists in the market,
-            // use the item's ware ID
-            if (usingOreName &&
-                !Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString()).isEmpty()) {
-               itemID = Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString());
-            } else {
+             (USING_ORE_NAME && doesItemstackUseOreName(oreName, itemStack))) {
+            // if an OreDictionary name is being used,
+            // grab the item's ware ID
+            if (USING_ORE_NAME)
+               itemID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString();
+            else
                itemID = wareID;
-            }
+            // record item variation or damage
+            if (itemStack.getMetadata() != 0)
+               itemID += "&" + itemStack.getMetadata();
+
+            // search the marketplace for the ware to be manipulated
+            ware = Marketplace.translateAndGrab(itemID);
+            // if ware is not in the market, check for a substitute
+            if (ware == null && Config.allowOreDictionarySubstitution)
+               ware = Config.commandInterface.getOreDictionarySubstitution(itemID);
 
             // if the wares are damageable, handle potential damage
             if (itemStack.isItemStackDamageable() && itemStack.isItemDamaged()) {
                // add wares to the container
                // if the wares are damaged,
                // record how badly they are damaged
-               waresFound.add(new Marketplace.Stock(itemID + '&' + itemStack.getMetadata(), itemStack.getCount(),
+               waresFound.add(new Marketplace.Stock(itemID, ware, itemStack.getCount(),
                   ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage()));
             } else {
-               if (itemStack.getMetadata() != 0 ||
-                   Marketplace.translateWareID(wareID).isEmpty()) {
-                  itemID += '&' + itemStack.getMetadata();
-               }
-
-               waresFound.add(new Marketplace.Stock(itemID,
-                  itemStack.getCount(), 1.0f));
+               waresFound.add(new Marketplace.Stock(itemID, ware, itemStack.getCount(), 1.0f));
             }
          }
       }
@@ -745,7 +746,7 @@ public class InterfaceMinecraft implements InterfaceCommand
                wareID += "&0";
          }
          else
-            wareID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + '&' + itemStack.getMetadata();
+            wareID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata();
       }
 
       // get the amount of whatever is in the player's hand
@@ -1067,7 +1068,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       if (meta == 0 || Config.itemExistenceCheckIgnoresMeta)
          return Item.REGISTRY.containsKey(new ResourceLocation(wareID));
 
-      // grab the non-variant form of the ware
+      // grab the ware's non-variant form
       Item item = null;
       try {
          item = Item.REGISTRY.getObject(new ResourceLocation(wareID));
@@ -1083,10 +1084,9 @@ public class InterfaceMinecraft implements InterfaceCommand
       // check possible variants
       NonNullList<ItemStack> variants = NonNullList.create();
       item.getSubItems(CreativeTabs.SEARCH, variants);
-      for (ItemStack itemStack : variants) {
+      for (ItemStack itemStack : variants)
          if (itemStack.getMetadata() == meta)
             return true;
-      }
 
       // none of the possible variants matched
       return false;
@@ -1131,6 +1131,94 @@ public class InterfaceMinecraft implements InterfaceCommand
       }
 
       return -1; // don't return 0 since it might cause a divide-by-error error
+   }
+
+   /**
+    * Returns a model ware that should be manipulated in place of
+    * a given item being referred to. Uses one of the item's ore names
+    * to determine an appropriate substitution.
+    * Returns null if no substitution is found.
+    *
+    * @param wareID unique ID used to refer to the ware
+    * @return ware corresponding to given ware ID's ore name or null
+    */
+   public Ware getOreDictionarySubstitution(String wareID) {
+      if (wareID == null || wareID.isEmpty())
+         return null;
+
+      // set up variables
+      Item      item              = null;                // in-game/external version of the ware
+      ItemStack itemStack         = null;                // used to check for item variants
+      String    substituteID      = null;                // ID of the ware to be used in place of the given ware
+      int       meta              = 0;                   // represents either the ware's variant type or accumulated damage
+      int       ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
+
+      // Retrieve the item corresponding to the given ID
+      // so its ore names may be checked.
+
+      // check if the given ID is a variant
+      if (ampersandPosition != -1) {
+         // save meta for item ID to the side
+         try {
+            meta = Integer.parseInt(wareID.substring(ampersandPosition + 1, wareID.length()));
+         } catch (NumberFormatException e) {
+            return null;
+         }
+
+         // separate meta from the item ID
+         wareID = wareID.substring(0, ampersandPosition);
+      }
+
+      // grab the ware's non-variant form
+      try {
+         item = Item.REGISTRY.getObject(new ResourceLocation(wareID));
+      } catch (Exception e) {
+         return null;
+      }
+
+      // if the ware ID doesn't correspond to any item, stop
+      if (item == null)
+         return null;
+
+      // if the given ID is a variant, search for it
+      if (meta != 0) {
+         // if no variants exist
+         if (!item.getHasSubtypes()) {
+            // and variants should be checked, stop
+            if (!Config.itemExistenceCheckIgnoresMeta)
+               return null;
+            else
+               itemStack = new ItemStack(item); // use the base item
+         }
+         // otherwise, search among the base item's variants
+         else {
+            NonNullList<ItemStack> variants = NonNullList.create();
+            item.getSubItems(CreativeTabs.SEARCH, variants);
+            for (ItemStack itemStackVariant : variants)
+               if (itemStackVariant.getMetadata() == meta)
+                  itemStack = itemStackVariant;
+         }
+      }
+      // if the item isn't a variant, use the base item
+      else
+         itemStack = new ItemStack(item);
+
+      // get the item stack's numerical OreDictionary IDs
+      int[] oreIDs = OreDictionary.getOreIDs(itemStack);
+
+      // if there are no ore names, there is no substitution
+      if (oreIDs == null || oreIDs.length == 0)
+         return null;
+
+      // check registered aliases for each ore name
+      for (int oreID : oreIDs) {
+         substituteID = Marketplace.translateAlias('#' + OreDictionary.getOreName(oreID));
+         if (substituteID != null)
+            return Marketplace.translateAndGrab(substituteID);
+      }
+
+      // no substitution was found
+      return null;
    }
 
    /**
@@ -1346,10 +1434,9 @@ public class InterfaceMinecraft implements InterfaceCommand
 
       // traverse through all possible values and
       // grab each plausible one
-      for (String possibleCompletionString : possibleCompletionStrings) {
+      for (String possibleCompletionString : possibleCompletionStrings)
          if (possibleCompletionString.startsWith(prefix))
             autoCompletionStrings.add(possibleCompletionString);
-      }
 
       return autoCompletionStrings;
    }

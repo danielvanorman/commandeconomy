@@ -266,6 +266,17 @@ public interface InterfaceCommand
    int getStackSize(String wareID);
 
    /**
+    * Returns a model ware that should be manipulated in place of
+    * a given item being referred to. Uses one of the item's ore names
+    * to determine an appropriate substitution.
+    * Returns null if no substitution is found.
+    *
+    * @param wareID unique ID used to refer to the ware
+    * @return ware corresponding to given ware ID's ore name or null
+    */
+   Ware getOreDictionarySubstitution(String wareID);
+
+   /**
     * Forwards a message to the specified user.
     *
     * @param playerID who to give the message to
