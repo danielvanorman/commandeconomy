@@ -816,6 +816,13 @@ public class Config
       accountMaxCreatedByIndividual = 3;
       crossWorldMarketplace         = false;
 
+      // files
+      filenameNoPathWares         = "wares.txt";
+      filenameNoPathWaresSave     = "waresSaved.txt";
+      filenameNoPathAccounts      = "accounts.txt";
+      filenameNoPathAIProfessions = "aiProfessions.json";
+      filenameNoPathRandomEvents  = "randomEvents.json";
+
       // prices
       priceMult            =  1.0f;
       priceSpread          =  1.0f;

@@ -321,7 +321,7 @@ public class CommandProcessor
       // if the second argument is a number, no username or direction should be given
       // if the second argument is a direction, a username and a direction should be given
       // if a username and a direction should be given
-      if (baseArgsLength >= 2 &&
+      if (baseArgsLength >= 3 &&
           (args[1].equals(CommandEconomy.INVENTORY_NONE) ||
            args[1].equals(CommandEconomy.INVENTORY_DOWN) ||
            args[1].equals(CommandEconomy.INVENTORY_UP) ||
@@ -599,7 +599,7 @@ public class CommandProcessor
 
          // get whatever is in the player's hand
          wareID = handful.wareID;
-         if (quantity == -1)
+         if (quantity == 0)
             quantity = handful.quantity;
       }
 

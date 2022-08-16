@@ -1745,6 +1745,10 @@ public class Marketplace {
          // find fee's charge
          float fee = calcTransactionFeeBuying(price);
 
+         // stop if the fee is zero
+         if (fee == 0.0f)
+            return;
+
          // check whether a fee collection account should be used
          if (Config.transactionFeesShouldPutFeesIntoAccount)
             // if the fee is negative and unaffordable, don't pay it

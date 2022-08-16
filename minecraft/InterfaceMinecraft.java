@@ -277,11 +277,13 @@ public class InterfaceMinecraft implements InterfaceCommand
              itemStack.getTagCompound().getBoolean(NBT_TAG_NOSELL))
             continue;
 
-         // get item's ware ID
-         itemID = Marketplace.translateWareID(Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata());
-         // if the item and its variation is not in the market,
+         // get item's ware ID and ware
+         itemID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata();
+         ware   = Marketplace.translateAndGrab(itemID);
+
+         // if the item is not in the market,
          // check whether the item has an ore name within the market
-         if (itemID.isEmpty() && Config.allowOreDictionarySubstitution) {
+         if (ware == null && Config.allowOreDictionarySubstitution) {
             // get the item stack's numerical OreDictionary IDs
             int[] oreIDs = OreDictionary.getOreIDs(itemStack);
 
@@ -293,18 +295,15 @@ public class InterfaceMinecraft implements InterfaceCommand
 
                // if a model ware is found, use it
                if (wareID != null) {
-                  ware   = Marketplace.translateAndGrab(wareID);
-                  itemID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata(); // record original ID to remove the item from an inventory
+                  ware = Marketplace.translateAndGrab(wareID);
                   break;
                }
             }
          }
 
-         // if necessary, search for the ware corresponding to the item ID
+         // if the item is not in the marketplace, skip it
          if (ware == null)
-            ware = Marketplace.translateAndGrab(itemID);
-         if (ware == null)
-            continue; // if the item is not in the marketplace, skip it
+            continue;
 
          // add item stack to list of potentially sellable wares
          // if the wares are damageable, handle potential damage
@@ -312,12 +311,11 @@ public class InterfaceMinecraft implements InterfaceCommand
             // add wares to the container
             // if the wares are damaged,
             // record how badly they are damaged
-            formattedInventory.add(new Marketplace.Stock(itemID
-               + "&" + itemStack.getMetadata(), ware, itemStack.getCount(),
+            formattedInventory.add(new Marketplace.Stock(itemID, ware, itemStack.getCount(),
                ((float) itemStack.getMaxDamage() - itemStack.getItemDamage()) / itemStack.getMaxDamage()));
          } else
             formattedInventory.add(new Marketplace.Stock(itemID,
-               ware, itemStack.getCount(), 1.0f));
+                                   ware, itemStack.getCount(), 1.0f));
       }
       return formattedInventory;
    }
