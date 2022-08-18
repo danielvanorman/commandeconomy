@@ -13,15 +13,15 @@ import java.util.Arrays;                                    // for removing the 
 public class CommandGeneral extends CommandBase {
    /** speeds up concatenation for /help */
    private static StringBuilder sbHelpOutput   = new StringBuilder(2200);
-   /** whether help output currently includes /invest */
-   private static boolean sbHelpContainsInvest = false;
+   /** whether help output currently includes /research */
+   private static boolean sbHelpContainsResearch = false;
 
    /** valid arguments for referring /ChangeStock ware stock levels */
    public static final String[] CHANGE_STOCK_KEYWORDS = new String[] {CommandEconomy.CHANGE_STOCK_EQUILIBRIUM, CommandEconomy.CHANGE_STOCK_OVERSTOCKED, CommandEconomy.CHANGE_STOCK_UNDERSTOCKED};
    /** valid arguments for referring to reloading parts of CommandEconomy */
    public static final String[] RELOAD_KEYWORDS = new String[] {CommandEconomy.RELOAD_CONFIG, CommandEconomy.RELOAD_WARES, CommandEconomy.RELOAD_ACCOUNTS, CommandEconomy.ALL};
    /** valid arguments for CommandEconomy command names */
-   public static final String[] COMMAND_NAMES = new String[] {CommandEconomy.CMD_HELP, CommandEconomy.CMD_BUY, CommandEconomy.CMD_SELL, CommandEconomy.CMD_CHECK, CommandEconomy.CMD_SELLALL, CommandEconomy.CMD_MONEY, CommandEconomy.CMD_SEND, CommandEconomy.CMD_CREATE, CommandEconomy.CMD_DELETE, CommandEconomy.CMD_GRANT_ACCESS, CommandEconomy.CMD_REVOKE_ACCESS, CommandEconomy.CMD_VERSION, CommandEconomy.CMD_ADD, CommandEconomy.CMD_SET, CommandEconomy.CMD_CHANGE_STOCK, CommandEconomy.CMD_SAVE, CommandEconomy.CMD_SET_DEFAULT_ACCOUNT, CommandEconomy.CMD_RELOAD, CommandEconomy.CMD_PRINT_MARKET, CommandEconomy.CMD_INVEST};
+   public static final String[] COMMAND_NAMES = new String[] {CommandEconomy.CMD_HELP, CommandEconomy.CMD_BUY, CommandEconomy.CMD_SELL, CommandEconomy.CMD_CHECK, CommandEconomy.CMD_SELLALL, CommandEconomy.CMD_MONEY, CommandEconomy.CMD_SEND, CommandEconomy.CMD_CREATE, CommandEconomy.CMD_DELETE, CommandEconomy.CMD_GRANT_ACCESS, CommandEconomy.CMD_REVOKE_ACCESS, CommandEconomy.CMD_VERSION, CommandEconomy.CMD_ADD, CommandEconomy.CMD_SET, CommandEconomy.CMD_CHANGE_STOCK, CommandEconomy.CMD_SAVE, CommandEconomy.CMD_SET_DEFAULT_ACCOUNT, CommandEconomy.CMD_RELOAD, CommandEconomy.CMD_PRINT_MARKET, CommandEconomy.CMD_RESEARCH};
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -82,8 +82,8 @@ public class CommandGeneral extends CommandBase {
             InterfaceMinecraft.commandRevokeAccess.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
-         case CommandEconomy.CMD_INVEST:
-            CommandProcessor.invest(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
+         case CommandEconomy.CMD_RESEARCH:
+            CommandProcessor.research(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
             break;
 
          case CommandEconomy.CMD_SAVE:
@@ -151,7 +151,7 @@ public class CommandGeneral extends CommandBase {
       } else {
          // in necessary, regenerate help output
          if (sbHelpOutput.length() == 0 ||
-             sbHelpContainsInvest != (Config.investmentCostPerHierarchyLevel != 0.0f)) {
+             sbHelpContainsResearch != (Config.researchCostPerHierarchyLevel != 0.0f)) {
             // clear buffer
             sbHelpOutput.setLength(0);
 
@@ -168,13 +168,13 @@ public class CommandGeneral extends CommandBase {
                         .append(CommandEconomy.CMD_USAGE_GRANT_ACCESS).append(CommandEconomy.CMD_DESC_GRANT_ACCESS)
                         .append(CommandEconomy.CMD_USAGE_REVOKE_ACCESS).append(CommandEconomy.CMD_DESC_REVOKE_ACCESS);
 
-            // if needed, add in /invest
-            if (Config.investmentCostPerHierarchyLevel != 0.0f) {
-               sbHelpContainsInvest = true;
-               sbHelpOutput.append(CommandEconomy.CMD_USAGE_INVEST).append(CommandEconomy.CMD_DESC_INVEST);
+            // if needed, add in /research
+            if (Config.researchCostPerHierarchyLevel != 0.0f) {
+               sbHelpContainsResearch = true;
+               sbHelpOutput.append(CommandEconomy.CMD_USAGE_RESEARCH).append(CommandEconomy.CMD_DESC_RESEARCH);
             }
             else
-               sbHelpContainsInvest = false;
+               sbHelpContainsResearch = false;
 
             // add in rest of standard commands
             sbHelpOutput.append(CommandEconomy.CMD_USAGE_VERSION).append(CommandEconomy.CMD_DESC_VERSION)

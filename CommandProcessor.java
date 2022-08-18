@@ -1,7 +1,7 @@
 package commandeconomy;
 
 import java.util.UUID;                // for more securely tracking users internally
-import java.util.HashMap;             // for storing investment offers
+import java.util.HashMap;             // for storing research proposals
 import java.util.List;                // for returning properties of wares found in an inventory
 
 /**
@@ -23,22 +23,22 @@ import java.util.List;                // for returning properties of wares found
 public class CommandProcessor
 {
    // GLOBAL VARIABLES
-   /** for /invest, holds the latest offer for each player */
-   private static HashMap<UUID, InvestmentOffer> investmentOffers = null;
+   /** for /research, holds the latest proposal for each player */
+   private static HashMap<UUID, ResearchProposal> researchProposals = null;
 
    // STRUCTS
    /**
-    * For /invest, holds values for paying to increase a ware's supply and demand.
+    * For /research, holds values for paying to increase a ware's supply and demand.
     *
     * @author  Daniel Van Orman
     * @version %I%, %G%
     * @since   2021-07-31
     */
-   private static class InvestmentOffer
+   private static class ResearchProposal
    {
-      /** reference to the ware able to be invested in */
+      /** reference to the ware able to be researched */
       public Ware ware;
-      /** ID referring to the ware able to be invested in */
+      /** ID referring to the ware able to be researched */
       public String wareID;
       /** ID referring to the account to be charged */
       public String accountID;
@@ -46,18 +46,18 @@ public class CommandProcessor
       public float price;
 
       /**
-       * Investment Offer Constructor: Fills fields for an offer for increasing a ware's supply and demand.
+       * Research Proposal Constructor: Fills fields for an offer for increasing a ware's supply and demand.
        *
-       * @param pWare      reference to the ware able to be invested in
-       * @param pWareID    ID referring to the ware able to be invested in
-       * @param pAccountID ID referring to the account to be charged
-       * @param pPrice     last calculated price
+       * @param ware      reference to the ware able to be researched
+       * @param wareID    ID referring to the ware able to be researched
+       * @param accountID ID referring to the account to be charged
+       * @param price     last calculated price
        */
-      public InvestmentOffer (Ware pWare, String pWareID, String pAccountID, float pPrice) {
-         ware      = pWare;
-         wareID    = pWareID;
-         accountID = pAccountID;
-         price     = pPrice;
+      public ResearchProposal (Ware ware, String wareID, String accountID, float price) {
+         this.ware      = ware;
+         this.wareID    = wareID;
+         this.accountID = accountID;
+         this.price     = price;
       }
    }
 
@@ -1051,16 +1051,16 @@ public class CommandProcessor
     * @param playerID player executing the command
     * @param args     arguments given in the expected format
     */
-   public static void invest(UUID playerID, String[] args) {
-      // check if the investment command is enabled
-      if (Config.investmentCostPerHierarchyLevel == 0.0f) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_INVEST_DISABLED);
+   public static void research(UUID playerID, String[] args) {
+      // check if the industrial research command is enabled
+      if (Config.researchCostPerHierarchyLevel == 0.0f) {
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_RESEARCH_DISABLED);
          return;
       }
 
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_INVEST);
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_RESEARCH);
          return;
       }
 
@@ -1068,25 +1068,30 @@ public class CommandProcessor
       if (args[0] == null || args[0].length() == 0 ||
           (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
           (args.length >= 3 && (args[2] == null || args[2].length() == 0))) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_INVEST);
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_RESEARCH);
          return;
       }
 
       // command must have the right number of args
       if (args.length > 3) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_INVEST);
+         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_RESEARCH);
          return;
       }
 
-      // don't allocate memory for holding investment offers unless /invest is used
-      if (investmentOffers == null)
-         investmentOffers = new HashMap<UUID, InvestmentOffer>();
+      // don't allocate memory for holding research proposals unless /research is used
+      if (researchProposals == null)
+         researchProposals = new HashMap<UUID, ResearchProposal>();
 
       // set up variables
-      InvestmentOffer investmentOffer = null;
-      float   priceAcceptable = 0.0f;
-      float   fee             = 0.0f; // potential brokerage fee
-      String  accountID       = null;
+            ResearchProposal researchProposal = null;
+            StringBuilder    consoleOutput;           // for concatenating text to be printed
+            String           accountID        = null;
+            float            priceAcceptable  = 0.0f;
+            float            fee              = 0.0f; // potential brokerage fee
+      final float priceFluctSurplusOld;               // ware's current price fluctuation
+      final float priceFluctSurplusNew;               // ware's price fluctuation after research
+      final float priceFluctScarcityOld;
+      final float priceFluctScarcityNew;
 
       // if two arguments are given,
       // the second must either be a price or an account ID
@@ -1107,84 +1112,97 @@ public class CommandProcessor
          try {
             priceAcceptable = Float.parseFloat(args[1]);
          } catch (NumberFormatException e) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_INVEST);
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_RESEARCH);
             return;
          }
          accountID = args[2].intern();
       }
 
-      // check if player is accepting an offer
+      // check if player is accepting a proposal
       if (args[0].equalsIgnoreCase(CommandEconomy.YES)) {
-         // grab the old investment offer
-         InvestmentOffer oldOffer = investmentOffers.get(playerID);
+         // grab the old research proposal
+         ResearchProposal oldProposal = researchProposals.get(playerID);
 
-         // if there is no offer, tell the player
-         if (oldOffer == null) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVEST_NO_OFFERS);
+         // if there is no proposal, tell the player
+         if (oldProposal == null) {
+            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_RESEARCH_NO_OFFERS);
             return;
          }
 
          // if no account ID is specified, use the old offer's account ID
          if (accountID == null || accountID.isEmpty())
-            accountID = oldOffer.accountID;
+            accountID = oldProposal.accountID;
 
-         // generate a current investment offer
-         investmentOffer = generateInvestmentOffer(playerID, oldOffer.wareID, accountID);
+         // generate a current research proposal
+         researchProposal = generateResearchProposal(playerID, oldProposal.wareID, accountID);
 
          // This shouldn't happen, but if there is a problem regenerating an offer, just exit.
-         if (investmentOffer == null)
+         if (researchProposal == null)
             return;
 
          // if necessary, add a brokerage fee
-         // calculate the fee here rather than when generating the offer
-         // since it is unknown how long the offer has been standing
+         // calculate the fee here rather than when generating the proposal
+         // since it is unknown how long the proposal has been standing
          if (Config.chargeTransactionFees &&
-             Config.transactionFeeInvesting != 0.0f) {
+             Config.transactionFeeResearching != 0.0f) {
             // find fee's charge
-            if (Config.transactionFeeInvestingIsMult) {
-               fee = investmentOffer.price * Config.transactionFeeInvesting;
+            if (Config.transactionFeeResearchingIsMult) {
+               fee = researchProposal.price * Config.transactionFeeResearching;
 
                // if the price and fee percentage have opposite signs, flip the fee's sign
                // so positive rates don't pay out anything and negative rates don't take anything
-               if ((fee < 0.0f && Config.transactionFeeInvesting > 0.0f) ||
-                   (Config.transactionFeeInvesting < 0.0f && fee > 0.0f))
+               if ((fee < 0.0f && Config.transactionFeeResearching > 0.0f) ||
+                   (Config.transactionFeeResearching < 0.0f && fee > 0.0f))
                   fee = -fee;
             }
             else
-               fee = Config.transactionFeeInvesting;
+               fee = Config.transactionFeeResearching;
 
             // if the fee is negative, adjust by how much may be paid
-            if (Config.transactionFeeInvesting < 0.0f)
+            if (Config.transactionFeeResearching < 0.0f)
                fee += Account.canNegativeFeeBePaid(fee);
          }
 
-         // compare current offer to old offer
-         // If the current offer's price is higher than 5% of the old price
+         // compare current proposal to old proposal
+         // If the current proposal's price is higher than 5% of the old price
          // and no max price acceptable is specified,
-         // or if the current offer's price is higher than the specified max price acceptable,
-         // present the new offer instead of processing it.
-         if ((priceAcceptable == 0.0f && investmentOffer.price > (oldOffer.price * 1.05f)) ||
-             (priceAcceptable != 0.0f && investmentOffer.price + fee > priceAcceptable)) {
-            if (investmentOffer.ware.getAlias() != null && !investmentOffer.ware.getAlias().isEmpty())
-               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
+         // or if the current proposal's price is higher than the specified max price acceptable,
+         // present the new proposal instead of processing it.
+         if ((priceAcceptable == 0.0f && researchProposal.price > (oldProposal.price * 1.05f)) ||
+             (priceAcceptable != 0.0f && researchProposal.price + fee > priceAcceptable)) {
+            consoleOutput = new StringBuilder();
+            if (researchProposal.ware.getAlias() != null && !researchProposal.ware.getAlias().isEmpty())
+               consoleOutput.append(researchProposal.ware.getAlias());
             else
-               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
+               consoleOutput.append(researchProposal.wareID);
 
-            investmentOffers.put(playerID, investmentOffer);
+            priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel()]      - Config.quanLow[researchProposal.ware.getLevel()]));
+            priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel() - 1]  - Config.quanLow[researchProposal.ware.getLevel() - 1]));
+            priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel()]     - Config.quanMid[researchProposal.ware.getLevel()]));
+            priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel() - 1] - Config.quanMid[researchProposal.ware.getLevel() - 1]));
+            consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
+                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
+                         .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+
+            if (researchProposal.ware.getQuantity() < Config.quanMid[researchProposal.ware.getLevel() - 1])
+               consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanMid[researchProposal.ware.getLevel() - 1]);
+
+            Config.commandInterface.printToUser(playerID, consoleOutput.toString());
+            researchProposals.put(playerID, researchProposal);
             return;
          }
-         // The current investment offer is processed later on.
-      }      // end of investment offer acceptance if statement
-      else { // if an investment offer isn't being accepted
-         // create an offer
+         // The current research proposal is processed later on.
+      }      // end of research proposal acceptance if statement
+      else { // if an research proposal isn't being accepted
+         // create a proposal
          // translates the ware ID, grabs the ware, and calculates the price
-         investmentOffer = generateInvestmentOffer(playerID, args[0].intern(), accountID);
+         researchProposal = generateResearchProposal(playerID, args[0].intern(), accountID);
 
          // If there was a problem, a message would have already been printed.
-         if (investmentOffer == null)
+         if (researchProposal == null)
             return;
 
-         // Don't store/save the current offer here.
+         // Don't store/save the current proposal here.
          // The offer might be processed,
          // so it might be better not to store it at all.
 
@@ -1192,67 +1210,94 @@ public class CommandProcessor
          // calculate the fee here rather than when generating the offer
          // since it is unknown how long the offer has been standing
          if (Config.chargeTransactionFees &&
-             Config.transactionFeeInvesting != 0.0f) {
+             Config.transactionFeeResearching != 0.0f) {
             // find fee's charge
-            if (Config.transactionFeeInvestingIsMult) {
-               fee = investmentOffer.price * Config.transactionFeeInvesting;
+            if (Config.transactionFeeResearchingIsMult) {
+               fee = researchProposal.price * Config.transactionFeeResearching;
 
                // if the price and fee percentage have opposite signs, flip the fee's sign
                // so positive rates don't pay out anything and negative rates don't take anything
-               if ((fee < 0.0f && Config.transactionFeeInvesting > 0.0f) ||
-                   (Config.transactionFeeInvesting < 0.0f && fee > 0.0f))
+               if ((fee < 0.0f && Config.transactionFeeResearching > 0.0f) ||
+                   (Config.transactionFeeResearching < 0.0f && fee > 0.0f))
                   fee = -fee;
             }
             else
-               fee = Config.transactionFeeInvesting;
+               fee = Config.transactionFeeResearching;
 
             // if the fee is negative, adjust by how much may be paid
-            if (Config.transactionFeeInvesting < 0.0f)
+            if (Config.transactionFeeResearching < 0.0f)
                fee += Account.canNegativeFeeBePaid(fee);
          }
 
          // If the max price acceptable is too little, tell the player.
          // Do not worry about printing messages - there is no autoinvesting.
-         // If the max price acceptable is unset and investment price is $0,
+         // If the max price acceptable is unset and research price is $0,
          // don't assume the player wants to invest - they may just be watching the price or curious.
-         if (priceAcceptable == 0.0f || investmentOffer.price + fee > priceAcceptable) {
-            if (investmentOffer.ware.getAlias() != null && !investmentOffer.ware.getAlias().isEmpty())
-               Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
+         if (priceAcceptable == 0.0f || researchProposal.price + fee > priceAcceptable) {
+            consoleOutput = new StringBuilder();
+            if (researchProposal.ware.getAlias() != null && !researchProposal.ware.getAlias().isEmpty())
+               consoleOutput.append(researchProposal.ware.getAlias());
             else
-               Config.commandInterface.printToUser(playerID, investmentOffer.wareID + " investment price is " + CommandEconomy.truncatePrice(investmentOffer.price + fee) + CommandEconomy.MSG_INVEST_USAGE_YES);
+               consoleOutput.append(researchProposal.wareID);
 
-            investmentOffers.put(playerID, investmentOffer);
+            priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel()]      - Config.quanLow[researchProposal.ware.getLevel()]));
+            priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel() - 1]  - Config.quanLow[researchProposal.ware.getLevel() - 1]));
+            priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel()]     - Config.quanMid[researchProposal.ware.getLevel()]));
+            priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel() - 1] - Config.quanMid[researchProposal.ware.getLevel() - 1]));
+            consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
+                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
+                         .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+
+            if (researchProposal.ware.getQuantity() < Config.quanMid[researchProposal.ware.getLevel() - 1])
+               consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanMid[researchProposal.ware.getLevel() - 1]);
+
+            Config.commandInterface.printToUser(playerID, consoleOutput.toString());
+            researchProposals.put(playerID, researchProposal);
             return;
          }
       }
 
       // grab the account to be used
-      Account account = Account.grabAndCheckAccount(accountID, playerID, investmentOffer.price + fee);
+      Account account = Account.grabAndCheckAccount(accountID, playerID, researchProposal.price + fee);
 
       // if something's wrong with the account, stop
       if (account == null)
          return; // an error message has already been sent to the player
 
-      // process the investment offer
+      // process the research proposal
       // lower the ware's hierarchy level
-      investmentOffer.ware.addLevel((byte) -1);
+      researchProposal.ware.addLevel((byte) -1);
 
       // if the ware's supply is not higher than its new level's starting level, reset its stock
-      if (investmentOffer.ware.getQuantity() < Config.startQuanBase[investmentOffer.ware.getLevel()])
-         investmentOffer.ware.setQuantity(Config.startQuanBase[investmentOffer.ware.getLevel()]);
+      if (researchProposal.ware.getQuantity() < Config.startQuanBase[researchProposal.ware.getLevel()])
+         researchProposal.ware.setQuantity(Config.startQuanBase[researchProposal.ware.getLevel()]);
 
       // take the money
-      account.subtractMoney(investmentOffer.price);
+      account.subtractMoney(researchProposal.price);
 
       // print results
-      if (investmentOffer.ware.getAlias() != null)
-         Config.commandInterface.printToUser(playerID, investmentOffer.ware.getAlias() + CommandEconomy.MSG_INVEST_SUCCESS);
+      consoleOutput = new StringBuilder();
+      if (researchProposal.ware.getAlias() != null && !researchProposal.ware.getAlias().isEmpty())
+         consoleOutput.append(researchProposal.ware.getAlias());
       else
-         Config.commandInterface.printToUser(playerID, investmentOffer.wareID + CommandEconomy.MSG_INVEST_SUCCESS);
+         consoleOutput.append(researchProposal.wareID);
+
+      priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel() + 1]      - Config.quanLow[researchProposal.ware.getLevel() + 1]));
+      priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel()]  - Config.quanLow[researchProposal.ware.getLevel()]));
+      priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel() + 1]     - Config.quanMid[researchProposal.ware.getLevel() + 1]));
+      priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel()] - Config.quanMid[researchProposal.ware.getLevel()]));
+      consoleOutput.append(CommandEconomy.MSG_RESEARCH_SUCCESS)
+                   .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
+                   .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+
+      if (Config.quanMid[researchProposal.ware.getLevel()] == researchProposal.ware.getQuantity())
+         consoleOutput.append("\n   new quantity available for sale: ").append(researchProposal.ware.getQuantity());
+
+      Config.commandInterface.printToUser(playerID, consoleOutput.toString());
 
       // pay the transaction fee
       if (Config.chargeTransactionFees &&
-          Config.transactionFeeInvesting != 0.0f) {
+          Config.transactionFeeResearching != 0.0f) {
          // check whether a fee collection account should be used
          if (Config.transactionFeesShouldPutFeesIntoAccount)
             // if the fee is negative and unaffordable, don't pay it
@@ -1266,8 +1311,8 @@ public class CommandProcessor
          Config.commandInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
-      // remove any old offer
-      investmentOffers.remove(playerID);
+      // remove any old proposal
+      researchProposals.remove(playerID);
    }
 
    /**
@@ -1585,10 +1630,10 @@ public class CommandProcessor
     * Complexity: O(1)
     * @param playerID  player executing the command
     * @param wareID    unique identifier of ware to be used
-    * @param accountID account to be charged when the offer is processed
-    * @return complete offer and associated information for an investment
+    * @param accountID account to be charged when the research is performed
+    * @return complete offer and associated information for some research
     */
-   private static InvestmentOffer generateInvestmentOffer(UUID playerID, String wareID, String accountID) {
+   private static ResearchProposal generateResearchProposal(UUID playerID, String wareID, String accountID) {
       // grab the ware to be used
       Ware ware = Marketplace.translateAndGrab(wareID);
       // if ware is not in the market, stop
@@ -1600,12 +1645,12 @@ public class CommandProcessor
 
       final boolean HAS_ALIAS = (ware.getAlias() != null && !ware.getAlias().isEmpty());
 
-      // verify that the ware is suitable for investment
+      // verify that the ware is suitable for research
       if (ware.getLevel() == 0) {
          if (HAS_ALIAS)
-            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_LOWEST_LEVEL);
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_LOWEST_LEVEL);
          else
-            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_LOWEST_LEVEL);
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_LOWEST_LEVEL);
 
          return null;
       }
@@ -1621,42 +1666,42 @@ public class CommandProcessor
 
       if (ware instanceof WareLinked) {
          if (HAS_ALIAS)
-            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_LINKED);
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_LINKED);
          else
-            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_LINKED);
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_LINKED);
 
          return null;
       }
 
       if (ware.getQuantity() >= Config.quanHigh[ware.getLevel()]) {
          if (HAS_ALIAS)
-            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_QUAN_HIGH);
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_QUAN_HIGH);
          else
-            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_QUAN_HIGH);
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_QUAN_HIGH);
 
          return null;
       }
 
-      // find investment cost
-      float priceInvestment = Marketplace.getPrice(playerID, ware, 0, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.investmentCostPerHierarchyLevel;
-      if (Config.investmentCostIsAMultOfAvgPrice)
-         priceInvestment *= Marketplace.getCurrentPriceAverage();
+      // find research cost
+      float priceResearch = Marketplace.getPrice(playerID, ware, 0, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.researchCostPerHierarchyLevel;
+      if (Config.researchCostIsAMultOfAvgPrice)
+         priceResearch *= Marketplace.getCurrentPriceAverage();
 
       // truncate the price to avoid rounding and multiplication errors
-      priceInvestment = CommandEconomy.truncatePrice(priceInvestment);
+      priceResearch = CommandEconomy.truncatePrice(priceResearch);
 
-      // if investment price is 0, the ware cannot be invested in
-      if (priceInvestment == 0.0f) {
+      // if research price is 0, the ware cannot be researched
+      if (priceResearch == 0.0f) {
          if (HAS_ALIAS)
-            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_INVEST_FAILED);
+            Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_FAILED);
          else
-            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_INVEST_FAILED);
+            Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_FAILED);
 
          return null;
       }
 
       // generate struct
-      return new InvestmentOffer(ware, wareID, accountID, priceInvestment);
+      return new ResearchProposal(ware, wareID, accountID, priceResearch);
    }
 
    /**

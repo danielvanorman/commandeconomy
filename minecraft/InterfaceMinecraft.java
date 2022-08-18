@@ -663,12 +663,10 @@ public class InterfaceMinecraft implements InterfaceCommand
             // if an OreDictionary name is being used,
             // grab the item's ware ID
             if (USING_ORE_NAME)
-               itemID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString();
+               itemID = Item.REGISTRY.getNameForObject(itemStack.getItem()).toString() + "&" + itemStack.getMetadata();
             else
-               itemID = wareID;
+               itemID = wareID + "&" + itemStack.getMetadata();
             // record item variation or damage
-            if (itemStack.getMetadata() != 0)
-               itemID += "&" + itemStack.getMetadata();
 
             // search the marketplace for the ware to be manipulated
             ware = Marketplace.translateAndGrab(itemID);
@@ -1368,8 +1366,8 @@ public class InterfaceMinecraft implements InterfaceCommand
       handler.registerCommand(new CommandGeneral());
       handler.registerCommand(new CommandPrintMarket());
       handler.registerCommand(new CommandChangeStock());
-      if (Config.investmentCostPerHierarchyLevel != 0.0f)
-         handler.registerCommand(new CommandInvest());
+      if (Config.researchCostPerHierarchyLevel != 0.0f)
+         handler.registerCommand(new CommandResearch());
    }
 
    /**

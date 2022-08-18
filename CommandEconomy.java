@@ -232,7 +232,7 @@ public class CommandEconomy {
    public final static String CMD_RELOAD                    = "reload";
    public final static String CMD_PRINT_MARKET              = "printMarket";
    public final static String CMD_PRINT_MARKET_LOWER        = "printmarket";
-   public final static String CMD_INVEST                    = "invest";
+   public final static String CMD_RESEARCH                  = "research";
 
    // command keywords
    public final static String ACCOUNT_ADMIN             = "$admin$";
@@ -279,8 +279,8 @@ public class CommandEconomy {
    public final static String CMD_USAGE_SET_DEFAULT_ACCOUNT = "/" + CMD_SET_DEFAULT_ACCOUNT + " <account_id>";
    public final static String CMD_USAGE_RELOAD              = "/" + MODID + " " + CMD_RELOAD + " (" + RELOAD_CONFIG + " | " + RELOAD_WARES + " | " + RELOAD_ACCOUNTS + " | " + ALL + ")";
    public final static String CMD_USAGE_PRINT_MARKET        = "/" + CMD_PRINT_MARKET;
-   public final static String CMD_USAGE_INVEST              = "/" + CMD_INVEST + " <ware_id> [max_price_acceptable] [account_id]";
-   public final static String MSG_INVEST_USAGE_YES          = "; use /" + CMD_INVEST + " " + YES + " [max_price_acceptable] [account_id] to accept";
+   public final static String CMD_USAGE_RESEARCH            = "/" + CMD_RESEARCH + " <ware_id> [max_price_acceptable] [account_id]";
+   public final static String MSG_RESEARCH_USAGE_YES        = "; to accept, use /" + CMD_RESEARCH + " " + YES + " [max_price_acceptable] [account_id]";
 
    // command block usages
    public final static String CMD_USAGE_BLOCK_BUY     = "/" + CMD_BUY + " <player_name> <inventory_direction> <ware_id> <quantity> [max_unit_price] [account_id] [" + MANUFACTURING + "]";
@@ -301,7 +301,7 @@ public class CommandEconomy {
    public final static String CMD_DESC_DELETE              = " - closes the account with the specified id\n";
    public final static String CMD_DESC_GRANT_ACCESS        = " - allows a player to view and withdraw from a specified account\n";
    public final static String CMD_DESC_REVOKE_ACCESS       = " - disallows a player to view and withdraw from a specified account\n";
-   public final static String CMD_DESC_INVEST              = " - increases a ware's supply and demand\n";
+   public final static String CMD_DESC_RESEARCH            = " - increases a ware's commonality and price stability\n";
    public final static String CMD_DESC_VERSION             = " - says what version of Command Economy is running\n";
    public final static String CMD_DESC_ADD                 = " - summons money\n";
    public final static String CMD_DESC_SET                 = " - sets account's money to a specified amount\n";
@@ -450,14 +450,14 @@ public class CommandEconomy {
    public final static String WARN_AI_INVALID_PREF_PRO    = "warning - invalid preference for AI profession ";
    public final static String WARN_AI_INVALID_PREF_IDS    = ": ";
 
-   // investments
-   public final static String ERROR_INVEST_DISABLED   = "error - investments are disabled";
-   public final static String MSG_INVEST_NO_OFFERS    = "You don't have any pending investment offers";
-   public final static String MSG_INVEST_LOWEST_LEVEL = " is already as plentiful as possible";
-   public final static String MSG_INVEST_LINKED       = " is unsuitable for investment in that form";
-   public final static String MSG_INVEST_QUAN_HIGH    = " is already plentiful";
-   public final static String MSG_INVEST_FAILED       = " cannot be invested in";
-   public final static String MSG_INVEST_SUCCESS      = "'s supply and demand has increased";
+   // industrial research
+   public final static String ERROR_RESEARCH_DISABLED   = "error - industrial research is disabled";
+   public final static String MSG_RESEARCH_NO_OFFERS    = "You don't have any pending research proposals";
+   public final static String MSG_RESEARCH_LOWEST_LEVEL = " is already as plentiful as possible";
+   public final static String MSG_RESEARCH_LINKED       = " is unsuitable for research in that form";
+   public final static String MSG_RESEARCH_QUAN_HIGH    = " is already plentiful";
+   public final static String MSG_RESEARCH_FAILED       = " cannot be researched further";
+   public final static String MSG_RESEARCH_SUCCESS      = "'s commonality and price stability has increased";
 
    // random events
    public final static String ERROR_FILE_RANDOM_EVENTS_INVALID      = "error - random events JSON file is improperly formatted: ";

@@ -47,8 +47,8 @@ public class InterfaceTerminal implements InterfaceCommand
 
    /** speeds up concatenation for /help */
    private static StringBuilder sbHelpOutput   = new StringBuilder(2200);
-   /** whether help output currently includes /invest */
-   private static boolean sbHelpContainsInvest = false;
+   /** whether help output currently includes /research */
+   private static boolean sbHelpContainsResearch = false;
 
    // autosaving
    /** for automatically and periodically saving wares and accounts */
@@ -714,8 +714,8 @@ public class InterfaceTerminal implements InterfaceCommand
                serviceRequestRevokeAccess(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
-            case CommandEconomy.CMD_INVEST:
-               serviceRequestInvest(Arrays.copyOfRange(userInput, 1, userInput.length));
+            case CommandEconomy.CMD_RESEARCH:
+               serviceRequestResearch(Arrays.copyOfRange(userInput, 1, userInput.length));
                break;
 
             case CommandEconomy.CMD_VERSION:
@@ -829,7 +829,7 @@ public class InterfaceTerminal implements InterfaceCommand
       } else {
          // in necessary, regenerate help output
          if (sbHelpOutput.length() == 0 ||
-             sbHelpContainsInvest != (Config.investmentCostPerHierarchyLevel != 0.0f)) {
+             sbHelpContainsResearch != (Config.researchCostPerHierarchyLevel != 0.0f)) {
             // clear buffer
             sbHelpOutput.setLength(0);
 
@@ -845,13 +845,13 @@ public class InterfaceTerminal implements InterfaceCommand
                         .append(CommandEconomy.CMD_USAGE_GRANT_ACCESS).append(CommandEconomy.CMD_DESC_GRANT_ACCESS)
                         .append(CommandEconomy.CMD_USAGE_REVOKE_ACCESS).append(CommandEconomy.CMD_DESC_REVOKE_ACCESS);
 
-            // if needed, add in /invest
-            if (Config.investmentCostPerHierarchyLevel != 0.0f) {
-               sbHelpContainsInvest = true;
-               sbHelpOutput.append(CommandEconomy.CMD_USAGE_INVEST).append(CommandEconomy.CMD_DESC_INVEST);
+            // if needed, add in /research
+            if (Config.researchCostPerHierarchyLevel != 0.0f) {
+               sbHelpContainsResearch = true;
+               sbHelpOutput.append(CommandEconomy.CMD_USAGE_RESEARCH).append(CommandEconomy.CMD_DESC_RESEARCH);
             }
             else
-               sbHelpContainsInvest = false;
+               sbHelpContainsResearch = false;
 
             // add in rest of standard commands
             sbHelpOutput.append(CommandEconomy.CMD_USAGE_VERSION).append(CommandEconomy.CMD_DESC_VERSION)
@@ -1135,8 +1135,8 @@ public class InterfaceTerminal implements InterfaceCommand
     *
     * @param args arguments given in the expected format
     */
-   protected static void serviceRequestInvest(String[] args) {
-      CommandProcessor.invest(getPlayerIDStatic(playername), args);
+   protected static void serviceRequestResearch(String[] args) {
+      CommandProcessor.research(getPlayerIDStatic(playername), args);
    }
 
    /**
