@@ -1168,16 +1168,16 @@ public class CommandProcessor
             else
                consoleOutput.append(researchProposal.wareID);
 
-            priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel()]      - Config.quanLow[researchProposal.ware.getLevel()]));
-            priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel() - 1]  - Config.quanLow[researchProposal.ware.getLevel() - 1]));
-            priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel()]     - Config.quanMid[researchProposal.ware.getLevel()]));
-            priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel() - 1] - Config.quanMid[researchProposal.ware.getLevel() - 1]));
+            priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel()]      - Config.quanDeficient[researchProposal.ware.getLevel()]));
+            priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]  - Config.quanDeficient[researchProposal.ware.getLevel() - 1]));
+            priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]        - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
+            priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() - 1]    - Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]));
             consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
                          .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
                          .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
-            if (researchProposal.ware.getQuantity() < Config.quanMid[researchProposal.ware.getLevel() - 1])
-               consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanMid[researchProposal.ware.getLevel() - 1]);
+            if (researchProposal.ware.getQuantity() < Config.quanEquilibrium[researchProposal.ware.getLevel() - 1])
+               consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]);
 
             Config.commandInterface.printToUser(playerID, consoleOutput.toString());
             researchProposals.put(playerID, researchProposal);
@@ -1232,16 +1232,16 @@ public class CommandProcessor
             else
                consoleOutput.append(researchProposal.wareID);
 
-            priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel()]      - Config.quanLow[researchProposal.ware.getLevel()]));
-            priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel() - 1]  - Config.quanLow[researchProposal.ware.getLevel() - 1]));
-            priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel()]     - Config.quanMid[researchProposal.ware.getLevel()]));
-            priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel() - 1] - Config.quanMid[researchProposal.ware.getLevel() - 1]));
+            priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel()]      - Config.quanDeficient[researchProposal.ware.getLevel()]));
+            priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]  - Config.quanDeficient[researchProposal.ware.getLevel() - 1]));
+            priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]        - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
+            priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() - 1]    - Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]));
             consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
                          .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
                          .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
-            if (researchProposal.ware.getQuantity() < Config.quanMid[researchProposal.ware.getLevel() - 1])
-               consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanMid[researchProposal.ware.getLevel() - 1]);
+            if (researchProposal.ware.getQuantity() < Config.quanEquilibrium[researchProposal.ware.getLevel() - 1])
+               consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]);
 
             Config.commandInterface.printToUser(playerID, consoleOutput.toString());
             researchProposals.put(playerID, researchProposal);
@@ -1274,15 +1274,15 @@ public class CommandProcessor
       else
          consoleOutput.append(researchProposal.wareID);
 
-      priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel() + 1]      - Config.quanLow[researchProposal.ware.getLevel() + 1]));
-      priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanMid[researchProposal.ware.getLevel()]  - Config.quanLow[researchProposal.ware.getLevel()]));
-      priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel() + 1]     - Config.quanMid[researchProposal.ware.getLevel() + 1]));
-      priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanHigh[researchProposal.ware.getLevel()] - Config.quanMid[researchProposal.ware.getLevel()]));
+      priceFluctSurplusOld  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel() + 1] - Config.quanDeficient[researchProposal.ware.getLevel() + 1]));
+      priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel()]     - Config.quanDeficient[researchProposal.ware.getLevel()]));
+      priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() + 1]   - Config.quanEquilibrium[researchProposal.ware.getLevel() + 1]));
+      priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]       - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
       consoleOutput.append(CommandEconomy.MSG_RESEARCH_SUCCESS)
                    .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
                    .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
-      if (Config.quanMid[researchProposal.ware.getLevel()] == researchProposal.ware.getQuantity())
+      if (Config.quanEquilibrium[researchProposal.ware.getLevel()] == researchProposal.ware.getQuantity())
          consoleOutput.append("\n   new quantity available for sale: ").append(researchProposal.ware.getQuantity());
 
       Config.commandInterface.printToUser(playerID, consoleOutput.toString());
@@ -1558,11 +1558,11 @@ public class CommandProcessor
 
       // find where to set stock to
       if (args[1].equalsIgnoreCase(CommandEconomy.CHANGE_STOCK_EQUILIBRIUM))
-         quantity = Config.quanMid[ware.getLevel()];
+         quantity = Config.quanEquilibrium[ware.getLevel()];
       else if (args[1].equalsIgnoreCase(CommandEconomy.CHANGE_STOCK_OVERSTOCKED))
-         quantity = Config.quanHigh[ware.getLevel()];
+         quantity = Config.quanExcessive[ware.getLevel()];
       else if (args[1].equalsIgnoreCase(CommandEconomy.CHANGE_STOCK_UNDERSTOCKED))
-         quantity = Config.quanLow[ware.getLevel()];
+         quantity = Config.quanDeficient[ware.getLevel()];
       else {
          try {
             quantity = Integer.parseInt(args[1]) + ware.getQuantity();
@@ -1665,7 +1665,7 @@ public class CommandProcessor
          return null;
       }
 
-      if (ware.getQuantity() >= Config.quanHigh[ware.getLevel()]) {
+      if (ware.getQuantity() >= Config.quanExcessive[ware.getLevel()]) {
          if (HAS_ALIAS)
             Config.commandInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_QUAN_HIGH);
          else

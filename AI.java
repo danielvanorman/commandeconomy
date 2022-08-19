@@ -120,7 +120,7 @@ public class AI {
 
       // calculate change amounts
       for (int i = 0; i < 6; i++)
-         tradeQuantities[i]  = (int) (Config.aiTradeQuantityPercent * Config.quanMid[i]);
+         tradeQuantities[i]  = (int) (Config.aiTradeQuantityPercent * Config.quanEquilibrium[i]);
    }
 
    /**
@@ -701,7 +701,7 @@ public class AI {
             // if a quantity ceiling should be enforced,
             // check whether the ware's quantity is at or past the ceiling
             if (Config.noGarbageDisposing &&
-                (((!(ware instanceof WareLinked)) && ware.getQuantity() >= Config.quanHigh[ware.getLevel()] - 1) ||
+                (((!(ware instanceof WareLinked)) && ware.getQuantity() >= Config.quanExcessive[ware.getLevel()] - 1) ||
                  ((ware instanceof WareLinked) && ware.getQuantity() >= ((WareLinked) ware).getQuanWhenReachedPriceFloor())))
                continue;
 

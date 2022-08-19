@@ -770,10 +770,10 @@ public final class TestSuite
 
       Config.accountMaxCreatedByIndividual = -1;
 
-      Config.startQuanBase = new int[]{ 256, 128,  64,  32, 16,  8};
-      Config.quanHigh      = new int[]{1024, 512, 256, 128, 64, 32};
-      Config.quanMid       = new int[]{ 256, 128,  64,  32, 16,  8};
-      Config.quanLow       = new int[]{ 128,  64,  32,  16,  8,  4};
+      Config.startQuanBase   = new int[]{ 256, 128,  64,  32, 16,  8};
+      Config.quanExcessive   = new int[]{1024, 512, 256, 128, 64, 32};
+      Config.quanEquilibrium = new int[]{ 256, 128,  64,  32, 16,  8};
+      Config.quanDeficient   = new int[]{ 128,  64,  32,  16,  8,  4};
 
       Config.crossWorldMarketplace = true;
       Config.disableAutoSaving     = true;
@@ -2044,7 +2044,7 @@ public final class TestSuite
     */
    private static boolean testerBuyTransActFee(Ware ware, int quantityToTrade,
                                              float transactionFeesAmount, int testNumber) {
-      return testerTradeTransActFee(ware, Config.quanMid[ware.getLevel()], 0, quantityToTrade,
+      return testerTradeTransActFee(ware, Config.quanEquilibrium[ware.getLevel()], 0, quantityToTrade,
                                     transactionFeesAmount, 10000.0f, testNumber, false, true);
    }
 
@@ -2080,7 +2080,7 @@ public final class TestSuite
 
       // set up test conditions
       Config.transactionFeeBuying = transactionFeesAmount;
-      ware.setQuantity(Config.quanMid[ware.getLevel()]);
+      ware.setQuantity(Config.quanEquilibrium[ware.getLevel()]);
       account = Account.getAccount(Config.transactionFeesAccount);
       if (account != null) // account may be created upon collecting transaction fees
          account.setMoney(accountMoney);
@@ -2398,7 +2398,7 @@ public final class TestSuite
     */
    private static boolean testerSellTransActFee(Ware ware, int quantityToTrade,
                                               float transactionFeesAmount, int testNumber) {
-      return testerTradeTransActFee(ware, Config.quanMid[ware.getLevel()], Config.quanMid[ware.getLevel()], quantityToTrade,
+      return testerTradeTransActFee(ware, Config.quanEquilibrium[ware.getLevel()], Config.quanEquilibrium[ware.getLevel()], quantityToTrade,
                                     transactionFeesAmount, 1000.0f, testNumber, false, false);
    }
 
@@ -2542,7 +2542,7 @@ public final class TestSuite
 
       // set up test conditions
       Config.transactionFeeSelling = transactionFeesAmount;
-      ware.setQuantity(Config.quanMid[ware.getLevel()]);
+      ware.setQuantity(Config.quanEquilibrium[ware.getLevel()]);
       account = Account.getAccount(Config.transactionFeesAccount);
       if (account != null) // account may be created upon collecting transaction fees
          account.setMoney(accountMoney);
@@ -2695,7 +2695,7 @@ public final class TestSuite
 
       // set up wares' conditions and test oracles
       if (ware1 != null) {
-         quantityWare1 = Config.quanMid[ware1.getLevel()];
+         quantityWare1 = Config.quanEquilibrium[ware1.getLevel()];
          ware1.setQuantity(quantityWare1);
          inventory.put(ware1.getWareID(), quantityToTrade1);
 
@@ -2710,7 +2710,7 @@ public final class TestSuite
          }
       }
       if (ware2 != null) {
-         quantityWare2 = Config.quanMid[ware2.getLevel()];
+         quantityWare2 = Config.quanEquilibrium[ware2.getLevel()];
          ware2.setQuantity(quantityWare2);
          inventory.put(ware2.getWareID(), quantityToTrade2);
 
@@ -2725,7 +2725,7 @@ public final class TestSuite
          }
       }
       if (ware3 != null) {
-         quantityWare3 = Config.quanMid[ware3.getLevel()];
+         quantityWare3 = Config.quanEquilibrium[ware3.getLevel()];
          ware3.setQuantity(quantityWare3);
          inventory.put(ware3.getWareID(), quantityToTrade3);
 
@@ -2972,7 +2972,7 @@ public final class TestSuite
       // set up wares
       Config.chargeTransactionFees = false; // calculate transaction price and fee separately
       if (ware1 != null) {
-         quantityWare1 = Config.quanMid[ware1.getLevel()];
+         quantityWare1 = Config.quanEquilibrium[ware1.getLevel()];
          ware1.setQuantity(quantityWare1);
          InterfaceTerminal.inventory.put(ware1.getWareID(), quantityToTrade1);
 
@@ -2986,7 +2986,7 @@ public final class TestSuite
          }
       }
       if (ware2 != null) {
-         quantityWare2 = Config.quanMid[ware2.getLevel()];
+         quantityWare2 = Config.quanEquilibrium[ware2.getLevel()];
          ware2.setQuantity(quantityWare2);
          InterfaceTerminal.inventory.put(ware2.getWareID(), quantityToTrade2);
 
@@ -3000,7 +3000,7 @@ public final class TestSuite
          }
       }
       if (ware3 != null) {
-         quantityWare3 = Config.quanMid[ware3.getLevel()];
+         quantityWare3 = Config.quanEquilibrium[ware3.getLevel()];
          ware3.setQuantity(quantityWare3);
          InterfaceTerminal.inventory.put(ware3.getWareID(), quantityToTrade3);
 
@@ -3152,13 +3152,13 @@ public final class TestSuite
       // set up wares
       Config.chargeTransactionFees = false; // calculate transaction price and fee separately
       if (ware1 != null) {
-         quantityWare1 = Config.quanMid[ware1.getLevel()];
+         quantityWare1 = Config.quanEquilibrium[ware1.getLevel()];
          ware1.setQuantity(quantityWare1);
          InterfaceTerminal.inventory.put(ware1.getWareID(), quantityToTrade1);
          price1       = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade1, false);
       }
       if (ware2 != null) {
-         quantityWare2 = Config.quanMid[ware2.getLevel()];
+         quantityWare2 = Config.quanEquilibrium[ware2.getLevel()];
          ware2.setQuantity(quantityWare2);
          InterfaceTerminal.inventory.put(ware2.getWareID(), quantityToTrade2);
          price2       = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade2, false);
@@ -3408,17 +3408,17 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("loadConfig() - defaults");
-         if (Config.quanLow[0] != 4096 ||
-             Config.quanLow[1] != 2048 ||
-             Config.quanLow[2] != 1536 ||
-             Config.quanLow[3] != 1024 ||
-             Config.quanLow[4] !=  768 ||
-             Config.quanLow[5] !=  512) {
+         if (Config.quanDeficient[0] != 4096 ||
+             Config.quanDeficient[1] != 2048 ||
+             Config.quanDeficient[2] != 1536 ||
+             Config.quanDeficient[3] != 1024 ||
+             Config.quanDeficient[4] !=  768 ||
+             Config.quanDeficient[5] !=  512) {
             errorFound = true;
-            TEST_OUTPUT.println("   quanLow has unexpected values:\n   " +
-                               Config.quanLow[0] + ", " + Config.quanLow[1] + ", " +
-                               Config.quanLow[2] + ", " + Config.quanLow[3] + ", " +
-                               Config.quanLow[4] + ", " + Config.quanLow[5] +
+            TEST_OUTPUT.println("   quanDeficient has unexpected values:\n   " +
+                               Config.quanDeficient[0] + ", " + Config.quanDeficient[1] + ", " +
+                               Config.quanDeficient[2] + ", " + Config.quanDeficient[3] + ", " +
+                               Config.quanDeficient[4] + ", " + Config.quanDeficient[5] +
                                "\n   should be: 4096, 2048, 1536, 1024, 768, 512");
          }
 
@@ -3448,7 +3448,7 @@ public final class TestSuite
          // write test wares file
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
-            "quanLow              = 1024, 512, 256, 128, 64, 32\n" +
+            "quanDeficient              = 1024, 512, 256, 128, 64, 32\n" +
             "startQuanSpread      = 16.0\n" +
             "priceBuyUpchargeMult = 786.0\n" +
             "accountStartingMoney = 256.0\n" +
@@ -3477,17 +3477,17 @@ public final class TestSuite
       // check configuration values
       try {
          TEST_OUTPUT.println("loadConfig() - changed differences");
-         if (Config.quanLow[0] != 1024 ||
-             Config.quanLow[1] !=  512 ||
-             Config.quanLow[2] !=  256 ||
-             Config.quanLow[3] !=  128 ||
-             Config.quanLow[4] !=   64 ||
-             Config.quanLow[5] !=   32) {
+         if (Config.quanDeficient[0] != 1024 ||
+             Config.quanDeficient[1] !=  512 ||
+             Config.quanDeficient[2] !=  256 ||
+             Config.quanDeficient[3] !=  128 ||
+             Config.quanDeficient[4] !=   64 ||
+             Config.quanDeficient[5] !=   32) {
             errorFound = true;
-            TEST_OUTPUT.println("   quanLow has unexpected values:\n   " +
-                               Config.quanLow[0] + ", " + Config.quanLow[1] + ", " +
-                               Config.quanLow[2] + ", " + Config.quanLow[3] + ", " +
-                               Config.quanLow[4] + ", " + Config.quanLow[5] +
+            TEST_OUTPUT.println("   quanDeficient has unexpected values:\n   " +
+                               Config.quanDeficient[0] + ", " + Config.quanDeficient[1] + ", " +
+                               Config.quanDeficient[2] + ", " + Config.quanDeficient[3] + ", " +
+                               Config.quanDeficient[4] + ", " + Config.quanDeficient[5] +
                                "\n   should be: 1024, 512, 256, 128, 64, 32");
          }
 
@@ -6381,7 +6381,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("default accounts - buying");
          quantityToTrade = 5;
-         quantityWare    = Config.quanMid[testWare1.getLevel()];
+         quantityWare    = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(playerID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
@@ -7201,11 +7201,11 @@ public final class TestSuite
          Config.priceSpread        =  1.0f;
          Config.priceFloor         = -1.0f;
          Config.priceFloorAdjusted =  2.0f;
-         double quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
+         double quanCeilingFromEquilibrium = Config.quanExcessive[testWare1.getLevel()] - Config.quanEquilibrium[testWare1.getLevel()];
 
          TEST_OUTPUT.println("getPrice() - negative prices, at -100% cost");
          expectedPrice = testWare1.getBasePrice() * Config.priceFloor;
-         quantity      = Config.quanHigh[testWare1.getLevel()];
+         quantity      = Config.quanExcessive[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
@@ -7216,7 +7216,7 @@ public final class TestSuite
          }
 
          expectedPrice = testWareP1.getBasePrice() * Config.priceFloor;
-         quantity      = Config.quanHigh[testWareP1.getLevel()];
+         quantity      = Config.quanExcessive[testWareP1.getLevel()];
          testWareP1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
@@ -7228,7 +7228,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - negative prices, at -50% cost");
          expectedPrice = testWare1.getBasePrice() * Config.priceFloor * 0.50f;
-         quantity      = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75) - 1;
+         quantity      = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75) - 1;
          testWare1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
@@ -7239,7 +7239,7 @@ public final class TestSuite
          }
 
          expectedPrice = testWareP1.getBasePrice() * Config.priceFloor * 0.50f;
-         quantity      = Config.quanMid[testWareP1.getLevel()] + (int) ((Config.quanHigh[testWareP1.getLevel()] - Config.quanMid[testWareP1.getLevel()]) * 0.75) - 1;
+         quantity      = Config.quanEquilibrium[testWareP1.getLevel()] + (int) ((Config.quanExcessive[testWareP1.getLevel()] - Config.quanEquilibrium[testWareP1.getLevel()]) * 0.75) - 1;
          testWareP1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
@@ -7251,7 +7251,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - negative prices, at no cost");
          expectedPrice = 0.0f;
-         quantity      = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.5) - 1;
+         quantity      = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.5) - 1;
          testWare1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
@@ -7262,7 +7262,7 @@ public final class TestSuite
          }
 
          expectedPrice = 0.0f;
-         quantity      = Config.quanMid[testWareC1.getLevel()] + (int) ((Config.quanHigh[testWareC1.getLevel()] - Config.quanMid[testWareC1.getLevel()]) * 0.5) - 1;
+         quantity      = Config.quanEquilibrium[testWareC1.getLevel()] + (int) ((Config.quanExcessive[testWareC1.getLevel()] - Config.quanEquilibrium[testWareC1.getLevel()]) * 0.5) - 1;
          testWareC1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
@@ -7274,7 +7274,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - negative prices, at 50% cost");
          expectedPrice = testWare1.getBasePrice() * Config.priceFloor * -0.50f;
-         quantity      = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25) - 1;
+         quantity      = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25) - 1;
          testWare1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
@@ -7285,7 +7285,7 @@ public final class TestSuite
          }
 
          expectedPrice = testWareP2.getBasePrice() * Config.priceFloor * -0.50f;
-         quantity      = Config.quanMid[testWareP2.getLevel()] + (int) ((Config.quanHigh[testWareP2.getLevel()] - Config.quanMid[testWareP2.getLevel()]) * 0.25) - 1;
+         quantity      = Config.quanEquilibrium[testWareP2.getLevel()] + (int) ((Config.quanExcessive[testWareP2.getLevel()] - Config.quanEquilibrium[testWareP2.getLevel()]) * 0.25) - 1;
          testWareP2.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed2", 0, false);
@@ -7297,7 +7297,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - negative prices, at equilibrium");
          expectedPrice = testWare1.getBasePrice();
-         quantity      = Config.quanMid[testWare1.getLevel()];
+         quantity      = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
@@ -7308,7 +7308,7 @@ public final class TestSuite
          }
 
          expectedPrice = testWareC2.getBasePrice();
-         quantity      = Config.quanMid[testWareC2.getLevel()];
+         quantity      = Config.quanEquilibrium[testWareC2.getLevel()];
          testWareC2.setQuantity(quantity);
 
          currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted2", 0, false);
@@ -7454,50 +7454,50 @@ public final class TestSuite
          resetTestEnvironment();
          Config.priceFloor         = -1.0f;
          Config.priceFloorAdjusted =  2.0f;
-         float quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
+         float quanCeilingFromEquilibrium = Config.quanExcessive[testWare1.getLevel()] - Config.quanEquilibrium[testWare1.getLevel()];
 
          TEST_OUTPUT.println("check() - negative prices, at -100% cost");
-         testWare1.setQuantity(Config.quanHigh[testWare1.getLevel()]);
+         testWare1.setQuantity(Config.quanExcessive[testWare1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
                                    1.0f, 1, false);
 
-         testWareP1.setQuantity(Config.quanHigh[testWareP1.getLevel()]);
+         testWareP1.setQuantity(Config.quanExcessive[testWareP1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareP1, 1, null,
                                    1.0f, 2, false);
 
          TEST_OUTPUT.println("check() - negative prices, at -50% cost");
-         testWareP1.setQuantity(Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f) - 1);
+         testWareP1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
                                    1.0f, 1, false);
 
-         testWareC2.setQuantity(Config.quanMid[testWareC2.getLevel()] + (int) ((Config.quanHigh[testWareC2.getLevel()] - Config.quanMid[testWareC2.getLevel()]) * 0.75f) - 1);
+         testWareC2.setQuantity(Config.quanEquilibrium[testWareC2.getLevel()] + (int) ((Config.quanExcessive[testWareC2.getLevel()] - Config.quanEquilibrium[testWareC2.getLevel()]) * 0.75f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareC2, 1, null,
                                    1.0f, 2, false);
 
          TEST_OUTPUT.println("check() - negative prices, at no cost");
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f) - 1);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
                                    1.0f, 1, false);
 
-         testWareP2.setQuantity(Config.quanMid[testWareP2.getLevel()] + (int) ((Config.quanHigh[testWareP2.getLevel()] - Config.quanMid[testWareP2.getLevel()]) * 0.50f) - 1);
+         testWareP2.setQuantity(Config.quanEquilibrium[testWareP2.getLevel()] + (int) ((Config.quanExcessive[testWareP2.getLevel()] - Config.quanEquilibrium[testWareP2.getLevel()]) * 0.50f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareP2, 1, null,
                                    1.0f, 2, false);
 
          TEST_OUTPUT.println("check() - negative prices, at 50% cost");
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f) - 1);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
                                    1.0f, 1, false);
 
-         testWareC1.setQuantity(Config.quanMid[testWareC1.getLevel()] + (int) ((Config.quanHigh[testWareC1.getLevel()] - Config.quanMid[testWareC1.getLevel()]) * 0.25f) - 1);
+         testWareC1.setQuantity(Config.quanEquilibrium[testWareC1.getLevel()] + (int) ((Config.quanExcessive[testWareC1.getLevel()] - Config.quanEquilibrium[testWareC1.getLevel()]) * 0.25f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareC1, 1, null,
                                    1.0f, 1, false);
 
          TEST_OUTPUT.println("check() - negative prices, at equilibrium");
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()]);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
                                    1.0f, 1, false);
 
-         testWareC1.setQuantity(Config.quanMid[testWareC1.getLevel()]);
+         testWareC1.setQuantity(Config.quanEquilibrium[testWareC1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareC1, 1, null,
                                    1.0f, 1, false);
 
@@ -7680,19 +7680,19 @@ public final class TestSuite
       try {
          TEST_OUTPUT.println("buy() - null account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 1, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 1, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - empty account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 1, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 1, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - invalid account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "invalidAccount", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 1, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 1, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - using account without permission");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount4", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 1, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 1, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - null ware ID");
          quantityToTrade = 1;
@@ -7740,11 +7740,11 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - buying no quantity of ware");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 0, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 0, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - buying negative quantity of ware");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, -1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, -1, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - buying out-of-stock ware");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, Float.NaN,
@@ -7754,52 +7754,52 @@ public final class TestSuite
          int inventorySpaceOrig = InterfaceTerminal.inventorySpace;
          InterfaceTerminal.inventorySpace = 0; // maximum inventory space is no inventory
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 1, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 1, 0, false, true, false);
          InterfaceTerminal.inventorySpace = inventorySpaceOrig; // reset maximum inventory space
 
          TEST_OUTPUT.println("buy() - buying without any money");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, 0.0f,
-                                   Config.quanMid[testWare1.getLevel()], 0, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 1, 0, false, true, false);
          resetTestEnvironment();
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad4) overstocked to overstocked");
          Config.priceFloor = 0.1f;
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, 10.0f,
-                                   Config.quanHigh[testWare1.getLevel()] * 2, 100, 200, 0, false, true, false);
+                                   Config.quanExcessive[testWare1.getLevel()] * 2, 100, 200, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad3), overstocked to above equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, 10.0f,
-                                   Config.quanHigh[testWare1.getLevel()] + 10, 128, 200, 0, false, true, false);
+                                   Config.quanExcessive[testWare1.getLevel()] + 10, 128, 200, 0, false, true, false);
          InterfaceTerminal.inventory.clear();
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad2), overstocked to below equilibrium");
-         testWare1.setQuantity(Config.quanHigh[testWare1.getLevel()] + 10);
+         testWare1.setQuantity(Config.quanExcessive[testWare1.getLevel()] + 10);
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 832, true) + testWare1.getBasePrice() / 2,
-                                   Config.quanHigh[testWare1.getLevel()] + 10, 832, 999, 0, false, true, false);
+                                   Config.quanExcessive[testWare1.getLevel()] + 10, 832, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad1), overstocked to understocked");
-         testWare1.setQuantity(Config.quanHigh[testWare1.getLevel()] + 10);
+         testWare1.setQuantity(Config.quanExcessive[testWare1.getLevel()] + 10);
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 934, true) + testWare1.getBasePrice() / 2,
-                                   Config.quanHigh[testWare1.getLevel()] + 10, 934, 999, 0, false, true, false);
+                                   Config.quanExcessive[testWare1.getLevel()] + 10, 934, 999, 0, false, true, false);
          Config.priceFloor = 0.0f;
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad3), above equilibrium to above equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, 10.0f,
-                                   Config.quanMid[testWare1.getLevel()] * 2, 14, 20, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()] * 2, 14, 20, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad2), above equilibrium to below equilibrium");
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()] * 2);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", Config.quanMid[testWare1.getLevel()] * 2 - Config.quanLow[testWare1.getLevel()] - 10, true) + testWare1.getBasePrice(),
-                                   Config.quanMid[testWare1.getLevel()] * 2, Config.quanMid[testWare1.getLevel()] * 2 - Config.quanLow[testWare1.getLevel()] - 10, 999, 0, false, true, false);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()] * 2);
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", Config.quanEquilibrium[testWare1.getLevel()] * 2 - Config.quanDeficient[testWare1.getLevel()] - 10, true) + testWare1.getBasePrice(),
+                                   Config.quanEquilibrium[testWare1.getLevel()] * 2, Config.quanEquilibrium[testWare1.getLevel()] * 2 - Config.quanDeficient[testWare1.getLevel()] - 10, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad1), above equilibrium to understocked");
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()] * 2);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()] * 2);
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 448, true) + testWare1.getBasePrice(),
-                                   Config.quanMid[testWare1.getLevel()] * 2, 448, 999, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()] * 2, 448, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - (equil to quad2) equilibrium to below equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", 1.0f,
-                                   Config.quanMid[testWare1.getLevel()], 1, 999, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 999, 0, false, true, false);
          resetTestEnvironment();
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad2 to quad2), below equilibrium to below equilibrium");
@@ -7812,32 +7812,32 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad2 to quad1), below equilibrium to understocked");
          testWare1.setQuantity(192);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 192 - Config.quanLow[testWare1.getLevel()] + 20, true) + testWare1.getBasePrice(),
-                                   192, 192 - Config.quanLow[testWare1.getLevel()] + 20, 999, 0, false, true, false);
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 192 - Config.quanDeficient[testWare1.getLevel()] + 20, true) + testWare1.getBasePrice(),
+                                   192, 192 - Config.quanDeficient[testWare1.getLevel()] + 20, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad1 to quad1), understocked to understocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", 10.0f,
-                                   Config.quanMid[testWare1.getLevel()] / 3, 5, 999, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()] / 3, 5, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - buying some of a ware with means to buy more");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 8, 8, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 8, 8, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - buying-out ware by ordering more than is available");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare1.getLevel()], 1000, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWare1.getLevel()], 1000, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - buying ware with max price acceptable being NaN");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, Float.toString(Float.NaN), Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 1, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - buying ware with max price acceptable being too low");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "0.1", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 1, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 1, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - buying ware with max price acceptable being high");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 5, 5, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 5, 5, 0, false, true, false);
 
          // Effects of scarcity and price ceilings are not tested here
          // since those tests are more appropriate in Marketplace.getPrice().
@@ -7881,28 +7881,28 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - invalid coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, "invalidCoordinates", testWare1, "testAccount1", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 5, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 5, 0, false, true, false);
          resetTestEnvironment();
 
          TEST_OUTPUT.println("buy() - valid coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, CommandEconomy.INVENTORY_NORTH, testWare1, "testAccount1", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 5, 5, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 5, 5, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - zeroed coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, CommandEconomy.INVENTORY_NONE, testWare1, "testAccount1", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 5, 5, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 5, 5, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - null username");
          errorFound |= testerTrade(null, null, testWare1, "testAccount4", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 3, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 3, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - empty username");
          errorFound |= testerTrade("", null, testWare1, null, null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 3, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 3, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - different username");
          errorFound |= testerTrade("possibleID", null, testWare1, "testAccount3", null, "100.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 20, 20, 0, false, true, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 20, 20, 0, false, true, false);
 
          // buy ware_id quantity [max_unit_price] [account_id]
          TEST_OUTPUT.println("buy() - request: null input");
@@ -8002,16 +8002,16 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: valid price");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - request: valid account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount2", null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10,
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10,
                                    0, false, true, true);
 
          TEST_OUTPUT.println("buy() - request: valid price and account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount2", null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10,
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10,
                                    0, false, true, true);
 
          TEST_OUTPUT.println("buy() - request: referencing ware using alias");
@@ -8224,30 +8224,30 @@ public final class TestSuite
          resetTestEnvironment();
          Config.priceFloor         = -1.0f;
          Config.priceFloorAdjusted =  2.0f;
-         float quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
+         float quanCeilingFromEquilibrium = Config.quanExcessive[testWare1.getLevel()] - Config.quanEquilibrium[testWare1.getLevel()];
 
          TEST_OUTPUT.println("buy() - negative prices, at -100% cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Float.NaN,
-                                   Config.quanHigh[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanExcessive[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - negative prices, at -50% cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f),
+                                   Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f),
                                    20, 20, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - negative prices, at no cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f),
+                                   Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f),
                                    5, 5, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - negative prices, at 50% cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f),
+                                   Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f),
                                    5, 5, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - negative prices, at equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 9, 9, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 9, 9, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - negative prices, overbuying");
          resetTestEnvironment();
@@ -8255,7 +8255,7 @@ public final class TestSuite
          Config.priceFloorAdjusted =  2.0f;
 
          quantityToTrade = 777;
-         quantityWare    = Config.quanHigh[testWare1.getLevel()];
+         quantityWare    = Config.quanExcessive[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
@@ -8280,19 +8280,19 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad4), overstocked to overstocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "0.0001", Float.NaN,
-                                   Config.quanHigh[testWare1.getLevel()] + 10, 12, 99999, 0, false, true, true);
+                                   Config.quanExcessive[testWare1.getLevel()] + 10, 12, 99999, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad3), overstocked to above equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "0.5", Float.NaN,
-                                   Config.quanHigh[testWare1.getLevel()] + 10, 395, 99999, 0, false, true, true);
+                                   Config.quanExcessive[testWare1.getLevel()] + 10, 395, 99999, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad2), overstocked to below equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "1.5", Float.NaN,
-                                   Config.quanHigh[testWare1.getLevel()] + 10, 843, 99999, 0, false, true, true);
+                                   Config.quanExcessive[testWare1.getLevel()] + 10, 843, 99999, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - acceptable price, (quad4 to quad1), overstocked to understocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "3.0", Float.NaN,
-                                   Config.quanHigh[testWare1.getLevel()] + 10, 1034, 99999, 0, false, true, true);
+                                   Config.quanExcessive[testWare1.getLevel()] + 10, 1034, 99999, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - acceptable price, (quad3 to quad3), above equilibrium to above equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "0.75", Float.NaN,
@@ -8353,19 +8353,19 @@ public final class TestSuite
       try {
          TEST_OUTPUT.println("sell() - null account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 1, 1, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 1, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - empty account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 1, 1, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 1, 1, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - invalid account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "invalidAccount", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 1, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 1, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - using account without permission");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount4", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 1, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 1, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - null ware ID");
          money = testAccount1.getMoney();
@@ -8393,11 +8393,11 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - selling no quantity of ware");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 100, 0, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 100, 0, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - selling negative quantity of ware");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, -1, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, -1, 0, false, false, false);
          resetTestEnvironment();
 
          TEST_OUTPUT.println("sell() - selling ware player does not have");
@@ -8443,16 +8443,16 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - selling ware with min price acceptable being NaN");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWareP1, "testAccount1", null, Float.toString(Float.NaN), Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - selling ware with min price acceptable being too high");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, false);
          resetTestEnvironment();
 
          TEST_OUTPUT.println("sell() - selling ware with min price acceptable being low");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "0.1", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 5, 5, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 5, 5, 0, false, false, false);
          resetTestEnvironment();
 
          // Effects of surplus and price floors are not tested here
@@ -8476,33 +8476,33 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - null coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 5, 5, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 5, 5, 0, false, false, false);
 
          resetTestEnvironment();
 
          TEST_OUTPUT.println("sell() - invalid coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, "invalidCoordinates", testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 5, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 5, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - valid coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, CommandEconomy.INVENTORY_EAST, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 5, 5, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 5, 5, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - zeroed coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, CommandEconomy.INVENTORY_NONE, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 5, 5, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 5, 5, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - null username");
          errorFound |= testerTrade(null, null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 5, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 5, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - empty username");
          errorFound |= testerTrade("", null, testWare1, "testAccount1", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 5, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 5, 0, false, false, false);
 
          TEST_OUTPUT.println("sell() - different username");
          errorFound |= testerTrade("possibleID", null, testWare1, "testAccount3", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 20, 20, 0, false, false, false);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 20, 20, 0, false, false, false);
 
          // sell ware_id [quantity] [min_unit_price] [account_id]
          TEST_OUTPUT.println("sell() - request: null input");
@@ -8566,28 +8566,28 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - request: invalid price");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "invalidPrice", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: invalid account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "invalidAccount", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: minimum args");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: valid price");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "0.1", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: valid account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount2", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
          resetTestEnvironment();
 
          TEST_OUTPUT.println("sell() - request: valid price and account ID");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount2", null, "0.1", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: referencing ware using alias");
          InterfaceTerminal.inventory.put("minecraft:material4", 100);
@@ -8616,59 +8616,59 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - request: invalid coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, "invalidCoordinates", testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: valid coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, CommandEconomy.INVENTORY_UP, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: zeroed coordinates");
          errorFound |= testerTrade(InterfaceTerminal.playername, CommandEconomy.INVENTORY_NONE, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: null username");
          errorFound |= testerTrade(null, CommandEconomy.INVENTORY_NONE, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: empty username");
          errorFound |= testerTrade("", CommandEconomy.INVENTORY_NONE, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - request: different username");
          errorFound |= testerTrade("possibleID", CommandEconomy.INVENTORY_NONE, testWare1, "testAccount3", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 20, 20, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 20, 20, 0, false, false, true);
 
          // The Terminal interface cannot test selling wares using Forge OreDictionary names
          // since its wares do not use Forge OreDictionary names.
 
          TEST_OUTPUT.println("sell() - request: admin account");
          errorFound |= testerTrade(InterfaceTerminal.playername, CommandEconomy.INVENTORY_NONE, testWare1, "$admin$", null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          // prepare for next tests
          Config.priceFloor         = -1.0f;
          Config.priceFloorAdjusted =  2.0f;
-         float quanCeilingFromEquilibrium = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
+         float quanCeilingFromEquilibrium = Config.quanExcessive[testWare1.getLevel()] - Config.quanEquilibrium[testWare1.getLevel()];
 
          TEST_OUTPUT.println("sell() - negative prices, at -100% cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", Float.NaN,
-                                   Config.quanHigh[testWare1.getLevel()], 5, 5, 0, false, false, true);
+                                   Config.quanExcessive[testWare1.getLevel()], 5, 5, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, at -50% cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f), 5, 5, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f), 5, 5, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, at no cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-3.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f), 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f), 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, at 50% cost");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-3.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f), 15, 15, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f), 15, 15, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, at equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-3.0", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          /*
          These commented-out tests check whether paying to get rid of undesirable wares
@@ -8678,35 +8678,35 @@ public final class TestSuite
          /*
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad4 to quad4) overstocked to overstocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 30.0f,
-                                   Config.quanHigh[testWare1.getLevel()], 30, 9999, 0, false, false, true);
+                                   Config.quanExcessive[testWare1.getLevel()], 30, 9999, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad3 to quad4) above equilibrium to overstocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 30.0f,
-                                   Config.quanHigh[testWare1.getLevel()] - 20, 30, 9999, 0, false, false, true);
+                                   Config.quanExcessive[testWare1.getLevel()] - 20, 30, 9999, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad3 to quad3) above equilibrium to above equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 30.0f,
-                                   Config.quanHigh[testWare1.getLevel()] - 300, 89, 9999, 0, false, false, true);
+                                   Config.quanExcessive[testWare1.getLevel()] - 300, 89, 9999, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad3 to quad4) above equilibrium to overstocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 203.0f,
-                                   Config.quanMid[testWare1.getLevel()] + 10, 768, 9999, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()] + 10, 768, 9999, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad2 to quad3) below equilibrium to above equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 30.0f,
-                                   Config.quanMid[testWare1.getLevel()] + 10, 525, 9999, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()] + 10, 525, 9999, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad2 to quad4) below equilibrium to overstocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 203.0f,
-                                   Config.quanLow[testWare1.getLevel()] + 10, 906, 9999, 0, false, false, true);
+                                   Config.quanDeficient[testWare1.getLevel()] + 10, 906, 9999, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad1 to quad3) understocked to above equilibrium");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 203.0f,
-                                   Config.quanLow[testWare1.getLevel()] - 10, 673, 9999, 0, false, false, true);
+                                   Config.quanDeficient[testWare1.getLevel()] - 10, 673, 9999, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - negative prices, overselling, (quad1 to quad4) understocked to overstocked");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, "-5.0", 203.0f,
-                                   Config.quanLow[testWare1.getLevel()] - 10, 916, 9999, 0, false, false, true);
+                                   Config.quanDeficient[testWare1.getLevel()] - 10, 916, 9999, 0, false, false, true);
          */
 
          // prepare for next tests
@@ -9000,14 +9000,14 @@ public final class TestSuite
          resetTestEnvironment();
          Config.priceFloor         = -1.0f;
          Config.priceFloorAdjusted =  2.0f;
-         float quanCeilingFromEquilibrium1 = Config.quanHigh[testWare1.getLevel()] - Config.quanMid[testWare1.getLevel()];
-         float quanCeilingFromEquilibrium2 = Config.quanHigh[testWareP1.getLevel()] - Config.quanMid[testWareP1.getLevel()];
+         float quanCeilingFromEquilibrium1 = Config.quanExcessive[testWare1.getLevel()] - Config.quanEquilibrium[testWare1.getLevel()];
+         float quanCeilingFromEquilibrium2 = Config.quanExcessive[testWareP1.getLevel()] - Config.quanEquilibrium[testWareP1.getLevel()];
 
          TEST_OUTPUT.println("sellAll() - negative prices, at -100% cost");
          quantityToTrade1 = 10;
-         quantityWare1    = Config.quanHigh[testWare1.getLevel()];
+         quantityWare1    = Config.quanExcessive[testWare1.getLevel()];
          quantityToTrade2 = 10;
-         quantityWare2    = Config.quanHigh[testWareP1.getLevel()];
+         quantityWare2    = Config.quanExcessive[testWareP1.getLevel()];
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
          price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
@@ -9038,9 +9038,9 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sellAll() - negative prices, at -50% cost");
          quantityToTrade1 = 10;
-         quantityWare1    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.75f) - 1;
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.75f) - 1;
          quantityToTrade2 = 10;
-         quantityWare2    = Config.quanMid[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.75f) - 1;
+         quantityWare2    = Config.quanEquilibrium[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.75f) - 1;
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
          price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
@@ -9071,9 +9071,9 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sellAll() - negative prices, at no cost");
          quantityToTrade1 = 10;
-         quantityWare1    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.50f) - 1;
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.50f) - 1;
          quantityToTrade2 = 10;
-         quantityWare2    = Config.quanMid[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.50f) - 1;
+         quantityWare2    = Config.quanEquilibrium[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.50f) - 1;
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
          price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
@@ -9104,9 +9104,9 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sellAll() - negative prices, at 50% cost");
          quantityToTrade1 = 10;
-         quantityWare1    = Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.25f) - 1;
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium1 * 0.25f) - 1;
          quantityToTrade2 = 10;
-         quantityWare2    = Config.quanMid[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.25f) - 1;
+         quantityWare2    = Config.quanEquilibrium[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.25f) - 1;
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
          price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
@@ -11308,7 +11308,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("changeStock() - equilibrium");
          baosOut.reset(); // clear buffer holding console output
-         quantity = Config.quanMid[testWare4.getLevel()];
+         quantity = Config.quanEquilibrium[testWare4.getLevel()];
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"minecraft:material4", "equilibrium"});
          if (!baosOut.toString().startsWith("minecraft:material4's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -11322,7 +11322,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("changeStock() - overstocked");
          baosOut.reset(); // clear buffer holding console output
-         quantity = Config.quanHigh[testWare1.getLevel()];
+         quantity = Config.quanExcessive[testWare1.getLevel()];
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material1", "overstocked"});
          if (!baosOut.toString().startsWith("test:material1's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -11336,7 +11336,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("changeStock() - understocked");
          baosOut.reset(); // clear buffer holding console output
-         quantity = Config.quanLow[testWare3.getLevel()];
+         quantity = Config.quanDeficient[testWare3.getLevel()];
          InterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material3", "understocked"});
          if (!baosOut.toString().startsWith("test:material3's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -11727,8 +11727,8 @@ public final class TestSuite
 
 
          TEST_OUTPUT.println("AI - purchases");
-         quantityToTrade1 = (int) (Config.quanMid[testWare1.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         quantityToTrade1 = (int) (Config.quanEquilibrium[testWare1.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
 
          testAI1.trade(tradesPending);
@@ -11742,10 +11742,10 @@ public final class TestSuite
 
          // testAI2 buys testWare2 and sells testWareC1
          // Since both are at equilibrium, testAI2 should buy before selling.
-         quantityToTrade1 = (int) (Config.quanMid[testWare2.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityToTrade1 = (int) (Config.quanEquilibrium[testWare2.getLevel()] * Config.aiTradeQuantityPercent);
          quantityToTrade2 = 0;
-         quantityWare1    = Config.quanMid[testWare2.getLevel()];
-         quantityWare2    = Config.quanMid[testWareC1.getLevel()];
+         quantityWare1    = Config.quanEquilibrium[testWare2.getLevel()];
+         quantityWare2    = Config.quanEquilibrium[testWareC1.getLevel()];
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
@@ -11763,9 +11763,9 @@ public final class TestSuite
 
          TEST_OUTPUT.println("AI - sales");
          quantityToTrade1 = 0;
-         quantityToTrade2 = (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityToTrade2 = (int) (Config.quanEquilibrium[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
          quantityWare1    = 0; // overstock to avoid selling anything
-         quantityWare2    = Config.quanMid[testWareC1.getLevel()];
+         quantityWare2    = Config.quanEquilibrium[testWareC1.getLevel()];
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
@@ -11783,10 +11783,10 @@ public final class TestSuite
 
          quantityToTrade1 = 0;
          quantityToTrade2 = 0;
-         quantityToTrade3 = (int) (Config.quanMid[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityToTrade3 = (int) (Config.quanEquilibrium[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
          quantityWare1    = 0; // nothing to buy means don't buy anything
          quantityWare2    = 0;
-         quantityWare3    = Config.quanMid[testWareC2.getLevel()];
+         quantityWare3    = Config.quanEquilibrium[testWareC2.getLevel()];
          testWare1.setQuantity(quantityWare1);
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
@@ -11809,9 +11809,9 @@ public final class TestSuite
 
          TEST_OUTPUT.println("AI - trade decisions, supply and demand");
          quantityToTrade1 = 0;
-         quantityToTrade2 = (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = Config.quanMid[testWare2.getLevel()];
-         quantityWare2    = Config.quanMid[testWareC1.getLevel()] - quantityToTrade2; // lower supply to encourage selling
+         quantityToTrade2 = (int) (Config.quanEquilibrium[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = Config.quanEquilibrium[testWare2.getLevel()];
+         quantityWare2    = Config.quanEquilibrium[testWareC1.getLevel()] - quantityToTrade2; // lower supply to encourage selling
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
@@ -11827,10 +11827,10 @@ public final class TestSuite
             errorFound = true;
          }
 
-         quantityToTrade1 = (int) (Config.quanMid[testWare2.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityToTrade1 = (int) (Config.quanEquilibrium[testWare2.getLevel()] * Config.aiTradeQuantityPercent);
          quantityToTrade2 = 0;
-         quantityWare1    = Config.quanMid[testWare2.getLevel()] + (quantityToTrade1 * 5); // raise supply to increase demand
-         quantityWare2    = Config.quanMid[testWareC1.getLevel()] - (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent); // lower supply, but not enough to encourage selling; comparatively, scarity raises prices more than surplus lowers them
+         quantityWare1    = Config.quanEquilibrium[testWare2.getLevel()] + (quantityToTrade1 * 5); // raise supply to increase demand
+         quantityWare2    = Config.quanEquilibrium[testWareC1.getLevel()] - (int) (Config.quanEquilibrium[testWareC1.getLevel()] * Config.aiTradeQuantityPercent); // lower supply, but not enough to encourage selling; comparatively, scarity raises prices more than surplus lowers them
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
@@ -11850,10 +11850,10 @@ public final class TestSuite
          // when everything is at equilibrium, choose the most preferred ware
          quantityToTrade1 = 0;
          quantityToTrade2 = 0;
-         quantityToTrade3 = (int) (Config.quanMid[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = Config.quanMid[testWare1.getLevel()];
-         quantityWare2    = Config.quanMid[testWare3.getLevel()];
-         quantityWare3    = Config.quanMid[testWareC2.getLevel()];
+         quantityToTrade3 = (int) (Config.quanEquilibrium[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()];
+         quantityWare2    = Config.quanEquilibrium[testWare3.getLevel()];
+         quantityWare3    = Config.quanEquilibrium[testWareC2.getLevel()];
          testWare1.setQuantity(quantityWare1);
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
@@ -11877,10 +11877,10 @@ public final class TestSuite
          // despite prices being better by 5%, choose the ware preferred more by 10%
          quantityToTrade1 = 0;
          quantityToTrade2 = 0;
-         quantityToTrade3 = (int) (Config.quanMid[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = (int) (Config.quanMid[testWare1.getLevel()] * 1.05f);
-         quantityWare2    = Config.quanMid[testWare3.getLevel()];
-         quantityWare3    = (int) (Config.quanMid[testWareC2.getLevel()] * 0.95f);
+         quantityToTrade3 = (int) (Config.quanEquilibrium[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = (int) (Config.quanEquilibrium[testWare1.getLevel()] * 1.05f);
+         quantityWare2    = Config.quanEquilibrium[testWare3.getLevel()];
+         quantityWare3    = (int) (Config.quanEquilibrium[testWareC2.getLevel()] * 0.95f);
          testWare1.setQuantity(quantityWare1);
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
@@ -11905,10 +11905,10 @@ public final class TestSuite
          // when prices are too good to pass up, choose the best deal
          quantityToTrade1 = 0;
          quantityToTrade2 = 0;
-         quantityToTrade3 = (int) (Config.quanMid[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = (int) (Config.quanMid[testWare1.getLevel()] * 1.05f);
-         quantityWare2    = Config.quanMid[testWare3.getLevel()];
-         quantityWare3    = (int) (Config.quanMid[testWareC2.getLevel()] * 0.85f);
+         quantityToTrade3 = (int) (Config.quanEquilibrium[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = (int) (Config.quanEquilibrium[testWare1.getLevel()] * 1.05f);
+         quantityWare2    = Config.quanEquilibrium[testWare3.getLevel()];
+         quantityWare3    = (int) (Config.quanEquilibrium[testWareC2.getLevel()] * 0.85f);
          testWare1.setQuantity(quantityWare1);
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
@@ -11930,8 +11930,8 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("AI - trade decisions, multiple, one ware");
-         quantityToTrade1 = ((int) (Config.quanMid[testWare1.getLevel()] * Config.aiTradeQuantityPercent)) * 5;
-         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         quantityToTrade1 = ((int) (Config.quanEquilibrium[testWare1.getLevel()] * Config.aiTradeQuantityPercent)) * 5;
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
 
          testAI1.resetDecisionsPerTradeEvent();
@@ -11949,8 +11949,8 @@ public final class TestSuite
          }
 
 
-         quantityToTrade1 = ((int) (Config.quanMid[testWare1.getLevel()] * Config.aiTradeQuantityPercent)) * 16;
-         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         quantityToTrade1 = ((int) (Config.quanEquilibrium[testWare1.getLevel()] * Config.aiTradeQuantityPercent)) * 16;
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
 
          testAI1.resetDecisionsPerTradeEvent();
@@ -11982,10 +11982,10 @@ public final class TestSuite
          // testAI2 buys testWare2 and sells testWareC1
          // Since both are at equilibrium and testAI2 should make three trade decisions,
          // testAI2 should buy twice and sell once.
-         quantityToTrade1 = ((int) (Config.quanMid[testWare2.getLevel()] * Config.aiTradeQuantityPercent)) * 2;
-         quantityToTrade2 = (int) (Config.quanMid[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = Config.quanMid[testWare2.getLevel()];
-         quantityWare2    = Config.quanMid[testWareC1.getLevel()];
+         quantityToTrade1 = ((int) (Config.quanEquilibrium[testWare2.getLevel()] * Config.aiTradeQuantityPercent)) * 2;
+         quantityToTrade2 = (int) (Config.quanEquilibrium[testWareC1.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = Config.quanEquilibrium[testWare2.getLevel()];
+         quantityWare2    = Config.quanEquilibrium[testWareC1.getLevel()];
          testWare2.setQuantity(quantityWare1);
          testWareC1.setQuantity(quantityWare2);
 
@@ -12007,11 +12007,11 @@ public final class TestSuite
 
          // when making two trade decisions, choose the two best deals
          quantityToTrade1 = 0;
-         quantityToTrade2 = (int) (Config.quanMid[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityToTrade3 = (int) (Config.quanMid[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
-         quantityWare1    = Config.quanMid[testWare1.getLevel()];
-         quantityWare2    = Config.quanMid[testWare3.getLevel()] + quantityToTrade2 + quantityToTrade2;
-         quantityWare3    = Config.quanMid[testWareC2.getLevel()] - quantityToTrade3 - quantityToTrade3 - quantityToTrade3;
+         quantityToTrade2 = (int) (Config.quanEquilibrium[testWare3.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityToTrade3 = (int) (Config.quanEquilibrium[testWareC2.getLevel()] * Config.aiTradeQuantityPercent);
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()];
+         quantityWare2    = Config.quanEquilibrium[testWare3.getLevel()] + quantityToTrade2 + quantityToTrade2;
+         quantityWare3    = Config.quanEquilibrium[testWareC2.getLevel()] - quantityToTrade3 - quantityToTrade3 - quantityToTrade3;
          testWare1.setQuantity(quantityWare1);
          testWare3.setQuantity(quantityWare2);
          testWareC2.setQuantity(quantityWare3);
@@ -12341,8 +12341,8 @@ public final class TestSuite
          testAI1.incrementDecisionsPerTradeEvent();
 
          // predict trade quantity with new setting
-         quantityToTrade1 = (int) (Config.quanMid[testWare1.getLevel()] * 0.5f);
-         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         quantityToTrade1 = (int) (Config.quanEquilibrium[testWare1.getLevel()] * 0.5f);
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
 
          // set up config file
@@ -12389,8 +12389,8 @@ public final class TestSuite
          }
 
          // predict trade quantity with another new setting
-         quantityToTrade1 = (int) (Config.quanMid[testWare1.getLevel()] * 0.25f);
-         quantityWare1    = Config.quanMid[testWare1.getLevel()];
+         quantityToTrade1 = (int) (Config.quanEquilibrium[testWare1.getLevel()] * 0.25f);
+         quantityWare1    = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare1);
 
          // set up config file
@@ -12998,7 +12998,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - accepting proposal after price lowered");
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1];
-         testWare4.setQuantity(Config.quanLow[testWare4.getLevel()]); // ensure ware's stock is low so price is high
+         testWare4.setQuantity(Config.quanDeficient[testWare4.getLevel()]); // ensure ware's stock is low so price is high
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
@@ -13055,7 +13055,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("research() - accepting proposal after price rose greatly");
          wareLevel    = testWare4.getLevel();
-         wareQuantity = Config.quanLow[testWare4.getLevel()];
+         wareQuantity = Config.quanDeficient[testWare4.getLevel()];
          testWare4.setQuantity(Config.startQuanBase[testWare4.getLevel()]); // ensure ware's stock is normal so price is normal
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -13115,7 +13115,7 @@ public final class TestSuite
          priceMult          = 0.625f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 640;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13131,13 +13131,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 0.8125f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 56;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13153,14 +13153,14 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - lowering price when above equilibrium");
          priceMult          = 0.625f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 640;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13177,13 +13177,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 0.8125f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 56;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13200,14 +13200,14 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - lowering price when below equilibrium");
          priceMult          = 0.625f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 640;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13224,13 +13224,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 0.8125f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 56;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13246,14 +13246,14 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - raising price at equilibrium");
          priceMult          = 1.375f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 192;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13269,13 +13269,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 1.5625f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 20;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13292,14 +13292,14 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - raising price when above equilibrium");
          priceMult          = 1.375f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 192;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13316,13 +13316,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 1.5625f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] * 2 - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 20;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13338,14 +13338,14 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - raising price when below equilibrium");
          priceMult          = 1.375f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 192;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13362,13 +13362,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 1.5625f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = (int) (Config.quanMid[testWare.getLevel()] * 0.75f) - 1;
+         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 20;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13384,14 +13384,14 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - free components");
          priceMult          = 0.25f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13407,13 +13407,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 0.25f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13429,14 +13429,14 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - expensive components");
          priceMult          = 1.75f;
          testWare           = testWareP1;
          testComponent1     = testWare1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 0;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13453,13 +13453,13 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          priceMult          = 1.75f;
          testWare           = testWareC3;
          testComponent1     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 0;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13476,8 +13476,8 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - one free component");
          priceMult          = 0.7692308f;
@@ -13485,10 +13485,10 @@ public final class TestSuite
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
-         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13506,19 +13506,19 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 0.53846157f;
          testWare           = testWareP2;
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          quantityComponent3 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13537,17 +13537,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 0.28712872f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13565,17 +13565,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
 
          priceMult          = 0.9628713f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 9999;
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13592,9 +13592,9 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - one expensive component");
          priceMult          = 1.2307692f;
@@ -13602,10 +13602,10 @@ public final class TestSuite
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 0;
-         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13623,20 +13623,20 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 1.0576923f;
          testWare           = testWareP2;
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 0;
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
-         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
+         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13654,17 +13654,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 1.7128713f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 0;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13682,17 +13682,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
 
          priceMult          = 1.0371287f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 0;
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13709,9 +13709,9 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - equilibrium price smaller than base price");
          Config.priceMult = 0.5f; // lowers all prices
@@ -13720,10 +13720,10 @@ public final class TestSuite
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
-         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13741,19 +13741,19 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 0.53846157f;
          testWare           = testWareP2;
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          quantityComponent3 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13772,17 +13772,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 0.28712872f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13800,17 +13800,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
 
          priceMult          = 0.9628713f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 9999;
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13827,9 +13827,9 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
 
          TEST_OUTPUT.println("linked prices - equilibrium price larger than base price");
          Config.priceMult = 2.0f; // raises all prices
@@ -13838,10 +13838,10 @@ public final class TestSuite
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
-         quantityComponent3 = Config.quanMid[testComponent3.getLevel()];
+         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -13859,19 +13859,19 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 0.53846157f;
          testWare           = testWareP2;
          testComponent1     = testWare1;
          testComponent2     = testWare3;
          testComponent3     = testWare4;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          quantityComponent3 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13890,17 +13890,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanMid[testComponent3.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
 
          priceMult          = 0.28712872f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanMid[testComponent1.getLevel()];
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
+         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
@@ -13918,17 +13918,17 @@ public final class TestSuite
          }
 
          // prepare for next test
-         testWare.setQuantity(Config.quanMid[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanMid[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanMid[testComponent2.getLevel()]);
+         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
+         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
 
          priceMult          = 0.9628713f;
          testWare           = testWareC2;
          testComponent1     = testWare1;
          testComponent2     = testWareC1;
-         quantityWare       = Config.quanMid[testWare.getLevel()] - 1;
+         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 9999;
-         quantityComponent2 = Config.quanMid[testComponent2.getLevel()];
+         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
          price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
@@ -14006,12 +14006,12 @@ public final class TestSuite
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: material components");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
-                                              0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
+                                              0, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWare3.getLevel()], Config.quanEquilibrium[testWare4.getLevel()],
                                               1, 1, 1, 1, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: manufactured component");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
-                                                 0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
+                                                 0, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                                  1, 1, 1, 0, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: untradeable component");
@@ -14022,22 +14022,22 @@ public final class TestSuite
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: material components");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
-                                              0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
+                                              0, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWare3.getLevel()], Config.quanEquilibrium[testWare4.getLevel()],
                                               16, 16, 16, 16, 16, 1, false);
 
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
-                                              0, Config.quanHigh[testWare4.getLevel()], 0, 0,
+                                              0, Config.quanExcessive[testWare4.getLevel()], 0, 0,
                                               96, 24, 0, 0, 96, 2, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: manufactured components");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
-                                              0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
+                                              0, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               4, 4, 4, 0, 4, 1, false);
 
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
-                                              0, Config.quanHigh[testWare1.getLevel()], Config.quanHigh[testWareC1.getLevel()], 0,
+                                              0, Config.quanExcessive[testWare1.getLevel()], Config.quanExcessive[testWareC1.getLevel()], 0,
                                               187, 187, 187, 0, 256, 2, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: untradeable component");
@@ -14045,17 +14045,17 @@ public final class TestSuite
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: material components");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
-                                              4, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
+                                              4, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWare3.getLevel()], Config.quanEquilibrium[testWare4.getLevel()],
                                               16, 12, 12, 12, 16, 1, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: manufactured component");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
-                                              24, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
+                                              24, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               32, 8, 8, 0, 32, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: components low in stock");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
-                                              0, 8, Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
+                                              0, 8, Config.quanEquilibrium[testWare3.getLevel()], Config.quanEquilibrium[testWare4.getLevel()],
                                               8, 8, 8, 8, 16, 1, false);
 
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
@@ -14082,19 +14082,19 @@ public final class TestSuite
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware and components out-of-stock");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
-                                              0, Config.quanMid[testWare1.getLevel()], 0, 0,
+                                              0, Config.quanEquilibrium[testWare1.getLevel()], 0, 0,
                                               0, 0, 0, 0, 10, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: minimum args");
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
-                                              0, Config.quanMid[testWare4.getLevel()], 0, 0,
+                                              0, Config.quanEquilibrium[testWare4.getLevel()], 0, 0,
                                               1, 1, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: no inventory space");
          int inventorySpaceOrig = InterfaceTerminal.inventorySpace;
          InterfaceTerminal.inventorySpace = 0; // maximum inventory space is no inventory
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
-                                              0, Config.quanMid[testWare4.getLevel()], 0, 0,
+                                              0, Config.quanEquilibrium[testWare4.getLevel()], 0, 0,
                                               1, 1, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: low in inventory space");
@@ -14102,29 +14102,29 @@ public final class TestSuite
          InterfaceTerminal.inventorySpace = 1; // maximum inventory space is 64 items
 
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
-                                              0, Config.quanHigh[testWare4.getLevel()], 0, 0,
+                                              0, Config.quanExcessive[testWare4.getLevel()], 0, 0,
                                               64, 16, 0, 0, 128, 0, true);
 
          InterfaceTerminal.inventorySpace = inventorySpaceOrig; // reset maximum inventory space
 
          TEST_OUTPUT.println("manufacturing contracts - buy: non-manufactured ware");
          errorFound |= testerBuyManufacturing(testWare1, null, null, null, null, 0.0f,
-                                              Config.quanMid[testWare1.getLevel()], 0, 0, 0,
+                                              Config.quanEquilibrium[testWare1.getLevel()], 0, 0, 0,
                                               1, 0, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable, too low");
          errorFound |= testerBuyManufacturing(testWareC3, null, null, null, null, 0.01f,
-                                              Config.quanMid[testWareC3.getLevel()], 0, 0, 0,
+                                              Config.quanEquilibrium[testWareC3.getLevel()], 0, 0, 0,
                                               0, 0, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable, sufficient");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 999999.00f,
-                                              0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
+                                              0, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               1, 1, 1, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: account ID");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, "testAccount1", 0.0f,
-                                              0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
+                                              0, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWare3.getLevel()], Config.quanEquilibrium[testWare4.getLevel()],
                                               1, 1, 1, 1, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable and account ID");
@@ -14206,11 +14206,11 @@ public final class TestSuite
 
          TEST_OUTPUT.println("transaction fees - buy(): zero rates");
          Config.transactionFeeBuyingIsMult = true;
-         errorFound |= testerTradeTransActFee(testWare1, Config.quanMid[testWare1.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 0,
                                               16, 0.0f, 17.0f, 1, false, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWare4, Config.quanMid[testWare4.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWare4, Config.quanEquilibrium[testWare4.getLevel()], 0,
                                               1, 0.0f, testWare4.getBasePrice(), 2, false, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): flat rates, positive");
@@ -14279,29 +14279,29 @@ public final class TestSuite
          Config.priceFloorAdjusted =  1.0f;
 
          TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, positive");
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               10, 1.00f, 0.0f, 1, true, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               10, 10.00f, 0.0f, 2, true, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, negative");
          Config.transactionFeeBuyingIsMult = true;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               10, -0.10f, 0.0f, 1, true, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               10, -5.00f, 0.0f, 2, true, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): funds checking includes fees, extremely negative");
          Config.transactionFeeBuyingIsMult = true;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               64, -1.00f, 0.0f, 1, false, true);
 
          Config.transactionFeeBuyingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 0,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 0,
                                               10, testWareC1.getBasePrice() * -11.0f, 0.0f, 2, false, true);
 
          TEST_OUTPUT.println("transaction fees - buy(): changing fee applied message");
@@ -14501,12 +14501,12 @@ public final class TestSuite
 
          TEST_OUTPUT.println("transaction fees - sell(): zero rates");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testerTradeTransActFee(testWare1, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare1.getLevel()],
+         errorFound |= testerTradeTransActFee(testWare1, Config.quanEquilibrium[testWare1.getLevel()], Config.quanEquilibrium[testWare1.getLevel()],
                                               16, 0.0f, 0.0f, 1, false, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWare4, Config.quanMid[testWare4.getLevel()], Config.quanMid[testWare4.getLevel()],
-                                              Config.quanMid[testWare4.getLevel()], 0.0f, 0.0f, 2, false, false);
+         errorFound |= testerTradeTransActFee(testWare4, Config.quanEquilibrium[testWare4.getLevel()], Config.quanEquilibrium[testWare4.getLevel()],
+                                              Config.quanEquilibrium[testWare4.getLevel()], 0.0f, 0.0f, 2, false, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): flat rates, positive");
          Config.transactionFeeSellingIsMult = false;
@@ -14558,35 +14558,35 @@ public final class TestSuite
 
          TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, positive");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
-                                              Config.quanMid[testWareC1.getLevel()] / 2,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()],
+                                              Config.quanEquilibrium[testWareC1.getLevel()] / 2,
                                               1.10f, 0.0f, 1, true, false);
 
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
-                                              Config.quanMid[testWareC1.getLevel()] / 2,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()],
+                                              Config.quanEquilibrium[testWareC1.getLevel()] / 2,
                                               1.00f, 0.0f, 2, true, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
-                                              Config.quanMid[testWareC1.getLevel()] / 2,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()],
+                                              Config.quanEquilibrium[testWareC1.getLevel()] / 2,
                                               10000.00f, 0.0f, 3, true, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, negative");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 300, 300,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 300, 300,
                                               -0.10f, 0.0f, 1, false, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], 300, 300,
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], 300, 300,
                                               -10.00f, 0.0f, 2, false, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): funds checking includes fees, extremely negative");
          Config.transactionFeeSellingIsMult = true;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()],
                                               64, -1.00f, 0.0f, 1, false, false);
 
          Config.transactionFeeSellingIsMult = false;
-         errorFound |= testerTradeTransActFee(testWareC1, Config.quanMid[testWareC1.getLevel()], Config.quanMid[testWareC1.getLevel()],
+         errorFound |= testerTradeTransActFee(testWareC1, Config.quanEquilibrium[testWareC1.getLevel()], Config.quanEquilibrium[testWareC1.getLevel()],
                                               64, -(testWareC1.getBasePrice() * 2.0f), 0.0f, 2, false, false);
 
          TEST_OUTPUT.println("transaction fees - sell(): changing fee applied message");
@@ -16228,10 +16228,10 @@ public final class TestSuite
          timerTaskRandomEvents.run();
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity() + (int) (5.0f / Config.quanMid[2] * Config.quanMid[testWare1.getLevel()]);
-         quantityWare2 = testWare2.getQuantity() + (int) (10.0f / Config.quanMid[2] * Config.quanMid[testWare2.getLevel()]);
-         quantityWare3 = testWareC1.getQuantity() - (int) (5.0f / Config.quanMid[2] * Config.quanMid[testWareC1.getLevel()]);
-         quantityWare4 = testWareP2.getQuantity() + (int) (15.0f / Config.quanMid[2] * Config.quanMid[testWareP2.getLevel()]);
+         quantityWare1 = testWare1.getQuantity() + (int) (5.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWare1.getLevel()]);
+         quantityWare2 = testWare2.getQuantity() + (int) (10.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWare2.getLevel()]);
+         quantityWare3 = testWareC1.getQuantity() - (int) (5.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWareC1.getLevel()]);
+         quantityWare4 = testWareP2.getQuantity() + (int) (15.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWareP2.getLevel()]);
 
          // fire events
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
@@ -16275,10 +16275,10 @@ public final class TestSuite
          timerTaskRandomEvents.run();
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity() - (int) (16.0f / Config.quanMid[2] * Config.quanMid[testWare1.getLevel()]);
-         quantityWare2 = testWare2.getQuantity() - (int) (8.0f / Config.quanMid[2] * Config.quanMid[testWare2.getLevel()]);
-         quantityWare3 = testWareC1.getQuantity() + (int) (16.0f / Config.quanMid[2] * Config.quanMid[testWareC1.getLevel()]);
-         quantityWare4 = testWareP2.getQuantity() - (int) (4.0f / Config.quanMid[2] * Config.quanMid[testWareP2.getLevel()]);
+         quantityWare1 = testWare1.getQuantity() - (int) (16.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWare1.getLevel()]);
+         quantityWare2 = testWare2.getQuantity() - (int) (8.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWare2.getLevel()]);
+         quantityWare3 = testWareC1.getQuantity() + (int) (16.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWareC1.getLevel()]);
+         quantityWare4 = testWareP2.getQuantity() - (int) (4.0f / Config.quanEquilibrium[2] * Config.quanEquilibrium[testWareP2.getLevel()]);
 
          // fire events
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
@@ -16322,10 +16322,10 @@ public final class TestSuite
          timerTaskRandomEvents.run();
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity() + (int) (Config.quanMid[testWare1.getLevel()] * 0.10f);
-         quantityWare2 = testWare2.getQuantity() + (int) (Config.quanMid[testWare2.getLevel()] * 0.20f);
-         quantityWare3 = testWareC1.getQuantity() - (int) (Config.quanMid[testWareC1.getLevel()] * 0.10f);
-         quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanMid[testWareP2.getLevel()] * 0.30f);
+         quantityWare1 = testWare1.getQuantity() + (int) (Config.quanEquilibrium[testWare1.getLevel()] * 0.10f);
+         quantityWare2 = testWare2.getQuantity() + (int) (Config.quanEquilibrium[testWare2.getLevel()] * 0.20f);
+         quantityWare3 = testWareC1.getQuantity() - (int) (Config.quanEquilibrium[testWareC1.getLevel()] * 0.10f);
+         quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanEquilibrium[testWareP2.getLevel()] * 0.30f);
 
          // fire events
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
@@ -16369,10 +16369,10 @@ public final class TestSuite
          timerTaskRandomEvents.run();
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity()  - (int) (Config.quanMid[testWare1.getLevel()]  * 0.32f);
-         quantityWare2 = testWare2.getQuantity()  - (int) (Config.quanMid[testWare2.getLevel()]  * 0.16f);
-         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.32);
-         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.08f);
+         quantityWare1 = testWare1.getQuantity()  - (int) (Config.quanEquilibrium[testWare1.getLevel()]  * 0.32f);
+         quantityWare2 = testWare2.getQuantity()  - (int) (Config.quanEquilibrium[testWare2.getLevel()]  * 0.16f);
+         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanEquilibrium[testWareC1.getLevel()] * 0.32);
+         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanEquilibrium[testWareP2.getLevel()] * 0.08f);
 
          // fire events
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
@@ -16399,20 +16399,20 @@ public final class TestSuite
 
          TEST_OUTPUT.println("random events - reloading wares");
          // set test wares to equilibrium
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()]);
-         testWare2.setQuantity(Config.quanMid[testWare2.getLevel()]);
-         testWareC1.setQuantity(Config.quanMid[testWareC1.getLevel()]);
-         testWareP2.setQuantity(Config.quanMid[testWareP2.getLevel()]);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()]);
+         testWare2.setQuantity(Config.quanEquilibrium[testWare2.getLevel()]);
+         testWareC1.setQuantity(Config.quanEquilibrium[testWareC1.getLevel()]);
+         testWareP2.setQuantity(Config.quanEquilibrium[testWareP2.getLevel()]);
 
          // save wares to write current state to file
          Config.filenameWaresSave = "config" + File.separator + "CommandEconomy" + File.separator + "testWaresSaved.txt"; // don't overwrite user saves
          Marketplace.saveWares();
 
          // set up expected end results
-         quantityWare1 = testWare1.getQuantity()  - (int) (Config.quanMid[testWare1.getLevel()]  * 0.32f);
-         quantityWare2 = testWare2.getQuantity()  - (int) (Config.quanMid[testWare2.getLevel()]  * 0.16f);
-         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanMid[testWareC1.getLevel()] * 0.32);
-         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanMid[testWareP2.getLevel()] * 0.08f);
+         quantityWare1 = testWare1.getQuantity()  - (int) (Config.quanEquilibrium[testWare1.getLevel()]  * 0.32f);
+         quantityWare2 = testWare2.getQuantity()  - (int) (Config.quanEquilibrium[testWare2.getLevel()]  * 0.16f);
+         quantityWare3 = testWareC1.getQuantity() + (int) (Config.quanEquilibrium[testWareC1.getLevel()] * 0.32);
+         quantityWare4 = testWareP2.getQuantity() - (int) (Config.quanEquilibrium[testWareP2.getLevel()] * 0.08f);
 
          // add test events to random events array
          fRandomEvents.set(NULL_OBJECT, Array.newInstance(fRandomEvents.getType().getComponentType(), 3));
@@ -16498,7 +16498,7 @@ public final class TestSuite
          fileWriter = new FileWriter("config" + File.separator + Config.filenameConfig);
          fileWriter.write(
             "// warning: this file may be cleared and overwritten by the program\n\n" +
-            "quanMid = 192, 96, 48, 24,12, 6\n" +
+            "quanEquilibrium = 192, 96, 48, 24,12, 6\n" +
             "randomEventsAreChangesPercents = true\n" +
             "randomEventsLargeChange = 0.30\n" +
             "randomEventsMediumChange = 0.20\n" +
@@ -16515,17 +16515,17 @@ public final class TestSuite
          Config.randomEventsFrequency = 99999; // prevent thread from interfering
 
          // paranoidly check changing equilibrium quantity
-         if (Config.quanMid[0] != 192 || Config.quanMid[1] != 96 || Config.quanMid[2] != 48 ||
-            Config.quanMid[3] != 24 || Config.quanMid[4] != 12 || Config.quanMid[5] != 6) {
+         if (Config.quanEquilibrium[0] != 192 || Config.quanEquilibrium[1] != 96 || Config.quanEquilibrium[2] != 48 ||
+            Config.quanEquilibrium[3] != 24 || Config.quanEquilibrium[4] != 12 || Config.quanEquilibrium[5] != 6) {
             TEST_OUTPUT.println("   failed to change configuration settings!");
             errorFound = true;
          }
 
          // set up expected results
-         quantityWare1 = testWare1.getQuantity() + (int) (Config.quanMid[testWare1.getLevel()] * 0.10f);
-         quantityWare2 = testWare2.getQuantity() + (int) (Config.quanMid[testWare2.getLevel()] * 0.20f);
-         quantityWare3 = testWareC1.getQuantity() - (int) (Config.quanMid[testWareC1.getLevel()] * 0.10f);
-         quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanMid[testWareP2.getLevel()] * 0.30f);
+         quantityWare1 = testWare1.getQuantity() + (int) (Config.quanEquilibrium[testWare1.getLevel()] * 0.10f);
+         quantityWare2 = testWare2.getQuantity() + (int) (Config.quanEquilibrium[testWare2.getLevel()] * 0.20f);
+         quantityWare3 = testWareC1.getQuantity() - (int) (Config.quanEquilibrium[testWareC1.getLevel()] * 0.10f);
+         quantityWare4 = testWareP2.getQuantity() + (int) (Config.quanEquilibrium[testWareP2.getLevel()] * 0.30f);
 
          // fire events
          randomEventFire.invoke(testEvent1, NULL_OBJECTS);
@@ -16687,11 +16687,11 @@ public final class TestSuite
          // enable AI and set to known values
          tradeablesIDs = new String[]{ware1.getWareID()};
          ai = new AI("testAI", tradeablesIDs, null, null);
-         quantityToTrade = (int) (Config.aiTradeQuantityPercent * Config.quanMid[ware1.getLevel()]);
+         quantityToTrade = (int) (Config.aiTradeQuantityPercent * Config.quanEquilibrium[ware1.getLevel()]);
 
          // set up test conditions
          feeCollectionAccount.setMoney(0.0f);
-         ware1.setQuantity(Config.quanMid[ware1.getLevel()]);
+         ware1.setQuantity(Config.quanEquilibrium[ware1.getLevel()]);
 
          // set up test oracles
          Config.chargeTransactionFees = false;
@@ -16715,7 +16715,7 @@ public final class TestSuite
          // set up test conditions
          Config.transactionFeeBuying = -0.10f;
          feeCollectionAccount.setMoney(10000.0f);
-         ware1.setQuantity(Config.quanMid[ware1.getLevel()]);
+         ware1.setQuantity(Config.quanEquilibrium[ware1.getLevel()]);
 
          // set up test oracles
          Config.chargeTransactionFees = false;
@@ -16746,7 +16746,7 @@ public final class TestSuite
          ware1           = testWareP1;
          ware2           = testWare1;
          quantityWare1   = 0;
-         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         quantityWare2   = Config.quanEquilibrium[ware2.getLevel()];
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
          feeCollectionAccount.setMoney(0.0f);
@@ -16778,7 +16778,7 @@ public final class TestSuite
          ware1           = testWareP1;
          ware2           = testWare1;
          quantityWare1   = 0;
-         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         quantityWare2   = Config.quanEquilibrium[ware2.getLevel()];
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
          feeCollectionAccount.setMoney(10000.0f);
@@ -16813,7 +16813,7 @@ public final class TestSuite
 
          // set up test conditions
          ware1         = testWare2;
-         quantityWare1 = Config.quanMid[ware1.getLevel()];
+         quantityWare1 = Config.quanEquilibrium[ware1.getLevel()];
          ware1.setQuantity(quantityWare1);
          feeCollectionAccount.setMoney(0.0f);
          playerAccount.setMoney(100000.0f);
@@ -16842,7 +16842,7 @@ public final class TestSuite
 
          // set up test conditions
          ware1         = testWare2;
-         quantityWare1 = Config.quanMid[ware1.getLevel()];
+         quantityWare1 = Config.quanEquilibrium[ware1.getLevel()];
          ware1.setQuantity(quantityWare1);
          feeCollectionAccount.setMoney(0.0f);
          playerAccount.setMoney(10000.0f);
@@ -16883,7 +16883,7 @@ public final class TestSuite
          ware1           = testWareP1;
          ware2           = testWare1;
          quantityWare1   = 0;
-         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         quantityWare2   = Config.quanEquilibrium[ware2.getLevel()];
 
          money           = 100000.0f;
          level           = ware1.getLevel(); // for resetting the ware's level later on
@@ -16899,7 +16899,7 @@ public final class TestSuite
          price1 = money - playerAccount.getMoney();
 
          // set up test conditions for surplus
-         quantityWare2 = Config.quanHigh[ware2.getLevel()];
+         quantityWare2 = Config.quanExcessive[ware2.getLevel()];
          ware1.setLevel(level);
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
@@ -16923,7 +16923,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("Cross Interactions - Linked Prices: Research, scarcity");
          // set up test conditions for scarcity
-         quantityWare2 = Config.quanLow[ware2.getLevel()];
+         quantityWare2 = Config.quanDeficient[ware2.getLevel()];
          ware1.setLevel(level);
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
@@ -16950,12 +16950,12 @@ public final class TestSuite
 
          // testWareP1 is made from testWare1
          // set both wares to surplus, then store their price
-         testWareP1.setQuantity(Config.quanHigh[testWareP1.getLevel()] / 2);
-         testWare1.setQuantity(Config.quanHigh[testWare1.getLevel()]);
+         testWareP1.setQuantity(Config.quanExcessive[testWareP1.getLevel()] / 2);
+         testWare1.setQuantity(Config.quanExcessive[testWare1.getLevel()]);
          price1 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
 
          // test selling some testWareP1 and checking its price
-         errorFound |= testPETrade(testWareP1, Config.quanHigh[testWareP1.getLevel()] / 2, 10,
+         errorFound |= testPETrade(testWareP1, Config.quanExcessive[testWareP1.getLevel()] / 2, 10,
                                    1.0f, 1.0f, 0, false, true);
 
          // grab testWareP1's price after selling some
@@ -16971,12 +16971,12 @@ public final class TestSuite
 
          // testWareP1 is made from testWare1
          // set both wares to surplus, then store their price
-         testWareP1.setQuantity(Config.quanLow[testWareP1.getLevel()]);
-         testWare1.setQuantity(Config.quanLow[testWare1.getLevel()]);
+         testWareP1.setQuantity(Config.quanDeficient[testWareP1.getLevel()]);
+         testWare1.setQuantity(Config.quanDeficient[testWare1.getLevel()]);
          price1 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
 
          // test selling some testWareP1 and checking its price
-         errorFound |= testPETrade(testWareP1, Config.quanLow[testWareP1.getLevel()], 8,
+         errorFound |= testPETrade(testWareP1, Config.quanDeficient[testWareP1.getLevel()], 8,
                                    1.0f, 1.0f, 0, false, true);
 
          // grab testWareP1's price after selling some
@@ -17002,9 +17002,9 @@ public final class TestSuite
          TEST_OUTPUT.println("Cross Interactions - No Garbage Disposing: AI, selling past price floor");
          // set up test conditions
          ware1           = testWare1;
-         quantityToOffer = (int) (Config.aiTradeQuantityPercent * Config.quanMid[ware1.getLevel()]);
+         quantityToOffer = (int) (Config.aiTradeQuantityPercent * Config.quanEquilibrium[ware1.getLevel()]);
          quantityToTrade = quantityToOffer / 2;
-         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade - 1;
+         quantityWare1   = Config.quanExcessive[ware1.getLevel()] - quantityToTrade - 1;
          ware1.setQuantity(quantityWare1);
 
          // perform action
@@ -17025,7 +17025,7 @@ public final class TestSuite
          // set up test conditions
          quantityToTrade =  0;
          quantityToOffer = 20;
-         quantityWare1   = Config.quanHigh[ware1.getLevel()] - 1;
+         quantityWare1   = Config.quanExcessive[ware1.getLevel()] - 1;
          ware1.setQuantity(quantityWare1);
 
          // perform action
@@ -17099,8 +17099,8 @@ public final class TestSuite
          quantityToTrade = 5;
          ware1           = testWare1;
          ware2           = testWare2;
-         quantityWare1   = Config.quanHigh[ware1.getLevel()] - quantityToTrade - 1;
-         quantityWare2   = Config.quanMid[ware2.getLevel()];
+         quantityWare1   = Config.quanExcessive[ware1.getLevel()] - quantityToTrade - 1;
+         quantityWare2   = Config.quanEquilibrium[ware2.getLevel()];
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
 
@@ -17123,8 +17123,8 @@ public final class TestSuite
          // set up test conditions
          ware1           = testWare1;
          ware2           = testWare2;
-         quantityWare1   = Config.quanMid[ware1.getLevel()];
-         quantityWare2   = Config.quanHigh[ware2.getLevel()] - 1;
+         quantityWare1   = Config.quanEquilibrium[ware1.getLevel()];
+         quantityWare2   = Config.quanExcessive[ware2.getLevel()] - 1;
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
 
@@ -17175,33 +17175,33 @@ public final class TestSuite
    private static int predictRebalancingWareAdjustment(Ware ware) {
       if (ware == null ||                                        // ware doesn't exist
           ware instanceof WareUntradeable ||                     // ware cannot be traded
-          ware.getQuantity() == Config.quanMid[ware.getLevel()]) // ware is at equilibrium
+          ware.getQuantity() == Config.quanEquilibrium[ware.getLevel()]) // ware is at equilibrium
          return 0;
 
       // find the maximum amount that quantity may move
-      int adjustment = (int) (Config.automaticStockRebalancingPercent * Config.quanMid[ware.getLevel()]);
+      int adjustment = (int) (Config.automaticStockRebalancingPercent * Config.quanEquilibrium[ware.getLevel()]);
 
       // predict how much quantity should be changed
       // too much quantity
-      if (ware.getQuantity() > Config.quanMid[ware.getLevel()]) {
+      if (ware.getQuantity() > Config.quanEquilibrium[ware.getLevel()]) {
          // above maximum adjustment
-         if (ware.getQuantity() - adjustment >= Config.quanMid[ware.getLevel()])
+         if (ware.getQuantity() - adjustment >= Config.quanEquilibrium[ware.getLevel()])
             return -adjustment;
 
          // within range of adjustment
          else
-            return Config.quanMid[ware.getLevel()] - ware.getQuantity();
+            return Config.quanEquilibrium[ware.getLevel()] - ware.getQuantity();
       }
 
       // too little quantity
       else {
          // above maximum adjustment
-         if (ware.getQuantity() + adjustment <= Config.quanMid[ware.getLevel()])
+         if (ware.getQuantity() + adjustment <= Config.quanEquilibrium[ware.getLevel()])
             return adjustment;
 
          // within range of adjustment
          else
-            return Config.quanMid[ware.getLevel()] - ware.getQuantity();
+            return Config.quanEquilibrium[ware.getLevel()] - ware.getQuantity();
       }
    }
 
@@ -17303,7 +17303,7 @@ public final class TestSuite
       if (ware1 != null && ware1.getQuantity() != quantityWare1 + adjustment1) {
             TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + " for ware1:   " + ware1.getQuantity() + ", should be " + (quantityWare1 + adjustment1) +
                                 "\n   unexpected adjustment" + testIdentifier + " for ware1: " + (ware1.getQuantity() - quantityWare1) + ", should be " + adjustment1 +
-                                "\n   equilibrium" + testIdentifier + " for ware1:           " + Config.quanMid[ware1.getLevel()]);
+                                "\n   equilibrium" + testIdentifier + " for ware1:           " + Config.quanEquilibrium[ware1.getLevel()]);
          errorFound = true;
       }
       if (ware2 != null && ware2.getQuantity() != quantityWare2 + adjustment2) {
@@ -17371,19 +17371,19 @@ public final class TestSuite
 
       try {
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - overstocked");
-         errorFound |= testRebalanceMarket(testWare1, Config.quanHigh[testWare1.getLevel()], 0, false);
+         errorFound |= testRebalanceMarket(testWare1, Config.quanExcessive[testWare1.getLevel()], 0, false);
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - above equilibrium");
-         errorFound |= testRebalanceMarket(testWareC1, (int) (Config.quanMid[testWareC1.getLevel()] * (1.0f + (Config.automaticStockRebalancingPercent / 2.0f))), 0, false);
+         errorFound |= testRebalanceMarket(testWareC1, (int) (Config.quanEquilibrium[testWareC1.getLevel()] * (1.0f + (Config.automaticStockRebalancingPercent / 2.0f))), 0, false);
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - equilibrium");
-         errorFound |= testRebalanceMarket(testWareP1, Config.quanMid[testWareP1.getLevel()], 0, false);
+         errorFound |= testRebalanceMarket(testWareP1, Config.quanEquilibrium[testWareP1.getLevel()], 0, false);
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - below equilibrium");
-         errorFound |= testRebalanceMarket(testWareC2, (int) (Config.quanMid[testWareC2.getLevel()] * (1.0f - (Config.automaticStockRebalancingPercent / 2.0f))), 0, false);
+         errorFound |= testRebalanceMarket(testWareC2, (int) (Config.quanEquilibrium[testWareC2.getLevel()] * (1.0f - (Config.automaticStockRebalancingPercent / 2.0f))), 0, false);
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - understocked");
-         errorFound |= testRebalanceMarket(testWare3, Config.quanLow[testWare3.getLevel()], 0, false);
+         errorFound |= testRebalanceMarket(testWare3, Config.quanDeficient[testWare3.getLevel()], 0, false);
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - untradeable ware");
          errorFound |= testRebalanceMarket(testWareU1, 10, 0, false);
@@ -17395,8 +17395,8 @@ public final class TestSuite
                              testWare4,  // level 3
                              testWareP1, // level 4
                              testWareP2, // level 5
-                             Config.quanHigh[0], Config.quanHigh[1], Config.quanHigh[2],
-                             Config.quanHigh[3], Config.quanHigh[4], Config.quanHigh[5],
+                             Config.quanExcessive[0], Config.quanExcessive[1], Config.quanExcessive[2],
+                             Config.quanExcessive[3], Config.quanExcessive[4], Config.quanExcessive[5],
                              0, false);
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - scaling based on each level's equilibrium stock: understocked");
@@ -17406,8 +17406,8 @@ public final class TestSuite
                              testWare4,  // level 3
                              testWareP1, // level 4
                              testWareP2, // level 5
-                             Config.quanLow[0], Config.quanLow[1], Config.quanLow[2],
-                             Config.quanLow[3], Config.quanLow[4], Config.quanLow[5],
+                             Config.quanDeficient[0], Config.quanDeficient[1], Config.quanDeficient[2],
+                             Config.quanDeficient[3], Config.quanDeficient[4], Config.quanDeficient[5],
                              0, false);
 
          TEST_OUTPUT.println("incrementallyRebalanceMarket() - toggling feature and changing values by reloading configuration");
@@ -17784,7 +17784,7 @@ public final class TestSuite
       }
       else
          quantityToTrade = quantityToOffer;
-      quantityWare       = Config.quanHigh[ware.getLevel()] - wareDistFromFloor - 1;
+      quantityWare       = Config.quanExcessive[ware.getLevel()] - wareDistFromFloor - 1;
       ware.setQuantity(quantityWare);
       playerAccount.setMoney(0.0f);
       InterfaceTerminal.inventory.clear();
@@ -17878,7 +17878,7 @@ public final class TestSuite
 
       // set up wares
       if (ware1 != null) {
-         quantityWare1 = Config.quanHigh[ware1.getLevel()] - wareDistFromFloor1;
+         quantityWare1 = Config.quanExcessive[ware1.getLevel()] - wareDistFromFloor1;
          ware1.setQuantity(quantityWare1);
          InterfaceTerminal.inventory.put(ware1.getWareID(), quantityToOffer1);
 
@@ -17907,7 +17907,7 @@ public final class TestSuite
          }
       }
       if (ware2 != null) {
-         quantityWare2 = Config.quanHigh[ware2.getLevel()] - wareDistFromFloor2;
+         quantityWare2 = Config.quanExcessive[ware2.getLevel()] - wareDistFromFloor2;
          ware2.setQuantity(quantityWare2);
          InterfaceTerminal.inventory.put(ware2.getWareID(), quantityToOffer2);
 
@@ -17936,7 +17936,7 @@ public final class TestSuite
          }
       }
       if (ware3 != null) {
-         quantityWare3 = Config.quanHigh[ware3.getLevel()] - wareDistFromFloor3;
+         quantityWare3 = Config.quanExcessive[ware3.getLevel()] - wareDistFromFloor3;
          ware3.setQuantity(quantityWare3);
          InterfaceTerminal.inventory.put(ware3.getWareID(), quantityToOffer3);
 
@@ -18087,7 +18087,7 @@ public final class TestSuite
       }
       else
          quantityToTrade = quantityToOffer;
-      quantityComponent  = Config.quanHigh[component.getLevel()];
+      quantityComponent  = Config.quanExcessive[component.getLevel()];
       if (yieldOrComponentAmount > 0) {
          yield              = yieldOrComponentAmount;
          quantityComponent -= wareDistFromFloor / yield;           // adjust by wares created per component unit
@@ -18114,9 +18114,9 @@ public final class TestSuite
       if (ware.getQuantity() != quantityWare + quantityToTrade) {
          TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() +
                             ", should be " + (quantityWare + quantityToTrade) +
-                            "\n      limit:              " + (((Config.quanHigh[component.getLevel()] - 1) / componentAmount) * yield) +
+                            "\n      limit:              " + (((Config.quanExcessive[component.getLevel()] - 1) / componentAmount) * yield) +
                             "\n      diff:               " + (ware.getQuantity() - (quantityWare + quantityToTrade)) +
-                            "\n      component limit:    " + (Config.quanHigh[component.getLevel()] - 1) +
+                            "\n      component limit:    " + (Config.quanExcessive[component.getLevel()] - 1) +
                             "\n      component quantity: " + component.getQuantity() +
                             "\n      component expected: " + quantityComponent +
                             "\n      component diff:     " + (component.getQuantity() - (quantityComponent + (quantityToTrade / componentAmount) * yield)));
@@ -18126,9 +18126,9 @@ public final class TestSuite
       if ((displayError && !baosOut.toString().contains("Cannot sell at or below the price floor")) ||
           (!displayError && baosOut.toString().contains("Cannot sell at or below the price floor"))) {
          TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString() +
-                            "\n      limit:              " + (((Config.quanHigh[component.getLevel()] - 1) / componentAmount) * yield) +
+                            "\n      limit:              " + (((Config.quanExcessive[component.getLevel()] - 1) / componentAmount) * yield) +
                             "\n      diff:               " + (ware.getQuantity() - (quantityWare + quantityToTrade)) +
-                            "\n      component limit:    " + (Config.quanHigh[component.getLevel()] - 1) +
+                            "\n      component limit:    " + (Config.quanExcessive[component.getLevel()] - 1) +
                             "\n      component quantity: " + component.getQuantity() +
                             "\n      component expected: " + quantityComponent +
                             "\n      component diff:     " + (component.getQuantity() - (quantityComponent + (quantityToTrade / componentAmount) * yield)));
@@ -18350,67 +18350,67 @@ public final class TestSuite
 
       try {
          TEST_OUTPUT.println("Planned Economy - buying: excessive surplus");
-         errorFound |= testPETrade(testWare1, Config.quanHigh[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanExcessive[testWare1.getLevel()], 10,
                                    1.0f, 1.0f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - buying: mild surplus");
-         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 1.1f), 10,
+         errorFound |= testPETrade(testWare1, (int) (Config.quanEquilibrium[testWare1.getLevel()] * 1.1f), 10,
                                    1.0f, 1.0f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - buying: at equilibrium");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    1.0f, 1.0f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - buying: mild shortage");
-         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 0.9f), 10,
+         errorFound |= testPETrade(testWare1, (int) (Config.quanEquilibrium[testWare1.getLevel()] * 0.9f), 10,
                                    1.0f, 1.0f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - buying: severe shortage");
-         errorFound |= testPETrade(testWare1, Config.quanLow[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanDeficient[testWare1.getLevel()], 10,
                                    1.0f, 1.0f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - buying: buying upcharge");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    2.0f, 1.0f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - buying: price multiplier, high");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    1.0f, 2.0f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - buying: price multiplier, low");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    1.0f, 0.5f, 0, false, true);
 
          TEST_OUTPUT.println("Planned Economy - selling: excessive surplus");
-         errorFound |= testPETrade(testWare1, Config.quanHigh[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanExcessive[testWare1.getLevel()], 10,
                                    1.0f, 1.0f, 0, false, false);
 
          TEST_OUTPUT.println("Planned Economy - selling: mild surplus");
-         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 1.1f), 10,
+         errorFound |= testPETrade(testWare1, (int) (Config.quanEquilibrium[testWare1.getLevel()] * 1.1f), 10,
                                    1.0f, 1.0f, 0, false, false);
 
          TEST_OUTPUT.println("Planned Economy - selling: at equilibrium");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    1.0f, 1.0f, 0, false, false);
 
          TEST_OUTPUT.println("Planned Economy - selling: mild shortage");
-         errorFound |= testPETrade(testWare1, (int) (Config.quanMid[testWare1.getLevel()] * 0.9f), 10,
+         errorFound |= testPETrade(testWare1, (int) (Config.quanEquilibrium[testWare1.getLevel()] * 0.9f), 10,
                                    1.0f, 1.0f, 0, false, false);
 
          TEST_OUTPUT.println("Planned Economy - selling: severe shortage");
-         errorFound |= testPETrade(testWare1, Config.quanLow[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanDeficient[testWare1.getLevel()], 10,
                                    1.0f, 1.0f, 0, false, false);
 
          TEST_OUTPUT.println("Planned Economy - selling: buying upcharge");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    2.0f, 1.0f, 0, false, false);
 
          TEST_OUTPUT.println("Planned Economy - selling: price multiplier, high");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    1.0f, 2.0f, 0, false, false);
 
          TEST_OUTPUT.println("Planned Economy - selling: price multiplier, low");
-         errorFound |= testPETrade(testWare1, Config.quanMid[testWare1.getLevel()], 10,
+         errorFound |= testPETrade(testWare1, Config.quanEquilibrium[testWare1.getLevel()], 10,
                                    1.0f, 0.5f, 0, false, false);
       }
       catch (Exception e) {
@@ -18439,97 +18439,97 @@ public final class TestSuite
       try {
          TEST_OUTPUT.println("buy() - no multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - invalid multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - zero multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - 100% multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%1", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - high multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%10.00", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - low multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0.10", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - no admin permissions");
          errorFound |= testerTrade("possibleID", null, testWare1, "testAccount3", "%1.00", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - specified quantity");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0.10", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 100, 100, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 100, 100, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - specified unit price");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0.75", "1.1", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 61, 100, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 61, 100, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - specified account");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", "%0.50", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("buy() - specified unit price and account");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount2", "%0.75", "1.1", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 61, 100, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 61, 100, 0, false, true, true);
 
          TEST_OUTPUT.println("sell() - no multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, null, null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - invalid multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 0, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 0, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - zero multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - 100% multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%1", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - high multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%10.00", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - low multiplier");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0.10", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - no admin permissions");
          errorFound |= testerTrade("possibleID", null, testWare1, "testAccount3", "%1.00", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - no specified quantity");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0.10", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 0, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 0, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - specified quantity");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0.10", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - specified unit price");
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()]);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()]);
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, null, "%0.75", "0.50", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], Marketplace.getQuantityUntilPrice(testWare1, 0.6666667f, false), 1000, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], Marketplace.getQuantityUntilPrice(testWare1, 0.6666667f, false), 1000, 0, false, false, true);
 
          TEST_OUTPUT.println("sell() - specified account");
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", "%0.10", null, Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], 10, 10, 0, false, true, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], 10, 10, 0, false, true, true);
 
          TEST_OUTPUT.println("sell() - specified unit price and account");
-         testWare1.setQuantity(Config.quanMid[testWare1.getLevel()]);
+         testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()]);
          errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount2", "%0.75", "0.50", Float.NaN,
-                                   Config.quanMid[testWare1.getLevel()], Marketplace.getQuantityUntilPrice(testWare1, 0.6666667f, false), 1000, 0, false, false, true);
+                                   Config.quanEquilibrium[testWare1.getLevel()], Marketplace.getQuantityUntilPrice(testWare1, 0.6666667f, false), 1000, 0, false, false, true);
 
          TEST_OUTPUT.println("check() - no multiplier");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 0,

@@ -104,12 +104,12 @@ public class MarketRebalancer extends TimerTask  {
     */
    public static void calcQuantityChanges() {
       // generate automatic market rebalancing incremental values
-      autoRebalanceAdjustQuantities = new int[]{(int) (Config.automaticStockRebalancingPercent * Config.quanMid[0]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[1]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[2]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[3]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[4]),
-                                                (int) (Config.automaticStockRebalancingPercent * Config.quanMid[5])};
+      autoRebalanceAdjustQuantities = new int[]{(int) (Config.automaticStockRebalancingPercent * Config.quanEquilibrium[0]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanEquilibrium[1]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanEquilibrium[2]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanEquilibrium[3]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanEquilibrium[4]),
+                                                (int) (Config.automaticStockRebalancingPercent * Config.quanEquilibrium[5])};
    }
 
    /**
@@ -148,7 +148,7 @@ public class MarketRebalancer extends TimerTask  {
          if (ware instanceof WareUntradeable || ware instanceof WareLinked)
             continue;
 
-         quanEquilibrium = Config.quanMid[ware.getLevel()];
+         quanEquilibrium = Config.quanEquilibrium[ware.getLevel()];
          quanOnMarket    = ware.getQuantity();
          adjustment      = autoRebalanceAdjustQuantities[ware.getLevel()];
 

@@ -970,9 +970,9 @@ public class Marketplace {
          return PRICE_MIN;
 
       // prepare to calculate current price
-      final int   QUAN_CEILING                  = Config.quanHigh[ware.getLevel()];
-      final int   QUAN_FLOOR                    = Config.quanLow[ware.getLevel()];
-      final int   QUAN_EQUILIBRIUM              = Config.quanMid[ware.getLevel()];
+      final int   QUAN_CEILING                  = Config.quanExcessive[ware.getLevel()];
+      final int   QUAN_FLOOR                    = Config.quanDeficient[ware.getLevel()];
+      final int   QUAN_EQUILIBRIUM              = Config.quanEquilibrium[ware.getLevel()];
       final float QUAN_FLOOR_TO_EQUILIBRIUM     = (float) (QUAN_EQUILIBRIUM - QUAN_FLOOR);   // how much quantity is between the price floor stock and equilibrium stock
       final float QUAN_CEILING_FROM_EQUILIBRIUM = (float) (QUAN_CEILING - QUAN_EQUILIBRIUM); // cast as a float now since it will only be used as a float
             int   quanOnMarket                  = ware.getQuantity();
@@ -1118,9 +1118,9 @@ public class Marketplace {
    public static int getPurchasableQuantity(Ware ware, float moneyAvailable) {
       // get ware information
       final float PRICE_BASE                    = ware.getBasePrice();
-      final int   QUAN_CEILING                  = Config.quanHigh[ware.getLevel()];
-      final int   QUAN_FLOOR                    = Config.quanLow[ware.getLevel()];
-      final int   QUAN_EQUILIBRIUM              = Config.quanMid[ware.getLevel()];
+      final int   QUAN_CEILING                  = Config.quanExcessive[ware.getLevel()];
+      final int   QUAN_FLOOR                    = Config.quanDeficient[ware.getLevel()];
+      final int   QUAN_EQUILIBRIUM              = Config.quanEquilibrium[ware.getLevel()];
       final float QUAN_FLOOR_TO_EQUILIBRIUM     = (float) (QUAN_EQUILIBRIUM - QUAN_FLOOR);   // how much quantity is between the price floor stock and equilibrium stock
       final float QUAN_CEILING_FROM_EQUILIBRIUM = (float) (QUAN_CEILING - QUAN_EQUILIBRIUM); // cast as a float now since it will only be used as a float
             int   quanOnMarket                  = ware.getQuantity();
@@ -1248,9 +1248,9 @@ public class Marketplace {
    public static int getQuantityUntilPrice(Ware ware, float priceUnit, boolean isPurchase) {
       // get ware information
       final float PRICE_BASE       = ware.getBasePrice();
-      final int   QUAN_CEILING                  = Config.quanHigh[ware.getLevel()];
-      final int   QUAN_FLOOR                    = Config.quanLow[ware.getLevel()];
-      final int   QUAN_EQUILIBRIUM              = Config.quanMid[ware.getLevel()];
+      final int   QUAN_CEILING                  = Config.quanExcessive[ware.getLevel()];
+      final int   QUAN_FLOOR                    = Config.quanDeficient[ware.getLevel()];
+      final int   QUAN_EQUILIBRIUM              = Config.quanEquilibrium[ware.getLevel()];
       final float QUAN_FLOOR_TO_EQUILIBRIUM     = (float) (QUAN_EQUILIBRIUM - QUAN_FLOOR);   // how much quantity is between the price floor stock and equilibrium stock
       final float QUAN_CEILING_FROM_EQUILIBRIUM = (float) (QUAN_CEILING - QUAN_EQUILIBRIUM); // cast as a float now since it will only be used as a float
       final int   QUAN_ON_MARKET    = ware.getQuantity();
@@ -2504,9 +2504,9 @@ public class Marketplace {
          // find the ware's current price
          // get ware information
          priceBase       = ware.getBasePrice();
-         quanCeiling     = Config.quanHigh[ware.getLevel()];
-         quanFloor       = Config.quanLow[ware.getLevel()];
-         quanEquilibrium = Config.quanMid[ware.getLevel()];
+         quanCeiling     = Config.quanExcessive[ware.getLevel()];
+         quanFloor       = Config.quanDeficient[ware.getLevel()];
+         quanEquilibrium = Config.quanEquilibrium[ware.getLevel()];
          quanOnMarket    = ware.getQuantity();
          quanFloorFromEquilibrium   = (float) (quanEquilibrium - quanFloor);
          quanCeilingFromEquilibrium = (float) (quanCeiling - quanEquilibrium);

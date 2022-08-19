@@ -416,20 +416,20 @@ public class WareLinked extends Ware
       if (Float.isNaN(priceBase))
          return 0;
 
-      int quanHigh         = Integer.MAX_VALUE;
-      int possibleQuanHigh = 0;
+      int quanExcessive         = Integer.MAX_VALUE;
+      int possibleQuanExcessive = 0;
 
       // find which component is the constraining component
       for (int i = 0; i < componentsAmounts.length; i++) {
-         possibleQuanHigh = Config.quanHigh[components[i].getLevel()] / componentsAmounts[i];
+         possibleQuanExcessive = Config.quanExcessive[components[i].getLevel()] / componentsAmounts[i];
 
          // if the current component is constraining,
          // use the constrained quantity
-         if (quanHigh > possibleQuanHigh)
-            quanHigh = possibleQuanHigh;
+         if (quanExcessive > possibleQuanExcessive)
+            quanExcessive = possibleQuanExcessive;
       }
 
-      quanHigh *= yield;
-      return quanHigh - yield;
+      quanExcessive *= yield;
+      return quanExcessive - yield;
    }
 }

@@ -433,16 +433,16 @@ public class RandomEvents extends TimerTask {
 
       // if necessary, convert flat rate to percentage
       if (!Config.randomEventsAreChangesPercents) {
-         changePercentLarge  /= Config.quanMid[2];
-         changePercentMedium /= Config.quanMid[2];
-         changePercentSmall  /= Config.quanMid[2];
+         changePercentLarge  /= Config.quanEquilibrium[2];
+         changePercentMedium /= Config.quanEquilibrium[2];
+         changePercentSmall  /= Config.quanEquilibrium[2];
       }
 
       // calculate change amounts
       for (int i = 0; i < 6; i++) {
-         quanChangeLarge[i]  = (int) (changePercentLarge  * Config.quanMid[i]);
-         quanChangeMedium[i] = (int) (changePercentMedium * Config.quanMid[i]);
-         quanChangeSmall[i]  = (int) (changePercentSmall  * Config.quanMid[i]);
+         quanChangeLarge[i]  = (int) (changePercentLarge  * Config.quanEquilibrium[i]);
+         quanChangeMedium[i] = (int) (changePercentMedium * Config.quanEquilibrium[i]);
+         quanChangeSmall[i]  = (int) (changePercentSmall  * Config.quanEquilibrium[i]);
       }
    }
 
