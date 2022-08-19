@@ -49,14 +49,12 @@ public class WareProcessed extends Ware
     */
    @Override
    public float getBasePrice() {
-      if (Float.isNaN(priceBase)) {
+      if (Float.isNaN(priceBase))
          return Float.NaN;
-      }
-      else {
+      else
          // adjust price by its corresponding multiplier
          // truncate the price to avoid rounding and multiplication errors
          return CommandEconomy.truncatePrice(priceBase * Config.priceProcessed);
-      }
    }
 
    /**

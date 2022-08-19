@@ -7,7 +7,6 @@ import java.util.Set;                 // for returning all ware aliases
 import java.util.LinkedList;          // for returning properties of wares found in an inventory
 import java.util.List;
 import java.util.ArrayDeque;          // for storing ware entries for saving
-import java.lang.StringBuilder;        // for faster saving, so the same line entries may be stored in two data structures
 import java.io.BufferedWriter;        // for faster saving, so fewer file writes are used
 import java.io.File;                  // for handling files
 import java.util.Scanner;             // for parsing files
@@ -25,18 +24,18 @@ import java.util.Arrays;              // for sorting arrays when finding medians
  * @version %I%, %G%
  * @since   2021-01-29
  */
-public class Marketplace {
+public final class Marketplace {
    // GLOBAL VARIABLES
    // wares
    /** holds all wares in the market */
-   private static HashMap<String, Ware> wares = new HashMap<String, Ware>(550);
+   private static Map<String, Ware> wares = new HashMap<String, Ware>(550);
    /**
     * looks up ware IDs using unique aliases
     *
     * Individual wares still track their own alias to provide easy, fast reverse lookup
     * when writing wares to a file.
     */
-   private static HashMap<String, String> wareAliasTranslations = new HashMap<String, String>(550);
+   private static Map<String, String> wareAliasTranslations = new HashMap<String, String>(550);
 
    // prices
    /** used to signal what price should be returned */
@@ -55,12 +54,12 @@ public class Marketplace {
    /** holds ware entries which failed to load */
    private static ArrayDeque<String> waresErrored = new ArrayDeque<String>();
    /** holds ware IDs whose entries should be regenerated */
-   private static HashSet<String> waresChangedSinceLastSave = new HashSet<String>();
+   private static Set<String> waresChangedSinceLastSave = new HashSet<String>();
    /** maps ware IDs to ware entries, easing regenerating changed wares' entries for saving */
-   private static HashMap<String, StringBuilder> wareEntries = new HashMap<String, StringBuilder>(550);
+   private static Map<String, StringBuilder> wareEntries = new HashMap<String, StringBuilder>(550);
    /** holds ware entries in the order they successfully loaded in; makes reloading faster */
    private static ArrayDeque<StringBuilder> waresLoadOrder = new ArrayDeque<StringBuilder>();
-   /** holds alternate ware aliases and Forge OreDictionary names for saving */
+   /** holds alternate ware aliases and tags for saving */
    private static StringBuilder alternateAliasEntries = new StringBuilder(955);
 
    // miscellaneous
@@ -103,7 +102,7 @@ public class Marketplace {
        * @param quantity     amount of the ware
        * @param percentWorth quality of the ware as a percentage of its price
        */
-      public Stock (String wareID, Ware ware, int quantity, float percentWorth) {
+      public Stock (final String wareID, final Ware ware, final int quantity, final float percentWorth) {
          this.wareID       = wareID;
          this.ware         = ware;
          this.quantity     = quantity;
@@ -184,7 +183,7 @@ public class Marketplace {
       String   wareError      = "";    // current ware's validation error message
       String   wareID         = "";    // current ware's internal name
       String   alias          = "";    // holds ware's alternate name
-      // holds alternate ware aliases and Forge OreDictionary names for processing
+      // holds alternate ware aliases and tags for processing
       ArrayDeque<String> alternateAliasesToBeProcessed = new ArrayDeque<String>();
       // prepare a place to put wares whose components aren't found
       ArrayDeque<Ware> waresWithUnloadedComponents = new ArrayDeque<Ware>();
@@ -222,7 +221,7 @@ public class Marketplace {
          if (line.startsWith("4,")) {
             // store entry for processing and saving later on
             alternateAliasesToBeProcessed.add(line);
-            alternateAliasEntries.append(line + '\n');
+            alternateAliasEntries.append(line).append('\n');
 
             // skip the alternate alias entry for now
             continue;
@@ -292,7 +291,7 @@ public class Marketplace {
                // add the ware entry to the load order record
                // if the ware entry's ID is not a repeat
                if (!duplicateWare) {
-                  StringBuilder json = new StringBuilder(line + '\n');
+                  StringBuilder json = new StringBuilder(line).append('\n');
                   waresLoadOrder.add(json);
                   wareEntries.put(wareID, json);
                }
@@ -609,7 +608,7 @@ public class Marketplace {
    }
 
    /**
-    * Loads additional aliases and Forge OreDictionary names for wares.
+    * Loads additional aliases and tags for wares.
     * Assumes all wares which are going to be loaded have been loaded.
     * <p>
     * Complexity: O(n)
@@ -630,7 +629,7 @@ public class Marketplace {
 
       // process all entries marked as alternate aliases
       for (String entry : alternateAliasesToBeProcessed) {
-         // Forge OreDictionary name: 4,name,mostPreferredModelWareID,nextPreferredModelWareID,...,lastPreferredModelWareID
+         // tag: 4,name,mostPreferredModelWareID,nextPreferredModelWareID,...,lastPreferredModelWareID
          // alternate alias: 4,alternateAlias,wareID
 
          data = entry.split(",", 0); // split line using commas
@@ -656,9 +655,8 @@ public class Marketplace {
             }
             alias = data[1];
 
-            // check whether it is a Forge OreDictionary name and
-            // whether that name exists
-            if (Config.oreDictionaryReportInvalid && alias.startsWith("#") && !Config.commandInterface.doesOreDictionaryNameExist(alias.substring(1, alias.length()))) {
+            // check whether it is a tag and whether that tag exists
+            if (Config.wareTagsReportInvalid && alias.startsWith("#") && !Config.commandInterface.doesOreDictionaryNameExist(alias.substring(1, alias.length()))) {
                Config.commandInterface.printToConsole(CommandEconomy.WARN_ORE_NAME_NONEXISTENT + alias.substring(1, alias.length()));
                continue;
             }
@@ -709,16 +707,6 @@ public class Marketplace {
             e.printStackTrace();
          }
       }
-   }
-
-   /**
-    * Finds and sets ware starting quantities.
-    * Searches through the marketplace for wares with quantity -1 and sets their starting quantity.
-    * <p>
-    * Complexity: O(n), where n is loaded wares
-    * Relies on {@link #startQuanBaseMedian} having been set and valid.
-    */
-   private static void setStartQuantities() {
    }
 
    /**
@@ -775,7 +763,7 @@ public class Marketplace {
       for (String wareID : waresChangedSinceLastSave) {
          json = wareEntries.get(wareID);
          json.setLength(0); // clear the entry without losing the reference nor reallocating memory
-         json.append(wares.get(wareID).toJSON() + '\n'); // save updated entry
+         json.append(wares.get(wareID).toJSON()).append('\n'); // save updated entry
       }
       waresChangedSinceLastSave.clear();
 
@@ -800,7 +788,7 @@ public class Marketplace {
          if (!waresErrored.isEmpty()) {
             fileWriter.write(CommandEconomy.WARN_FILE_WARES_INVALID);
             for (String nonexistentWare : waresErrored) {
-               lineEntry.append(nonexistentWare + '\n');
+               lineEntry.append(nonexistentWare).append('\n');
             }
             fileWriter.write(lineEntry.toString());
             lineEntry.setLength(0);
@@ -1073,40 +1061,6 @@ public class Marketplace {
    }
 
    /**
-    * Returns a ware's price, either for selling, buying,
-    * without considering supply and demand, or floor.
-    * This function is used as a temporary solution for the test suite
-    * until tester functions may be created to ease code changes.
-    * <p>
-    * Complexity: O(1)
-    * @param playerID    who to send any error messages to
-    * @param wareID      key used to retrieve ware information
-    * @param quanToTrade how much to buy or sell; used for price sliding
-    * @param isPurchase  <code>true</code> if the price should reflect buying the ware
-    *                    <code>false</code> if the price should reflect selling the ware
-    * @return ware's current price
-    */
-   public static float getPrice(UUID playerID, String wareID, int quanToTrade, boolean isPurchase) {
-      // check if ware id is empty
-      if (wareID == null || wareID.isEmpty()) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_ID);
-         return Float.NaN;
-      }
-
-      // if ware is not in the market, stop
-      Ware ware = wares.get(wareID);
-      if (ware == null) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
-         return Float.NaN;
-      }
-
-      if (isPurchase)
-         return getPrice(playerID, ware, quanToTrade, PriceType.CURRENT_BUY);
-      else
-         return getPrice(playerID, ware, quanToTrade, PriceType.CURRENT_SELL);
-   }
-
-   /**
     * Returns how much of a ware may be afforded with a given budget.
     * <p>
     * Complexity: O(1)
@@ -1339,7 +1293,7 @@ public class Marketplace {
     * @param wareID  ID to be searched for and/or translated
     * @return the given ID, its translation, or an empty string
     */
-   public static String translateWareID(String wareID) {
+   public static String translateWareID(final String wareID) {
       // check whether anything was given
       if (wareID == null || wareID.isEmpty())
          return "";
@@ -1358,7 +1312,7 @@ public class Marketplace {
 
       // set up variables for checking variation
       String baseID         = ""; // holds base ware ID if given ware is a variant of a known ware
-      int ampersandPosition = wareID.indexOf("&"); // find if and where variation begins
+      int ampersandPosition = wareID.indexOf('&'); // find if and where variation begins
 
       // check if the given ID is a variant
       if (ampersandPosition != -1) {
@@ -1386,7 +1340,7 @@ public class Marketplace {
     * @param wareID ID to be searched for and translated if needed
     * @return the corresponding ware or null
     */
-   public static Ware translateAndGrab(String wareID) {
+   public static Ware translateAndGrab(final String wareID) {
       // check whether anything was given
       if (wareID == null || wareID.isEmpty())
          return null;
@@ -1405,7 +1359,7 @@ public class Marketplace {
       // it might be a variant of a known ware.
 
       // check if the given ID is a variant
-      int ampersandPosition = wareID.indexOf("&");
+      int ampersandPosition = wareID.indexOf('&');
       if (ampersandPosition != -1) {
          String baseID = wareID.substring(0, ampersandPosition);
 
@@ -1431,7 +1385,7 @@ public class Marketplace {
     * @param alias ware alias to be converted
     * @return ware ID or null
     */
-   public static String translateAlias(String alias) { return wareAliasTranslations.get(alias); }
+   public static String translateAlias(final String alias) { return wareAliasTranslations.get(alias); }
 
    /**
     * Returns a set of all wares currently available within the marketplace.
@@ -1772,7 +1726,7 @@ public class Marketplace {
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, check for a substitute
-      if (ware == null && Config.allowOreDictionarySubstitution)
+      if (ware == null && Config.allowWareTagSubstitution)
          ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
       // if no substitute exists or should be used, stop
       if (ware == null) {
@@ -1801,7 +1755,7 @@ public class Marketplace {
       List<Stock> waresFound;
       // if the given ware ID is an alias,
       // use the translated ID
-      if (!wareID.startsWith("#") && // not a Forge ore dictionary name
+      if (!wareID.startsWith("#") && // not a tag
           !wareID.contains(":"))     // not a base ID
          waresFound = Config.commandInterface.checkInventory(playerID, coordinates, translatedID);
       else
@@ -2016,9 +1970,9 @@ public class Marketplace {
     * @param pricePercent percentage multiplier for ware's price
     * @return total money from selling wares and the quantity sold
     */
-   protected static float[] sellStock(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                                      List<Stock> stocks, int quantity,
-                                      float minUnitPrice, float pricePercent) {
+   private static float[] sellStock(UUID playerID, InterfaceCommand.Coordinates coordinates,
+                                    List<Stock> stocks, int quantity,
+                                    float minUnitPrice, float pricePercent) {
       if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
           quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
          return null;
@@ -2185,7 +2139,7 @@ public class Marketplace {
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, check for a substitute
-      if (ware == null && Config.allowOreDictionarySubstitution)
+      if (ware == null && Config.allowWareTagSubstitution)
          ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
       // if no substitute exists or should be used, stop
       if (ware == null) {
@@ -2336,7 +2290,7 @@ public class Marketplace {
       // grab the ware to be used
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, check for a substitute
-      if (ware == null && Config.allowOreDictionarySubstitution)
+      if (ware == null && Config.allowWareTagSubstitution)
          ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
       // if no substitute exists or should be used, stop
       if (ware == null || Float.isNaN(ware.getBasePrice()) || ware instanceof WareUntradeable)
@@ -2625,7 +2579,7 @@ public class Marketplace {
     * @return <code>true</code> if the ware's current price is at or past its price floor
     *         <code>false</code> if the ware's current price is below its price floor
     */
-   public static boolean hasReachedPriceFloor(Ware ware) {
+   public static boolean hasReachedPriceFloor(final Ware ware) {
       return getPrice(null, ware, 1, PriceType.CURRENT_SELL) <= getPrice(null, ware, 1, PriceType.FLOOR_SELL);
    }
 }

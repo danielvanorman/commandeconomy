@@ -13,10 +13,8 @@ import java.util.ArrayDeque;          // for accessing stored ware entries for s
 import java.util.HashSet;             // for storing IDs of wares changed since last save
 import java.util.Set;
 import java.lang.reflect.*;           // for accessing private fields and methods
-import java.lang.StringBuilder;       // for faster saving, so the same line entries may be stored in two data structures
 import java.util.Timer;               // for automatically rebalancing the marketplace
 import java.util.UUID;                // for more securely tracking users internally
-import java.lang.Math;                // for calculating appropriate account funds
 import java.util.Arrays;              // for printing string arrays when checking test cases' generated parameters
 
 /**
@@ -123,7 +121,7 @@ public final class TestSuite
       Config.commandInterface = new InterfaceTerminal();
 
       // set up testing environment
-      StringBuilder failedTests = new StringBuilder(); // tracks failed tests for reporting after finishing execution
+      StringBuilder failedTests = new StringBuilder(800); // tracks failed tests for reporting after finishing execution
       InterfaceTerminal.ops.add(PLAYER_ID);
 
       // prevent config options from interfering with tests
@@ -820,43 +818,43 @@ public final class TestSuite
       wares.put("test:crafted3", new WareCrafted(new String[]{"minecraft:material4"}, "test:crafted3", "", 32, 4, (byte) 3));
 
       // update load order
-      StringBuilder json = new StringBuilder(wares.get("test:material1").toJSON() + "\n");
+      StringBuilder json = new StringBuilder(wares.get("test:material1").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:material1", json);
-      json = new StringBuilder(wares.get("test:material2").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:material2").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:material2", json);
-      json = new StringBuilder(wares.get("test:material3").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:material3").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:material3", json);
-      json = new StringBuilder(wares.get("minecraft:material4").toJSON() + "\n");
+      json = new StringBuilder(wares.get("minecraft:material4").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("minecraft:material4", json);
-      json = new StringBuilder(wares.get("test:untradeable1").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:untradeable1").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:untradeable1", json);
-      json = new StringBuilder(wares.get("test:processed1").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:processed1").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:processed1", json);
-      json = new StringBuilder(wares.get("test:processed2").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:processed2").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:processed2", json);
-      json = new StringBuilder(wares.get("test:processed3").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:processed3").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:processed3", json);
-      json = new StringBuilder(wares.get("test:crafted1").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:crafted1").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:crafted1", json);
-      json = new StringBuilder(wares.get("test:crafted2").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:crafted2").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:crafted2", json);
-      json = new StringBuilder(wares.get("test:crafted3").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:crafted3").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:crafted3", json);
 
       // alternate aliases
-      alternateAliasEntries.append( "4,#testName,test:ware,test:material2,test:material1\n");
-      alternateAliasEntries.append("4,testAlternateAlias,test:material1\n");
+      alternateAliasEntries.append("4,#testName,test:ware,test:material2,test:material1\n" +
+                                   "4,testAlternateAlias,test:material1\n");
       wareAliasTranslations.put("#testName", "test:material2");
       wareAliasTranslations.put("testAlternateAlias", "test:material1");
 
@@ -1215,7 +1213,7 @@ public final class TestSuite
          testIdentifier = "";
 
       // set up test oracles
-      outputExpected   = new StringBuilder();
+      outputExpected   = new StringBuilder(128);
       parameterBuilder = new LinkedList<String>();
 
       // determine prices and fees
@@ -1271,25 +1269,25 @@ public final class TestSuite
          if (Config.priceBuyUpchargeMult == 1.0f && !(Config.buyingOutOfStockWaresAllowed && ware.getQuantity() == 0))
             outputExpected.append(CommandEconomy.PRICE_FORMAT.format(priceUnitSell));
          else
-            outputExpected.append("Buy - " + CommandEconomy.PRICE_FORMAT.format(priceUnitBuy) + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceUnitSell));
+            outputExpected.append("Buy - ").append(CommandEconomy.PRICE_FORMAT.format(priceUnitBuy)).append(" | Sell - ").append(CommandEconomy.PRICE_FORMAT.format(priceUnitSell));
 
          // ware quantity
          if (IS_TRADEABLE) {
-            outputExpected.append(", " + ware.getQuantity());
+            outputExpected.append(", ").append(ware.getQuantity());
 
             // multiple price
             if (quantity > 1) {
-               outputExpected.append(System.lineSeparator() + "   for " + quantity +
-                                     ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceQuantityBuy) +
-                                     " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceQuantitySell));
+               outputExpected.append(System.lineSeparator()).append("   for ").append(quantity)
+                                     .append(": Buy - ").append(CommandEconomy.PRICE_FORMAT.format(priceQuantityBuy))
+                                     .append(" | Sell - ").append(CommandEconomy.PRICE_FORMAT.format(priceQuantitySell));
             }
 
             // damaged goods
             if (percentWorth != 1.0f) {
                if (quantity < 2)
-                  outputExpected.append(System.lineSeparator() + "   for held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceDamagedWares));
+                  outputExpected.append(System.lineSeparator()).append("   for held inventory: Sell - ").append(CommandEconomy.PRICE_FORMAT.format(priceDamagedWares));
                else
-                  outputExpected.append(System.lineSeparator() + "   for " + quantity + " of held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceDamagedWares));
+                  outputExpected.append(System.lineSeparator()).append("   for ").append(quantity).append(" of held inventory: Sell - ").append(CommandEconomy.PRICE_FORMAT.format(priceDamagedWares));
             }
          }
       }
@@ -1404,8 +1402,8 @@ public final class TestSuite
       // set up test oracles
       // determine prices and fees
       Config.chargeTransactionFees = false; // calculate transaction price and fee separately
-      priceUnitBuy                 = Marketplace.getPrice(PLAYER_ID, WARE_ID, 1, true);
-      priceUnitSell                = Marketplace.getPrice(PLAYER_ID, WARE_ID, 1, false);
+      priceUnitBuy                 = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_BUY);
+      priceUnitSell                = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL);
       if (Config.transactionFeeBuying != 0.00f)
          feeUnitBuy                = Config.transactionFeeBuying;
       if (Config.transactionFeeSelling != 0.00f)
@@ -1418,8 +1416,8 @@ public final class TestSuite
       feeUnitSell                  = CommandEconomy.truncatePrice(feeUnitSell);
 
       if (quantity > 1 && IS_TRADEABLE) {
-         priceQuantityBuy          = Marketplace.getPrice(PLAYER_ID, WARE_ID, quantity, true);
-         priceQuantitySell         = Marketplace.getPrice(PLAYER_ID, WARE_ID, quantity, false);
+         priceQuantityBuy          = Marketplace.getPrice(PLAYER_ID, ware, quantity, Marketplace.PriceType.CURRENT_BUY);
+         priceQuantitySell         = Marketplace.getPrice(PLAYER_ID, ware, quantity, Marketplace.PriceType.CURRENT_SELL);
          if (Config.transactionFeeBuying != 0.00f)
             feeQuantityBuy         = Config.transactionFeeBuying;
          if (Config.transactionFeeSelling != 0.00f)
@@ -1545,14 +1543,14 @@ public final class TestSuite
          testIdentifier = "";
 
       // for predicting and tracking changes
-      LinkedList<String>       parameterBuilder  = new LinkedList<String>();    // used to determine what to pass to the interface function
-      String[]                 parameters        = null;                        // what to pass to the interface function
-      HashMap<String, Integer> inventory         = InterfaceTerminal.inventory; // where to place wares to be sold
-      Account                  account           = null;                        // account to be used for the transaction
-      float                    price             = 0.0f;                        // how much traded wares should cost
-      float                    pricePercentFloat = 1.0f;                        // how much cost should be adjusted by, if at all
-      float                    priceUnitFloat;                                  // stop trading if unit price is above (buying) or below (selling) this amount
-      float                    startingMoney;                                   // how much funds the account started with
+      List<String>         parameterBuilder  = new LinkedList<String>();    // used to determine what to pass to the interface function
+      String[]             parameters        = null;                        // what to pass to the interface function
+      Map<String, Integer> inventory         = InterfaceTerminal.inventory; // where to place wares to be sold
+      Account              account           = null;                        // account to be used for the transaction
+      float                price             = 0.0f;                        // how much traded wares should cost
+      float                pricePercentFloat = 1.0f;                        // how much cost should be adjusted by, if at all
+      float                priceUnitFloat;                                  // stop trading if unit price is above (buying) or below (selling) this amount
+      float                startingMoney;                                   // how much funds the account started with
       if (isPurchase)
          priceUnitFloat = 1.0f;
       else
@@ -1560,7 +1558,7 @@ public final class TestSuite
 
       // variables used for storing predicted results
       // useful for reusing code for buying and selling
-      StringBuilder outputExpected = new StringBuilder(); // what console output should be
+      StringBuilder outputExpected = new StringBuilder(128); // what console output should be
       float         moneyExpected           = 0.0f; // what player's funds should be after the transaction
       float         priceCharged;                   // how much funds changed during the transaction
       int           quantityExpected        = 0;    // predicted quantity for sale after the transaction
@@ -1696,7 +1694,10 @@ public final class TestSuite
 
             // set up test oracles
             if (expectSuccessfulTrade && quantityToTrade > 0)
-               price = Marketplace.getPrice(PLAYER_ID, WARE_ID, quantityToTrade, isPurchase);
+               if (isPurchase)
+                  price = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
+               else
+                  price = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
             if (!Float.isNaN(pricePercentFloat))
                price *= pricePercentFloat;
 
@@ -1705,7 +1706,7 @@ public final class TestSuite
                // if something can be bought
                if (expectSuccessfulTrade && quantityToTrade > 0) {
                   if (isPurchase) {
-                     outputExpected.append("Bought ").append(quantityToTrade).append(" ");
+                     outputExpected.append("Bought ").append(quantityToTrade).append(' ');
                      if (SHOULD_USE_ALIAS)
                         outputExpected.append(WARE_ALIAS);
                      else
@@ -1715,7 +1716,7 @@ public final class TestSuite
                         outputExpected.append(" taken from ").append(accountID);
                   }
                   else {
-                     outputExpected.append("Sold ").append(quantityToTrade).append(" ");
+                     outputExpected.append("Sold ").append(quantityToTrade).append(' ');
                      if (SHOULD_USE_ALIAS)
                         outputExpected.append(WARE_ALIAS);
                      else
@@ -2087,7 +2088,7 @@ public final class TestSuite
 
       // set up test oracles
       Config.chargeTransactionFees = false; // calculate transaction price and fee separately
-      price                        = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, true);
+      price                        = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
       Config.chargeTransactionFees = true;
       if (Config.transactionFeeBuying != 0.00f) {
          fee                       = Config.transactionFeeBuying;
@@ -2442,7 +2443,7 @@ public final class TestSuite
 
       // set up test oracles
       Config.chargeTransactionFees = false;  // calculate transaction price and fee separately
-      price                        = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, false);
+      price                        = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
       Config.chargeTransactionFees = true;
       if (Config.transactionFeeSelling != 0.00f) { // only expect a fee if feature is enabled
          fee                       = Config.transactionFeeSelling;
@@ -2551,7 +2552,7 @@ public final class TestSuite
 
       // set up test oracles
       Config.chargeTransactionFees = false; // calculate transaction price and fee separately
-      price                        = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, false);
+      price                        = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
       Config.chargeTransactionFees = true;
       fee                          = Config.transactionFeeSelling;
       if (Config.transactionFeeSellingIsMult)
@@ -2628,31 +2629,30 @@ public final class TestSuite
          testIdentifier = "";
 
       // variables used in preparing the test and predicting results
-      LinkedList<String>       parameterBuilder;              // used to determine what to pass to the interface function
-      HashMap<String, Integer> inventory         = InterfaceTerminal.inventory; // where to place wares to be sold
-      String[]                 parameters        = null;      // what to pass to the interface function
-      Account                  account           = null;      // account to be used for the transaction
-      float                    price1            = 0.0f;      // profits from each ware
-      float                    price2            = 0.0f;
-      float                    price3            = 0.0f;
-      float                    priceTotal        = 0.0f;
-      int                      quantityWare1     = 0;         // wares' quantities available for sale
-      int                      quantityWare2     = 0;
-      int                      quantityWare3     = 0;
-      boolean                  sellWare1         = true;      // don't sell if it will not make money
-      boolean                  sellWare2         = true;
-      boolean                  sellWare3         = true;
-      float                    pricePercentFloat = Float.NaN; // how much cost should be adjusted by, if at all
-      float                    money;                         // what to set funds to the account to be used
+      List<String>         parameterBuilder;              // used to determine what to pass to the interface function
+      Map<String, Integer> inventory         = InterfaceTerminal.inventory; // where to place wares to be sold
+      String[]             parameters        = null;      // what to pass to the interface function
+      Account              account           = null;      // account to be used for the transaction
+      float                price1            = 0.0f;      // profits from each ware
+      float                price2            = 0.0f;
+      float                price3            = 0.0f;
+      float                priceTotal        = 0.0f;
+      int                  quantityWare1     = 0;         // wares' quantities available for sale
+      int                  quantityWare2     = 0;
+      int                  quantityWare3     = 0;
+      boolean              sellWare1         = true;      // don't sell if it will not make money
+      boolean              sellWare2         = true;
+      boolean              sellWare3         = true;
+      float                pricePercentFloat = Float.NaN; // how much cost should be adjusted by, if at all
 
       // repeatedly-used constants
       final UUID    TRADER_ID            = InterfaceTerminal.getPlayerIDStatic(playername); // identifier for the player requesting the transaction
       final boolean IS_ACCOUNT_SPECIFIED = accountID != null && !accountID.isEmpty();
 
       // variables used for storing predicted results
-      StringBuilder outputExpected        = new StringBuilder(); // what console output should be
-      float         moneyExpected;                               // what player's funds should be after the transaction
-      int           quantityTradedExpected;                      // how much quantities for sale should change during the transaction
+      StringBuilder outputExpected        = new StringBuilder(128); // what console output should be
+      float         moneyExpected;                                  // what player's funds should be after the transaction
+      int           quantityTradedExpected;                         // how much quantities for sale should change during the transaction
       boolean       expectSuccessfulTrade = true;
 
       // try to find the inventory to be used
@@ -2700,9 +2700,9 @@ public final class TestSuite
          inventory.put(ware1.getWareID(), quantityToTrade1);
 
          // don't sell if there is no profit to be made
-         price1       = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false);
+         price1       = Marketplace.getPrice(PLAYER_ID, ware1, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price1 > 0.0001f)
-            price1    = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade1, false);
+            price1    = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
          else {
             sellWare1        = false;
             price1           = 0.0f;
@@ -2715,9 +2715,9 @@ public final class TestSuite
          inventory.put(ware2.getWareID(), quantityToTrade2);
 
          // don't sell if there is no profit to be made
-         price2       = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), 1, false);
+         price2       = Marketplace.getPrice(PLAYER_ID, ware2, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price2 > 0.0001f)
-            price2    = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade2, false);
+            price2    = Marketplace.getPrice(PLAYER_ID, ware2, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
          else {
             sellWare2        = false;
             price2           = 0.0f;
@@ -2730,9 +2730,9 @@ public final class TestSuite
          inventory.put(ware3.getWareID(), quantityToTrade3);
 
          // don't sell if there is no profit to be made
-         price3       = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), 1, false);
+         price3       = Marketplace.getPrice(PLAYER_ID, ware3, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price3 > 0.0001f)
-            price3    = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), quantityToTrade3, false);
+            price3    = Marketplace.getPrice(PLAYER_ID, ware3, quantityToTrade3, Marketplace.PriceType.CURRENT_SELL);
          else {
             sellWare3        = false;
             price3           = 0.0f;
@@ -2977,9 +2977,9 @@ public final class TestSuite
          InterfaceTerminal.inventory.put(ware1.getWareID(), quantityToTrade1);
 
          // don't sell if there is no profit to be made
-         price1       = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false);
+         price1       = Marketplace.getPrice(PLAYER_ID, ware1, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price1 > 0.0001f)
-            price1    = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade1, false);
+            price1    = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
          else {
             price1    = 0.0f;
             sellWare1 = false;
@@ -2991,9 +2991,9 @@ public final class TestSuite
          InterfaceTerminal.inventory.put(ware2.getWareID(), quantityToTrade2);
 
          // don't sell if there is no profit to be made
-         price2       = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), 1, false);
+         price2       = Marketplace.getPrice(PLAYER_ID, ware2, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price2 > 0.0001f)
-            price2    = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade2, false);
+            price2    = Marketplace.getPrice(PLAYER_ID, ware2, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
          else {
             price2    = 0.0f;
             sellWare2 = false;
@@ -3005,9 +3005,9 @@ public final class TestSuite
          InterfaceTerminal.inventory.put(ware3.getWareID(), quantityToTrade3);
 
          // don't sell if there is no profit to be made
-         price3       = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), 1, false);
+         price3       = Marketplace.getPrice(PLAYER_ID, ware3, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price3 > 0.0001f)
-            price3    = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), quantityToTrade3, false);
+            price3    = Marketplace.getPrice(PLAYER_ID, ware3, quantityToTrade3, Marketplace.PriceType.CURRENT_SELL);
          else {
             price3    = 0.0f;
             sellWare3 = false;
@@ -3155,13 +3155,13 @@ public final class TestSuite
          quantityWare1 = Config.quanEquilibrium[ware1.getLevel()];
          ware1.setQuantity(quantityWare1);
          InterfaceTerminal.inventory.put(ware1.getWareID(), quantityToTrade1);
-         price1       = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade1, false);
+         price1       = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
       }
       if (ware2 != null) {
          quantityWare2 = Config.quanEquilibrium[ware2.getLevel()];
          ware2.setQuantity(quantityWare2);
          InterfaceTerminal.inventory.put(ware2.getWareID(), quantityToTrade2);
-         price2       = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade2, false);
+         price2       = Marketplace.getPrice(PLAYER_ID, ware2, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
       }
 
       // set up test oracles
@@ -4131,67 +4131,67 @@ public final class TestSuite
          WareLinked planks_linked         = (WareLinked) planks;
          WareLinked jack_o_lantern_linked = (WareLinked) jack_o_lantern;
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 9, false);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), gold_ingot, 9, Marketplace.PriceType.CURRENT_SELL);
          if (gold_block_linked.getCurrentPrice(1, false) != price) {
             TEST_OUTPUT.println("   unexpected price for selling 9 ingots: " + gold_block_linked.getCurrentPrice(1, false) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 9, true);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), gold_ingot, 9, Marketplace.PriceType.CURRENT_BUY);
          if (gold_block_linked.getCurrentPrice(1, true) != price) {
             TEST_OUTPUT.println("   unexpected price for buying 9 ingots: " + gold_block_linked.getCurrentPrice(1, true) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 27, false);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), gold_ingot, 27, Marketplace.PriceType.CURRENT_SELL);
          if (gold_block_linked.getCurrentPrice(3, false) != price) {
             TEST_OUTPUT.println("   unexpected price for selling 27 ingots: " + gold_block_linked.getCurrentPrice(3, false) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:gold_ingot", 27, true);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), gold_ingot, 27, Marketplace.PriceType.CURRENT_BUY);
          if (gold_block_linked.getCurrentPrice(3, true) != price) {
             TEST_OUTPUT.println("   unexpected price for buying 27 ingots: " + gold_block_linked.getCurrentPrice(3, true) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 1, false);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), wood, 1, Marketplace.PriceType.CURRENT_SELL);
          if (planks_linked.getCurrentPrice(2, false) != price) {
             TEST_OUTPUT.println("   unexpected price for selling 1 wood: " + planks_linked.getCurrentPrice(2, false) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 1, true);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), wood, 1, Marketplace.PriceType.CURRENT_BUY);
          if (planks_linked.getCurrentPrice(2, true) != price) {
             TEST_OUTPUT.println("   unexpected price for buying 1 wood: " + planks_linked.getCurrentPrice(2, true) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 3, false);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), wood, 3, Marketplace.PriceType.CURRENT_SELL);
          if (planks_linked.getCurrentPrice(6, false) != price) {
             TEST_OUTPUT.println("   unexpected price for selling 3 wood: " + planks_linked.getCurrentPrice(6, false) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 3, true);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), wood, 3, Marketplace.PriceType.CURRENT_BUY);
          if (planks_linked.getCurrentPrice(6, true) != price) {
             TEST_OUTPUT.println("   unexpected price for buying 3 wood: " + planks_linked.getCurrentPrice(6, true) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:log", 3, true);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), wood, 3, Marketplace.PriceType.CURRENT_BUY);
          if (planks_linked.getCurrentPrice(6, true) != price) {
             TEST_OUTPUT.println("   unexpected price for buying 3 wood: " + planks_linked.getCurrentPrice(6, true) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:torch", 16, false) + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:pumpkin", 16, false);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), torch, 16, Marketplace.PriceType.CURRENT_SELL) + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), pumpkin, 16, Marketplace.PriceType.CURRENT_SELL);
          if (jack_o_lantern_linked.getCurrentPrice(18, false) != price) {
             TEST_OUTPUT.println("   unexpected price for selling jack o' lanterns: " + jack_o_lantern_linked.getCurrentPrice(18, false) + ", should be " + price);
             errorFound = true;
          }
 
-         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:torch", 16, true) + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), "minecraft:pumpkin", 16, true);
+         price = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), torch, 16, Marketplace.PriceType.CURRENT_BUY) + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic("tester"), pumpkin, 16, Marketplace.PriceType.CURRENT_BUY);
          if (jack_o_lantern_linked.getCurrentPrice(18, true) != price) {
             TEST_OUTPUT.println("   unexpected price for buying jack o' lanterns: " + jack_o_lantern_linked.getCurrentPrice(18, true) + ", should be " + price);
             errorFound = true;
@@ -6383,7 +6383,7 @@ public final class TestSuite
          quantityToTrade = 5;
          quantityWare    = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
-         price           = Marketplace.getPrice(playerID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(playerID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount1.getMoney();
 
          Marketplace.buy(playerID, null, null, "test:material1", quantityToTrade, 0.0f, 1.0f);
@@ -6401,7 +6401,7 @@ public final class TestSuite
          InterfaceTerminal.inventory.put("test:material1", 10);
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
-         price           = Marketplace.getPrice(playerID, "test:material1", quantityToTrade, false);
+         price           = Marketplace.getPrice(playerID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
 
          Marketplace.sell(playerID, null, null, "test:material1", quantityToTrade, 0.0f, 1.0f);
@@ -6419,7 +6419,7 @@ public final class TestSuite
          quantityToTrade = 10;
          InterfaceTerminal.inventory.put("test:material1", quantityToTrade);
          quantityWare    = testWare1.getQuantity();
-         price           = Marketplace.getPrice(playerID, "test:material1", quantityToTrade, false);
+         price           = Marketplace.getPrice(playerID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
 
          Marketplace.sellAll(playerID, null, getFormattedInventory(), null, 1.0f);
@@ -6954,71 +6954,57 @@ public final class TestSuite
       float expectedPrice = 0.0f;                   // holds price to be checked against
       int   quantity = 0;                           // holds ware's quantity available for sale
       try {
-         TEST_OUTPUT.println("getPrice() - using null ware ID");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, null, 0, false);
-         if (!Float.isNaN(currentPrice)) {
-            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be NaN");
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("getPrice() - using empty ware ID");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "", 0, false);
-         if (!Float.isNaN(currentPrice)) {
-            TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be NaN");
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("getPrice() - using invalid ware ID");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "invalidWare", 0, false);
+         TEST_OUTPUT.println("getPrice() - using null ware");
+         currentPrice = Marketplace.getPrice(PLAYER_ID, null, 0, Marketplace.PriceType.CURRENT_SELL);
          if (!Float.isNaN(currentPrice)) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be NaN");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using level 0 ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 1.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material1): " + currentPrice + ", should be 1.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using level 1 ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 19.2f) {
             TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 19.2");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using level 2 ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare3, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 4.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 4.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using level 3 ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare4, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 8.0f) {
             TEST_OUTPUT.println("   incorrect price (minecraft:material4): " + currentPrice + ", should be 8.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using level 4 ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareP1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 1.1f) {
             TEST_OUTPUT.println("   incorrect price (test:processed1): " + currentPrice + ", should be 1.1");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using level 5 ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareP2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 14.3f) {
             TEST_OUTPUT.println("   incorrect price (test:processed2): " + currentPrice + ", should be 14.3");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - purchase without buying upcharge");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_BUY);
          if (currentPrice != 1.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material1): " + currentPrice + ", should be 1.0");
             errorFound = true;
@@ -7026,7 +7012,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - purchase with buying upcharge");
          Config.priceBuyUpchargeMult = 2.0f;
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, true);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_BUY);
          if (currentPrice != 2.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material1): " + currentPrice + ", should be 2.0");
             errorFound = true;
@@ -7040,7 +7026,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using no quantity ware");
          testWare.setQuantity(0);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 4.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 4.0");
             errorFound = true;
@@ -7048,7 +7034,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using understocked ware");
          testWare.setQuantity(63);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 4.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 4.0");
             errorFound = true;
@@ -7056,7 +7042,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using low stock ware");
          testWare.setQuantity(79);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 3.5f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 3.5");
             errorFound = true;
@@ -7064,7 +7050,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using pretty low stock ware");
          testWare.setQuantity(95);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 3.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 3.0");
             errorFound = true;
@@ -7072,7 +7058,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using kinda low stock ware");
          testWare.setQuantity(111);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 2.5f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 2.5");
             errorFound = true;
@@ -7080,7 +7066,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using kinda high stock ware");
          testWare.setQuantity(223);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 1.5f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 1.5");
             errorFound = true;
@@ -7088,7 +7074,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using pretty high stock ware");
          testWare.setQuantity(319);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 1.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 1.0");
             errorFound = true;
@@ -7096,7 +7082,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using high stock ware");
          testWare.setQuantity(415);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 0.5f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.5");
             errorFound = true;
@@ -7104,7 +7090,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using overstocked ware");
          testWare.setQuantity(511);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 0.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.0");
             errorFound = true;
@@ -7112,7 +7098,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("getPrice() - using excessively overstocked ware");
          testWare.setQuantity(1023);
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare2, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 0.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material2): " + currentPrice + ", should be 0.0");
             errorFound = true;
@@ -7124,14 +7110,14 @@ public final class TestSuite
 
          Config.priceSpread = 2.0f;
          TEST_OUTPUT.println("getPrice() - using high spread with inexpensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare3, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 0.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 0.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using high spread with expensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 30.4f) {
             TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 30.4");
             errorFound = true;
@@ -7139,14 +7125,14 @@ public final class TestSuite
 
          Config.priceSpread = 1.5f;
          TEST_OUTPUT.println("getPrice() - using fairly high spread with inexpensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare3, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 2.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 2.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using fairly high spread with expensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 24.8f) {
             TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 24.8");
             errorFound = true;
@@ -7154,14 +7140,14 @@ public final class TestSuite
 
          Config.priceSpread = 0.75f;
          TEST_OUTPUT.println("getPrice() - using fairly low spread with inexpensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare3, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 5.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 5.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using fairly low spread with expensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 16.4f) {
             TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 16.4");
             errorFound = true;
@@ -7169,14 +7155,14 @@ public final class TestSuite
 
          Config.priceSpread = 0.5f;
          TEST_OUTPUT.println("getPrice() - using low spread with inexpensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare3, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 6.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 6.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using low spread with expensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 13.6f) {
             TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 13.6");
             errorFound = true;
@@ -7184,14 +7170,14 @@ public final class TestSuite
 
          Config.priceSpread = 0.0f;
          TEST_OUTPUT.println("getPrice() - using zero spread with inexpensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material3", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare3, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 8.0f) {
             TEST_OUTPUT.println("   incorrect price (test:material3): " + currentPrice + ", should be 8.0");
             errorFound = true;
          }
 
          TEST_OUTPUT.println("getPrice() - using zero spread with expensive ware");
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC1, 0, Marketplace.PriceType.CURRENT_SELL);
          if (currentPrice != 8.0f) {
             TEST_OUTPUT.println("   incorrect price (test:crafted1): " + currentPrice + ", should be 8.0");
             errorFound = true;
@@ -7208,7 +7194,7 @@ public final class TestSuite
          quantity      = Config.quanExcessive[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7219,7 +7205,7 @@ public final class TestSuite
          quantity      = Config.quanExcessive[testWareP1.getLevel()];
          testWareP1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareP1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7231,7 +7217,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75) - 1;
          testWare1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7242,7 +7228,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWareP1.getLevel()] + (int) ((Config.quanExcessive[testWareP1.getLevel()] - Config.quanEquilibrium[testWareP1.getLevel()]) * 0.75) - 1;
          testWareP1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareP1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7254,7 +7240,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.5) - 1;
          testWare1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7265,7 +7251,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWareC1.getLevel()] + (int) ((Config.quanExcessive[testWareC1.getLevel()] - Config.quanEquilibrium[testWareC1.getLevel()]) * 0.5) - 1;
          testWareC1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7277,7 +7263,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25) - 1;
          testWare1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7288,7 +7274,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWareP2.getLevel()] + (int) ((Config.quanExcessive[testWareP2.getLevel()] - Config.quanEquilibrium[testWareP2.getLevel()]) * 0.25) - 1;
          testWareP2.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:processed2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareP2, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7300,7 +7286,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWare1.getLevel()];
          testWare1.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:material1", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWare1, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7311,7 +7297,7 @@ public final class TestSuite
          quantity      = Config.quanEquilibrium[testWareC2.getLevel()];
          testWareC2.setQuantity(quantity);
 
-         currentPrice = Marketplace.getPrice(PLAYER_ID, "test:crafted2", 0, false);
+         currentPrice = Marketplace.getPrice(PLAYER_ID, testWareC2, 0, Marketplace.PriceType.CURRENT_SELL);
 
          if (currentPrice != expectedPrice) {
             TEST_OUTPUT.println("   incorrect price: " + currentPrice + ", should be " + expectedPrice);
@@ -7575,8 +7561,8 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: referencing ware using alias");
          quantity = 10;
-         price1   = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantity, true);
-         price2   = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantity, false);
+         price1   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_BUY);
+         price2   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_SELL);
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"material4", String.valueOf(quantity)});
          if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for " + quantity + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
@@ -7602,8 +7588,8 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: different username");
          quantity = 10;
-         price1   = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantity, true);
-         price2   = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantity, false);
+         price1   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_BUY);
+         price2   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_SELL);
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{"possibleID", "material4", String.valueOf(quantity)});
          if (!baosOut.toString().equals("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for " + quantity + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
@@ -7613,8 +7599,8 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: command block variant without permissions");
          quantity = 1;
-         price1   = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantity, true);
-         price2   = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantity, false);
+         price1   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_BUY);
+         price2   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_SELL);
          String playernameOrig = InterfaceTerminal.playername;
          InterfaceTerminal.playername = "notAnOp";
          baosOut.reset(); // clear buffer holding console output
@@ -7697,7 +7683,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - null ware ID");
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, null, "testAccount1", null, quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
@@ -7774,12 +7760,12 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad2), overstocked to below equilibrium");
          testWare1.setQuantity(Config.quanExcessive[testWare1.getLevel()] + 10);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 832, true) + testWare1.getBasePrice() / 2,
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, testWare1, 832, Marketplace.PriceType.CURRENT_BUY) + testWare1.getBasePrice() / 2,
                                    Config.quanExcessive[testWare1.getLevel()] + 10, 832, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad4 to quad1), overstocked to understocked");
          testWare1.setQuantity(Config.quanExcessive[testWare1.getLevel()] + 10);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 934, true) + testWare1.getBasePrice() / 2,
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, testWare1, 934, Marketplace.PriceType.CURRENT_BUY) + testWare1.getBasePrice() / 2,
                                    Config.quanExcessive[testWare1.getLevel()] + 10, 934, 999, 0, false, true, false);
          Config.priceFloor = 0.0f;
 
@@ -7789,12 +7775,12 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad2), above equilibrium to below equilibrium");
          testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()] * 2);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", Config.quanEquilibrium[testWare1.getLevel()] * 2 - Config.quanDeficient[testWare1.getLevel()] - 10, true) + testWare1.getBasePrice(),
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, testWare1, Config.quanEquilibrium[testWare1.getLevel()] * 2 - Config.quanDeficient[testWare1.getLevel()] - 10, Marketplace.PriceType.CURRENT_BUY) + testWare1.getBasePrice(),
                                    Config.quanEquilibrium[testWare1.getLevel()] * 2, Config.quanEquilibrium[testWare1.getLevel()] * 2 - Config.quanDeficient[testWare1.getLevel()] - 10, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad3 to quad1), above equilibrium to understocked");
          testWare1.setQuantity(Config.quanEquilibrium[testWare1.getLevel()] * 2);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 448, true) + testWare1.getBasePrice(),
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, testWare1, 448, Marketplace.PriceType.CURRENT_BUY) + testWare1.getBasePrice(),
                                    Config.quanEquilibrium[testWare1.getLevel()] * 2, 448, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - (equil to quad2) equilibrium to below equilibrium");
@@ -7807,12 +7793,12 @@ public final class TestSuite
                                    192, 6, 999, 1, false, true, false);
 
          testWare1.setQuantity(224);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 64, true) + testWare1.getBasePrice(),
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, testWare1, 64, Marketplace.PriceType.CURRENT_BUY) + testWare1.getBasePrice(),
                                    224, 64, 999, 2, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad2 to quad1), below equilibrium to understocked");
          testWare1.setQuantity(192);
-         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, "test:material1", 192 - Config.quanDeficient[testWare1.getLevel()] + 20, true) + testWare1.getBasePrice(),
+         errorFound |= testerTrade(InterfaceTerminal.playername, null, testWare1, "testAccount1", null, "10.0", Marketplace.getPrice(PLAYER_ID, testWare1, 192 - Config.quanDeficient[testWare1.getLevel()] + 20, Marketplace.PriceType.CURRENT_BUY) + testWare1.getBasePrice(),
                                    192, 192 - Config.quanDeficient[testWare1.getLevel()] + 20, 999, 0, false, true, false);
 
          TEST_OUTPUT.println("buy() - over-ordering, (quad1 to quad1), understocked to understocked");
@@ -7847,7 +7833,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - referencing ware using alias");
          quantityToTrade = 2;
          quantityWare    = testWare3.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material3", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare3, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, null, "testAccount1", "mat3", quantityToTrade, 100.0f, 1.0f);
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare - quantityToTrade)) {
@@ -7861,7 +7847,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - null coordinates");
          quantityToTrade = 5;
          quantityWare    = testWare1.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, null, "testAccount1", "test:material1", quantityToTrade, 100.0f, 1.0f);
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
@@ -8018,7 +8004,7 @@ public final class TestSuite
          testWare4.setQuantity(32);
          testAccount2.setMoney(20.0f);
          quantityToTrade    = 2;
-         price              = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, true);
+         price              = Marketplace.getPrice(PLAYER_ID, testWare4, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money              = testAccount2.getMoney();
          InterfaceTerminal.serviceRequestBuy(new String[]{"material4", String.valueOf(quantityToTrade), "100.0", "testAccount2"});
          if (testAccountFields(testAccount2, money - price, InterfaceTerminal.playername)) {
@@ -8053,7 +8039,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: valid coordinates");
          quantityToTrade = 10;
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{InterfaceTerminal.playername, "south", "test:material1", String.valueOf(quantityToTrade)});
          if (!baosOut.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
@@ -8071,7 +8057,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: zeroed coordinates");
          quantityToTrade = 10;
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{InterfaceTerminal.playername, "none", "test:material1", String.valueOf(quantityToTrade)});
          if (!baosOut.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
@@ -8118,7 +8104,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - request: different username");
          quantityToTrade = 20;
          quantityWare    = testWare1.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount3.getMoney();
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"possibleID", "none", "test:material1", String.valueOf(quantityToTrade), "testAccount3"});
@@ -8148,7 +8134,7 @@ public final class TestSuite
          testWare2.setQuantity(1000);
          quantityToTrade = 2;
          quantityWare    = testWare2.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material2", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare2, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount1.getMoney();
          Marketplace.buy(PLAYER_ID, null, "testAccount1", "#testName", quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWare2, WareMaterial.class, "", (byte) 1, 27.6f, quantityWare - quantityToTrade)) {
@@ -8185,7 +8171,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - insufficient money with specified price");
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = price + FLOAT_COMPARE_PRECISION;
          playerAccount.setMoney(money);
 
@@ -8204,7 +8190,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - insufficient money with specified price and account");
          quantityToTrade = 8;
          quantityWare    = testWare1.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = price + FLOAT_COMPARE_PRECISION;
          playerAccount.setMoney(money);
 
@@ -8257,7 +8243,7 @@ public final class TestSuite
          quantityToTrade = 777;
          quantityWare    = Config.quanExcessive[testWare1.getLevel()];
          testWare1.setQuantity(quantityWare);
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount1.getMoney();
 
          baosOut.reset(); // clear buffer holding console output
@@ -8416,7 +8402,7 @@ public final class TestSuite
          InterfaceTerminal.inventory.put("test:processed1", 10);    // give player some of the ware to be sold
          quantityToTrade = 10;
          quantityWare    = testWareP1.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:processed1", quantityToTrade, false);
+         price           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:processed1", 20, 0.0f, 1.0f);
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) 4, 1.1f, quantityWare + quantityToTrade)) {
@@ -8431,7 +8417,7 @@ public final class TestSuite
          InterfaceTerminal.inventory.put("test:processed1", 10);    // give player some of the ware to be sold
          quantityToTrade = 8;
          quantityWare    = testWareP1.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:processed1", quantityToTrade, false);
+         price           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:processed1", quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) 4, 1.1f, quantityWare + quantityToTrade)) {
@@ -8458,13 +8444,13 @@ public final class TestSuite
          // Effects of surplus and price floors are not tested here
          // since those tests are more appropriate in Marketplace.getPrice().
          // sell() handles vending wares, ensuring stock is increased and accounts are paid
-         // when appropriate, not managing the cascading effects of those actions.
+         // when appropriate, not managing the cascading effects of those actions.Marketplace.getPrice(PLAYER_ID, testWare4, quantityToTrade, Marketplace.PriceType.CURRENT_SELL
 
          TEST_OUTPUT.println("sell() - referencing ware using alias");
          InterfaceTerminal.inventory.put("test:material3", 10);    // give player a ware with an alias
          quantityToTrade = 2;
          quantityWare    = testWare3.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "test:material3", quantityToTrade, false);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare3, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
          Marketplace.sell(PLAYER_ID, null, "testAccount1", "mat3", quantityToTrade, 0.1f, 1.0f);
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare + quantityToTrade)) {
@@ -8593,7 +8579,7 @@ public final class TestSuite
          InterfaceTerminal.inventory.put("minecraft:material4", 100);
          quantityToTrade = 10;
          quantityWare    = testWare4.getQuantity();
-         price           = Marketplace.getPrice(PLAYER_ID, "minecraft:material4", quantityToTrade, false);
+         price           = Marketplace.getPrice(PLAYER_ID, testWare4, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount2.getMoney();
          InterfaceTerminal.serviceRequestSell(new String[]{"material4", String.valueOf(quantityToTrade), "0.1", "testAccount2"});
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare + quantityToTrade)) {
@@ -8822,9 +8808,9 @@ public final class TestSuite
          quantityWare2    = testWare3.getQuantity();
          quantityToTrade3 = 10;
          quantityWare3    = testWareP1.getQuantity();
-         price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
-         price2           = Marketplace.getPrice(PLAYER_ID, "test:material3", quantityToTrade2, false);
-         price3           = Marketplace.getPrice(PLAYER_ID, "test:processed1", quantityToTrade3, false);
+         price1           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
+         price2           = Marketplace.getPrice(PLAYER_ID, testWare3, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
+         price3           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade3, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
 
          // give wares to the player
@@ -9010,8 +8996,8 @@ public final class TestSuite
          quantityWare2    = Config.quanExcessive[testWareP1.getLevel()];
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
-         price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
-         price2           = Marketplace.getPrice(PLAYER_ID, "test:processed1", quantityToTrade2, false);
+         price1           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
+         price2           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
          money            = testAccount1.getMoney();
 
          // give wares to the player
@@ -9043,8 +9029,8 @@ public final class TestSuite
          quantityWare2    = Config.quanEquilibrium[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.75f) - 1;
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
-         price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
-         price2           = Marketplace.getPrice(PLAYER_ID, "test:processed1", quantityToTrade2, false);
+         price1           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
+         price2           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
          money            = testAccount1.getMoney();
 
          // give wares to the player
@@ -9076,8 +9062,8 @@ public final class TestSuite
          quantityWare2    = Config.quanEquilibrium[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.50f) - 1;
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
-         price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
-         price2           = Marketplace.getPrice(PLAYER_ID, "test:processed1", quantityToTrade2, false);
+         price1           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
+         price2           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
          money            = testAccount1.getMoney();
 
          // give wares to the player
@@ -9109,8 +9095,8 @@ public final class TestSuite
          quantityWare2    = Config.quanEquilibrium[testWareP1.getLevel()] + (int) (quanCeilingFromEquilibrium2 * 0.25f) - 1;
          testWare1.setQuantity(quantityWare1);
          testWareP1.setQuantity(quantityWare2);
-         price1           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade1, false);
-         price2           = Marketplace.getPrice(PLAYER_ID, "test:processed1", quantityToTrade2, false);
+         price1           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
+         price2           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
          money            = testAccount1.getMoney();
 
          // give wares to the player
@@ -9164,13 +9150,13 @@ public final class TestSuite
       // numerical IDs (such as 1.7.10's IDs)
       wares.put("17", new WareMaterial("17", "wood", 0.5f, 256, (byte) 0));
       wareAliasTranslations.put("wood", "17");
-      StringBuilder json = new StringBuilder(wares.get("17").toJSON() + "\n");
+      StringBuilder json = new StringBuilder(wares.get("17").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("17", json);
       waresChangedSinceLastSave.add("17");
       wares.put("58", new WareCrafted(new String[]{"17"}, "58", "crafting_table", 256, 1, (byte) 0));
       wareAliasTranslations.put("crafting_table", "58");
-      json = new StringBuilder(wares.get("58").toJSON() + "\n");
+      json = new StringBuilder(wares.get("58").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("58", json);
 
@@ -9412,14 +9398,14 @@ public final class TestSuite
       wares.put("test:untradeable2", new WareUntradeable(new String[]{"test:material1", "test:material1", "test:untradeable1"}, "test:untradeable2", "notrade2", 2));
       wareAliasTranslations.put("notrade2", "test:untradeable2");
 
-      json = new StringBuilder(wares.get("test:newWare1").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:newWare1").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:newWare1", json);
       waresChangedSinceLastSave.add("test:newWare1");
-      json = new StringBuilder(wares.get("test:newWare2").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:newWare2").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:newWare2", json);
-      json = new StringBuilder(wares.get("test:untradeable2").toJSON() + "\n");
+      json = new StringBuilder(wares.get("test:untradeable2").toJSON()).append('\n');
       waresLoadOrder.add(json);
       wareEntries.put("test:untradeable2", json);
 
@@ -12699,7 +12685,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - insufficient funds");
          wareLevel    = testWare2.getLevel();
          wareQuantity = testWare2.getQuantity();
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare2, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1.0f;
          playerAccount.setMoney(money);
@@ -12739,7 +12725,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - equilibrium: raw material");
          wareLevel    = testWare2.getLevel();
          wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare2, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -12757,7 +12743,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - equilibrium: processed ware");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWareP1, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -12776,7 +12762,7 @@ public final class TestSuite
          wareLevel    = testWare3.getLevel();
          wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
          testWare3.setQuantity(1); // set stock to be low
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material3", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare3, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -12795,7 +12781,7 @@ public final class TestSuite
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1] + 10;
          testWare4.setQuantity(wareQuantity); // set stock to be high
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, true) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_BUY) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -12834,7 +12820,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - non-personal account: generating proposal");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWareP1, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          testAccount1.setMoney(money);
@@ -12852,7 +12838,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - non-personal account: accepting proposal");
          wareLevel    = testWare3.getLevel();
          wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material3", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare3, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          testAccount1.setMoney(money);
@@ -12870,7 +12856,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - non-personal account: generating and accepting proposal");
          wareLevel    = testWare2.getLevel();
          wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:material2", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare2, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          testAccount1.setMoney(money);
@@ -12915,7 +12901,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - maximum price acceptable: insufficient");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel()];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWareP1, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -12939,7 +12925,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - maximum price acceptable: sufficient");
          wareLevel    = testWareP1.getLevel();
          wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "test:processed1", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWareP1, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -12968,7 +12954,7 @@ public final class TestSuite
          Config.researchCostPerHierarchyLevel = 2.0f;
          wareLevel    = testWare4.getLevel();
          wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1];
-         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel * Marketplace.getCurrentPriceAverage();
+         price        = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel * Marketplace.getCurrentPriceAverage();
          price        = CommandEconomy.truncatePrice(price);
          money        = 1000000.0f;
          playerAccount.setMoney(money);
@@ -13011,7 +12997,7 @@ public final class TestSuite
          }
 
          testWare4.setQuantity(wareQuantity - 1);
-         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, true) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_BUY) * wareLevel * Config.researchCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
          baosOut.reset(); // clear buffer holding console output
@@ -13039,7 +13025,7 @@ public final class TestSuite
          InterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
 
          testWare4.setQuantity((int) (testWare4.getQuantity() * 1.04));
-         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, true) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_BUY) * wareLevel * Config.researchCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
          InterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
@@ -13063,7 +13049,7 @@ public final class TestSuite
          InterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
 
          testWare4.setQuantity(wareQuantity);
-         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), "minecraft:material4", 0, false) * wareLevel * Config.researchCostPerHierarchyLevel;
+         price              = Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
          InterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
@@ -13118,15 +13104,15 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 640;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13140,15 +13126,15 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 56;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13163,7 +13149,7 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 640;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13171,8 +13157,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13186,7 +13172,7 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 56;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13194,8 +13180,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13210,7 +13196,7 @@ public final class TestSuite
          quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 640;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13218,8 +13204,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13233,15 +13219,15 @@ public final class TestSuite
          quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 56;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13256,15 +13242,15 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 192;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13278,7 +13264,7 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 20;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13286,8 +13272,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13302,7 +13288,7 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 192;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) ((price + 0.0001f) * 10000.0f)) / 10000.0f; // truncate and round to match getPrice()
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13310,8 +13296,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13325,15 +13311,15 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
          quantityComponent1 = 20;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13348,7 +13334,7 @@ public final class TestSuite
          quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 192;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13356,8 +13342,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13371,15 +13357,15 @@ public final class TestSuite
          quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
          quantityComponent1 = 20;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13394,15 +13380,15 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13416,15 +13402,15 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          testComponent1.setQuantity(quantityComponent1);
 
          if (testWare.getLinkedPriceMultiplier() != priceMult) {
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13439,7 +13425,7 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 0;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13447,8 +13433,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13462,7 +13448,7 @@ public final class TestSuite
          quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
          quantityComponent1 = 0;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
 
@@ -13470,8 +13456,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13490,7 +13476,7 @@ public final class TestSuite
          quantityComponent2 = 9999;
          quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13500,8 +13486,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13521,7 +13507,7 @@ public final class TestSuite
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          quantityComponent3 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13531,8 +13517,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13550,7 +13536,7 @@ public final class TestSuite
          quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13559,8 +13545,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13577,7 +13563,7 @@ public final class TestSuite
          quantityComponent1 = 9999;
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13586,8 +13572,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13607,7 +13593,7 @@ public final class TestSuite
          quantityComponent2 = 0;
          quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13617,8 +13603,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13638,7 +13624,7 @@ public final class TestSuite
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13648,8 +13634,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13667,7 +13653,7 @@ public final class TestSuite
          quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 0;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13676,8 +13662,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13694,7 +13680,7 @@ public final class TestSuite
          quantityComponent1 = 0;
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13703,8 +13689,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13725,7 +13711,7 @@ public final class TestSuite
          quantityComponent2 = 9999;
          quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13735,8 +13721,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13756,7 +13742,7 @@ public final class TestSuite
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          quantityComponent3 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13766,8 +13752,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13785,7 +13771,7 @@ public final class TestSuite
          quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13794,8 +13780,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13812,7 +13798,7 @@ public final class TestSuite
          quantityComponent1 = 9999;
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13821,8 +13807,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13843,7 +13829,7 @@ public final class TestSuite
          quantityComponent2 = 9999;
          quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13853,8 +13839,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13874,7 +13860,7 @@ public final class TestSuite
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          quantityComponent3 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13884,8 +13870,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13903,7 +13889,7 @@ public final class TestSuite
          quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
          quantityComponent2 = 9999;
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13912,8 +13898,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
 
@@ -13930,7 +13916,7 @@ public final class TestSuite
          quantityComponent1 = 9999;
          quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
          testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false);
+         price = priceMult * Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
          price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
          testComponent1.setQuantity(quantityComponent1);
          testComponent2.setQuantity(quantityComponent2);
@@ -13939,8 +13925,8 @@ public final class TestSuite
             TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
             errorFound = true;
          }
-         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare.getWareID(), 1, false) + ", should be " + price);
+         if (Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
+            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(InterfaceTerminal.getPlayerIDStatic(InterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
             errorFound = true;
          }
       }
@@ -13965,17 +13951,6 @@ public final class TestSuite
 
       // ensure testing environment is properly set up
       resetTestEnvironment();
-
-      // track changes to variables
-      int   quantityToTrade;
-      int   quantityWare1;
-      int   quantityWare2;
-      float price;
-      float priceBuying;
-      float priceSelling;
-      Ware ware1;
-      Ware ware2;
-      String expectedOutput;
 
       try {
          // manufactured wares:
@@ -16695,7 +16670,7 @@ public final class TestSuite
 
          // set up test oracles
          Config.chargeTransactionFees = false;
-         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, true) * Config.transactionFeeBuying;
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY) * Config.transactionFeeBuying;
          Config.chargeTransactionFees = true;
 
          // perform action
@@ -16719,7 +16694,7 @@ public final class TestSuite
 
          // set up test oracles
          Config.chargeTransactionFees = false;
-         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, true) * Config.transactionFeeBuying;
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY) * Config.transactionFeeBuying;
          Config.chargeTransactionFees = true;
 
          // perform action
@@ -16819,7 +16794,7 @@ public final class TestSuite
          playerAccount.setMoney(100000.0f);
 
          // set up test oracles
-         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false)
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1, 1, Marketplace.PriceType.CURRENT_SELL)
                   * ware1.getLevel()
                   * Config.researchCostPerHierarchyLevel
                   * Config.transactionFeeResearching;
@@ -16848,7 +16823,7 @@ public final class TestSuite
          playerAccount.setMoney(10000.0f);
 
          // set up test oracles
-         price1 = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false)
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1, 1, Marketplace.PriceType.CURRENT_SELL)
                   * ware1.getLevel()
                   * Config.researchCostPerHierarchyLevel
                   * Config.transactionFeeResearching;
@@ -16952,14 +16927,14 @@ public final class TestSuite
          // set both wares to surplus, then store their price
          testWareP1.setQuantity(Config.quanExcessive[testWareP1.getLevel()] / 2);
          testWare1.setQuantity(Config.quanExcessive[testWare1.getLevel()]);
-         price1 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+         price1 = Marketplace.getPrice(PLAYER_ID, testWareP1, 1, Marketplace.PriceType.CURRENT_SELL);
 
          // test selling some testWareP1 and checking its price
          errorFound |= testPETrade(testWareP1, Config.quanExcessive[testWareP1.getLevel()] / 2, 10,
                                    1.0f, 1.0f, 0, false, true);
 
          // grab testWareP1's price after selling some
-         price2 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+         price2 = Marketplace.getPrice(PLAYER_ID, testWareP1, 1, Marketplace.PriceType.CURRENT_SELL);
 
          // the prices before the quantity changes should be equal to the prices after
          if (price1 != price2) {
@@ -16973,14 +16948,14 @@ public final class TestSuite
          // set both wares to surplus, then store their price
          testWareP1.setQuantity(Config.quanDeficient[testWareP1.getLevel()]);
          testWare1.setQuantity(Config.quanDeficient[testWare1.getLevel()]);
-         price1 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+         price1 = Marketplace.getPrice(PLAYER_ID, testWareP1, 1, Marketplace.PriceType.CURRENT_SELL);
 
          // test selling some testWareP1 and checking its price
          errorFound |= testPETrade(testWareP1, Config.quanDeficient[testWareP1.getLevel()], 8,
                                    1.0f, 1.0f, 0, false, true);
 
          // grab testWareP1's price after selling some
-         price2 = Marketplace.getPrice(PLAYER_ID, testWareP1.getWareID(), 1, false);
+         price2 = Marketplace.getPrice(PLAYER_ID, testWareP1, 1, Marketplace.PriceType.CURRENT_SELL);
 
          // the prices before the quantity changes should be equal to the prices after
          if (price1 != price2) {
@@ -17760,7 +17735,6 @@ public final class TestSuite
       int     quantityToTrade; // how much of the ware should be traded
       int     quantityWare;    // ware's quantity available for sale
 
-      boolean displayErrorFloorReached = false; // whether a message about not stopping sales at the price floor should be displayed
       boolean displayErrorFloorBelow   = false; // whether a message about not selling past the price floor should be displayed
 
       if (printTestNumber)
@@ -17773,7 +17747,6 @@ public final class TestSuite
          // only sell to the price floor
          if (wareDistFromFloor > 0) {
             quantityToTrade          = wareDistFromFloor - 1;
-            displayErrorFloorReached = true;
          }
 
          // do not sell past the price floor
@@ -17794,7 +17767,7 @@ public final class TestSuite
       if (quantityToTrade <= 0)
          price = 0.0f;
       else
-         price = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), quantityToTrade, false);
+         price = Marketplace.getPrice(PLAYER_ID, ware, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
 
       // test as normal
       baosOut.reset(); // clear buffer holding console output
@@ -17898,9 +17871,9 @@ public final class TestSuite
             quantityToTrade1 = quantityToOffer1;
 
          // don't sell if there is no profit to be made
-         price1       = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false);
+         price1       = Marketplace.getPrice(PLAYER_ID, ware1, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price1 > 0.0001f)
-            price1    = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade1, false);
+            price1    = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade1, Marketplace.PriceType.CURRENT_SELL);
          else {
             price1    = 0.0f;
             sellWare1 = false;
@@ -17927,9 +17900,9 @@ public final class TestSuite
             quantityToTrade2 = quantityToOffer2;
 
          // don't sell if there is no profit to be made
-         price2       = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), 1, false);
+         price2       = Marketplace.getPrice(PLAYER_ID, ware2, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price2 > 0.0001f)
-            price2    = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade2, false);
+            price2    = Marketplace.getPrice(PLAYER_ID, ware2, quantityToTrade2, Marketplace.PriceType.CURRENT_SELL);
          else {
             price2    = 0.0f;
             sellWare2 = false;
@@ -17956,9 +17929,9 @@ public final class TestSuite
             quantityToTrade3 = quantityToOffer3;
 
          // don't sell if there is no profit to be made
-         price3       = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), 1, false);
+         price3       = Marketplace.getPrice(PLAYER_ID, ware3, 1, Marketplace.PriceType.CURRENT_SELL);
          if (price3 > 0.0001f)
-            price3    = Marketplace.getPrice(PLAYER_ID, ware3.getWareID(), quantityToTrade3, false);
+            price3    = Marketplace.getPrice(PLAYER_ID, ware3, quantityToTrade3, Marketplace.PriceType.CURRENT_SELL);
          else {
             price3    = 0.0f;
             sellWare3 = false;
@@ -18294,7 +18267,10 @@ public final class TestSuite
       InterfaceTerminal.inventory.put(ware.getWareID(), quantityToTrade);
 
       // set up test oracles
-      priceUnitBefore = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), 1, isPurchase);
+      if (isPurchase)
+         priceUnitBefore = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_BUY);
+      else
+         priceUnitBefore = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL);
       if (priceBuyUpchargeMult != Config.priceBuyUpchargeMult && isPurchase) {
          priceUnitBefore /= Config.priceBuyUpchargeMult;
          priceUnitBefore *= priceBuyUpchargeMult;
@@ -18312,11 +18288,13 @@ public final class TestSuite
       baosOut.reset(); // clear buffer holding console output
       if (isPurchase) {
          Marketplace.buy(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 1000.0f, 1.0f);
+         priceUnitAfter  = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_BUY);
          quantityToTrade = -quantityToTrade; // to ease checking ware's quantity available for sale
       }
-      else
+      else {
          Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 0.0f, 1.0f);
-      priceUnitAfter = Marketplace.getPrice(PLAYER_ID, ware.getWareID(), 1, isPurchase);
+         priceUnitAfter = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL);
+      }
 
       // check ware properties
       if (ware.getQuantity() != quantityWare + quantityToTrade) {

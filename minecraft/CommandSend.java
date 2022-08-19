@@ -4,12 +4,10 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.text.TextComponentString;         // for sending messages to players
-import net.minecraft.command.EntitySelector;                // for using command block selectors
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage
 import java.util.List;                                      // for autocompleting arguments
 import java.util.LinkedList;
-import net.minecraft.util.math.BlockPos;
 
 public class CommandSend extends CommandBase {
 

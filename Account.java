@@ -8,9 +8,7 @@ import java.util.Scanner;             // for parsing files
 import java.io.FileWriter;            // for writing to files
 import java.io.FileNotFoundException; // for handling missing file errors
 import java.io.IOException;           // for handling miscellaneous file errors
-import java.text.DecimalFormat;       // for formatting prices when displaying
 import java.util.UUID;                // for more securely tracking users internally
-import java.lang.StringBuilder;       // for faster saving, so the same line entries may be stored in two data structures
 import java.util.HashSet;             // for faster saving, by storing accounts changed since last save
 import java.io.BufferedWriter;        // for faster saving, so fewer file writes are used
 import java.util.Map;                 // for iterating through hashmaps
@@ -26,15 +24,15 @@ import java.util.Collection;          // for returning all accounts usable withi
  * @version %I%, %G%
  * @since   2021-03-31
  */
-public class Account {
+public final class Account {
    // GLOBAL VARIABLES
    // account information
    /** holds all accounts usable in the market */
-   private static HashMap<String, Account> accounts = new HashMap<String, Account>();
+   private static Map<String, Account> accounts = new HashMap<String, Account>();
    /** tracks how many accounts each user has created */
-   private static HashMap<UUID, Integer> accountsCreatedPerUser = new HashMap<UUID, Integer>();
+   private static Map<UUID, Integer> accountsCreatedPerUser = new HashMap<UUID, Integer>();
    /** maps players to accounts they specified should be used by default for their transactions */
-   private static HashMap<UUID, Account> defaultAccounts = new HashMap<UUID, Account>();
+   private static Map<UUID, Account> defaultAccounts = new HashMap<UUID, Account>();
 
    // file-handling
    /** maps UUIDs to account creation records, easing regenerating changed those records for saving */
@@ -42,9 +40,9 @@ public class Account {
    /** holds account entries which failed to load */
    private static StringBuilder accountsErrored = new StringBuilder();
    /** holds account IDs whose entries should be regenerated */
-   private static HashSet<Account> accountsChangedSinceLastSave = new HashSet<Account>();
+   private static Set<Account> accountsChangedSinceLastSave = new HashSet<Account>();
    /** maps account IDs to account entries, easing regenerating changed accounts' entries for saving */
-   private static HashMap<String, StringBuilder> accountEntries = new HashMap<String, StringBuilder>();
+   private static Map<String, StringBuilder> accountEntries = new HashMap<String, StringBuilder>();
    /** whether or not to remove entries for mapping players to default accounts */
    private static boolean regenerateDefaultAccountEntries = false;
    /** holds entries mapping players to default accounts */
@@ -71,7 +69,7 @@ public class Account {
     * @param startingMoney how much funds the account should have
     * @return a newly opened account or null if the account could not be created
     */
-   public static Account makeAccount(String accountID, UUID accountOwner, float startingMoney) {
+   public static Account makeAccount(final String accountID, final UUID accountOwner, final float startingMoney) {
       // grab the account owner's name once
       String accountOwnerName = Config.commandInterface.getDisplayName(accountOwner);
 
@@ -165,7 +163,7 @@ public class Account {
     * @param accountOwner player who should have access to the account
     * @return a newly opened account or null if the account could not be created
     */
-   public static Account makeAccount(String accountID, UUID accountOwner) {
+   public static Account makeAccount(final String accountID, final UUID accountOwner) {
       return makeAccount(accountID, accountOwner, Config.accountStartingMoney);
    }
 
@@ -175,7 +173,7 @@ public class Account {
     * @param accountID     internal name of account
     * @param accountOwner  player who should have access to the account
     */
-   public static void deleteAccount(String accountID, UUID accountOwner) {
+   public static void deleteAccount(final String accountID, final UUID accountOwner) {
       // check whether the account exists
       if (accountID == null || accountID.isEmpty() || !accounts.containsKey(accountID))
          return;
@@ -245,7 +243,7 @@ public class Account {
     * @param accountID internal name of account to be returned if found
     * @return account or null
     */
-   public static Account getAccount(String accountID) { return accounts.get(accountID); }
+   public static Account getAccount(final String accountID) { return accounts.get(accountID); }
 
    /**
     * Grabs the account with the specified ID and checks the given player's permissions.
@@ -257,7 +255,7 @@ public class Account {
     * @param accountUser player wishing to access the account
     * @return the account if it exists and passes all checks or null
     */
-   public static Account grabAndCheckAccount(String accountID, UUID accountUser) {
+   public static Account grabAndCheckAccount(final String accountID, final UUID accountUser) {
       Account account = null;
 
       // if no account is given, use the player's personal account or default account
@@ -318,7 +316,7 @@ public class Account {
     * @param minimumFunds the lowest amount of money the account should have
     * @return the account if it exists and passes all checks or null
     */
-   public static Account grabAndCheckAccount(String accountID, UUID accountUser, float minimumFunds) {
+   public static Account grabAndCheckAccount(final String accountID, final UUID accountUser, final float minimumFunds) {
       Account account = grabAndCheckAccount(accountID, accountUser);
 
       // if given account doesn't exist, stop
@@ -365,7 +363,7 @@ public class Account {
     * @param accountOwner  player who should have access to the account
     * @param startingMoney how much money the account should start with
     */
-   private Account(String accountID, UUID accountOwner, float startingMoney) {
+   private Account(final String accountID, final UUID accountOwner, float startingMoney) {
       // account IDs and player IDs may be null or empty
       // no account ID == account is not placed into Account.accounts
       // no player  ID == account is inaccessible to all players
@@ -797,7 +795,7 @@ public class Account {
     * @param playerID player whose the number of accounts needs to be checked
     * @return numbers of times user has created an account
     */
-   public static int getNumAccountsCreatedByUser(UUID playerID) {
+   public static int getNumAccountsCreatedByUser(final UUID playerID) {
       // if no id was given, then don't allow an account to be made
       if (playerID == null)
          return 2147483647;
@@ -1024,7 +1022,7 @@ public class Account {
             // prevents a null pointer exception if an account was just deleted
             if (account == null)
                continue;
-            json.append(accountID + ',' + account.getWrittenState()); // save updated entry
+            json.append(accountID).append(',').append(account.getWrittenState()); // save updated entry
          }
       }
       accountsChangedSinceLastSave.clear();

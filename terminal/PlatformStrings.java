@@ -11,7 +11,7 @@ package commandeconomy;
  * @version %I%, %G%
  * @since   2022-06-20
  */
-public class PlatformStrings {
+public final class PlatformStrings {
    // command names
    public final static String CMD_OP                = "op";
    public final static String CMD_DEOP              = "deop";

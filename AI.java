@@ -1,13 +1,11 @@
 package commandeconomy;
 
 import java.util.concurrent.ThreadLocalRandom; // for randomizing trade frequency and decisions
-import java.util.HashMap;                      // for holding AI trade preferences and decisions
-import java.util.Map;                          // for iterating through hashmaps and priority queues
+import java.util.Map;                          // for iterating through maps and priority queues
 import java.util.Iterator;
 import java.util.HashSet;                      // for validating AI trade preferences
 import java.util.PriorityQueue;                // for storing multiple trade decisions
 import java.util.Comparator;                   // for evaluating trade decisions when multiple should be made
-import java.lang.StringBuilder;                // for faster error message generation
 import java.util.Arrays;                       // for sorting trade decisions by desirability
 
 /**
@@ -33,7 +31,7 @@ public class AI {
    /** wares the AI may sell */
    transient Ware[] sellables    = null;
    /** biases the AI carries when making trading decisions */
-   HashMap<String, Float> preferences  = null;
+   Map<String, Float> preferences  = null;
    /** how many trade decisions the AI should make during a single trade event */
    transient int decisionsPerTradeEvent = 1;
 
@@ -62,7 +60,7 @@ public class AI {
        * @param desirability how good the deal seems
        * @param isPurchase   whether the trade is to buy the ware
        */
-      public TradeDecision (Ware ware, float desirability, boolean isPurchase) {
+      public TradeDecision (final Ware ware, final float desirability, final boolean isPurchase) {
          this.ware         = ware;
          this.desirability = desirability;
          this.isPurchase   = isPurchase;
@@ -88,7 +86,7 @@ public class AI {
     * @param rhs the second trade offer to be compared
     * @return a negative integer, zero, or a positive integer as the trade decision is less desirable, equally desirable, or more desirable than the second
     */
-      public int compare(TradeDecision lhs, TradeDecision rhs) {
+      public int compare(final TradeDecision lhs, final TradeDecision rhs) {
          // handle null trade decisions
          if (lhs == null)
             return -1; // lhs is less desirable
@@ -96,7 +94,7 @@ public class AI {
             return 1;  // lhs is more desirable
 
          // sort as a min heap
-         float result = lhs.desirability - rhs.desirability;
+         final float result = lhs.desirability - rhs.desirability;
          if (result > 0.0f)
             return 1;  // lhs is more desirable
          else if (result < 0.0f)
@@ -130,7 +128,7 @@ public class AI {
     * Complexity: O(n), where n is the number of wares to be traded
     * @param tradesPending initialized map of ware references and changes to their quantities for sale
     */
-   public static void finalizeTrades(HashMap<Ware, Integer> tradesPending) {
+   public static void finalizeTrades(Map<Ware, Integer> tradesPending) {
       if (tradesPending == null || tradesPending.isEmpty())
          return;
 
@@ -266,13 +264,6 @@ public class AI {
 
    // INSTANCE METHODS
    /**
-    * Creates an AI for GSON.
-    * <p>
-    * Complexity: O(1)
-    */
-   public AI() { }
-
-   /**
     * Creates an AI with a given profession.
     * <p>
     * Complexity: O(n), where n is the number of wares affected by the AI
@@ -282,7 +273,7 @@ public class AI {
     * @param preferences     biases the AI may carry toward trades
     */
    public AI(String profession, String[] purchasablesIDs, String[] sellablesIDs, 
-             HashMap<String, Float> preferences) {
+             Map<String, Float> preferences) {
       // set variables
       this.purchasablesIDs = purchasablesIDs;
       this.sellablesIDs    = sellablesIDs;
@@ -419,7 +410,7 @@ public class AI {
       // correspond to purchasable and sellable IDs
       if (preferences != null) {
          if (!preferences.isEmpty()) {
-            Iterator<Map.Entry<String, Float>> iterator = preferences.entrySet().iterator(); // get hashmap iterator
+            Iterator<Map.Entry<String, Float>> iterator = preferences.entrySet().iterator(); // get map iterator
             Map.Entry<String, Float> entry;  // contains preference currently being processed
             String                   wareID; // identifier for ware AI has an opinion of
             float                    bias;   // how much AI favors or dislikes the ware
@@ -603,7 +594,7 @@ public class AI {
     * Complexity: O(n), where n is the number of wares affected by the AI
     * @param tradesPending initialized map of ware references and changes to their quantities for sale
     */
-   public void trade(HashMap<Ware, Integer> tradesPending) {
+   public void trade(Map<Ware, Integer> tradesPending) {
       // if not allowed to trade,
       // unaware of how much volume to trade at once,
       // or have nowhere to schedule trades,

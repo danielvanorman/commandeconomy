@@ -9,7 +9,6 @@ import java.util.TimerTask;                     // for disabling random events m
 import java.util.Collections;                   // for communication between the main thread and the thread handling random events
 import java.util.Set;
 import java.util.EnumSet;                       // EnumSets are faster than HashSets, so they are used for inter-thread communication
-import java.lang.StringBuilder;                 // for generating ware change descriptions and reporting invalid ware IDs
 import java.util.concurrent.ThreadLocalRandom;  // for randomizing event frequency and decisions
 
 /**
@@ -509,8 +508,8 @@ public class RandomEvents extends TimerTask {
 
                   // prepare front matter for reporting the event's invalid IDs
                   invalidWareIDs.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID +
-                                        CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description +
-                                        CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
+                                        CommandEconomy.MSG_RANDOM_EVENT_DESC).append(randomEvent.description)
+                                        .append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
                }
 
                // flag that at least one invalid entry has been found
@@ -518,7 +517,7 @@ public class RandomEvents extends TimerTask {
 
                // if enabled, report invalid IDs
                if (Config.randomEventsReportInvalidWares)
-                  invalidWareIDs.append(randomEvent.changedWaresIDs[changedWaresIDsIndex] + ", ");
+                  invalidWareIDs.append(randomEvent.changedWaresIDs[changedWaresIDsIndex]).append(", ");
             }
          }
 

@@ -31,7 +31,7 @@ public class AIHandler extends TimerTask {
    // STATIC ATTRIBUTES
    // AI management
    /** AI configured to mimic a particular occupation */
-   static HashMap<String, AI> professions = null;
+   static Map<String, AI> professions = null;
    /** AI who regularly engage in trade */
    static AI[] activeAI = null;
 
@@ -57,7 +57,7 @@ public class AIHandler extends TimerTask {
    /** whether the task should continue running */
    public transient volatile boolean stop = false;
    /** unfinalized AI trade decisions; used to condense marketplace changes into one critical section */
-   private transient HashMap<Ware, Integer> tradesPending = null;
+   private transient Map<Ware, Integer> tradesPending = null;
 
    // STATIC METHODS
    /**

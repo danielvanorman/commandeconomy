@@ -28,7 +28,7 @@ public abstract class Ware
 
    // linked prices
    /** multipliers for wares whose linked price multipliers have recently been calculated */
-   private static HashMap<Ware, Float> recentLinkedPriceResults = null;
+   private static Map<Ware, Float> recentLinkedPriceResults = null;
 
    // INSTANCE VARIABLES
    /** wares used to create this ware */
@@ -122,7 +122,7 @@ public abstract class Ware
          // if the alias contains a colon,
          // remove everything before the colon
          if (alias.contains(":")) {
-            this.alias = alias.substring(alias.indexOf(":") + 1, alias.length());
+            this.alias = alias.substring(alias.indexOf(':') + 1, alias.length());
          } else {
             this.alias = alias;
          }
@@ -371,7 +371,7 @@ public abstract class Ware
          // if the alias contains a colon,
          // remove everything before the colon
          if (alias.contains(":"))
-            alias = alias.substring(alias.indexOf(":") + 1, alias.length());
+            alias = alias.substring(alias.indexOf(':') + 1, alias.length());
       } else {
          alias = null;
       }
@@ -415,7 +415,7 @@ public abstract class Ware
          // if the alias contains a colon,
          // remove everything before the colon
          if (alias.contains(":"))
-            alias = alias.substring(alias.indexOf(":") + 1, alias.length());
+            alias = alias.substring(alias.indexOf(':') + 1, alias.length());
       } else {
          alias = null;
       }

@@ -150,7 +150,7 @@ import java.text.DecimalFormat;                                   // for formatt
  * @version %I%, %G%
  * @since   2021-01-29
  */
-public class CommandEconomy {
+public final class CommandEconomy {
    /** lowercase name for accessing services and information */
    public static final String MODID   = "commandeconomy";
    /** title case name for presentation */

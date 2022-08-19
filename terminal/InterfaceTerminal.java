@@ -2,13 +2,12 @@ package commandeconomy;
 
 import java.util.Scanner;              // for reading from the console
 import java.util.HashMap;              // for storing wares in the user's inventory
+import java.util.Map;
 import java.util.LinkedList;           // for returning properties of wares found in an inventory and tracking server administrators
 import java.util.List;
 import java.util.Arrays;               // for removing the first element of user input before passing it to service request functions
 import java.util.UUID;                 // for more securely tracking users internally
 import java.util.Timer;                // for autosaving
-import java.util.TimerTask;
-import java.lang.StringBuilder;        // for faster output concatenation for /help
 
 /**
  * Contains functions for interacting with a terminal
@@ -24,26 +23,26 @@ public class InterfaceTerminal implements InterfaceCommand
    /** username of the player whose request is being handled */
    protected static String playername = "John_Doe";
    /** list of server administrators, mimicking Minecraft Forge's OppedPlayerNames string array */
-   protected static LinkedList<UUID> ops = new LinkedList<UUID>();
+   protected static List<UUID> ops = new LinkedList<UUID>();
    /** maps UUIDs to player names */
-   private static HashMap<UUID, String> uuidToNames = new HashMap<UUID, String>();
+   private static Map<UUID, String> uuidToNames = new HashMap<UUID, String>();
 
    /** maximum inventory capacity */
    protected static int inventorySpace = 36;
    /** terminal user's personal inventory */
-   protected static HashMap<String, Integer> inventory      = new HashMap<String, Integer>();
+   protected static Map<String, Integer> inventory      = new HashMap<String, Integer>();
    /** northward inventory */
-   protected static HashMap<String, Integer> inventoryNorth = new HashMap<String, Integer>();
+   protected static Map<String, Integer> inventoryNorth = new HashMap<String, Integer>();
    /** eastward inventory */
-   protected static HashMap<String, Integer> inventoryEast  = new HashMap<String, Integer>();
+   protected static Map<String, Integer> inventoryEast  = new HashMap<String, Integer>();
    /** westward inventory */
-   protected static HashMap<String, Integer> inventoryWest  = new HashMap<String, Integer>();
+   protected static Map<String, Integer> inventoryWest  = new HashMap<String, Integer>();
    /** southward inventory */
-   protected static HashMap<String, Integer> inventorySouth = new HashMap<String, Integer>();
+   protected static Map<String, Integer> inventorySouth = new HashMap<String, Integer>();
    /** upward inventory */
-   protected static HashMap<String, Integer> inventoryUp    = new HashMap<String, Integer>();
+   protected static Map<String, Integer> inventoryUp    = new HashMap<String, Integer>();
    /** downward inventory */
-   protected static HashMap<String, Integer> inventoryDown  = new HashMap<String, Integer>();
+   protected static Map<String, Integer> inventoryDown  = new HashMap<String, Integer>();
 
    /** speeds up concatenation for /help */
    private static StringBuilder sbHelpOutput   = new StringBuilder(2200);
@@ -112,7 +111,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param coordinates where the inventory may be found
     * @return inventory to be manipulated
     */
-   private static HashMap<String, Integer> getInventoryContainer(UUID playerID,
+   private static Map<String, Integer> getInventoryContainer(UUID playerID,
       InterfaceCommand.Coordinates coordinates) {
       // if no coordinates are given, use the user's personal inventory
       if (coordinates == null)
@@ -172,7 +171,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param direction where the inventory may be found
     * @return inventory to be manipulated
     */
-   private static HashMap<String, Integer> getInventoryContainer(UUID playerID,
+   private static Map<String, Integer> getInventoryContainer(UUID playerID,
       String direction) {
       switch(direction)
       {
@@ -199,12 +198,12 @@ public class InterfaceTerminal implements InterfaceCommand
    public List<Marketplace.Stock> getInventoryContents(UUID playerID,
       InterfaceCommand.Coordinates coordinates) {
       // get the inventory
-      HashMap<String, Integer> inventoryToUse = getInventoryContainer(playerID, coordinates);
+      Map<String, Integer> inventoryToUse = getInventoryContainer(playerID, coordinates);
       if (inventoryToUse == null)
          return null;
 
       // convert the inventory to the right format
-      LinkedList<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
+      List<Marketplace.Stock> formattedInventory = new LinkedList<Marketplace.Stock>();
       for (String wareID : inventoryToUse.keySet()) {
          formattedInventory.add(new Marketplace.Stock(wareID, Marketplace.translateAndGrab(wareID), inventoryToUse.get(wareID), 1.0f));
       }
@@ -221,7 +220,7 @@ public class InterfaceTerminal implements InterfaceCommand
    public int getInventorySpaceAvailable(UUID playerID,
       InterfaceCommand.Coordinates coordinates) {
       // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
+      Map<String, Integer> inventoryToUse;
       if (coordinates != null) {
          inventoryToUse = getInventoryContainer(playerID, coordinates);
 
@@ -255,7 +254,7 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
 
       // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
+      Map<String, Integer> inventoryToUse;
       if (coordinates != null) {
          inventoryToUse = getInventoryContainer(playerID, coordinates);
 
@@ -286,7 +285,7 @@ public class InterfaceTerminal implements InterfaceCommand
          return;
 
       // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
+      Map<String, Integer> inventoryToUse;
       if (coordinates != null) {
          inventoryToUse = getInventoryContainer(playerID, coordinates);
 
@@ -318,13 +317,13 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param coordinates where the inventory may be found
     * @return quantities and qualities of wares found
     */
-   public LinkedList<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public List<Marketplace.Stock> checkInventory(UUID playerID, InterfaceCommand.Coordinates coordinates,
       String wareID) {
       // prepare a container for the wares
-      LinkedList<Marketplace.Stock> waresFound = new LinkedList<Marketplace.Stock>();
+      List<Marketplace.Stock> waresFound = new LinkedList<Marketplace.Stock>();
 
       // grab the right inventory
-      HashMap<String, Integer> inventoryToUse;
+      Map<String, Integer> inventoryToUse;
       if (coordinates != null) {
          inventoryToUse = getInventoryContainer(playerID, coordinates);
 
@@ -1291,7 +1290,7 @@ public class InterfaceTerminal implements InterfaceCommand
       Ware   ware     = null;
       String wareID   = "";
       int    quantity = 1; // default to one ware given
-      HashMap<String, Integer> inventoryToUse = inventory;
+      Map<String, Integer> inventoryToUse = inventory;
 
       // translate and get the ware so we can print its alias
       ware = Marketplace.translateAndGrab(args[0]);
@@ -1392,7 +1391,7 @@ public class InterfaceTerminal implements InterfaceCommand
       // set up variables
       String wareID   = "";
       int    quantity = 0; // default to taking all of the ware
-      HashMap<String, Integer> inventoryToUse = inventory;
+      Map<String, Integer> inventoryToUse = inventory;
 
       // translate the given ware ID in case it is an alias
       wareID = Marketplace.translateWareID(args[0]);
@@ -1504,8 +1503,8 @@ public class InterfaceTerminal implements InterfaceCommand
     * @param inventoryDirection inventory whose contents should be printed; should be none, down, up, north, east, west, or south
     */
    private static void printInventory(String inventoryDirection) {
-      HashMap<String, Integer> inventoryToUse; // pointer to inventory to be used
-      String inventoryName;                     // title for presenting the inventory
+      Map<String, Integer> inventoryToUse; // pointer to inventory to be used
+      String inventoryName;                // title for presenting the inventory
 
       if (inventoryDirection == null || inventoryDirection.length() == 0) {
          inventoryToUse = inventory;

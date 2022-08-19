@@ -2,6 +2,7 @@ package commandeconomy;
 
 import java.util.UUID;                // for more securely tracking users internally
 import java.util.HashMap;             // for storing research proposals
+import java.util.Map;
 import java.util.List;                // for returning properties of wares found in an inventory
 
 /**
@@ -20,11 +21,11 @@ import java.util.List;                // for returning properties of wares found
  * @version %I%, %G%
  * @since   2021-08-27
  */
-public class CommandProcessor
+public final class CommandProcessor
 {
    // GLOBAL VARIABLES
    /** for /research, holds the latest proposal for each player */
-   private static HashMap<UUID, ResearchProposal> researchProposals = null;
+   private static Map<UUID, ResearchProposal> researchProposals = null;
 
    // STRUCTS
    /**
@@ -90,7 +91,6 @@ public class CommandProcessor
       int     quantity          = 0;
       float   priceUnit         = 0.0f;
       float   pricePercent      = 1.0f;
-      boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
       // check for and process special keywords and zero-length args
       for (String arg : args) {
@@ -262,7 +262,7 @@ public class CommandProcessor
     * @param server   host running the game instance; used for obtaining player information
     * @param args     arguments given in the expected format
     */
-   protected static void sell(UUID senderID, Object sender, Object server, String[] args) {
+   public static void sell(UUID senderID, Object sender, Object server, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
          Config.commandInterface.printToUser(senderID, CommandEconomy.CMD_USAGE_SELL);
@@ -477,7 +477,7 @@ public class CommandProcessor
     * @param server   host running the game instance; used for obtaining player information
     * @param args     arguments given in the expected format
     */
-   protected static void check(UUID senderID, Object sender, Object server, String[] args) {
+   public static void check(UUID senderID, Object sender, Object server, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
          Config.commandInterface.printToUser(senderID, CommandEconomy.CMD_USAGE_CHECK);
@@ -490,7 +490,6 @@ public class CommandProcessor
       int     baseArgsLength    = args.length; // number of args, not counting special keywords
       int     quantity          = 0;           // holds ware quantities
       float   pricePercent      = 1.0f;
-      boolean shouldManufacture = false;       // whether or not to factor in manufacturing for purchases
 
       // check for and process special keywords and zero-length args
       for (String arg : args) {
@@ -610,7 +609,7 @@ public class CommandProcessor
     * @param sender   player or command block executing the command; determines original position
     * @param args     arguments given in the expected format
     */
-   protected static void sellAll(UUID senderID, Object sender, String[] args) {
+   public static void sellAll(UUID senderID, Object sender, String[] args) {
       // request can be null or have zero arguments
 
       // set up variables
@@ -798,7 +797,7 @@ public class CommandProcessor
     * @param sender   player or command block executing the command; determines original position
     * @param args arguments given in the expected format
     */
-   protected static void send(UUID senderID, Object sender, String[] args) {
+   public static void send(UUID senderID, Object sender, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
          Config.commandInterface.printToUser(senderID, CommandEconomy.CMD_USAGE_SEND);
@@ -1173,8 +1172,8 @@ public class CommandProcessor
             priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]        - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
             priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() - 1]    - Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]));
             consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
-                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
-                         .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
+                         .append("% lower\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
             if (researchProposal.ware.getQuantity() < Config.quanEquilibrium[researchProposal.ware.getLevel() - 1])
                consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]);
@@ -1237,8 +1236,8 @@ public class CommandProcessor
             priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]        - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
             priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() - 1]    - Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]));
             consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
-                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
-                         .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
+                         .append("% lower\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
             if (researchProposal.ware.getQuantity() < Config.quanEquilibrium[researchProposal.ware.getLevel() - 1])
                consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]);
@@ -1268,7 +1267,7 @@ public class CommandProcessor
       account.subtractMoney(researchProposal.price);
 
       // print results
-      consoleOutput = new StringBuilder();
+      consoleOutput = new StringBuilder(128);
       if (researchProposal.ware.getAlias() != null && !researchProposal.ware.getAlias().isEmpty())
          consoleOutput.append(researchProposal.ware.getAlias());
       else
@@ -1279,8 +1278,8 @@ public class CommandProcessor
       priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() + 1]   - Config.quanEquilibrium[researchProposal.ware.getLevel() + 1]));
       priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]       - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
       consoleOutput.append(CommandEconomy.MSG_RESEARCH_SUCCESS)
-                   .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f)).append("% lower")
-                   .append("\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+                   .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
+                   .append("% lower\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
       if (Config.quanEquilibrium[researchProposal.ware.getLevel()] == researchProposal.ware.getQuantity())
          consoleOutput.append("\n   new quantity available for sale: ").append(researchProposal.ware.getQuantity());

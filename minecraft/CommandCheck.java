@@ -4,15 +4,10 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.EntitySelector;                       // for using command block selectors
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage and handling held items
-
 import java.util.List;                                      // for autocompleting arguments
 import java.util.LinkedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.item.ItemStack;                        // for handling held items
-import net.minecraft.item.Item;
-import java.util.UUID;                                      // for more securely tracking users internally
 
 public class CommandCheck extends CommandBase {
 

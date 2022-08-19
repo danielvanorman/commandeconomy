@@ -1,19 +1,15 @@
 package commandeconomy;
 
-import net.minecraftforge.fml.common.Mod;                          // for registering as a mod
-import net.minecraftforge.fml.common.Mod.EventHandler;             // for initializing the mod
+import net.minecraftforge.fml.common.Mod;                          // for registering as a mod and initializing the mod
 import net.minecraftforge.fml.common.event.FMLServerStartedEvent;  // for initializing the marketplace upon game's start
-import net.minecraftforge.common.MinecraftForge;                   // for registering to be notified of events (for autosaving, etc.)
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;  // for canceling threads when the world stops
 import java.util.LinkedList;                                       // for returning properties of wares found in an inventory and autocompleting arguments
-import net.minecraftforge.fml.common.event.FMLServerStartedEvent;  // for initializing upon game's start
 import net.minecraft.command.CommandHandler;                       // for registering commands
 import java.util.List;                                             // for autocompleting command arguments
 import net.minecraft.util.text.TextComponentString;                // for sending messages to users
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.FMLCommonHandler;             // for finding and interacting with specific users and getting usernames when autocompleting arguments
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;          // for accessing player inventories
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Item;                                    // for converting between items and ware stock levels and getting items' ware IDs
@@ -24,16 +20,16 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraft.util.math.BlockPos;                           // for finding block inventories
 import net.minecraft.util.NonNullList;                             // for checking the existence of item subtypes when validating ware IDs
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.command.ICommandSender;                       // for checking for server operator permissions, converting sender names to UUIDs, and simplifying sending error messages
+import net.minecraft.command.ICommandSender;                       // for checking for server operator permissions, converting sender names to UUIDs, simplifying sending error messages, and extracting command-issuing entities' positions and permissions
 import net.minecraftforge.oredict.OreDictionary;                   // for checking Forge OreDictionary names
 import net.minecraft.server.management.PlayerList;                 // for checking server operator permissions
 import java.util.UUID;                                             // for more securely tracking users internally
 import java.util.HashMap;                                          // for mapping server and command block UUIDs to displayable names
+import java.util.Map;
 import net.minecraft.command.CommandBase;                          // for providing other classes access to command handlers
 import net.minecraftforge.common.DimensionManager;                 // for getting paths to per-world save and config files
 import java.util.TreeSet;                                          // for autocompleting arguments
 import java.util.Set;
-import net.minecraft.command.ICommandSender;                       // for extracting command-issuing entities' positions and permissions
 import net.minecraft.command.EntitySelector;                       // for using command block selectors
 import net.minecraft.server.MinecraftServer;                       // for obtaining player information when checking players' hands
 
@@ -49,7 +45,7 @@ public class InterfaceMinecraft implements InterfaceCommand
 {
    // GLOBAL VARIABLES
    /** maps the server and command block's UUIDs to displayable names */
-   private static HashMap<UUID, String> uuidToNames = new HashMap<UUID, String>();
+   private static Map<UUID, String> uuidToNames = new HashMap<UUID, String>();
    /** NBT tag marking an item stack as not to be sold */
    private final static String NBT_TAG_NOSELL = "nosell";
 
@@ -89,9 +85,9 @@ public class InterfaceMinecraft implements InterfaceCommand
    /** valid arguments for referring to an inventory */
    public static final String[] INVENTORY_KEYWORDS = new String[] {CommandEconomy.INVENTORY_NONE, CommandEconomy.INVENTORY_DOWN, CommandEconomy.INVENTORY_UP, CommandEconomy.INVENTORY_NORTH, CommandEconomy.INVENTORY_EAST, CommandEconomy.INVENTORY_WEST, CommandEconomy.INVENTORY_SOUTH};
    /** valid arguments for referring to accounts */
-   private static TreeSet<String> accountIDs = null;
+   private static Set<String> accountIDs = null;
    /** valid arguments for referring to wares' alternate names */
-   private static TreeSet<String> wareAliases = null;
+   private static Set<String> wareAliases = null;
 
    // FUNCTIONS
    /**
@@ -283,7 +279,7 @@ public class InterfaceMinecraft implements InterfaceCommand
 
          // if the item is not in the market,
          // check whether the item has an ore name within the market
-         if (ware == null && Config.allowOreDictionarySubstitution) {
+         if (ware == null && Config.allowWareTagSubstitution) {
             // get the item stack's numerical OreDictionary IDs
             int[] oreIDs = OreDictionary.getOreIDs(itemStack);
 
@@ -671,7 +667,7 @@ public class InterfaceMinecraft implements InterfaceCommand
             // search the marketplace for the ware to be manipulated
             ware = Marketplace.translateAndGrab(itemID);
             // if ware is not in the market, check for a substitute
-            if (ware == null && Config.allowOreDictionarySubstitution)
+            if (ware == null && Config.allowWareTagSubstitution)
                ware = Config.commandInterface.getOreDictionarySubstitution(itemID);
 
             // if the wares are damageable, handle potential damage
@@ -1378,7 +1374,7 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @return list of strings starting with the given argument
     */
    public static List<String> getAutoCompletionStrings(String prefix, AutoCompletionStringCategories stringCategory) {
-      LinkedList<String> autoCompletionStrings = new LinkedList<String>();
+      List<String> autoCompletionStrings = new LinkedList<String>();
 
       // prevent null pointer exception
       if (prefix == null)
@@ -1422,7 +1418,7 @@ public class InterfaceMinecraft implements InterfaceCommand
       if (possibleCompletionStrings == null || possibleCompletionStrings.length == 0)
          return null;
 
-      LinkedList<String> autoCompletionStrings = new LinkedList<String>();
+      List<String> autoCompletionStrings = new LinkedList<String>();
 
       // prevent null pointer exception
       if (prefix == null)
@@ -1445,14 +1441,14 @@ public class InterfaceMinecraft implements InterfaceCommand
     * @param potentialMatches      all valid possibilities for finishing the term
     * @param autoCompletionStrings string list to be augmented
     */
-   private static void findAutoCompletionStrings(String prefix, TreeSet<String> potentialMatches,
+   private static void findAutoCompletionStrings(String prefix,Set<String> potentialMatches,
                                           List<String> autoCompletionStrings) {
       // if no matches are given or can be returned, stop
       if (prefix == null || potentialMatches == null || autoCompletionStrings == null)
          return;
 
       // grab all potential matches that might contain the prefix
-      Set<String> tailSet = potentialMatches.tailSet(prefix);
+      Set<String> tailSet = ((TreeSet<String>) potentialMatches).tailSet(prefix);
 
       // add all potential matches starting with the prefix
       for (String potentialMatch : tailSet) {
@@ -1461,8 +1457,6 @@ public class InterfaceMinecraft implements InterfaceCommand
          else // matches beginning with the prefix are listed first, so stop when the prefix isn't found
             break;
       }
-
-      return;
    }
 
    /**

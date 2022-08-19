@@ -11,7 +11,7 @@ package commandeconomy;
  * @version %I%, %G%
  * @since   2022-06-20
  */
-public class PlatformStrings {
+public final class PlatformStrings {
    // command names
    public final static String CMD_NOSELL       = "noSell";
    public final static String CMD_NOSELL_LOWER = "nosell";

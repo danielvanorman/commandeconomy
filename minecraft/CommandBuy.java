@@ -4,13 +4,10 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.math.BlockPos;                    // for handling coordinates
-import net.minecraftforge.items.IItemHandler;               // for checking player and block inventories
-import net.minecraft.command.EntitySelector;                // for using command block selectors
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage
 import java.util.List;                                      // for autocompleting arguments
 import java.util.LinkedList;
-import java.util.UUID;                                      // for more securely tracking users internally
 
 public class CommandBuy extends CommandBase {
 

@@ -4,12 +4,10 @@ import net.minecraft.command.CommandBase;                   // for registering a
 import net.minecraft.command.CommandException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.EntitySelector;                // for using command block selectors
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.entity.player.EntityPlayer;            // for printing command block usage
 import java.util.List;                                      // for autocompleting arguments and sending command aliases
 import java.util.LinkedList;
-import net.minecraft.util.math.BlockPos;
-import java.util.UUID;                                      // for more securely tracking users internally
 import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandMoney extends CommandBase {

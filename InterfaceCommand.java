@@ -47,8 +47,8 @@ public interface InterfaceCommand
        * @param z         container's z-axis coordinate
        * @param dimension container's world's reference number
        */
-      public Coordinates (int x, int y,
-         int z, int dimension) {
+      public Coordinates (final int x, final int y,
+                          final int z, final int dimension) {
          this.x = x;
          this.y = y;
          this.z = z;
@@ -78,7 +78,7 @@ public interface InterfaceCommand
        * @param wareID   ID for the ware a player is holding
        * @param quantity how much of the ware a player is holding
        */
-      public Handful (String wareID, int quantity) {
+      public Handful (final String wareID, final int quantity) {
          this.wareID =  wareID;
          this.quantity = quantity;
       }
