@@ -221,7 +221,7 @@ public class AI {
                if (ware instanceof WareLinked)
                   quantityDistFromFloor = ((WareLinked) ware).getQuanWhenReachedPriceFloor() - ware.getQuantity();
                else
-                  quantityDistFromFloor = Marketplace.getQuantityUntilPrice(ware, Marketplace.getPrice(null, ware, 1, false, Marketplace.PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
+                  quantityDistFromFloor = Marketplace.getQuantityUntilPrice(ware, Marketplace.getPrice(null, ware, 1, Marketplace.PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
 
                // if nothing may be sold, skip this ware
                if (quantityDistFromFloor <= 0)

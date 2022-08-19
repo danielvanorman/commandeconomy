@@ -257,13 +257,12 @@ public class CommandEconomy {
    public final static String INVENTORY_SOUTH           = "south";
    public final static String YES                       = "yes";
    public final static String ARG_SPECIAL_PREFIX        = "&";
-   public final static String MANUFACTURING             = ARG_SPECIAL_PREFIX + "craft";
    public final static String PRICE_PERCENT             = "%";
 
    // command usages
-   public final static String CMD_USAGE_BUY                 = "/" + CMD_BUY + " <ware_id> <quantity> [max_unit_price] [account_id] [" + MANUFACTURING + "]";
+   public final static String CMD_USAGE_BUY                 = "/" + CMD_BUY + " <ware_id> <quantity> [max_unit_price] [account_id]";
    public final static String CMD_USAGE_SELL                = "/" + CMD_SELL + " (<ware_id> | " + HELD_ITEM + ") [<quantity> [min_unit_price] [account_id]]";
-   public final static String CMD_USAGE_CHECK               = "/" + CMD_CHECK + " (<ware_id> | " + HELD_ITEM + ") [quantity] [" + MANUFACTURING + "]";
+   public final static String CMD_USAGE_CHECK               = "/" + CMD_CHECK + " (<ware_id> | " + HELD_ITEM + ") [quantity]";
    public final static String CMD_USAGE_SELLALL             = "/" + CMD_SELLALL + " [account_id]";
    public final static String CMD_USAGE_MONEY               = "/" + CMD_MONEY + " [account_id]";
    public final static String CMD_USAGE_SEND                = "/" + CMD_SEND + " <quantity> <recipient_account_id> [sender_account_id]";
@@ -283,9 +282,9 @@ public class CommandEconomy {
    public final static String MSG_RESEARCH_USAGE_YES        = "; to accept, use /" + CMD_RESEARCH + " " + YES + " [max_price_acceptable] [account_id]";
 
    // command block usages
-   public final static String CMD_USAGE_BLOCK_BUY     = "/" + CMD_BUY + " <player_name> <inventory_direction> <ware_id> <quantity> [max_unit_price] [account_id] [" + MANUFACTURING + "]";
+   public final static String CMD_USAGE_BLOCK_BUY     = "/" + CMD_BUY + " <player_name> <inventory_direction> <ware_id> <quantity> [max_unit_price] [account_id]";
    public final static String CMD_USAGE_BLOCK_SELL    = "/" + CMD_SELL + " <username> <inventory_direction> (<ware_id> | " + HELD_ITEM + ") [<quantity> [min_unit_price] [account_id]]";
-   public final static String CMD_USAGE_BLOCK_CHECK   = "/" + CMD_CHECK + " <player_name> (<ware_id> | " + HELD_ITEM + ") <quantity> [" + MANUFACTURING + "]";
+   public final static String CMD_USAGE_BLOCK_CHECK   = "/" + CMD_CHECK + " <player_name> (<ware_id> | " + HELD_ITEM + ") <quantity>";
    public final static String CMD_USAGE_BLOCK_SELLALL = "/" + CMD_SELLALL + " <player_name> <inventory_direction> [account_id]";
    public final static String CMD_USAGE_BLOCK_MONEY   = "/" + CMD_MONEY + " <player_name> <account_id>";
    public final static String CMD_USAGE_BLOCK_SEND    = "/" + CMD_SEND + " <player_name> <quantity> <recipient_account_id> [sender_account_id]";

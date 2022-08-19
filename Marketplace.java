@@ -46,7 +46,9 @@ public class Marketplace {
       EQUILIBRIUM_SELL, // asking price without considering supply and demand
       EQUILIBRIUM_BUY,  // purchasing price without considering supply and demand
       FLOOR_SELL,       // lowest the asking price may be
-      FLOOR_BUY         // lowest the purchasing price may be
+      FLOOR_BUY,        // lowest the purchasing price may be
+      CEILING_SELL,     // highest the asking price may be
+      CEILING_BUY       // highest the purchasing price may be
    }
 
    // saving
@@ -864,9 +866,9 @@ public class Marketplace {
             // only print alias if ware has one
             alias = ware.getAlias();
             if (alias != null && !alias.isEmpty())
-               lineEntry.append(wareID).append('\t').append(alias).append('\t').append(getPrice(null, ware, 1, false, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
+               lineEntry.append(wareID).append('\t').append(alias).append('\t').append(getPrice(null, ware, 1, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
             else
-               lineEntry.append(wareID).append("\t\t").append(getPrice(null, ware, 1, false, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
+               lineEntry.append(wareID).append("\t\t").append(getPrice(null, ware, 1, PriceType.CURRENT_SELL)).append('\t').append(ware.getQuantity()).append('\t').append(ware.getLevel()).append('\n');
 
             // write to file
             fileWriter.write(lineEntry.toString());
@@ -894,14 +896,10 @@ public class Marketplace {
     * @param playerID          who to send any error messages to
     * @param ware              ware whose price should be calculated
     * @param quanToTrade       how much to buy or sell; used for price sliding
-    * @param shouldManufacture if amount to buy is above quantity for sale,
-    *                          then true means to factor in purchasing
-    *                          missing components and manufacturing the ware
     * @param priceType         which price should be returned
     * @return ware's price
     */
-   public static float getPrice(UUID playerID, Ware ware, int quanToTrade,
-                                boolean shouldManufacture, PriceType priceType) {
+   public static float getPrice(UUID playerID, Ware ware, int quanToTrade, PriceType priceType) {
       // check if no ware is given
       if (ware == null)
          return Float.NaN;
@@ -944,7 +942,7 @@ public class Marketplace {
 
       // check if purchasing upcharge should be applied
       if (Config.priceBuyUpchargeMult != 1.0f &&
-          (priceType == PriceType.CURRENT_BUY || priceType == PriceType.EQUILIBRIUM_BUY || priceType == PriceType.FLOOR_BUY))
+          (priceType == PriceType.CURRENT_BUY || priceType == PriceType.EQUILIBRIUM_BUY || priceType == PriceType.FLOOR_BUY || priceType == PriceType.CEILING_BUY))
          // calculate price with upcharge multiplier
          priceNoQuantityEffect = (PRICE_BASE + spreadAdjustment) * Config.priceMult * Config.priceBuyUpchargeMult;
       else
@@ -959,6 +957,10 @@ public class Marketplace {
       // without considering supply and demand
       if (priceType == PriceType.EQUILIBRIUM_SELL || priceType == PriceType.EQUILIBRIUM_BUY)
          return CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect);
+
+      // check whether price ceiling should be returned
+      else if (priceType == PriceType.CEILING_BUY || priceType == PriceType.CEILING_SELL)
+         return CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect * Config.priceCeiling);
 
       // find price floor to be enforced for this purchase
       final float PRICE_MIN = CommandEconomy.truncatePrice(quanToTrade * priceNoQuantityEffect * Config.priceFloor);
@@ -986,8 +988,7 @@ public class Marketplace {
          // if manufacturing wares should be included and
          // buying out quantity available for sale,
          // factor in manufacturing costs
-         if (Config.buyingOutOfStockWaresAllowed && shouldManufacture &&
-             quanOnMarket < 0) {
+         if (Config.buyingOutOfStockWaresAllowed && quanOnMarket < 0) {
             // find price and quantity from manufacturing
             float[] manufacturedWares = ware.getManufacturingPrice(-quanOnMarket);
 
@@ -997,9 +998,9 @@ public class Marketplace {
                priceTotal   = manufacturedWares[0];
                quanToTrade -= (int) manufacturedWares[1];
 
-               // reset quantity available for sale
-               // to prevent double-counting trade quantity
-               quanOnMarket = 0;
+               // alter quantity available for sale
+               // to prevent double-counting manufactured quantity
+               quanOnMarket += (int) manufacturedWares[1];
             }
          }
       }
@@ -1074,23 +1075,6 @@ public class Marketplace {
    /**
     * Returns a ware's price, either for selling, buying,
     * without considering supply and demand, or floor.
-    * This function is used to ease changing
-    * manufacturing wares to be more automatic later on.
-    * <p>
-    * Complexity: O(1)
-    * @param playerID    who to send any error messages to
-    * @param wareID      key used to retrieve ware information
-    * @param quanToTrade how much to buy or sell; used for price sliding
-    * @param priceType   which price should be returned
-    * @return ware's price
-    */
-   public static float getPrice(UUID playerID, Ware ware, int quanToTrade, PriceType priceType) {
-      return getPrice(playerID, ware, quanToTrade, false, priceType);
-   }
-
-   /**
-    * Returns a ware's price, either for selling, buying,
-    * without considering supply and demand, or floor.
     * This function is used as a temporary solution for the test suite
     * until tester functions may be created to ease code changes.
     * <p>
@@ -1117,9 +1101,9 @@ public class Marketplace {
       }
 
       if (isPurchase)
-         return getPrice(playerID, ware, quanToTrade, false, PriceType.CURRENT_BUY);
+         return getPrice(playerID, ware, quanToTrade, PriceType.CURRENT_BUY);
       else
-         return getPrice(playerID, ware, quanToTrade, false, PriceType.CURRENT_SELL);
+         return getPrice(playerID, ware, quanToTrade, PriceType.CURRENT_SELL);
    }
 
    /**
@@ -1477,11 +1461,9 @@ public class Marketplace {
     * @param quantity     how much of the ware should be purchased
     * @param maxUnitPrice stop buying if unit price is above this amount
     * @param pricePercent percentage multiplier for ware's price
-    * @param shouldManufacture if unable to fill an order, whether to purchase missing components and manufacture the ware
     */
    public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
-                          String accountID, String wareID, int quantity, float maxUnitPrice,
-                          float pricePercent, boolean shouldManufacture) {
+                          String accountID, String wareID, int quantity, float maxUnitPrice, float pricePercent) {
       if (Float.isNaN(maxUnitPrice) || // if something's wrong with the unit price, stop
          quantity <= 0              || // if nothing should be bought, stop
          playerID == null)             // if no player was given, there is no party responsible for the purchase
@@ -1518,7 +1500,7 @@ public class Marketplace {
       // if ware has no quantity in the market, stop
       // unless the ware should be manufactured if possible
       if (ware.getQuantity() <= 0 &&
-          !(Config.buyingOutOfStockWaresAllowed && shouldManufacture)) {
+          !(Config.buyingOutOfStockWaresAllowed && ware.hasComponents())) {
          Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
          return;
       }
@@ -1567,7 +1549,7 @@ public class Marketplace {
 
          // if nothing can be bought, buy nothing
          if (quantityToBuy == 0 &&
-             !(Config.buyingOutOfStockWaresAllowed && shouldManufacture))
+             !(Config.buyingOutOfStockWaresAllowed))
             return; // no message to avoid needless messaging and ease autobuying
 
          // if an unacceptable price will not be reached,
@@ -1586,7 +1568,7 @@ public class Marketplace {
          quantityToBuy = inventorySpaceAvailable;
 
       // get ware's price and player's funds to figure out how much is affordable
-      float price          = getPrice(playerID, ware, quantityToBuy, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
+      float price          = getPrice(playerID, ware, quantityToBuy, PriceType.CURRENT_BUY) * pricePercent;
       float moneyAvailable = account.getMoney();
 
       // if there are transaction fees,
@@ -1635,7 +1617,7 @@ public class Marketplace {
       // if the ware isn't free, figure out how much is affordable
       if (price > moneyAvailable && price > 0.0f) {
          quantityToBuy = getPurchasableQuantity(ware, moneyAvailable / pricePercent);
-         price = getPrice(playerID, ware, quantityToBuy, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
+         price         = getPrice(playerID, ware, quantityToBuy, PriceType.CURRENT_BUY) * pricePercent;
 
          // if not enough money to buy one ware, stop
          if (quantityToBuy <= 0) {
@@ -1655,12 +1637,15 @@ public class Marketplace {
 
       // if possible, ordered, and necessary,
       // attempt to manufacture the ware
-      if (Config.buyingOutOfStockWaresAllowed && shouldManufacture &&
+      if (Config.buyingOutOfStockWaresAllowed &&
           quantityToBuy < quantity) {
+         // unless the unit price is too high,
          // purchase components and create wares
-         manufacturedWares = ware.manufacture(playerID, quantity - quantityToBuy,
-                                              maxUnitPrice, moneyAvailable - price,
-                                              inventorySpaceAvailable - quantityToBuy);
+         if (maxUnitPrice == 0.0f || maxUnitPrice >= ware.getBasePrice() * Config.priceCeiling * Config.buyingOutOfStockWaresPriceMult)
+            manufacturedWares = ware.manufacture(playerID, quantity - quantityToBuy,
+                                                 moneyAvailable - price,  inventorySpaceAvailable - quantityToBuy);
+         else
+            manufacturedWares = null;
 
          // if ware has no quantity in the market and
          // failed to be manufactured, stop
@@ -1670,20 +1655,17 @@ public class Marketplace {
             // the ware couldn't be manufactured
             if (manufacturedWares == null)
                Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
-
-            // If the manufacturing price is 0,
-            // then the unit price or money available
-            // was insufficient. Since unit price may be
-            // used in autotrading, don't print an error message
             return;
          }
 
          // add manufacturing costs and quantity to order
-         price         += manufacturedWares[0] * pricePercent;
-         quantityToBuy += manufacturedWares[1];
+         if (manufacturedWares != null) {
+            price         += manufacturedWares[0] * pricePercent;
+            quantityToBuy += manufacturedWares[1];
 
-         // truncate price for neatness and avoiding problematic rounding
-         price = CommandEconomy.truncatePrice(price);
+            // truncate price for neatness and avoiding problematic rounding
+            price = CommandEconomy.truncatePrice(price);
+         }
       }
 
       // if nothing can be bought, buy nothing
@@ -1776,8 +1758,8 @@ public class Marketplace {
     * @param pricePercent percentage multiplier for ware's price
     */
    public static void sell(UUID playerID, InterfaceCommand.Coordinates coordinates,
-      String accountID, String wareID, int quantity,
-      float minUnitPrice, float pricePercent) {
+                           String accountID, String wareID, int quantity,
+                           float minUnitPrice, float pricePercent) {
       if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
          quantity <  0              || // if nothing should be sold, stop; 0 quantity means sell everything
          playerID == null)             // if no player was given, there is no party responsible for the purchase
@@ -1870,7 +1852,7 @@ public class Marketplace {
           Config.transactionFeeSelling != 0.0f &&
           minUnitPrice >= 0.0f) {
          // calculate potential income and fee
-         float price = getPrice(null, ware, quantityToSell, false, PriceType.CURRENT_SELL) * pricePercent;
+         float price = getPrice(null, ware, quantityToSell, PriceType.CURRENT_SELL) * pricePercent;
          float fee   = calcTransactionFeeSelling(price);
 
          // if selling is guaranteed to lose money, don't sell
@@ -2074,7 +2056,7 @@ public class Marketplace {
             continue;
 
          // if the price isn't high enough, stop
-         price = CommandEconomy.truncatePrice(getPrice(playerID, stock.ware, 1, false, PriceType.CURRENT_SELL) * stock.percentWorth * pricePercent);
+         price = CommandEconomy.truncatePrice(getPrice(playerID, stock.ware, 1, PriceType.CURRENT_SELL) * stock.percentWorth * pricePercent);
          if (price < minUnitPrice)
             continue;
 
@@ -2088,7 +2070,7 @@ public class Marketplace {
             if (stock.ware instanceof WareLinked)
                quantityDistFromFloor = ((WareLinked) stock.ware).getQuanWhenReachedPriceFloor() - stock.ware.getQuantity();
             else
-               quantityDistFromFloor = getQuantityUntilPrice(stock.ware, getPrice(null, stock.ware, 1, false, PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
+               quantityDistFromFloor = getQuantityUntilPrice(stock.ware, getPrice(null, stock.ware, 1, PriceType.FLOOR_SELL) + 0.0001f, false) + 1;
 
             // if nothing may be sold, skip this ware
             if (quantityDistFromFloor <= 0)
@@ -2108,7 +2090,7 @@ public class Marketplace {
                quantityToSell = quantity - quantitySold;
 
             // get the money
-            totalEarnings += getPrice(playerID, stock.ware, quantityToSell, false, PriceType.CURRENT_SELL) * stock.percentWorth;
+            totalEarnings += getPrice(playerID, stock.ware, quantityToSell, PriceType.CURRENT_SELL) * stock.percentWorth;
 
             // if a flat fee should be used,
             // check whether the transaction became profitable
@@ -2188,11 +2170,8 @@ public class Marketplace {
     * @param wareID       key used to retrieve ware information
     * @param quantity     how much would be traded
     * @param pricePercent percentage multiplier for ware's price
-    * @param shouldManufacture if specified quantity is above quantity for sale,
-    *                          then true means to factor in purchasing
-    *                          missing components and manufacturing the ware
     */
-   public static void check(UUID playerID, String wareID, int quantity, float pricePercent, boolean shouldManufacture) {
+   public static void check(UUID playerID, String wareID, int quantity, float pricePercent) {
       // if no player was given, there is no one to send messages to
       if (playerID == null)
          return;
@@ -2238,7 +2217,7 @@ public class Marketplace {
       // if ware is untradeable, stop
       if (ware instanceof WareUntradeable) {
          // find unit price for buying
-         priceBuy = getPrice(playerID, ware, 1, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
+         priceBuy = getPrice(playerID, ware, 1, PriceType.CURRENT_BUY) * pricePercent;
 
          // if necessary, factor in transaction fee
          if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f)
@@ -2258,10 +2237,11 @@ public class Marketplace {
 
       // prepare to print prices
       final boolean PRINT_BOTH_PRICES = Config.priceBuyUpchargeMult != 1.0f ||
-                                        (Config.chargeTransactionFees && (Config.transactionFeeBuying != 0.00f || Config.transactionFeeSelling != 0.00f));
-      priceSell = getPrice(playerID, ware, 1, false, PriceType.CURRENT_SELL) * pricePercent;
-      if (PRINT_BOTH_PRICES || shouldManufacture) {
-         priceBuy = getPrice(playerID, ware, 1, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
+                                        (Config.chargeTransactionFees && (Config.transactionFeeBuying != 0.00f || Config.transactionFeeSelling != 0.00f)) ||
+                                        (Config.buyingOutOfStockWaresAllowed && ware.getQuantity() == 0);
+      priceSell = getPrice(playerID, ware, 1, PriceType.CURRENT_SELL) * pricePercent;
+      if (PRINT_BOTH_PRICES) {
+         priceBuy = getPrice(playerID, ware, 1, PriceType.CURRENT_BUY) * pricePercent;
 
          // if necessary, factor in transaction fee
          if (Config.chargeTransactionFees && Config.transactionFeeBuying != 0.00f)
@@ -2283,17 +2263,10 @@ public class Marketplace {
                + ", " + Integer.toString(ware.getQuantity()));
          }
          // only print one price
-         else {
-            // ensure manufactured prices are listed when appropriate
-            if (shouldManufacture)
-               Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
-                  + "): " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
-                  + ", " + Integer.toString(ware.getQuantity()));
-            else
-               Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
-                  + "): " + CommandEconomy.PRICE_FORMAT.format(priceSell)
-                  + ", " + Integer.toString(ware.getQuantity()));
-         }
+         else
+            Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+               + "): " + CommandEconomy.PRICE_FORMAT.format(priceSell)
+               + ", " + Integer.toString(ware.getQuantity()));
       }
       // if the ware doesn't have an alias,
       // don't try to print an alias
@@ -2306,17 +2279,10 @@ public class Marketplace {
                + ", " + Integer.toString(ware.getQuantity()));
          }
          // only print one price
-         else {
-            // ensure manufactured prices are listed when appropriate
-            if (shouldManufacture)
-               Config.commandInterface.printToUser(playerID, wareID
-                  + ": " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
-                  + ", " + Integer.toString(ware.getQuantity()));
-            else
-               Config.commandInterface.printToUser(playerID, wareID
-                  + ": " + CommandEconomy.PRICE_FORMAT.format(priceSell)
-                  + ", " + Integer.toString(ware.getQuantity()));
-         }
+         else
+            Config.commandInterface.printToUser(playerID, wareID
+               + ": " + CommandEconomy.PRICE_FORMAT.format(priceSell)
+               + ", " + Integer.toString(ware.getQuantity()));
       }
 
       // if there is no need to print a specific quantity, stop
@@ -2326,8 +2292,8 @@ public class Marketplace {
       // if a specific quantity is specified,
       // print prices for buying and selling
       else {
-         priceBuy = getPrice(playerID, ware, quantity, shouldManufacture, PriceType.CURRENT_BUY) * pricePercent;
-         priceSell = getPrice(playerID, ware, quantity, false, PriceType.CURRENT_SELL) * pricePercent;
+         priceBuy  = getPrice(playerID, ware, quantity, PriceType.CURRENT_BUY)  * pricePercent;
+         priceSell = getPrice(playerID, ware, quantity, PriceType.CURRENT_SELL) * pricePercent;
 
          // if necessary, include transaction fees
          if (Config.chargeTransactionFees) {
@@ -2358,14 +2324,10 @@ public class Marketplace {
     * @param quantity     how much would be traded
     * @param percentWorth multiplier for price
     * @param pricePercent percentage multiplier for ware's price
-    * @param shouldManufacture if specified quantity is above quantity for sale,
-    *                          then true means to factor in purchasing
-    *                          missing components and manufacturing the ware
     */
    public static void check(UUID playerID, String wareID, int quantity,
-                            float percentWorth, float pricePercent,
-                            boolean shouldManufacture) {
-      check(playerID, wareID, quantity, pricePercent, shouldManufacture);
+                            float percentWorth, float pricePercent) {
+      check(playerID, wareID, quantity, pricePercent);
 
       // check whether anything could be printed
       if (playerID == null || wareID == null || wareID.isEmpty())
@@ -2390,7 +2352,7 @@ public class Marketplace {
 
          if (quantity < 2) {
             // find selling price
-            priceSell = getPrice(playerID, ware, 1, false, PriceType.CURRENT_SELL) * percentWorth * pricePercent;
+            priceSell = getPrice(playerID, ware, 1, PriceType.CURRENT_SELL) * percentWorth * pricePercent;
 
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
@@ -2404,7 +2366,7 @@ public class Marketplace {
          }
          else {
             // find selling price
-            priceSell = getPrice(playerID, ware, quantity, false, PriceType.CURRENT_SELL) * percentWorth * pricePercent;
+            priceSell = getPrice(playerID, ware, quantity, PriceType.CURRENT_SELL) * percentWorth * pricePercent;
 
             // if necessary, include transaction fee
             if (Config.chargeTransactionFees) {
@@ -2664,6 +2626,6 @@ public class Marketplace {
     *         <code>false</code> if the ware's current price is below its price floor
     */
    public static boolean hasReachedPriceFloor(Ware ware) {
-      return getPrice(null, ware, 1, false, PriceType.CURRENT_SELL) <= getPrice(null, ware, 1, false, PriceType.FLOOR_SELL);
+      return getPrice(null, ware, 1, PriceType.CURRENT_SELL) <= getPrice(null, ware, 1, PriceType.FLOOR_SELL);
    }
 }

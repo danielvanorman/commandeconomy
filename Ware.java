@@ -551,7 +551,7 @@ public abstract class Ware
     * Calculates how many units of the ware could be manufactured
     * and how much manufacturing would cost.
     * <p>
-    * Complexity: O(3n), where n is the number of the ware's components
+    * Complexity: O(2n), where n is the number of the ware's components
     * <p>
     * @param quantity how much of the ware should be manufactured
     * @return [0]: Total cost (float, untruncated) and [1]: Quantity (int) or null
@@ -568,7 +568,7 @@ public abstract class Ware
       HashMap<Ware, Integer> componentsAmounts = new HashMap<Ware, Integer>(9, 1.0f);
       int   quantityManufacturable; // how many recipe iterations a component's stock could facilitate
       int   quantityToManufacture;  // how much of the ware to create
-      float totalCost = 0.0f;       // total expenses for manufacturing quantity ordered
+      float totalCost;              // total expenses for manufacturing quantity ordered
 
       // find how much of each component is required for manufacturing
       for (Ware componentRef : components) {
@@ -606,39 +606,26 @@ public abstract class Ware
       // if nothing can be manufactured, stop
       if (quantityToManufacture == 0)
          totalCost = 0.0f;
-
-      // find total cost of buying and manufacturing to fill order
-      // sum ordering each component
-      else {
-         for (Ware componentRef : componentsAmounts.keySet())
-            totalCost += Marketplace.getPrice(null, componentRef, quantityToManufacture, true, Marketplace.PriceType.CURRENT_BUY);
-
-         // factor in manufacturing overhead
-         if (this instanceof WareCrafted)
-            totalCost *= Config.priceCrafted   * Config.buyingOutOfStockWaresPriceMult;
-         else
-            totalCost *= Config.priceProcessed * Config.buyingOutOfStockWaresPriceMult;
-      }
+      else
+         totalCost = Marketplace.getPrice(null, this, quantityToManufacture, Marketplace.PriceType.CEILING_BUY) * Config.buyingOutOfStockWaresPriceMult;
 
       // return total cost and quantity purchased
       return new float[] {totalCost, (float) quantityToManufacture};
    }
 
    /**
-    * Calculates how many units of a ware could be manufactured
-    * below a given price per unit and maximum budget
-    * and how much manufacturing would cost.
+    * Manufactures ware following a given maximum budget;
+    * returns the quantity manufactured and how much manufacturing cost.
     * <p>
-    * Complexity: O(4n), where n is the number of components
+    * Complexity: O(3n), where n is the number of components
     * @param playerID       who to send inventory space error messages to
     * @param quantity       how much of the ware should be purchased
-    * @param maxUnitPrice   stop buying if unit price is above this amount
     * @param moneyAvailable the maximum amount of funds spendable
     * @param inventorySpaceAvailable the maximum amount of items which should be manufactured
     * @return [0]: Total cost (float, untruncated) and [1]: Quantity (int) or null
     */
-   protected float[] manufacture(UUID playerID, int quantity, float maxUnitPrice,
-                                 float moneyAvailable, int inventorySpaceAvailable) {
+   protected float[] manufacture(UUID playerID, int quantity,
+                             float moneyAvailable, int inventorySpaceAvailable) {
       // if the ware cannot be manufactured or
       // nothing should be manufactured, do nothing
       if (components == null || quantity <= 0 ||
@@ -654,10 +641,9 @@ public abstract class Ware
       // store component references and
       // how much of each component is needed
       HashMap<Ware, Integer> componentsAmounts = new HashMap<Ware, Integer>(9, 1.0f);
-      int   possiblerecipeIterations; // how many batches a component's stock could facilitate
-      int   quantityToManufacture;    // how much of the ware to create
+      final float UNIT_PRICE  = Marketplace.getPrice(null, this, 1, Marketplace.PriceType.CEILING_BUY) * Config.buyingOutOfStockWaresPriceMult;
       float totalCost         = 0.0f; // total expenses for manufacturing quantity ordered
-      float totalCostMinusOne = 0.0f; // total expenses for manufacturing quantity ordered
+      int   quantityToManufacture;    // how much of the ware to create
       int   remainder;                // unpurchased leftovers from manufacturing the ware
       int   recipeIterations;         // how many batches of the ware was created
 
@@ -677,13 +663,13 @@ public abstract class Ware
       // find how many batches of the requested ware can be manufactured
       recipeIterations = Integer.MAX_VALUE; // don't artificially limit manufacturing
       for (Map.Entry<Ware, Integer> entry : componentsAmounts.entrySet()) {
-         // find how much could be manufactured
-         possiblerecipeIterations = entry.getKey().getQuantity() / entry.getValue();
+         // find how many times the recipe could be applied
+         quantityToManufacture = entry.getKey().getQuantity() / entry.getValue();
 
          // if the current component is constraining,
          // use the constrained quantity
-         if (recipeIterations > possiblerecipeIterations)
-            recipeIterations = possiblerecipeIterations;
+         if (recipeIterations > quantityToManufacture)
+            recipeIterations = quantityToManufacture;
       }
 
       // factor in recipe yield
@@ -702,68 +688,12 @@ public abstract class Ware
       if (quantityToManufacture > quantity)
          quantityToManufacture = quantity;
 
-      // find how much should be bought
-      // considering max acceptable unit price and budget
-      // iterate backwards searching for an acceptable deal
-      int acceptableQuantity = quantityToManufacture;
-      for (; acceptableQuantity > 0; acceptableQuantity--) {
-         // reset total cost for recalculations
-         totalCost         = 0.0f;
-         totalCostMinusOne = 0.0f;
-
-         // find total cost of buying and manufacturing to fill order
-         // sum ordering each component
-         for (Map.Entry<Ware, Integer> entry : componentsAmounts.entrySet()) {
-            // unfortunately, fluctuating prices necessitate
-            // recalculating prices for different order quantities
-            totalCost += Marketplace.getPrice(null, entry.getKey(),
-                                              acceptableQuantity * entry.getValue() / yield,
-                                              true, Marketplace.PriceType.CURRENT_BUY);
-
-            // calculate the cost of manufacturing one less ware since
-            // unit price is the cost of manufacturing everything
-            // minus the cost of manufacturing everything minus one
-            totalCostMinusOne += Marketplace.getPrice(null, entry.getKey(),
-                                                      (acceptableQuantity - 1) * entry.getValue() / yield,
-                                                      true, Marketplace.PriceType.CURRENT_BUY);
-         }
-
-         // factor in manufacturing overhead
-         if (this instanceof WareCrafted) {
-            totalCost         *= Config.priceCrafted   * Config.buyingOutOfStockWaresPriceMult;
-            totalCostMinusOne *= Config.priceCrafted   * Config.buyingOutOfStockWaresPriceMult;
-         }
-         else {
-            totalCost         *= Config.priceProcessed * Config.buyingOutOfStockWaresPriceMult;
-            totalCostMinusOne *= Config.priceProcessed * Config.buyingOutOfStockWaresPriceMult;
-         }
-
-         // if total cost is too high,
-         // lower how much should be manufactured
-         if (totalCost > moneyAvailable)
-            continue;
-
-         // if the total cost and one less than it are the same,
-         // then the total cost is the unit price
-         if (totalCost == totalCostMinusOne)
-            totalCostMinusOne = 0.0f;
-
-         // if unit price is unacceptable,
-         // lower how much should be manufactured
-         if (maxUnitPrice != 0.0f && // 0 means no unit price given, so any price works
-             totalCost - totalCostMinusOne > maxUnitPrice)
-            continue;
-
-         // if an acceptable quantity has been found, use it
-         quantityToManufacture = acceptableQuantity;
-         break;
+      // find how much should be bought within budget
+      totalCost = UNIT_PRICE * quantityToManufacture;
+      if (totalCost > moneyAvailable) {
+         quantityToManufacture = (int) (moneyAvailable / UNIT_PRICE);
+         totalCost             = UNIT_PRICE * quantityToManufacture;
       }
-
-      // if nothing should be manufactured,
-      // don't charge anything or
-      // grab a mutex for no reason
-      if (acceptableQuantity == 0)
-         return new float[] {0.0f, 0.0f};
 
       // find unpurchased leftovers from recipe iterations
       remainder = quantityToManufacture % yield;

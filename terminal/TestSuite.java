@@ -1182,12 +1182,11 @@ public final class TestSuite
     * @param pricePercent          price multiplier for transaction
     * @param percentWorth          ware's value based on the amount of damage done to it or decay
     * @param testNumber            test number to use when printing errors
-    * @param attemptManufacturing  if true, try to manufacture the ware when purchasing
     * @param useInterface          if true, call the Terminal interface's service request function instead of Marketplace's function
     * @return true if an error was discovered
     */
    private static boolean testerCheck(String playername, Ware ware, int quantity, String pricePercent,
-                                      float percentWorth, int testNumber, boolean attemptManufacturing, boolean useInterface) {
+                                      float percentWorth, int testNumber, boolean useInterface) {
             String  testIdentifier;            // can be added to printed errors to differentiate between tests
             boolean errorFound        = false; // assume innocence until proven guilty
       final boolean PRINT_PREDICTIONS = false; // print all predicted outputs to ensure test cases are being handled correctly
@@ -1220,11 +1219,11 @@ public final class TestSuite
       parameterBuilder = new LinkedList<String>();
 
       // determine prices and fees
-      priceUnitBuy         = Marketplace.getPrice(PLAYER_ID, WARE_ID, 1, true);
-      priceUnitSell        = Marketplace.getPrice(PLAYER_ID, WARE_ID, 1, false);
+      priceUnitBuy         = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_BUY);
+      priceUnitSell        = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL);
       if (quantity > 1 && IS_TRADEABLE) {
-         priceQuantityBuy  = Marketplace.getPrice(PLAYER_ID, WARE_ID, quantity, true);
-         priceQuantitySell = Marketplace.getPrice(PLAYER_ID, WARE_ID, quantity, false);
+         priceQuantityBuy  = Marketplace.getPrice(PLAYER_ID, ware, quantity, Marketplace.PriceType.CURRENT_BUY);
+         priceQuantitySell = Marketplace.getPrice(PLAYER_ID, ware, quantity, Marketplace.PriceType.CURRENT_SELL);
       }
       // if necessary, calculate damaged wares' selling price
       if (percentWorth != 1.0f && IS_TRADEABLE) {
@@ -1269,7 +1268,7 @@ public final class TestSuite
             outputExpected.append(WARE_ID + ": ");
 
          // singular price
-         if (Config.priceBuyUpchargeMult == 1.0f)
+         if (Config.priceBuyUpchargeMult == 1.0f && !(Config.buyingOutOfStockWaresAllowed && ware.getQuantity() == 0))
             outputExpected.append(CommandEconomy.PRICE_FORMAT.format(priceUnitSell));
          else
             outputExpected.append("Buy - " + CommandEconomy.PRICE_FORMAT.format(priceUnitBuy) + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceUnitSell));
@@ -1306,7 +1305,7 @@ public final class TestSuite
       baosOut.reset(); // clear buffer holding console output
       if (useInterface) {
          // set up test parameters
-         // /check (<ware_id> | held) [quantity] [%percent_worth] [&craft]
+         // /check (<ware_id> | held) [quantity] [%percent_worth]
          parameterBuilder.add(WARE_ID);
          if (quantity != 0)
             parameterBuilder.add(Integer.toString(quantity));
@@ -1321,7 +1320,7 @@ public final class TestSuite
 
       // test as normal
       else
-         Marketplace.check(TRADER_ID, WARE_ID, quantity, percentWorth, pricePercentFloat, attemptManufacturing);
+         Marketplace.check(TRADER_ID, WARE_ID, quantity, percentWorth, pricePercentFloat);
 
       // reset current player
       InterfaceTerminal.playername = playernameOrig;
@@ -1489,7 +1488,7 @@ public final class TestSuite
 
       // run the test
       baosOut.reset(); // clear buffer holding console output
-      Marketplace.check(PLAYER_ID, WARE_ID, quantity, percentWorth, 1.0f, false);
+      Marketplace.check(PLAYER_ID, WARE_ID, quantity, percentWorth, 1.0f);
 
       // check console output
       if (!baosOut.toString().equals(expectedOutput)) {
@@ -1758,7 +1757,7 @@ public final class TestSuite
       baosOut.reset(); // clear buffer holding console output
       if (useInterface) {
          // set up test parameters
-         // /buy <ware_id> <quantity> [max_unit_price] [account_id] [%percent_worth] [&craft]
+         // /buy <ware_id> <quantity> [max_unit_price] [account_id] [%percent_worth]
          // /sell <ware_id> [<quantity> [min_unit_price] [account_id]] [%percent_worth]
          if (coordinates != null) {
             parameterBuilder.add(playername);
@@ -1800,7 +1799,7 @@ public final class TestSuite
          }
 
          if (isPurchase)
-            Marketplace.buy(TRADER_ID, coordinatesObject, accountID, WARE_ID, quantityToOffer, priceUnitFloat, pricePercentFloat, attemptManufacturing);
+            Marketplace.buy(TRADER_ID, coordinatesObject, accountID, WARE_ID, quantityToOffer, priceUnitFloat, pricePercentFloat);
          else
             Marketplace.sell(TRADER_ID, coordinatesObject, accountID, WARE_ID, quantityToOffer, priceUnitFloat, pricePercentFloat);
       }
@@ -1825,9 +1824,9 @@ public final class TestSuite
                             "\n      quantity expected: " + quantityToTrade +
                             "\n      diff:              " + (quantityTraded - quantityToTrade));
          if (isPurchase)
-            TEST_OUTPUT.println("      unit price:        " + Marketplace.getPrice(PLAYER_ID, ware, 1, false, Marketplace.PriceType.CURRENT_BUY));
+            TEST_OUTPUT.println("      unit price:        " + Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_BUY));
          else
-            TEST_OUTPUT.println("      unit price:        " + Marketplace.getPrice(PLAYER_ID, ware, 1, false, Marketplace.PriceType.CURRENT_SELL));
+            TEST_OUTPUT.println("      unit price:        " + Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL));
          errorFound = true;
       }
       // check account funds
@@ -1975,7 +1974,7 @@ public final class TestSuite
       baosOut.reset(); // clear buffer holding console output
       if (!shouldOverorder) {
          if (isPurchase)
-            Marketplace.buy(PLAYER_ID, null, null, WARE_ID, quantityToTrade, 0.0f, 1.0f, false);
+            Marketplace.buy(PLAYER_ID, null, null, WARE_ID, quantityToTrade, 0.0f, 1.0f);
          else {
             // if the ware's price is negative, assume it is okay to sell at a negative unit price
             if (price < 0.0f)
@@ -1989,7 +1988,7 @@ public final class TestSuite
       else {
          playerAccount.setMoney(accountMoney); // constrain resources
          if (isPurchase)
-            Marketplace.buy(PLAYER_ID, null, null, WARE_ID, quantityToTrade * 2, 0.0f, 1.0f, false);
+            Marketplace.buy(PLAYER_ID, null, null, WARE_ID, quantityToTrade * 2, 0.0f, 1.0f);
          else {
             // if the ware's price is negative, assume it is okay to sell at a negative unit price
             if (price < 0.0f)
@@ -2103,7 +2102,7 @@ public final class TestSuite
          expectedMoney = accountMoney;
 
       baosOut.reset(); // clear buffer holding console output
-      Marketplace.buy(PLAYER_ID, null, CommandEconomy.ACCOUNT_ADMIN, ware.getWareID(), quantityToTrade, 0.0f, 1.0f, false);
+      Marketplace.buy(PLAYER_ID, null, CommandEconomy.ACCOUNT_ADMIN, ware.getWareID(), quantityToTrade, 0.0f, 1.0f);
 
       // check account existence
       if (account == null) { // account may be created upon collecting transaction fees
@@ -2155,7 +2154,6 @@ public final class TestSuite
     * @param quantityToTrade4      how much of the fourth ware to purchase
     * @param quantityToOffer       how much of the ware to try to buy
     * @param testNumber            test number to use when printing errors; 0 means don't print a number
-    * @param attemptManufacturing  if true, try to manufacture the ware when purchasing
     * @param useInterface          if true, call the Terminal interface's service request function instead of Marketplace's function
     * @return true if an error was discovered
     */
@@ -2163,7 +2161,7 @@ public final class TestSuite
                                                  String accountID, float unitPrice,
                                                  int quantityWare1, int quantityWare2, int quantityWare3, int quantityWare4,
                                                  int quantityToTrade1, int quantityToTrade2, int quantityToTrade3, int quantityToTrade4,
-                                                 int quantityToOffer, int testNumber, boolean attemptManufacturing, boolean useInterface) {
+                                                 int quantityToOffer, int testNumber, boolean useInterface) {
             String  testIdentifier;            // can be added to printed errors to differentiate between tests
             boolean errorFound        = false; // assume innocence until proven guilty
       final boolean PRINT_PREDICTIONS = false; // print all predicted outputs to ensure test cases are being handled correctly
@@ -2191,7 +2189,6 @@ public final class TestSuite
       float              startingMoney           = 10000.0f;      // what to set funds to the account to be used
       float              expectedMoney           = startingMoney; // what seller's funds should be after the transaction
       float              price                   = 0.0f;          // how much traded wares should cost
-      float              priceManufacturing      = 0.0f;          // how much manufacturing should add to the price
       int                inventorySpaceAvailable = Config.commandInterface.getInventorySpaceAvailable(PLAYER_ID, null) * Config.commandInterface.getStackSize(WARE_ID); // how much the player may hold
       int                yield;                                   // how many units a recipe produces per iteration
       int                quantityWare1Expected   = quantityWare1; // how much of the first ware should be available for sale after the transaction
@@ -2213,7 +2210,7 @@ public final class TestSuite
          ware4.setQuantity(quantityWare4);
 
       // set up test oracles
-      if (attemptManufacturing && Config.buyingOutOfStockWaresAllowed &&
+      if (Config.buyingOutOfStockWaresAllowed &&
           // check whether ware1 is manufacturable
           ware1.hasComponents() && !(ware1 instanceof WareUntradeable) &&
           // check whether there is any inventory space
@@ -2236,38 +2233,24 @@ public final class TestSuite
             quantityToTrade1 = inventorySpaceAvailable;
 
          // predict price
-         if (quantityWare1 != 0 && quantityToTrade1 != 0) {
-            // only buy up as much as is available
-            if (quantityToTrade1 > quantityWare1) {
-               price += Marketplace.getPrice(PLAYER_ID, ware1, quantityWare1, false, Marketplace.PriceType.CURRENT_BUY);
-               quantityWare1Expected = 0;
-            }
-            else {
-               price += Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade1, false, Marketplace.PriceType.CURRENT_BUY);
-               quantityWare1Expected = quantityWare1 - quantityToTrade1;
-            }
-         }
-         if (ware2 != null && quantityToTrade2 != 0)
-            priceManufacturing += Marketplace.getPrice(PLAYER_ID, ware2, quantityToTrade2, false, Marketplace.PriceType.CURRENT_BUY);
-         if (ware3 != null && quantityToTrade3 != 0)
-            priceManufacturing += Marketplace.getPrice(PLAYER_ID, ware3, quantityToTrade3, false, Marketplace.PriceType.CURRENT_BUY);
-         if (ware4 != null && quantityToTrade4 != 0)
-            priceManufacturing += Marketplace.getPrice(PLAYER_ID, ware4, quantityToTrade4, false, Marketplace.PriceType.CURRENT_BUY);
-         if ((ware2 != null && (quantityToTrade2 != 0 || !IS_WARE_2_TRADEABLE)) ||
-             (ware3 != null && (quantityToTrade3 != 0 || !IS_WARE_3_TRADEABLE)) ||
-             (ware4 != null && (quantityToTrade4 != 0 || !IS_WARE_4_TRADEABLE))) {
-            // only apply manufacturing fee multipliers to the quantity that was manufactured
-            if (ware1 instanceof WareProcessed)
-               priceManufacturing *= Config.priceProcessed;
-            else
-               priceManufacturing *= Config.priceCrafted;
-
-            priceManufacturing *= Config.buyingOutOfStockWaresPriceMult;
-            price              += priceManufacturing;
+         if (quantityToTrade1 != 0) {
+            if (quantityWare1 != 0) {
+               // only buy up as much as is available
+               if (quantityToTrade1 > quantityWare1) {
+                  // only apply manufacturing fee multipliers to the quantity that was manufactured
+                  price = Marketplace.getPrice(PLAYER_ID, ware1, quantityWare1, Marketplace.PriceType.CURRENT_BUY) +
+                          (Marketplace.getPrice(null, ware1, (quantityToTrade1 - quantityWare1), Marketplace.PriceType.CEILING_BUY) * Config.buyingOutOfStockWaresPriceMult);
+                  quantityWare1Expected = 0;
+               }
+               else {
+                  price = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade1, Marketplace.PriceType.CURRENT_BUY);
+                  quantityWare1Expected = quantityWare1 - quantityToTrade1;
+               }
+            } else
+               price = Marketplace.getPrice(null, ware1, quantityToTrade1, Marketplace.PriceType.CEILING_BUY) * Config.buyingOutOfStockWaresPriceMult;
          }
          // truncate price for neatness and avoiding problematic rounding
-         price = CommandEconomy.truncatePrice(price);
-
+         price         = CommandEconomy.truncatePrice(price);
          expectedMoney = startingMoney - price;
 
          // predict quantity available for sale
@@ -2306,7 +2289,7 @@ public final class TestSuite
 
       // if manufacturing is disabled or impossible
       else
-         return testerTrade(InterfaceTerminal.playername, null, ware1, accountID, null, Float.toString(unitPrice), Float.NaN, quantityWare1, quantityToTrade1, quantityToOffer, testNumber, attemptManufacturing, true, useInterface);
+         return testerTrade(InterfaceTerminal.playername, null, ware1, accountID, null, Float.toString(unitPrice), Float.NaN, quantityWare1, quantityToTrade1, quantityToOffer, testNumber, true, true, useInterface);
 
       // try to find the account to be used
       if (IS_ACCOUNT_SPECIFIED)
@@ -2327,7 +2310,7 @@ public final class TestSuite
       // if necessary, use the Terminal interface's service request function to make the purchase
       baosOut.reset(); // clear buffer holding console output
       if (useInterface) {
-         // Expected Format: <ware_id> <quantity> [max_unit_price] [account_id] [&craft]
+         // Expected Format: <ware_id> <quantity> [max_unit_price] [account_id]
          parameterBuilder = new LinkedList<String>();
          parameterBuilder.add(ware1.getWareID());
          parameterBuilder.add(String.valueOf(quantityToOffer));
@@ -2335,8 +2318,6 @@ public final class TestSuite
             parameterBuilder.add(String.valueOf(unitPrice));
          if (IS_ACCOUNT_SPECIFIED)
             parameterBuilder.add(accountID);
-         if (attemptManufacturing)
-            parameterBuilder.add("&craft");
 
          // convert arguments to a string array
          parameters = new String[parameterBuilder.size()];
@@ -2347,7 +2328,7 @@ public final class TestSuite
 
       // test as normal
       else
-         Marketplace.buy(PLAYER_ID, null, accountID, WARE_ID, quantityToOffer, unitPrice, 1.0f, attemptManufacturing);
+         Marketplace.buy(PLAYER_ID, null, accountID, WARE_ID, quantityToOffer, unitPrice, 1.0f);
 
       // check ware properties
       if (ware1.getQuantity() != quantityWare1Expected && quantityWare1Expected != -2) {
@@ -2371,8 +2352,8 @@ public final class TestSuite
          errorFound = true;
       }
       // check account funds
-      if (expectedMoney + FLOAT_COMPARE_PRECISION < account.getMoney() ||
-          account.getMoney() < expectedMoney - FLOAT_COMPARE_PRECISION) {
+      if (expectedMoney + (FLOAT_COMPARE_PRECISION * 2) < account.getMoney() ||
+          account.getMoney() < expectedMoney - (FLOAT_COMPARE_PRECISION * 2)) {
          TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + expectedMoney +
                              "\n      price charged:       " + (startingMoney - account.getMoney()) +
                              "\n      price expected:      " + price +
@@ -6405,7 +6386,7 @@ public final class TestSuite
          price           = Marketplace.getPrice(playerID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
 
-         Marketplace.buy(playerID, null, null, "test:material1", quantityToTrade, 0.0f, 1.0f, false);
+         Marketplace.buy(playerID, null, null, "test:material1", quantityToTrade, 0.0f, 1.0f);
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
             errorFound = true;
@@ -7365,7 +7346,7 @@ public final class TestSuite
       try {
          TEST_OUTPUT.println("check() - null ware ID");
          baosOut.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, null, 1, 1.0f, false);
+         Marketplace.check(PLAYER_ID, null, 1, 1.0f);
          if (!baosOut.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7373,7 +7354,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - empty ware ID");
          baosOut.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "", 1, 1.0f, false);
+         Marketplace.check(PLAYER_ID, "", 1, 1.0f);
          if (!baosOut.toString().equals("error - no ware ID was given" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7381,7 +7362,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - invalid ware ID");
          baosOut.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "invalidID", 1, 1.0f, false);
+         Marketplace.check(PLAYER_ID, "invalidID", 1, 1.0f);
          if (!baosOut.toString().equals("error - ware not found: invalidID" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7389,57 +7370,57 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - untradeable ware ID");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareU1, 1, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using valid ware ID without alias and buying upcharge");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using valid ware ID with alias and without buying upcharge");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare3, 1, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          Config.priceBuyUpchargeMult = 2.0f;
          TEST_OUTPUT.println("check() - using valid ware ID without alias and with buying upcharge");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareP2, 1, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using valid ware ID with alias and buying upcharge");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareC1, 1, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using zero quantity with buying upcharge");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, 0, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using high quantity with buying upcharge");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, 10, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
          Config.priceBuyUpchargeMult = 1.0f;
 
          TEST_OUTPUT.println("check() - using negative quantity");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, -1, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using zero quantity");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, 0, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using singular quantity");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, 1, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using double quantity");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, 2, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - using high quantity");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, 10, null,
-                                   1.0f, 0, false, false);
+                                   1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - referencing ware using alias");
          baosOut.reset(); // clear buffer holding console output
-         Marketplace.check(PLAYER_ID, "material4", 10, 1.0f, false);
+         Marketplace.check(PLAYER_ID, "material4", 10, 1.0f);
          if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7447,7 +7428,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - null username");
          baosOut.reset(); // clear buffer holding console output
-         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(null), "material4", 10, 1.0f, false);
+         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(null), "material4", 10, 1.0f);
          if (!baosOut.toString().isEmpty()) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7455,7 +7436,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - empty username");
          baosOut.reset(); // clear buffer holding console output
-         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(""), "material4", 10, 1.0f, false);
+         Marketplace.check(InterfaceTerminal.getPlayerIDStatic(""), "material4", 10, 1.0f);
          if (!baosOut.toString().isEmpty()) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7463,7 +7444,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - different username");
          baosOut.reset(); // clear buffer holding console output
-         Marketplace.check(InterfaceTerminal.getPlayerIDStatic("possibleID"), "material4", 10, 1.0f, false);
+         Marketplace.check(InterfaceTerminal.getPlayerIDStatic("possibleID"), "material4", 10, 1.0f);
          if (!baosOut.toString().startsWith("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for 10: Buy - $102.50 | Sell - $75.50" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7478,53 +7459,53 @@ public final class TestSuite
          TEST_OUTPUT.println("check() - negative prices, at -100% cost");
          testWare1.setQuantity(Config.quanHigh[testWare1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
-                                   1.0f, 1, false, false);
+                                   1.0f, 1, false);
 
          testWareP1.setQuantity(Config.quanHigh[testWareP1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareP1, 1, null,
-                                   1.0f, 2, false, false);
+                                   1.0f, 2, false);
 
          TEST_OUTPUT.println("check() - negative prices, at -50% cost");
          testWareP1.setQuantity(Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.75f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
-                                   1.0f, 1, false, false);
+                                   1.0f, 1, false);
 
          testWareC2.setQuantity(Config.quanMid[testWareC2.getLevel()] + (int) ((Config.quanHigh[testWareC2.getLevel()] - Config.quanMid[testWareC2.getLevel()]) * 0.75f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareC2, 1, null,
-                                   1.0f, 2, false, false);
+                                   1.0f, 2, false);
 
          TEST_OUTPUT.println("check() - negative prices, at no cost");
          testWare1.setQuantity(Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.50f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
-                                   1.0f, 1, false, false);
+                                   1.0f, 1, false);
 
          testWareP2.setQuantity(Config.quanMid[testWareP2.getLevel()] + (int) ((Config.quanHigh[testWareP2.getLevel()] - Config.quanMid[testWareP2.getLevel()]) * 0.50f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareP2, 1, null,
-                                   1.0f, 2, false, false);
+                                   1.0f, 2, false);
 
          TEST_OUTPUT.println("check() - negative prices, at 50% cost");
          testWare1.setQuantity(Config.quanMid[testWare1.getLevel()] + (int) (quanCeilingFromEquilibrium * 0.25f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
-                                   1.0f, 1, false, false);
+                                   1.0f, 1, false);
 
          testWareC1.setQuantity(Config.quanMid[testWareC1.getLevel()] + (int) ((Config.quanHigh[testWareC1.getLevel()] - Config.quanMid[testWareC1.getLevel()]) * 0.25f) - 1);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareC1, 1, null,
-                                   1.0f, 1, false, false);
+                                   1.0f, 1, false);
 
          TEST_OUTPUT.println("check() - negative prices, at equilibrium");
          testWare1.setQuantity(Config.quanMid[testWare1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
-                                   1.0f, 1, false, false);
+                                   1.0f, 1, false);
 
          testWareC1.setQuantity(Config.quanMid[testWareC1.getLevel()]);
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareC1, 1, null,
-                                   1.0f, 1, false, false);
+                                   1.0f, 1, false);
 
          // check ware_id [quantity]
          TEST_OUTPUT.println("check() - request: null input");
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(null);
-         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
+         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
@@ -7532,7 +7513,7 @@ public final class TestSuite
          TEST_OUTPUT.println("check() - request: empty input");
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
+         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
@@ -7548,7 +7529,7 @@ public final class TestSuite
          TEST_OUTPUT.println("check() - request: too few args");
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity] [&craft]" + System.lineSeparator())) {
+         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
@@ -7590,7 +7571,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: valid quantity");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare4, 10, null,
-                                   1.0f, 0, false, true);
+                                   1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - request: referencing ware using alias");
          quantity = 10;
@@ -7718,7 +7699,7 @@ public final class TestSuite
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
-         Marketplace.buy(PLAYER_ID, null, "testAccount1", null, quantityToTrade, 0.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, "testAccount1", null, quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
             errorFound = true;
          }
@@ -7731,7 +7712,7 @@ public final class TestSuite
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
-         Marketplace.buy(PLAYER_ID, null, "testAccount1", "", quantityToTrade, 0.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, "testAccount1", "", quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
             errorFound = true;
          }
@@ -7744,7 +7725,7 @@ public final class TestSuite
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
-         Marketplace.buy(PLAYER_ID, null, "testAccount1", "invalidWare", quantityToTrade, 0.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, "testAccount1", "invalidWare", quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
             errorFound = true;
          }
@@ -7868,7 +7849,7 @@ public final class TestSuite
          quantityWare    = testWare3.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material3", quantityToTrade, true);
          money           = testAccount1.getMoney();
-         Marketplace.buy(PLAYER_ID, null, "testAccount1", "mat3", quantityToTrade, 100.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, "testAccount1", "mat3", quantityToTrade, 100.0f, 1.0f);
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare - quantityToTrade)) {
             errorFound = true;
          }
@@ -7882,7 +7863,7 @@ public final class TestSuite
          quantityWare    = testWare1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material1", quantityToTrade, true);
          money           = testAccount1.getMoney();
-         Marketplace.buy(PLAYER_ID, null, "testAccount1", "test:material1", quantityToTrade, 100.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, "testAccount1", "test:material1", quantityToTrade, 100.0f, 1.0f);
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
             errorFound = true;
          }
@@ -7927,7 +7908,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - request: null input");
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(null);
-         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
+         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
@@ -7935,7 +7916,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - request: empty input");
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{});
-         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
+         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
@@ -7951,7 +7932,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - request: too few args");
          baosOut.reset(); // clear buffer holding console output
          InterfaceTerminal.serviceRequestBuy(new String[]{"test:material1"});
-         if (!baosOut.toString().equals("error - wrong number of arguments: /buy <ware_id> <quantity> [max_unit_price] [account_id] [&craft]" + System.lineSeparator())) {
+         if (!baosOut.toString().equals("error - wrong number of arguments: /buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
@@ -8169,7 +8150,7 @@ public final class TestSuite
          quantityWare    = testWare2.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, "test:material2", quantityToTrade, true);
          money           = testAccount1.getMoney();
-         Marketplace.buy(PLAYER_ID, null, "testAccount1", "#testName", quantityToTrade, 0.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, "testAccount1", "#testName", quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWare2, WareMaterial.class, "", (byte) 1, 27.6f, quantityWare - quantityToTrade)) {
             errorFound = true;
          }
@@ -8182,7 +8163,7 @@ public final class TestSuite
          quantityToTrade = 1;
          quantityWare    = testWare1.getQuantity();
          money           = testAccount1.getMoney();
-         Marketplace.buy(PLAYER_ID, null, "testAccount1", "#invalidName", quantityToTrade, 0.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, "testAccount1", "#invalidName", quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare)) {
             errorFound = true;
          }
@@ -14005,87 +13986,81 @@ public final class TestSuite
          // testWareC3: testWare4
 
          TEST_OUTPUT.println("manufacturing contracts - when disabled and out-of-stock, untradeable component");
-         errorFound |= testerBuyManufacturing(testWareC1, null, null, null, null, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, true, false);
+         errorFound |= testerBuyManufacturing(testWareC1, null, null, null, null, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - when disabled and out-of-stock, material component");
-         errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f, 0, testWare4.getQuantity(), 0, 0, 0, 0, 0, 0, 1, 0, true, false);
+         errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f, 0, testWare4.getQuantity(), 0, 0, 0, 0, 0, 0, 1, 0, false);
 
          // enable manufacturing contracts
          Config.buyingOutOfStockWaresAllowed   = true;
          Config.buyingOutOfStockWaresPriceMult = 1.10f; // explicitly set to known value
 
-         TEST_OUTPUT.println("manufacturing contracts - when enabled and unused");
-         errorFound |= testerBuyManufacturing(testWareC1, null, null, null, null, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, false, false);
-
-         // test ware whose component has limited quantity
-         errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f, 0, testWare4.getQuantity(), 0, 0, 0, 0, 0, 0, 1, 2, false, false);
-
          TEST_OUTPUT.println("manufacturing contracts - untradeable ware");
-         errorFound |= testerBuyManufacturing(testWareU1, null, null, null, null, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, true, false);
+         errorFound |= testerBuyManufacturing(testWareU1, null, null, null, null, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - non-manufactured ware, out-of-stock");
-         errorFound |= testerBuyManufacturing(testWare1, null, null, null, null, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, true, false);
+         errorFound |= testerBuyManufacturing(testWare1, null, null, null, null, 0.0f, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: untradeable component");
-         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, true, false);
+         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: material components");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
                                               0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
-                                              1, 1, 1, 1, 1, 0, true, false);
+                                              1, 1, 1, 1, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: manufactured component");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
                                                  0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
-                                                 1, 1, 1, 0, 1, 0, true, false);
+                                                 1, 1, 1, 0, 1, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: untradeable component");
-         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 0, 0, 0, 0, 32, 32, 0, 0, 32, 1, true, false);
+         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 0, 0, 0, 0, 32, 32, 0, 0, 32, 1, false);
 
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
-         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 0, 0, 0, 0, 192, 192, 0, 0, 192, 2, true, false);
+         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 0, 0, 0, 0, 192, 192, 0, 0, 192, 2, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: material components");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
                                               0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
-                                              16, 16, 16, 16, 16, 1, true, false);
+                                              16, 16, 16, 16, 16, 1, false);
 
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
                                               0, Config.quanHigh[testWare4.getLevel()], 0, 0,
-                                              96, 24, 0, 0, 96, 2, true, false);
+                                              96, 24, 0, 0, 96, 2, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock, varying order sizes: manufactured components");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
                                               0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
-                                              4, 4, 4, 0, 4, 1, true, false);
+                                              4, 4, 4, 0, 4, 1, false);
 
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
                                               0, Config.quanHigh[testWare1.getLevel()], Config.quanHigh[testWareC1.getLevel()], 0,
-                                              256, 256, 256, 0, 256, 2, true, false);
+                                              187, 187, 187, 0, 256, 2, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: untradeable component");
-         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 5, 0, 0, 0, 10, 5, 0, 0, 10, 0, true, false);
+         errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, null, 0.0f, 5, 0, 0, 0, 10, 5, 0, 0, 10, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: material components");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
                                               4, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
-                                              16, 12, 12, 12, 16, 1, true, false);
+                                              16, 12, 12, 12, 16, 1, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, low in stock: manufactured component");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
                                               24, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
-                                              32, 8, 8, 0, 32, 0, true, false);
+                                              32, 8, 8, 0, 32, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: components low in stock");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, null, 0.0f,
                                               0, 8, Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
-                                              8, 8, 8, 8, 16, 1, true, false);
+                                              8, 8, 8, 8, 16, 1, false);
 
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
                                               0, 10, 0, 0,
-                                              40, 10, 0, 0, 80, 2, true, false);
+                                              40, 10, 0, 0, 80, 2, false);
 
          // create a new ware with a component whose component has limited stock
          Ware testWareC4 = new WareCrafted(new String[]{"test:crafted3"}, "test:crafted4", "", 32, 2, (byte) 3);
@@ -14093,7 +14068,7 @@ public final class TestSuite
 
          errorFound |= testerBuyManufacturing(testWareC4, testWareC3, null, null, null, 0.0f,
                                               0, 5, 0, 0,
-                                              10, 5, 0, 0, 20, 3, true, false);
+                                              10, 5, 0, 0, 20, 3, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware, out-of-stock: same component used multiple times");
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
@@ -14103,24 +14078,24 @@ public final class TestSuite
 
          errorFound |= testerBuyManufacturing(testWareC5, testWare1, testWare2, null, null, 0.0f,
                                               0, 30, 20, 0,
-                                              40, 30, 10, 0, 80, 0, true, false);
+                                              40, 30, 10, 0, 80, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - manufactured ware and components out-of-stock");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 0.0f,
                                               0, Config.quanMid[testWare1.getLevel()], 0, 0,
-                                              0, 0, 0, 0, 10, 0, true, false);
+                                              0, 0, 0, 0, 10, 0, false);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: minimum args");
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
                                               0, Config.quanMid[testWare4.getLevel()], 0, 0,
-                                              1, 1, 0, 0, 1, 0, true, true);
+                                              1, 1, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: no inventory space");
          int inventorySpaceOrig = InterfaceTerminal.inventorySpace;
          InterfaceTerminal.inventorySpace = 0; // maximum inventory space is no inventory
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
                                               0, Config.quanMid[testWare4.getLevel()], 0, 0,
-                                              1, 1, 0, 0, 1, 0, true, true);
+                                              1, 1, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: low in inventory space");
          InterfaceTerminal.inventory.clear(); // just in case inventory space is insufficient
@@ -14128,115 +14103,57 @@ public final class TestSuite
 
          errorFound |= testerBuyManufacturing(testWareC3, testWare4, null, null, null, 0.0f,
                                               0, Config.quanHigh[testWare4.getLevel()], 0, 0,
-                                              64, 16, 0, 0, 128, 0, true, true);
+                                              64, 16, 0, 0, 128, 0, true);
 
          InterfaceTerminal.inventorySpace = inventorySpaceOrig; // reset maximum inventory space
 
          TEST_OUTPUT.println("manufacturing contracts - buy: non-manufactured ware");
          errorFound |= testerBuyManufacturing(testWare1, null, null, null, null, 0.0f,
                                               Config.quanMid[testWare1.getLevel()], 0, 0, 0,
-                                              1, 0, 0, 0, 1, 0, true, true);
+                                              1, 0, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable, too low");
          errorFound |= testerBuyManufacturing(testWareC3, null, null, null, null, 0.01f,
                                               Config.quanMid[testWareC3.getLevel()], 0, 0, 0,
-                                              0, 0, 0, 0, 1, 0, true, true);
+                                              0, 0, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable, sufficient");
          errorFound |= testerBuyManufacturing(testWareC2, testWare1, testWareC1, null, null, 999999.00f,
                                               0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWareC1.getLevel()], 0,
-                                              1, 1, 1, 0, 1, 0, true, true);
+                                              1, 1, 1, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: account ID");
          errorFound |= testerBuyManufacturing(testWareP2, testWare1, testWare3, testWare4, "testAccount1", 0.0f,
                                               0, Config.quanMid[testWare1.getLevel()], Config.quanMid[testWare3.getLevel()], Config.quanMid[testWare4.getLevel()],
-                                              1, 1, 1, 1, 1, 0, true, true);
+                                              1, 1, 1, 1, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - buy: max price acceptable and account ID");
          errorFound |= testerBuyManufacturing(testWareC1, testWareU1, null, null, "testAccount1", 999999.00f,
                                               0, 0, 0, 0,
-                                              1, 1, 0, 0, 1, 0, true, true);
+                                              1, 1, 0, 0, 1, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - check: non-manufactured ware");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 1, null,
-                                   1.0f, 0, true, true);
+                                   1.0f, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - check: minimum args");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareP1, 1, null,
-                                   1.0f, 0, true, true);
+                                   1.0f, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - check: minimum args, ware out of stock");
-         ware1           = testWareP1;
-         ware2           = testWare1;
-         quantityWare1   = 0;
-         quantityWare2   = Config.quanMid[ware2.getLevel()];
-         ware1.setQuantity(quantityWare1);
-         ware2.setQuantity(quantityWare2);
-         quantityToTrade = 1;
-         price           = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), 1, true)
-                           * Config.priceProcessed
-                           * Config.buyingOutOfStockWaresPriceMult;
-         expectedOutput  = ware1.getWareID() + ": " + CommandEconomy.PRICE_FORMAT.format(price) + ", " + ware1.getQuantity() + System.lineSeparator();
-
-         baosOut.reset(); // clear buffer holding console output
-         InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), "&craft"});
-
-         if (!baosOut.toString().equals(expectedOutput)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            TEST_OUTPUT.println("   expected: " + expectedOutput);
-            errorFound = true;
-         }
+         testWareP1.setQuantity(0);
+         errorFound |= testerCheck(InterfaceTerminal.playername, testWareP1, 0, null,
+                                   1.0f, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - check: specified quantity, ware out of stock");
-         ware1           = testWareC1;
-         ware2           = testWareU1;
-         quantityToTrade = 10;
-         quantityWare1   = 0;
-         ware1.setQuantity(quantityWare1);
-         price           = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), 1, true)
-                           * Config.priceCrafted
-                           * Config.buyingOutOfStockWaresPriceMult;
-         priceBuying     = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade, true)
-                           * Config.priceCrafted
-                           * Config.buyingOutOfStockWaresPriceMult;
-         priceSelling    = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, false);
-         expectedOutput  = "craft1 (test:crafted1): " + CommandEconomy.PRICE_FORMAT.format(price) + ", " + ware1.getQuantity() + System.lineSeparator()
-                           + "   for " + quantityToTrade + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuying)
-                           + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSelling) + System.lineSeparator();
-
-         baosOut.reset(); // clear buffer holding console output
-         InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), Integer.toString(quantityToTrade), "&craft"});
-
-         if (!baosOut.toString().equals(expectedOutput)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            TEST_OUTPUT.println("   expected: " + expectedOutput);
-            errorFound = true;
-         }
+         testWareC1.setQuantity(0);
+         errorFound |= testerCheck(InterfaceTerminal.playername, testWareC1, 0, null,
+                                   1.0f, 0, true);
 
          TEST_OUTPUT.println("manufacturing contracts - check: specified quantity, ware low in stock");
-         ware1           = testWareC1;
-         ware2           = testWareU1;
-         quantityToTrade = 10;
-         quantityWare1   = 5;
-         ware1.setQuantity(quantityWare1);
-         price           = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 1, false);
-         priceBuying     = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), 5, false)
-                           + (Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), 5, true)
-                              * Config.priceCrafted
-                              * Config.buyingOutOfStockWaresPriceMult);
-         priceSelling    = Marketplace.getPrice(PLAYER_ID, ware1.getWareID(), quantityToTrade, false);
-         expectedOutput  = "craft1 (test:crafted1): " + CommandEconomy.PRICE_FORMAT.format(price) + ", " + ware1.getQuantity() + System.lineSeparator()
-                           + "   for " + quantityToTrade + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuying)
-                           + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSelling) + System.lineSeparator();
-
-         baosOut.reset(); // clear buffer holding console output
-         InterfaceTerminal.serviceRequestCheck(new String[]{ware1.getWareID(), Integer.toString(quantityToTrade), "&craft"});
-
-         if (!baosOut.toString().equals(expectedOutput)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            TEST_OUTPUT.println("   expected: " + expectedOutput);
-            errorFound = true;
-         }
+         testWareC1.setQuantity(5);
+         errorFound |= testerCheck(InterfaceTerminal.playername, testWareC1, 10, null,
+                                   1.0f, 0, true);
       }
       catch (Exception e) {
          TEST_OUTPUT.println("testUnitManufacturingContracts() - fatal error: " + e);
@@ -16837,14 +16754,12 @@ public final class TestSuite
 
          // set up test oracles
          Config.chargeTransactionFees = false;
-         price1 = Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade, true)
-                  * Config.priceProcessed
-                  * Config.buyingOutOfStockWaresPriceMult
+         price1 = Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY)
                   * Config.transactionFeeBuying;
          Config.chargeTransactionFees = true;
 
          // perform action
-         Marketplace.buy(PLAYER_ID, null, null, ware1.getWareID(), quantityToTrade, 0.0f, 1.0f, true);
+         Marketplace.buy(PLAYER_ID, null, null, ware1.getWareID(), quantityToTrade, 0.0f, 1.0f);
 
          // check fee
          price2 = feeCollectionAccount.getMoney();
@@ -16872,14 +16787,12 @@ public final class TestSuite
          // set up test oracles
          Config.chargeTransactionFees = false;
          price1 = feeCollectionAccount.getMoney() + // plus since fee multiplier is negative, so fee collection account should pay out money
-                  (Marketplace.getPrice(PLAYER_ID, ware2.getWareID(), quantityToTrade, true)
-                   * Config.priceProcessed
-                   * Config.buyingOutOfStockWaresPriceMult
+                  (Marketplace.getPrice(PLAYER_ID, ware1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY)
                    * Config.transactionFeeBuying);
          Config.chargeTransactionFees = true;
 
          // perform action
-         Marketplace.buy(PLAYER_ID, null, null, ware1.getWareID(), quantityToTrade, 0.0f, 1.0f, true);
+         Marketplace.buy(PLAYER_ID, null, null, ware1.getWareID(), quantityToTrade, 0.0f, 1.0f);
 
          // check fee
          price2 = feeCollectionAccount.getMoney();
@@ -16960,71 +16873,6 @@ public final class TestSuite
          Config.shouldComponentsCurrentPricesAffectWholesPrice = true;
          Config.linkedPricesPercent   = 0.50f;
 
-         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Manufacturing Contracts, surplus");
-         // enable manufacturing contracts and set to known values
-         Config.buyingOutOfStockWaresAllowed   = true;
-         Config.buyingOutOfStockWaresPriceMult = 1.10f;
-
-         // set up test conditions for equilibrium
-         quantityToTrade = 10;
-         ware1           = testWareP1;
-         ware2           = testWare1;
-         quantityWare1   = 0;
-         quantityWare2   = Config.quanMid[ware2.getLevel()];
-         money           = 10000.0f;
-         ware1.setQuantity(quantityWare1);
-         ware2.setQuantity(quantityWare2);
-         playerAccount.setMoney(money);
-
-         // perform action
-         Marketplace.buy(PLAYER_ID, null, null, ware1.getWareID(), quantityToTrade, 0.0f, 1.0f, true);
-
-         // get the price when component is at equilibrium
-         price1 = money - playerAccount.getMoney();
-
-         // set up test conditions for surplus
-         quantityWare2   = Config.quanHigh[ware2.getLevel()];
-         ware1.setQuantity(quantityWare1);
-         ware2.setQuantity(quantityWare2);
-         playerAccount.setMoney(money);
-
-         // perform action
-         Marketplace.buy(PLAYER_ID, null, null, ware1.getWareID(), quantityToTrade, 0.0f, 1.0f, true);
-
-         // get the price when component is in surplus
-         price2 = money - playerAccount.getMoney();
-
-         // compare prices
-         if (price1 <= price2) {
-            TEST_OUTPUT.println("   unexpected price comparison: price during surplus should be lower than price during equilibrium" +
-                               "\n      surplus:     " + price2 +
-                               "\n      equilibrium: " + price1 +
-                               "\n      diff:        " + (price2 - price1));
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("Cross Interactions - Linked Prices: Manufacturing Contracts, scarcity");
-         // set up test conditions for scarcity
-         quantityWare2 = Config.quanLow[ware2.getLevel()];
-         ware1.setQuantity(quantityWare1);
-         ware2.setQuantity(quantityWare2);
-         playerAccount.setMoney(money);
-
-         // perform action
-         Marketplace.buy(PLAYER_ID, null, null, ware1.getWareID(), quantityToTrade, 0.0f, 1.0f, true);
-
-         // get the price when component has scarcity
-         price2 = money - playerAccount.getMoney();
-
-         // compare prices
-         if (price1 >= price2) {
-            TEST_OUTPUT.println("   unexpected price comparison: price during scarcity should be higher than price during equilibrium" +
-                               "\n      scarcity:    " + price2 +
-                               "\n      equilibrium: " + price1 +
-                               "\n      diff:        " + (price2 - price1));
-            errorFound = true;
-         }
-
          TEST_OUTPUT.println("Cross Interactions - Linked Prices: Research, surplus");
          // enable industrial research and set to known values
          Config.researchCostPerHierarchyLevel = 1000.0f;
@@ -17037,7 +16885,7 @@ public final class TestSuite
          quantityWare1   = 0;
          quantityWare2   = Config.quanMid[ware2.getLevel()];
 
-         money           = 10000.0f;
+         money           = 100000.0f;
          level           = ware1.getLevel(); // for resetting the ware's level later on
          ware1.setQuantity(quantityWare1);
          ware2.setQuantity(quantityWare2);
@@ -17089,7 +16937,7 @@ public final class TestSuite
          price2 = money - playerAccount.getMoney();
 
          // compare prices
-         if (price1 <= price2) {
+         if (price1 >= price2) {
             TEST_OUTPUT.println("   unexpected price comparison: price during scarcity should be higher than price during equilibrium" +
                                "\n      scarcity:    " + price2 +
                                "\n      equilibrium: " + price1 +
@@ -18463,7 +18311,7 @@ public final class TestSuite
       // test as normal
       baosOut.reset(); // clear buffer holding console output
       if (isPurchase) {
-         Marketplace.buy(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 1000.0f, 1.0f, false);
+         Marketplace.buy(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 1000.0f, 1.0f);
          quantityToTrade = -quantityToTrade; // to ease checking ware's quantity available for sale
       }
       else
@@ -18685,39 +18533,39 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - no multiplier");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 0,
-                                   null, 1.0f, 0, false, true);
+                                   null, 1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - invalid multiplier");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 0,
-                                   "%", 1.0f, 0, false, true);
+                                   "%", 1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - zero multiplier");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 0,
-                                   "%0", 1.0f, 0, false, true);
+                                   "%0", 1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - 100% multiplier");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 0,
-                                   "%1.00", 1.0f, 0, false, true);
+                                   "%1.00", 1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - high multiplier");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWare1, 0,
-                                   "%100.00", 1.0f, 0, false, false);
+                                   "%100.00", 1.0f, 0, false);
 
          TEST_OUTPUT.println("check() - low multiplier");
          errorFound |= testerCheck(InterfaceTerminal.playername, testWareU1, 0,
-                                   "%0.01", 1.0f, 0, false, true);
+                                   "%0.01", 1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - no admin permissions");
          errorFound |= testerCheck("possibleID", testWare1, 0,
-                                   "%10.00", 1.0f, 0, false, true);
+                                   "%10.00", 1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - no specified quantity");
          errorFound |= testerCheck("possibleID", testWare1, 0,
-                                   "%10.00", 1.0f, 0, false, true);
+                                   "%10.00", 1.0f, 0, true);
 
          TEST_OUTPUT.println("check() - specified quantity");
          errorFound |= testerCheck("possibleID", testWare1, 10,
-                                   "%10.00", 1.0f, 0, false, true);
+                                   "%10.00", 1.0f, 0, true);
 
          TEST_OUTPUT.println("sellall() - no multiplier");
          errorFound |= testerSellAll(InterfaceTerminal.playername, null, null, null,

@@ -118,10 +118,6 @@ public class CommandProcessor
 
             continue; // skip to the next argument
          }
-
-         // check whether user specifies manufacturing the ware
-         if (arg.equals(CommandEconomy.MANUFACTURING))
-            shouldManufacture = true;
       }
 
       // command must have the right number of args
@@ -250,7 +246,7 @@ public class CommandProcessor
       }
 
       // call corresponding function
-      Marketplace.buy(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent, shouldManufacture);
+      Marketplace.buy(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent);
    }
 
    /**
@@ -522,10 +518,6 @@ public class CommandProcessor
 
             continue; // skip to the next argument
          }
-
-         // check whether user specifies manufacturing the ware
-         if (arg.equals(CommandEconomy.MANUFACTURING))
-            shouldManufacture = true;
       }
 
       // command must have the right number of args
@@ -604,7 +596,7 @@ public class CommandProcessor
       }
 
       // call corresponding function
-      Marketplace.check(playerID, wareID, quantity, pricePercent, shouldManufacture);
+      Marketplace.check(playerID, wareID, quantity, pricePercent);
    }
 
    /**
@@ -1683,7 +1675,7 @@ public class CommandProcessor
       }
 
       // find research cost
-      float priceResearch = Marketplace.getPrice(playerID, ware, 0, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.researchCostPerHierarchyLevel;
+      float priceResearch = Marketplace.getPrice(playerID, ware, 1, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.researchCostPerHierarchyLevel;
       if (Config.researchCostIsAMultOfAvgPrice)
          priceResearch *= Marketplace.getCurrentPriceAverage();
 
