@@ -732,7 +732,7 @@ public final class Marketplace {
     * Marks a ware as changed since the last save so the next save with store its changes.
     * <p>
     * Complexity: O(1)
-    * @param wareID unique identifier of the ware to be saved
+    * @param ware the ware to be saved
     */
    public static void markAsChanged(Ware ware) {
       // add to list of wares to be saved
@@ -2523,6 +2523,7 @@ public final class Marketplace {
     * Returns the fee to be paid based on a given price.
     * <p>
     * Complexity: O(1)
+    * @param price transaction's total cost
     * @return purchasing fee
     */
    public static float calcTransactionFeeBuying(float price) {
@@ -2548,6 +2549,7 @@ public final class Marketplace {
     * Returns the fee to be paid based on a given price.
     * <p>
     * Complexity: O(1)
+    * @param price transaction's total cost
     * @return offering fee
     */
    public static float calcTransactionFeeSelling(float price) {

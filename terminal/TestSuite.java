@@ -1504,7 +1504,8 @@ public final class TestSuite
     * Complexity: O(1)
     * @param ware                  product whose price(s) should be checked
     * @param quantity              specified order quantity to be checked
-    * @param transactionFeesAmount transaction fee rate to charge
+    * @param transactionFeeBuying  transaction fee rate to charge for purchases
+    * @param transactionFeeSelling transaction fee rate to charge for sales
     * @param percentWorth          amount of damage done to the ware
     * @param testNumber            test number to use when printing errors
     * @param printTestNumber       whether to print test numbers
@@ -17892,6 +17893,7 @@ public final class TestSuite
     * @param quantityToOffer        how much of the ware to attempt to sell
     * @param testNumber             test number to use when printing errors
     * @param printTestNumber        whether to print test numbers
+    * @param isNotSellAll           if true, call on Marketplace.sell() rather than Marketplace.sellAll()
     * @return true if an error was discovered
     */
    private static boolean testNGDLinkedWares(WareLinked ware, Ware component, int yieldOrComponentAmount,

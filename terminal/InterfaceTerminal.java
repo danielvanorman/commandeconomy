@@ -55,6 +55,28 @@ public class InterfaceTerminal implements InterfaceCommand
    /** for stopping the autosave thread gracefully */
    private static Autosaver timertaskAutosaver = null;
 
+   /** translates user input to functions that should fulfill users' requests */
+   private static Map<String, Command> serviceableCommands = new HashMap<String, Command>(29, 1.0f);
+
+   // INTERFACES
+   /**
+    * Enables storing function calls within a hashmap,
+    * easing calling request service methods based on user input.
+    *
+    * @author  Daniel Van Orman
+    * @version %I%, %G%
+    * @since   2022-10-21
+    */
+   private static interface Command
+   {
+      /**
+       * Fulfills a certain request.
+       * <p>
+       * @param args arguments given in the expected format
+       */
+      void run(String[] args);
+   }
+
    // FUNCTIONS
    /**
     * Main function for initializing the market.
@@ -64,6 +86,135 @@ public class InterfaceTerminal implements InterfaceCommand
    public static void main(String[] args) {
       // connect desired interface to the market
       Config.commandInterface = new InterfaceTerminal();
+
+      // register commands into a table for
+      // translating user input to functions processing input
+      serviceableCommands.put(CommandEconomy.CMD_HELP,
+         new Command() { public void run(String[] args) {
+               serviceRequestHelp(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_BUY,
+         new Command() { public void run(String[] args) {
+               serviceRequestBuy(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_SELL,
+         new Command() { public void run(String[] args) {
+               serviceRequestSell(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_CHECK,
+         new Command() { public void run(String[] args) {
+               serviceRequestCheck(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_SELLALL_LOWER,
+         new Command() { public void run(String[] args) {
+               serviceRequestSellAll(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_MONEY,
+         new Command() { public void run(String[] args) {
+               serviceRequestMoney(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_SEND,
+         new Command() { public void run(String[] args) {
+               serviceRequestSend(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_CREATE,
+         new Command() { public void run(String[] args) {
+               serviceRequestCreate(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_DELETE,
+         new Command() { public void run(String[] args) {
+               serviceRequestDelete(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_GRANT_ACCESS_LOWER,
+         new Command() { public void run(String[] args) {
+               serviceRequestGrantAccess(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_REVOKE_ACCESS_LOWER,
+         new Command() { public void run(String[] args) {
+               serviceRequestRevokeAccess(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_RESEARCH,
+         new Command() { public void run(String[] args) {
+               serviceRequestResearch(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_VERSION,
+         new Command() { public void run(String[] args) {
+               serviceRequestVersion(args); }});
+
+      Command save = new Command() { public void run(String[] args) {
+               serviceRequestSave(args); }};
+      serviceableCommands.put("save", save);
+      serviceableCommands.put(CommandEconomy.CMD_SAVECE, save);
+
+      Command stop = new Command() { public void run(String[] args) {
+               System.out.print("Save before quitting? (Y/N)\n> ");
+               Scanner consoleInput = new Scanner(System.in);
+               if (consoleInput.nextLine().toLowerCase().startsWith("y"))
+                  serviceRequestSave(null);
+
+               System.out.println("Shutting down....");
+
+               // if necessary, stop autosaving
+               if (timerAutosaver != null) {
+                  timerAutosaver.cancel();
+                  timerAutosaver = null;
+               }
+
+               // end any threads needed by features
+               Marketplace.endPeriodicEvents();
+               Account.endPeriodicEvents();
+
+               consoleInput.close(); }};
+      serviceableCommands.put("stop", stop);
+      serviceableCommands.put("exit", stop);
+
+      serviceableCommands.put(CommandEconomy.CMD_RELOAD,
+         new Command() { public void run(String[] args) {
+               serviceRequestReload(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_ADD,
+         new Command() { public void run(String[] args) {
+               serviceRequestAdd(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_SET,
+         new Command() { public void run(String[] args) {
+               serviceRequestSet(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_CHANGE_STOCK_LOWER,
+         new Command() { public void run(String[] args) {
+               serviceRequestChangeStock(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_SET_DEFAULT_ACCOUNT_LOWER,
+         new Command() { public void run(String[] args) {
+               serviceRequestSetDefaultAccount(args); }});
+
+      serviceableCommands.put(CommandEconomy.CMD_PRINT_MARKET_LOWER,
+         new Command() { public void run(String[] args) {
+               serviceRequestPrintMarket(args); }});
+
+      serviceableCommands.put(PlatformStrings.CMD_OP,
+         new Command() { public void run(String[] args) {
+               serviceRequestOp(args); }});
+
+      serviceableCommands.put(PlatformStrings.CMD_DEOP,
+         new Command() { public void run(String[] args) {
+               serviceRequestDeop(args); }});
+
+      serviceableCommands.put(PlatformStrings.CMD_INVENTORY,
+         new Command() { public void run(String[] args) {
+               serviceRequestInventory(args); }});
+
+      serviceableCommands.put(PlatformStrings.CMD_GIVE,
+         new Command() { public void run(String[] args) {
+               serviceRequestGive(args); }});
+
+      serviceableCommands.put(PlatformStrings.CMD_TAKE,
+         new Command() { public void run(String[] args) {
+               serviceRequestTake(args); }});
+
+      serviceableCommands.put(PlatformStrings.CMD_CHANGE_NAME_LOWER,
+         new Command() { public void run(String[] args) {
+               serviceRequestChangeName(args); }});
 
       // set up and run the market
       CommandEconomy.start(null);
@@ -451,7 +602,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * such as when a command block is autobuying.
     *
     * @param playerID the player being affected by the issued command or the entity being acted upon
-    * @param senderID name of the command-issuing entity or the entity acting upon other
+    * @param sender   the command-issuing entity or the entity acting upon other
     * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
     * @return true if the sender has permission to execute the command
     */
@@ -465,7 +616,7 @@ public class InterfaceTerminal implements InterfaceCommand
     * such as when a command block is autobuying.
     *
     * @param playerID the player being affected by the issued command or the entity being acted upon
-    * @param senderID name of the command-issuing entity or the entity acting upon other
+    * @param senderID ID of the command-issuing entity or the entity acting upon other
     * @param isOpCommand whether the sender must be an admin to execute even if the command only affects themself
     * @return true if the sender has permission to execute the command
     */
@@ -622,7 +773,8 @@ public class InterfaceTerminal implements InterfaceCommand
    public void serviceRequests() {
       // prepare to service requests
       Scanner consoleInput = new Scanner(System.in);
-      String[] userInput;   // holds request being parsed
+      String[] userInput;          // holds request being parsed
+      Command command      = null; // holds function to fulfill request
 
       // make the current player an op 
       ops.add(getPlayerIDStatic(playername));
@@ -661,144 +813,13 @@ public class InterfaceTerminal implements InterfaceCommand
             userInput = Arrays.copyOfRange(userInput, 1, userInput.length);
 
          // parse request parameters and pass them to the right function
-         switch(userInput[0].toLowerCase()) 
-         {
-            // When calling on service functions,
-            // don't send the first element of the user's input.
-            // Minecraft sends the second element and onwards.
-            // Making test code better reflect final code will help
-            // reduce error and simplify code.
+         command = serviceableCommands.get(userInput[0]);
 
-            case CommandEconomy.CMD_HELP:
-               serviceRequestHelp(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_BUY:
-               serviceRequestBuy(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_SELL:
-               serviceRequestSell(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_CHECK:
-               serviceRequestCheck(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_SELLALL_LOWER:
-               serviceRequestSellAll(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_MONEY:
-               serviceRequestMoney(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_SEND:
-               serviceRequestSend(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_CREATE:
-               serviceRequestCreate(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_DELETE:
-               serviceRequestDelete(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_GRANT_ACCESS_LOWER:
-               serviceRequestGrantAccess(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_REVOKE_ACCESS_LOWER:
-               serviceRequestRevokeAccess(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_RESEARCH:
-               serviceRequestResearch(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_VERSION:
-               serviceRequestVersion(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case "save":
-            case CommandEconomy.CMD_SAVECE:
-               serviceRequestSave(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case "stop":
-            case "exit":
-               System.out.print("Save before quitting? (Y/N)\n> ");
-               if (consoleInput.nextLine().toLowerCase().startsWith("y"))
-                  serviceRequestSave(null);
-
-               System.out.println("Shutting down....");
-
-               // if necessary, stop autosaving
-               if (timerAutosaver != null) {
-                  timerAutosaver.cancel();
-                  timerAutosaver = null;
-               }
-
-               // end any threads needed by features
-               Marketplace.endPeriodicEvents();
-               Account.endPeriodicEvents();
-
-               consoleInput.close();
-               return;
-
-            case CommandEconomy.CMD_RELOAD:
-               serviceRequestReload(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_ADD:
-               serviceRequestAdd(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_SET:
-               serviceRequestSet(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_CHANGE_STOCK_LOWER:
-               serviceRequestChangeStock(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_SET_DEFAULT_ACCOUNT_LOWER:
-               serviceRequestSetDefaultAccount(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case CommandEconomy.CMD_PRINT_MARKET_LOWER:
-               serviceRequestPrintMarket(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case PlatformStrings.CMD_OP:
-               serviceRequestOp(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case PlatformStrings.CMD_DEOP:
-               serviceRequestDeop(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case PlatformStrings.CMD_INVENTORY:
-               serviceRequestInventory(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case PlatformStrings.CMD_GIVE:
-               serviceRequestGive(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case PlatformStrings.CMD_TAKE:
-               serviceRequestTake(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            case PlatformStrings.CMD_CHANGE_NAME_LOWER:
-               serviceRequestChangeName(Arrays.copyOfRange(userInput, 1, userInput.length));
-               break;
-
-            default:
-               System.out.println(CommandEconomy.ERROR_INVALID_CMD);
-               break;
-         }
+         // if the command is not found, say so
+         if (command == null)
+            System.out.println(CommandEconomy.ERROR_INVALID_CMD);
+         else
+            command.run(Arrays.copyOfRange(userInput, 1, userInput.length));
       }
    }
 
