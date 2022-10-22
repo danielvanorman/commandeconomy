@@ -58,6 +58,30 @@ public class InterfaceTerminal implements InterfaceCommand
    /** translates user input to functions that should fulfill users' requests */
    private static Map<String, Command> serviceableCommands = new HashMap<String, Command>(29, 1.0f);
 
+   /** exits Command Economy */
+   private static Command stop = new Command() {
+      public void run(String[] args) {
+         System.out.print("Save before quitting? (Y/N)\n> ");
+         Scanner consoleInput = new Scanner(System.in);
+         if (consoleInput.nextLine().toLowerCase().startsWith("y"))
+            serviceRequestSave(null);
+
+         System.out.println("Shutting down....");
+
+         // if necessary, stop autosaving
+         if (timerAutosaver != null) {
+            timerAutosaver.cancel();
+            timerAutosaver = null;
+         }
+
+         // end any threads needed by features
+         Marketplace.endPeriodicEvents();
+         Account.endPeriodicEvents();
+
+         consoleInput.close();
+      }
+   };
+
    // INTERFACES
    /**
     * Enables storing function calls within a hashmap,
@@ -146,25 +170,6 @@ public class InterfaceTerminal implements InterfaceCommand
       serviceableCommands.put("save", save);
       serviceableCommands.put(CommandEconomy.CMD_SAVECE, save);
 
-      Command stop = new Command() { public void run(String[] args) {
-               System.out.print("Save before quitting? (Y/N)\n> ");
-               Scanner consoleInput = new Scanner(System.in);
-               if (consoleInput.nextLine().toLowerCase().startsWith("y"))
-                  serviceRequestSave(null);
-
-               System.out.println("Shutting down....");
-
-               // if necessary, stop autosaving
-               if (timerAutosaver != null) {
-                  timerAutosaver.cancel();
-                  timerAutosaver = null;
-               }
-
-               // end any threads needed by features
-               Marketplace.endPeriodicEvents();
-               Account.endPeriodicEvents();
-
-               consoleInput.close(); }};
       serviceableCommands.put("stop", stop);
       serviceableCommands.put("exit", stop);
 
@@ -820,6 +825,12 @@ public class InterfaceTerminal implements InterfaceCommand
             System.out.println(CommandEconomy.ERROR_INVALID_CMD);
          else
             command.run(Arrays.copyOfRange(userInput, 1, userInput.length));
+
+         // check if the Command Economy should close
+         if (command == stop) {
+            consoleInput.close();
+            break;
+         }
       }
    }
 
