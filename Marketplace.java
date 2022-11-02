@@ -1,8 +1,8 @@
 package commandeconomy;
 
-import java.util.HashMap;             // for storing wares
-import java.util.Map;                 // for iterating through hashmaps
-import java.util.HashSet;             // for returning all ware aliases and storing IDs of wares changed since last save
+import java.util.TreeMap;             // for storing wares
+import java.util.Map;                 // for iterating through maps
+import java.util.TreeSet;             // for returning all ware aliases and storing IDs of wares changed since last save
 import java.util.Set;                 // for returning all ware aliases
 import java.util.LinkedList;          // for returning properties of wares found in an inventory
 import java.util.List;
@@ -28,14 +28,14 @@ public final class Marketplace {
    // GLOBAL VARIABLES
    // wares
    /** holds all wares in the market */
-   private static Map<String, Ware> wares = new HashMap<String, Ware>(550);
+   private static TreeMap<String, Ware> wares = new TreeMap<String, Ware>();
    /**
     * looks up ware IDs using unique aliases
     *
     * Individual wares still track their own alias to provide easy, fast reverse lookup
     * when writing wares to a file.
     */
-   private static Map<String, String> wareAliasTranslations = new HashMap<String, String>(550);
+   private static TreeMap<String, String> wareAliasTranslations = new TreeMap<String, String>();
 
    // prices
    /** used to signal what price should be returned */
@@ -54,9 +54,9 @@ public final class Marketplace {
    /** holds ware entries which failed to load */
    private static ArrayDeque<String> waresErrored = new ArrayDeque<String>();
    /** holds ware IDs whose entries should be regenerated */
-   private static Set<String> waresChangedSinceLastSave = new HashSet<String>();
+   private static Set<String> waresChangedSinceLastSave = new TreeSet<String>();
    /** maps ware IDs to ware entries, easing regenerating changed wares' entries for saving */
-   private static Map<String, StringBuilder> wareEntries = new HashMap<String, StringBuilder>(550);
+   private static TreeMap<String, StringBuilder> wareEntries = new TreeMap<String, StringBuilder>();
    /** holds ware entries in the order they successfully loaded in; makes reloading faster */
    private static ArrayDeque<StringBuilder> waresLoadOrder = new ArrayDeque<StringBuilder>();
    /** holds alternate ware aliases and tags for saving */
@@ -735,6 +735,9 @@ public final class Marketplace {
     * @param ware the ware to be saved
     */
    public static void markAsChanged(Ware ware) {
+      if (ware.getWareID() == null)
+         return;
+
       // add to list of wares to be saved
       if (wares.containsKey(ware.getWareID()))
          waresChangedSinceLastSave.add(ware.getWareID());
@@ -1351,9 +1354,11 @@ public final class Marketplace {
          return ware;
 
       // check if the ware is an alias
-      ware = wares.get(wareAliasTranslations.get(wareID));
-      if (ware != null)
-         return ware;
+      if (wareAliasTranslations.get(wareID) != null) {
+         ware = wares.get(wareAliasTranslations.get(wareID));
+         if (ware != null)
+            return ware;
+      }
 
       // If the ware ID is neither literal nor an alias,
       // it might be a variant of a known ware.
@@ -1368,7 +1373,7 @@ public final class Marketplace {
          ware = wares.get(baseID);
          if (ware != null)
             return ware;
-         else {
+         else if (wareAliasTranslations.get(baseID) != null) {
             ware = wares.get(wareAliasTranslations.get(baseID));
             if (ware != null)
                return ware;
@@ -1385,7 +1390,13 @@ public final class Marketplace {
     * @param alias ware alias to be converted
     * @return ware ID or null
     */
-   public static String translateAlias(final String alias) { return wareAliasTranslations.get(alias); }
+   public static String translateAlias(final String alias) {
+      // TreeMap throws an exception if passed null
+      if (alias != null)
+         return wareAliasTranslations.get(alias);
+      else
+         return null;
+   }
 
    /**
     * Returns a set of all wares currently available within the marketplace.

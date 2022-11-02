@@ -1,6 +1,7 @@
 package commandeconomy;
 
-import java.util.HashMap;             // for storing accounts
+import java.util.TreeMap;             // for storing accounts
+import java.util.HashMap;             // for storing account properties
 import java.util.Set;                 // for returning all account names
 import java.util.ArrayDeque;          // for storing players with access to a specific account
 import java.io.File;                  // for handling files
@@ -11,7 +12,7 @@ import java.io.IOException;           // for handling miscellaneous file errors
 import java.util.UUID;                // for more securely tracking users internally
 import java.util.HashSet;             // for faster saving, by storing accounts changed since last save
 import java.io.BufferedWriter;        // for faster saving, so fewer file writes are used
-import java.util.Map;                 // for iterating through hashmaps
+import java.util.Map;                 // for iterating through maps
 import java.util.Collection;          // for returning all accounts usable within the marketplace
 
 /**
@@ -28,7 +29,7 @@ public final class Account {
    // GLOBAL VARIABLES
    // account information
    /** holds all accounts usable in the market */
-   private static Map<String, Account> accounts = new HashMap<String, Account>();
+   private static TreeMap<String, Account> accounts = new TreeMap<String, Account>();
    /** tracks how many accounts each user has created */
    private static Map<UUID, Integer> accountsCreatedPerUser = new HashMap<UUID, Integer>();
    /** maps players to accounts they specified should be used by default for their transactions */
@@ -42,7 +43,7 @@ public final class Account {
    /** holds account IDs whose entries should be regenerated */
    private static Set<Account> accountsChangedSinceLastSave = new HashSet<Account>();
    /** maps account IDs to account entries, easing regenerating changed accounts' entries for saving */
-   private static Map<String, StringBuilder> accountEntries = new HashMap<String, StringBuilder>();
+   private static TreeMap<String, StringBuilder> accountEntries = new TreeMap<String, StringBuilder>();
    /** whether or not to remove entries for mapping players to default accounts */
    private static boolean regenerateDefaultAccountEntries = false;
    /** holds entries mapping players to default accounts */
@@ -87,7 +88,10 @@ public final class Account {
       } catch (Exception e) {}
 
       // try to grab the account in case it is a duplicate
-      Account account = accounts.get(accountID);
+      Account account = null;
+      // TreeMap throws an exception if passed null
+      if (accountID != null)
+         account = accounts.get(accountID);
 
       // avoid overwriting an existing account
       // unless a personal account is being made
@@ -243,7 +247,13 @@ public final class Account {
     * @param accountID internal name of account to be returned if found
     * @return account or null
     */
-   public static Account getAccount(final String accountID) { return accounts.get(accountID); }
+   public static Account getAccount(final String accountID) {
+      // TreeMap throws an exception if given null
+      if (accountID != null)
+         return accounts.get(accountID);
+      else
+         return null;
+   }
 
    /**
     * Grabs the account with the specified ID and checks the given player's permissions.
@@ -273,14 +283,18 @@ public final class Account {
                defaultAccounts.remove(accountUser);
 
             // if the player doesn't have a personal account, make one
-            account = accounts.get(playername);
-            if (account == null)
-               account = makeAccount(playername, accountUser);
+            if (playername != null) {
+               account = accounts.get(playername);
+               if (account == null)
+                  account = makeAccount(playername, accountUser);
+            }
+            else
+               account = null;
          }
       }
 
       // grab account information
-      if (account == null)
+      if (account == null && accountID != null)
          account = accounts.get(accountID);
 
       // if given account doesn't exist, stop
@@ -895,7 +909,10 @@ public final class Account {
          if (data[0].equals("*")) {
             try {
                // check whether the account exists
-               account = accounts.get(data[2]);
+               if (data[2] != null)
+                  account = accounts.get(data[2]);
+               else
+                  account = null;
                if (account == null) {
                   String erroredAccount = String.join(",", data);
                   Config.commandInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_NONEXISTENT + erroredAccount);

@@ -1,6 +1,7 @@
 package commandeconomy;
 
 import java.util.HashMap;             // for storing wares
+import java.util.TreeMap;             // for storing wares
 import java.util.Map;
 import java.io.File;                  // for handling files
 import java.io.FileWriter;            // for writing to files
@@ -10,7 +11,7 @@ import java.io.ByteArrayOutputStream; // for controlling console output during t
 import java.util.LinkedList;          // for returning properties of wares found in an inventory
 import java.util.List;
 import java.util.ArrayDeque;          // for accessing stored ware entries for saving
-import java.util.HashSet;             // for storing IDs of wares changed since last save
+import java.util.TreeSet;             // for storing IDs of wares changed since last save
 import java.util.Set;
 import java.lang.reflect.*;           // for accessing private fields and methods
 import java.util.Timer;               // for automatically rebalancing the marketplace
@@ -177,14 +178,14 @@ public final class TestSuite
          fAccounts.setAccessible(true);
          fDefaultAccounts.setAccessible(true);
 
-         wares                     = (HashMap<String, Ware>) fWares.get(null);
-         wareAliasTranslations     = (HashMap<String, String>) fWareAliasTranslations.get(null);
+         wares                     = (TreeMap<String, Ware>) fWares.get(null);
+         wareAliasTranslations     = (TreeMap<String, String>) fWareAliasTranslations.get(null);
          waresLoadOrder            = (ArrayDeque<StringBuilder>) fWaresLoadOrder.get(null);
          waresErrored              = (ArrayDeque<String>) fWaresErrored.get(null);
-         waresChangedSinceLastSave = (HashSet<String>) fWaresChangedSinceLastSave.get(null);
-         wareEntries               = (HashMap<String, StringBuilder>) fWareEntries.get(null);
+         waresChangedSinceLastSave = (TreeSet<String>) fWaresChangedSinceLastSave.get(null);
+         wareEntries               = (TreeMap<String, StringBuilder>) fWareEntries.get(null);
          alternateAliasEntries     = (StringBuilder) fAlternateAliasEntries.get(null);
-         accounts                  = (HashMap<String, Account>) fAccounts.get(null);
+         accounts                  = (TreeMap<String, Account>) fAccounts.get(null);
          defaultAccounts           = (HashMap<UUID, Account>) fDefaultAccounts.get(null);
       } catch (Exception e) {
          TEST_OUTPUT.println("failed to access private variables");
