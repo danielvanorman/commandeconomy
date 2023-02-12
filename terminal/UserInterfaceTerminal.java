@@ -60,24 +60,28 @@ public class UserInterfaceTerminal implements UserInterface
 
    // commands
    /** sells everything in an inventory */
-   private static Command sellAll = new Command() {
-      public void run(String[] args) { serviceRequestSellAll(args); }};
+   private static Command sellAll = new Command() { public void run(String[] args) {
+         CommandProcessor.sellAll(getPlayerIDStatic(playername), getPlayerIDStatic(playername), args); }};
 
-   /** allows player access to an account */
-   private static Command grantAccess = new Command() {
-      public void run(String[] args) { serviceRequestGrantAccess(args); }};
+   /** allows a player to withdraw from and view an account */
+   private static Command grantAccess = new Command() { public void run(String[] args) {
+      CommandProcessor.accountGrantAccess(getPlayerIDStatic(playername), args); }};
 
-   /** disallows player access to an account */
-   private static Command revokeAccess = new Command() {
-      public void run(String[] args) { serviceRequestRevokeAccess(args); }};
+   /** disallows a player to withdraw from and view an account */
+   private static Command revokeAccess = new Command() { public void run(String[] args) {
+         CommandProcessor.accountRevokeAccess(getPlayerIDStatic(playername), args); }};
+
+   /** saves accounts and market wares */
+   private static Command save = new Command() { public void run(String[] args) {
+         CommandProcessor.save(args); }};
 
    /** adjusts a ware's quantity available for sale */
    private static Command changeStock = new Command() {
       public void run(String[] args) { serviceRequestChangeStock(args); }};
 
-   /** marks an account to be a player's default personal account */
-   private static Command setDefaultAccount = new Command() {
-      public void run(String[] args) { serviceRequestSetDefaultAccount(args); }};
+   /** marks an account to be used in place of a personal account */
+   private static Command setDefaultAccount = new Command() { public void run(String[] args) {
+      CommandProcessor.setDefaultAccount(getPlayerIDStatic(playername), args); }};
 
    /** writes tradeable wares to file */
    private static Command printMarket = new Command() {
@@ -93,7 +97,7 @@ public class UserInterfaceTerminal implements UserInterface
          System.out.print("Save before quitting? (Y/N)\n> ");
          Scanner consoleInput = new Scanner(System.in);
          if (consoleInput.nextLine().toLowerCase().startsWith("y"))
-            serviceRequestSave(null);
+            CommandProcessor.save(null);
 
          System.out.println("Shutting down....");
 
@@ -140,6 +144,19 @@ public class UserInterfaceTerminal implements UserInterface
       // connect desired interface to the market
       Config.userInterface = new UserInterfaceTerminal();
 
+      // prepare to service user requests
+      registerCommands();
+
+      // set up and run the market
+      CommandEconomy.start(null);
+   }
+
+   /**
+    * Prepares to service user requests by
+    * registering commands in a table for translating
+    * requests to functions that process user input.
+    */
+   protected static void registerCommands() {
       // register commands into a table for
       // translating user input to functions processing input
       serviceableCommands.put(CommandEconomy.CMD_HELP,
@@ -148,34 +165,38 @@ public class UserInterfaceTerminal implements UserInterface
 
       serviceableCommands.put(CommandEconomy.CMD_BUY,
          new Command() { public void run(String[] args) {
-               serviceRequestBuy(args); }});
+               CommandProcessor.buy(getPlayerIDStatic(playername),
+                  getPlayerIDStatic(playername), args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_SELL,
          new Command() { public void run(String[] args) {
-               serviceRequestSell(args); }});
+               CommandProcessor.sell(getPlayerIDStatic(playername),
+                  getPlayerIDStatic(playername), null, args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_CHECK,
          new Command() { public void run(String[] args) {
-               serviceRequestCheck(args); }});
+               CommandProcessor.check(getPlayerIDStatic(playername),
+                  getPlayerIDStatic(playername), null, args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_SELLALL, sellAll);
       serviceableCommands.put(CommandEconomy.CMD_SELLALL_LOWER, sellAll);
 
       serviceableCommands.put(CommandEconomy.CMD_MONEY,
          new Command() { public void run(String[] args) {
-               serviceRequestMoney(args); }});
+               CommandProcessor.money(getPlayerIDStatic(playername),
+                  getPlayerIDStatic(playername), args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_SEND,
          new Command() { public void run(String[] args) {
-               serviceRequestSend(args); }});
+               CommandProcessor.send(getPlayerIDStatic(playername), null, args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_CREATE,
          new Command() { public void run(String[] args) {
-               serviceRequestCreate(args); }});
+               CommandProcessor.accountCreate(getPlayerIDStatic(playername), args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_DELETE,
          new Command() { public void run(String[] args) {
-               serviceRequestDelete(args); }});
+               CommandProcessor.accountDelete(getPlayerIDStatic(playername), args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_GRANT_ACCESS, grantAccess);
       serviceableCommands.put(CommandEconomy.CMD_GRANT_ACCESS_LOWER, grantAccess);
@@ -185,14 +206,12 @@ public class UserInterfaceTerminal implements UserInterface
 
       serviceableCommands.put(CommandEconomy.CMD_RESEARCH,
          new Command() { public void run(String[] args) {
-               serviceRequestResearch(args); }});
+               CommandProcessor.research(getPlayerIDStatic(playername), args); }});
 
       serviceableCommands.put(CommandEconomy.CMD_VERSION,
          new Command() { public void run(String[] args) {
-               serviceRequestVersion(args); }});
+               System.out.println(CommandEconomy.MSG_VERSION + CommandEconomy.VERSION); }});
 
-      Command save = new Command() { public void run(String[] args) {
-               serviceRequestSave(args); }};
       serviceableCommands.put("save", save);
       serviceableCommands.put(CommandEconomy.CMD_SAVECE, save);
 
@@ -242,9 +261,6 @@ public class UserInterfaceTerminal implements UserInterface
 
       serviceableCommands.put(PlatformStrings.CMD_CHANGE_NAME, changeName);
       serviceableCommands.put(PlatformStrings.CMD_CHANGE_NAME_LOWER, changeName);
-
-      // set up and run the market
-      CommandEconomy.start(null);
    }
 
    /**
@@ -858,6 +874,37 @@ public class UserInterfaceTerminal implements UserInterface
    }
 
    /**
+    * Mimics entering a command into the terminal.
+    * <p>
+    * Complexity: O(1)
+    */
+   public static void serviceRequest(final String request) {
+      // split request into separate arguments
+      String[] userInput = request.split(" ", 0);
+
+      // request should not be null
+      if (userInput[0] == null || userInput[0].isEmpty())
+         return;
+
+      // if the command starts with a forward slash, remove it
+      if (userInput[0].startsWith("/"))
+         userInput[0] = userInput[0].substring(1);
+
+      // if the command starts with the mod's ID, skip the mod ID
+      if (userInput[0].startsWith("commandeconomy"))
+         userInput = Arrays.copyOfRange(userInput, 1, userInput.length);
+
+      // parse request parameters and pass them to the right function
+      Command command = serviceableCommands.get(userInput[0]);
+
+      // if the command is not found, say so
+      if (command == null)
+         System.out.println(CommandEconomy.ERROR_INVALID_CMD);
+      else
+         command.run(Arrays.copyOfRange(userInput, 1, userInput.length));
+   }
+
+   /**
     * Prints possible commands.
     * <p>
     * Expected Formats:
@@ -930,139 +977,6 @@ public class UserInterfaceTerminal implements UserInterface
    }
 
    /**
-    * Purchases a ware.
-    * <p>
-    * Expected Formats:<br>
-    * &#60;ware_id&#62; &#60;quantity&#62; [max_unit_price] [account_id] [&amp;craft]<br>
-    * &#60;player_name&#62; &#60;inventory_direction&#62; &#60;ware_id&#62; &#60;quantity&#62; [max_unit_price] [account_id] [&amp;craft]<br>
-    * &#60;inventory_direction&#62; is none, east, west, south, up, or down
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestBuy(String[] args) {
-      CommandProcessor.buy(getPlayerIDStatic(playername), getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Sells a ware.
-    * <p>
-    * Expected Formats:<br>
-    * (&#60;ware_id&#62; | held) [&#60;quantity&#62; [min_unit_price] [account_id]]<br>
-    * &#60;player_name&#62; &#60;inventory_direction&#62; (&#60;ware_id&#62; | held) [&#60;quantity&#62; [min_unit_price] [account_id]]<br>
-    * &#60;inventory_direction&#62; == none, east, west, south, up, or down
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestSell(String[] args) {
-      CommandProcessor.sell(getPlayerIDStatic(playername), getPlayerIDStatic(playername), null, args);
-   }
-
-   /**
-    * Looks up ware price and stock.
-    * <p>
-    * Expected Formats:<br>
-    * (&#60;ware_id&#62; | held) [quantity] [&amp;craft]<br>
-    * &#60;player_name&#62; (&#60;ware_id&#62; | held) &#60;quantity&#62; [&amp;craft]
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestCheck(String[] args) {
-      CommandProcessor.check(getPlayerIDStatic(playername), getPlayerIDStatic(playername), null, args);
-   }
-
-   /**
-    * Sells all tradeable wares in the inventory at current market prices.
-    * <p>
-    * Expected Formats:<br>
-    * [account_id]<br>
-    * &#60;player_name&#62; &#60;inventory_direction&#62; [account_id]
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestSellAll(String[] args) {
-      CommandProcessor.sellAll(getPlayerIDStatic(playername), getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Looks up how much is in an account.
-    * <p>
-    * Expected Formats:<br>
-    * [account_id]<br>
-    * &#60;player_name&#62; &#60;account_id&#62;
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestMoney(String[] args) {
-      CommandProcessor.money(getPlayerIDStatic(playername), getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Transfers money from one account to another.
-    * <p>
-    * Expected Formats:<br>
-    * &#60;quantity&#62; &#60;recipient_account_id&#62; [sender_account_id]<br>
-    * &#60;player_name&#62; &#60;quantity&#62; &#60;recipient_account_id&#62; [sender_account_id]
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestSend(String[] args) {
-      CommandProcessor.send(getPlayerIDStatic(playername), null, args);
-   }
-
-   /**
-    * Opens a new account with the specified id.<br>
-    * Expected Format: &#60;account_id&#62;
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestCreate(String[] args) {
-      CommandProcessor.accountCreate(getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Closes an account with the specified id.<br>
-    * Expected Format: &#60;account_id&#62;
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestDelete(String[] args) {
-      CommandProcessor.accountDelete(getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Allows a player to view and withdraw from a specified account.<br>
-    * Expected Format: &#60;player_name&#62; &#60;account_id&#62;
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestGrantAccess(String[] args) {
-      CommandProcessor.accountGrantAccess(getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Disallows a player to view and withdraw from a specified account.<br>
-    * Expected Format: &#60;player_name&#62; &#60;account_id&#62;
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestRevokeAccess(String[] args) {
-      CommandProcessor.accountRevokeAccess(getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Saves accounts and market wares.<br>
-    * Expected Format: [null | empty]
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestSave(String[] args) {
-      // call corresponding functions
-      Marketplace.saveWares();
-      Account.saveAccounts();
-      System.out.println(CommandEconomy.MSG_SAVED_ECONOMY);
-   }
-
-   /**
     * Reloads part of the marketplace from file.<br>
     * Expected Format: (config | wares | accounts | all)
     *
@@ -1103,16 +1017,16 @@ public class UserInterfaceTerminal implements UserInterface
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestAdd(String[] args) {
-      UUID playerID = getPlayerIDStatic(playername);
+      final UUID PLAYER_ID = getPlayerIDStatic(playername);
 
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecuteStatic(playerID, playerID, true)) {
+      if (!permissionToExecuteStatic(PLAYER_ID, PLAYER_ID, true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
-      CommandProcessor.add(playerID, args);
+      CommandProcessor.add(PLAYER_ID, args);
    }
 
    /**
@@ -1122,16 +1036,16 @@ public class UserInterfaceTerminal implements UserInterface
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestSet(String[] args) {
-      UUID playerID = getPlayerIDStatic(playername);
+      final UUID PLAYER_ID = getPlayerIDStatic(playername);
 
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecuteStatic(playerID, playerID, true)) {
+      if (!permissionToExecuteStatic(PLAYER_ID, PLAYER_ID, true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
-      CommandProcessor.set(playerID, args, 0);
+      CommandProcessor.set(PLAYER_ID, args, 0);
    }
 
    /**
@@ -1142,24 +1056,16 @@ public class UserInterfaceTerminal implements UserInterface
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestChangeStock(String[] args) {
+      final UUID PLAYER_ID = getPlayerIDStatic(playername);
+
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecuteStatic(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
+      if (!permissionToExecuteStatic(PLAYER_ID, PLAYER_ID, true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
-      CommandProcessor.changeStock(getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Marks an account to be used in place of a personal account.<br>
-    * Expected Format: &#60;account_id&#62;
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestSetDefaultAccount(String[] args) {
-      CommandProcessor.setDefaultAccount(getPlayerIDStatic(playername), args);
+      CommandProcessor.changeStock(PLAYER_ID, args);
    }
 
    /**
@@ -1169,38 +1075,17 @@ public class UserInterfaceTerminal implements UserInterface
     * @param args arguments given in the expected format
     */
    protected static void serviceRequestPrintMarket(String[] args) {
+      final UUID PLAYER_ID = getPlayerIDStatic(playername);
+
       // check if command sender has permission to
       // execute this command
-      if (!permissionToExecuteStatic(getPlayerIDStatic(playername), getPlayerIDStatic(playername), true)) {
+      if (!permissionToExecuteStatic(PLAYER_ID, PLAYER_ID, true)) {
          System.out.println(CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
       // call corresponding functions
       Marketplace.printMarket();
-   }
-
-   /**
-    * Spends to increase a ware's supply and demand.
-    * <p>
-    * Expected Formats:<br>
-    * &#60;ware_id&#62; [max_unit_price] [account_id]<br>
-    * yes<br>
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestResearch(String[] args) {
-      CommandProcessor.research(getPlayerIDStatic(playername), args);
-   }
-
-   /**
-    * Tells the user what version of Command Economy is running.<br>
-    * Expected Format: [null | empty]
-    *
-    * @param args arguments given in the expected format
-    */
-   protected static void serviceRequestVersion(String[] args) {
-      System.out.println(CommandEconomy.MSG_VERSION + CommandEconomy.VERSION);
    }
 
    /**

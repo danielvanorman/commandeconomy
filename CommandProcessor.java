@@ -1319,6 +1319,18 @@ public final class CommandProcessor
    }
 
    /**
+    * Saves accounts and market wares.<br>
+    * Expected Format: [null | empty]
+    *
+    * @param args arguments given in the expected format
+    */
+   public static void save(String[] args) {
+      Marketplace.saveWares();
+      Account.saveAccounts();
+      Config.userInterface.printToConsole(CommandEconomy.MSG_SAVED_ECONOMY);
+   }
+
+   /**
     * Reloads part of the marketplace from file.<br>
     * Expected Format: (config | wares | accounts | all)
     *

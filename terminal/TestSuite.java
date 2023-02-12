@@ -120,6 +120,7 @@ public final class TestSuite
    @SuppressWarnings("unchecked") // for grabbing Marketplace's private variables
    public static void main(final String[] args) {
       Config.userInterface = new UserInterfaceTerminal();
+      UserInterfaceTerminal.registerCommands();
 
       // set up testing environment
       StringBuilder failedTests = new StringBuilder(800); // tracks failed tests for reporting after finishing execution
@@ -1117,16 +1118,15 @@ public final class TestSuite
       final UUID TRADER_ID = UserInterfaceTerminal.getPlayerIDStatic(senderName);
 
       // for predicting and tracking changes
-      LinkedList<String> parameterBuilder  = new LinkedList<String>(); // used to determine what to pass to the interface function
-      String[]           parameters        = null;                     // what to pass to the interface function
-      StringBuilder      outputExpected    = new StringBuilder(128);   // what console output should be
-      Account            accountSender;                                // account collecting fees
-      Account            accountRecipient  = null;                     // account collecting fees
-      Account            accountFees       = null;                     // account collecting fees
-      float              fee               = 0.0f;                     // transaction fee to be paid
-      float              expectedFundsSender;                          // what sender account funds should be after transferring
-      float              expectedFundsFees = 0.0f;                     // what fee collection account funds should be after transferring
-      boolean            expectTransfer    = true;                     // whether the transfer should go through
+      StringBuilder      parameters        = new StringBuilder("send "); // used to determine what to pass to the interface function
+      StringBuilder      outputExpected    = new StringBuilder(128);     // what console output should be
+      Account            accountSender;                                  // account collecting fees
+      Account            accountRecipient  = null;                       // account collecting fees
+      Account            accountFees       = null;                       // account collecting fees
+      float              fee               = 0.0f;                       // transaction fee to be paid
+      float              expectedFundsSender;                            // what sender account funds should be after transferring
+      float              expectedFundsFees = 0.0f;                       // what fee collection account funds should be after transferring
+      boolean            expectTransfer    = true;                       // whether the transfer should go through
 
       if (testNumber != 0)
          testIdentifier = " (#" + testNumber + ")";
@@ -1139,11 +1139,6 @@ public final class TestSuite
       // grab sender account
       if (senderID == null)          // a null sender ID indicates using the player's personal account
          accountSender = accounts.get(senderName);
-      else if (senderID.isEmpty()) { // empty account IDs are not tolerated
-         outputExpected.append(CommandEconomy.ERROR_ZERO_LEN_ARGS);
-         expectTransfer = false;
-         accountSender  = null;
-      }
       else
          accountSender = accounts.get(senderID);
 
@@ -1228,20 +1223,18 @@ public final class TestSuite
 
       // set up test parameters
       // /send <quantity> <recipient_account_id> [sender_account_id]
-      parameterBuilder.add(Float.toString(quantityToTransfer));
-      parameterBuilder.add(recipientID);
+      parameters.append(Float.toString(quantityToTransfer));
+      parameters.append(" ").append(recipientID);
       if (senderID != null)
-         parameterBuilder.add(senderID);
-      parameters = new String[parameterBuilder.size()];
-      parameters = parameterBuilder.toArray(parameters);
+         parameters.append(" ").append(senderID);
 
       // switch current player to desired one
-      String playernameOrig        = UserInterfaceTerminal.playername;
+      String playernameOrig            = UserInterfaceTerminal.playername;
       UserInterfaceTerminal.playername = senderName;
 
       // run the test
       baosOut.reset(); // clear buffer holding console output
-      UserInterfaceTerminal.serviceRequestSend(parameters);
+      UserInterfaceTerminal.serviceRequest(parameters.toString());
 
       // reset current player
       UserInterfaceTerminal.playername = playernameOrig;
@@ -1313,8 +1306,8 @@ public final class TestSuite
          TEST_OUTPUT.println("   expected console output" + testIdentifier + ": " + outputExpected.toString());
          TEST_OUTPUT.println("   expected fee" + testIdentifier + ":            " + fee);
 
-         if (parameters != null)
-            TEST_OUTPUT.println("   passed parameters" + testIdentifier + ":       " + Arrays.toString(parameters));
+         if (parameters.length() != 5)
+            TEST_OUTPUT.println("   passed parameters" + testIdentifier + ":       " + parameters.toString());
          else
             TEST_OUTPUT.println("   passed parameters" + testIdentifier + ":       null");
       }
@@ -1350,9 +1343,8 @@ public final class TestSuite
       final boolean IS_TRADEABLE     = !(ware instanceof WareUntradeable);
 
       // for predicting and tracking changes
-      LinkedList<String> parameterBuilder;       // used to determine what to pass to the interface function
-      String[]           parameters = null;      // what to pass to the interface function
-      StringBuilder      outputExpected;         // what console output should be
+      StringBuilder parameters;                  // used to determine what to pass to the interface function
+      StringBuilder outputExpected;              // what console output should be
       float priceUnitBuy;                        // ware's purchasing unit price
       float priceUnitSell;                       // ware's asking unit price
       float priceQuantityBuy        = 0.0f;      // order's purchasing price
@@ -1366,8 +1358,8 @@ public final class TestSuite
          testIdentifier = "";
 
       // set up test oracles
-      outputExpected   = new StringBuilder(128);
-      parameterBuilder = new LinkedList<String>();
+      outputExpected = new StringBuilder(128);
+      parameters     = new StringBuilder("check ");
 
       // determine prices and fees
       priceUnitBuy         = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_BUY);
@@ -1449,7 +1441,7 @@ public final class TestSuite
       outputExpected.append(System.lineSeparator());
 
       // switch current player to desired one
-      String playernameOrig        = UserInterfaceTerminal.playername;
+      String playernameOrig            = UserInterfaceTerminal.playername;
       UserInterfaceTerminal.playername = playername;
 
       // if necessary, use the Terminal interface's service request function
@@ -1457,16 +1449,14 @@ public final class TestSuite
       if (useInterface) {
          // set up test parameters
          // /check (<ware_id> | held) [quantity] [%percent_worth]
-         parameterBuilder.add(WARE_ID);
+         parameters.append(WARE_ID);
          if (quantity != 0)
-            parameterBuilder.add(Integer.toString(quantity));
+            parameters.append(" ").append(Integer.toString(quantity));
          if (pricePercent != null && !pricePercent.isEmpty())
-            parameterBuilder.add(pricePercent);
-         parameters = new String[parameterBuilder.size()];
-         parameters = parameterBuilder.toArray(parameters);
+            parameters.append(" ").append(pricePercent);
 
          // run the test
-         UserInterfaceTerminal.serviceRequestCheck(parameters);
+         UserInterfaceTerminal.serviceRequest(parameters.toString());
       }
 
       // test as normal
@@ -1489,8 +1479,8 @@ public final class TestSuite
          TEST_OUTPUT.println("   expected console output" + testIdentifier + ": " + outputExpected);
 
          if (useInterface)
-            if (parameters != null)
-               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + Arrays.toString(parameters));
+            if (parameters.length() != 6)
+               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + parameters.toString());
             else
                TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       null");
       }
@@ -1697,8 +1687,7 @@ public final class TestSuite
          testIdentifier = "";
 
       // for predicting and tracking changes
-      List<String>         parameterBuilder  = new LinkedList<String>();    // used to determine what to pass to the interface function
-      String[]             parameters        = null;                        // what to pass to the interface function
+      StringBuilder        parameters        = new StringBuilder();         // used to determine what to pass to the interface function
       Map<String, Integer> inventory         = UserInterfaceTerminal.inventory; // where to place wares to be sold
       Account              account           = null;                        // account to be used for the transaction
       float                price             = 0.0f;                        // how much traded wares should cost
@@ -1901,7 +1890,7 @@ public final class TestSuite
       }
 
       // switch current player to desired one
-      String playernameOrig        = UserInterfaceTerminal.playername;
+      String playernameOrig            = UserInterfaceTerminal.playername;
       UserInterfaceTerminal.playername = playername;
 
       // if necessary, use the Terminal interface's service request functions
@@ -1910,30 +1899,29 @@ public final class TestSuite
          // set up test parameters
          // /buy <ware_id> <quantity> [max_unit_price] [account_id] [%percent_worth]
          // /sell <ware_id> [<quantity> [min_unit_price] [account_id]] [%percent_worth]
+         if (isPurchase)
+            parameters.append("buy");
+         else
+            parameters.append("sell");
          if (coordinates != null) {
-            parameterBuilder.add(playername);
-            parameterBuilder.add(coordinates);
+            parameters.append(" ").append(playername);
+            parameters.append(" ").append(coordinates);
          }
-         parameterBuilder.add(WARE_ID);
+         parameters.append(" ").append(WARE_ID);
          if (isPurchase ||                          // purchases require specifying max quantity to trade
              (!isPurchase && quantityToOffer != 0)) // when selling, not specifying a quantity means sell everything
-            parameterBuilder.add(Integer.toString(quantityToOffer));
+            parameters.append(" ").append(Integer.toString(quantityToOffer));
          if (unitPrice != null && !unitPrice.isEmpty())
-            parameterBuilder.add(unitPrice);
+            parameters.append(" ").append(unitPrice);
          if (IS_ACCOUNT_SPECIFIED)
-            parameterBuilder.add(accountID);
+            parameters.append(" ").append(accountID);
          if (pricePercent != null && !pricePercent.isEmpty())
-            parameterBuilder.add(pricePercent);
+            parameters.append(" ").append(pricePercent);
          if (isPurchase && attemptManufacturing)
-            parameterBuilder.add("&craft");
-         parameters = new String[parameterBuilder.size()];
-         parameters = parameterBuilder.toArray(parameters);
+            parameters.append(" ").append("&craft");
 
          // run the test
-         if (isPurchase)
-            UserInterfaceTerminal.serviceRequestBuy(parameters);
-         else
-            UserInterfaceTerminal.serviceRequestSell(parameters);
+         UserInterfaceTerminal.serviceRequest(parameters.toString());
       }
 
       // test as normal
@@ -2003,8 +1991,8 @@ public final class TestSuite
                              "\n   expected console output" + testIdentifier + ": " + outputExpected);
 
          if (useInterface)
-            if (parameters != null)
-               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + Arrays.toString(parameters));
+            if (parameters.length() > 5)
+               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + parameters.toString());
             else
                TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       null");
       }
@@ -2332,8 +2320,7 @@ public final class TestSuite
          testIdentifier = "";
 
       // for predicting and tracking changes
-      LinkedList<String> parameterBuilder;                        // used to determine what to pass to the interface function
-      String[]           parameters              = null;          // what to pass to the interface function
+      StringBuilder      parameters;                              // used to determine what to pass to the interface function
       String             expectedOutput          = null;          // what console output should be
       Account            account                 = null;          // account to be used for the transaction
       Field              fYield;                                  // for checking whether a recipe produces multiple units per iteration
@@ -2462,19 +2449,15 @@ public final class TestSuite
       baosOut.reset(); // clear buffer holding console output
       if (useInterface) {
          // Expected Format: <ware_id> <quantity> [max_unit_price] [account_id]
-         parameterBuilder = new LinkedList<String>();
-         parameterBuilder.add(ware1.getWareID());
-         parameterBuilder.add(String.valueOf(quantityToOffer));
+         parameters = new StringBuilder("buy ");
+         parameters.append(ware1.getWareID());
+         parameters.append(" ").append(String.valueOf(quantityToOffer));
          if (unitPrice != Float.NaN)
-            parameterBuilder.add(String.valueOf(unitPrice));
+            parameters.append(" ").append(String.valueOf(unitPrice));
          if (IS_ACCOUNT_SPECIFIED)
-            parameterBuilder.add(accountID);
+            parameters.append(" ").append(accountID);
 
-         // convert arguments to a string array
-         parameters = new String[parameterBuilder.size()];
-         parameters = parameterBuilder.toArray(parameters);
-
-         UserInterfaceTerminal.serviceRequestBuy(parameters);
+         UserInterfaceTerminal.serviceRequest(parameters.toString());
       }
 
       // test as normal
@@ -2524,8 +2507,8 @@ public final class TestSuite
                              "\n   expected console output" + testIdentifier + ": " + expectedOutput);
 
          if (useInterface)
-            if (parameters != null)
-               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + Arrays.toString(parameters));
+            if (parameters.length() != 4)
+               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + parameters.toString());
             else
                TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       null");
       }
@@ -2779,9 +2762,8 @@ public final class TestSuite
          testIdentifier = "";
 
       // variables used in preparing the test and predicting results
-      List<String>         parameterBuilder;              // used to determine what to pass to the interface function
+      StringBuilder        parameters;                    // used to determine what to pass to the interface function
       Map<String, Integer> inventory         = UserInterfaceTerminal.inventory; // where to place wares to be sold
-      String[]             parameters        = null;      // what to pass to the interface function
       Account              account           = null;      // account to be used for the transaction
       float                price1            = 0.0f;      // profits from each ware
       float                price2            = 0.0f;
@@ -2891,7 +2873,7 @@ public final class TestSuite
       }
 
       // set up test oracles
-      parameterBuilder = new LinkedList<String>();
+      parameters = new StringBuilder("sellall");
 
       // try to parse percent worth parameter
       if (pricePercent != null && !pricePercent.isEmpty()) {
@@ -2961,20 +2943,18 @@ public final class TestSuite
          // /sellall [account_id] [%percent_worth]
          // /sellall <player_name> <inventory_direction> [account_id]
          if (coordinates != null) {
-            parameterBuilder.add(playername);
-            parameterBuilder.add(coordinates);
+            parameters.append(" ").append(playername);
+            parameters.append(" ").append(coordinates);
          }
          if (IS_ACCOUNT_SPECIFIED)
-            parameterBuilder.add(accountID);
+            parameters.append(" ").append(accountID);
          if (pricePercent != null && !pricePercent.isEmpty())
-            parameterBuilder.add(pricePercent);
-         parameters = new String[parameterBuilder.size()];
-         parameters = parameterBuilder.toArray(parameters);
+            parameters.append(" ").append(pricePercent);
 
          // run the test
-         String playernameOrig        = UserInterfaceTerminal.playername;
+         String playernameOrig            = UserInterfaceTerminal.playername;
          UserInterfaceTerminal.playername = playername;
-         UserInterfaceTerminal.serviceRequestSellAll(parameters);
+         UserInterfaceTerminal.serviceRequest(parameters.toString());
          UserInterfaceTerminal.playername = playernameOrig;
       }
 
@@ -3062,8 +3042,8 @@ public final class TestSuite
                              "\n   expected console output" + testIdentifier + ": " + outputExpected);
 
          if (useInterface)
-            if (parameters != null)
-               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + Arrays.toString(parameters));
+            if (parameters.length() != 7)
+               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + parameters.toString());
             else
                TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       null");
       }
@@ -3351,6 +3331,118 @@ public final class TestSuite
           baosOut.toString().contains(Config.transactionFeeSellingMsg)) {
          TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
          errorFound = true;
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Evaluates whether deleting an account
+    *  was processed correctly for a typical case.
+    * Prints errors, if found.
+    * <p>
+    * Complexity: O(1)
+    * @param playername            player who should be issuing the request
+    * @param accountID             identifier for account to be used for the transaction
+    * @param testNumber            test number to use when printing errors
+    * @param expectAccountSurvival if true, the account should exist after running the test
+    * @param useInterface          if true, call the Terminal interface's service request function instead of Marketplace's function
+    * @return true if an error was discovered
+    */
+   private static boolean testerDeleteAccount(final String playername, final String accountID,
+                                              final int testNumber, final boolean expectAccountSurvival,
+                                              final boolean useInterface) {
+      final String  testIdentifier;            // can be added to printed errors to differentiate between tests
+            boolean errorFound        = false; // assume innocence until proven guilty
+      final boolean PRINT_PREDICTIONS = false; // print all predicted outputs to ensure test cases are being handled correctly
+
+      final int INITIAL_ACCOUNTS_SIZE = accounts.size();
+
+      if (testNumber != 0)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // for predicting and tracking changes
+      StringBuilder parameters           = new StringBuilder("/delete ");
+      Account       account              = Account.getAccount(accountID); // account to be deleted
+      int           expectedAccountsSize = INITIAL_ACCOUNTS_SIZE;
+
+      // variables used for storing predicted results
+      StringBuilder outputExpected           = new StringBuilder(128); // what console output should be
+
+      // if the account is invalid, expect no outputs
+      // if the account exists, check its permissions
+      if (account != null && playername != null) {
+         // personal accounts cannot be deleted
+         if (accountID.equals(playername))
+            outputExpected.append(CommandEconomy.MSG_ACCOUNT_DENIED_DELETE_PERSONAL);
+
+         // if they aren't the account's owner or a server operator, deny deletion
+         else if (!UserInterfaceTerminal.getPlayerIDStatic(playername).equals(account.getOwner()) &&
+             !userInterfaceTerminal.isAnOp(UserInterfaceTerminal.getPlayerIDStatic(playername)))
+            outputExpected.append(CommandEconomy.MSG_ACCOUNT_DENIED_DELETE + accountID);
+
+         // delete the account
+         else
+            expectedAccountsSize--;
+      }
+
+      // switch current player to desired one
+      String playernameOrig            = UserInterfaceTerminal.playername;
+      UserInterfaceTerminal.playername = playername;
+
+      // if necessary, use the Terminal interface's service request function
+      baosOut.reset(); // clear buffer holding console output
+      if (useInterface) {
+         // set up test parameters
+         // /delete <account_id>
+         parameters.append(accountID);
+
+         UserInterfaceTerminal.serviceRequest(parameters.toString());
+      }
+
+      // test as normal
+      else
+         Account.deleteAccount(accountID, UserInterfaceTerminal.getPlayerIDStatic(playername));
+
+      // reset current player
+      UserInterfaceTerminal.playername = playernameOrig;
+
+         // check accounts
+         if (expectAccountSurvival) {
+            if (Account.getAccount(accountID) == null) {
+               TEST_OUTPUT.println("   unexpected account deletion" + testIdentifier + ": " + accountID + " should exist");
+               errorFound = true;
+            }
+         } else {
+            if (Account.getAccount(accountID) != null) {
+               TEST_OUTPUT.println("   unexpected account survival" + testIdentifier + ": " + accountID + " shouldn't exist");
+               errorFound = true;
+            }
+         }
+         if (accounts.size() != expectedAccountsSize) {
+            TEST_OUTPUT.println("   unexpected number of accounts" + testIdentifier + ": " + accounts.size() + ", should be " + expectedAccountsSize);
+            errorFound = true;
+         }
+
+      // check console output
+      if (!baosOut.toString().contains(outputExpected.toString())) {
+         TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
+         TEST_OUTPUT.println("   expected console output" + testIdentifier + ":   " + outputExpected.toString());
+         errorFound = true;
+      }
+
+      // print expected values to validate prediction
+      if (PRINT_PREDICTIONS) {
+         TEST_OUTPUT.println("   expected number of accounts" + testIdentifier + ":          " + expectedAccountsSize +
+                             "\n   expected console output" + testIdentifier + ": " + outputExpected);
+
+         if (useInterface)
+            if (parameters.length() != 8)
+               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       " + parameters.toString());
+            else
+               TEST_OUTPUT.println("\n   passed parameters" + testIdentifier + ":       null");
       }
 
       return errorFound;
@@ -5518,33 +5610,17 @@ public final class TestSuite
 
       try {
          // send quantity recipient_account_id [sender_account_id]
-         TEST_OUTPUT.println("accountSendMoney() - null input");
+         TEST_OUTPUT.println("accountSendMoney() - no inputs");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSend(null);
+         UserInterfaceTerminal.serviceRequest("/send");
          if (!baosOut.toString().equals("/send <quantity> <recipient_account_id> [sender_account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("accountSendMoney() - empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSend(new String[]{});
-         if (!baosOut.toString().equals("/send <quantity> <recipient_account_id> [sender_account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("accountSendMoney() - blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSend(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("accountSendMoney() - too few args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSend(new String[]{"10.0"});
+         UserInterfaceTerminal.serviceRequest("/send 10.0");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -5552,7 +5628,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("accountSendMoney() - too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSend(new String[]{UserInterfaceTerminal.playername, "10.0", "testAccount1", "testAccount2", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/send " + UserInterfaceTerminal.playername + " 10.0 testAccount1 testAccount2 excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -5571,9 +5647,12 @@ public final class TestSuite
          errorFound |= testerSendMoney(UserInterfaceTerminal.playername, null, "testAccount2",
                                        10.0f, 0.0f, 1.0f, 0.0f, 0);
 
+         /*
          TEST_OUTPUT.println("accountSendMoney() - empty sender ID");
+         // Since typing into the console is mimicked, the sender ID is interpreted as the recipient ID.
          errorFound |= testerSendMoney(UserInterfaceTerminal.playername, "", "testAccount2",
                                        10.0f, 0.0f, 1.0f, 0.0f, 0);
+         */
 
          TEST_OUTPUT.println("accountSendMoney() - arbitrary sender ID");
          testAccount1.setMoney(8.0f);
@@ -5591,9 +5670,12 @@ public final class TestSuite
             testAccount2.setMoney(23.0f);
          }
 
+         /*
          TEST_OUTPUT.println("accountSendMoney() - null recipient ID");
+         // Since typing into the console is mimicked, the sender ID is interpreted as the recipient ID.
          errorFound |= testerSendMoney(UserInterfaceTerminal.playername, "testAccount1", null,
                                        10.0f, 0.0f, 1.0f, 0.0f, 0);
+         */
 
          TEST_OUTPUT.println("accountSendMoney() - empty recipient ID");
          errorFound |= testerSendMoney(UserInterfaceTerminal.playername, "testAccount1", "",
@@ -5658,427 +5740,48 @@ public final class TestSuite
 
       try {
          TEST_OUTPUT.println("deleteAccount() - null account ID");
-         accountID  = null;
-         playerID   = PLAYER_ID;
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
-
-         // if necessary, reset test environment
-         if (errorFound)
-            resetTestEnvironment();
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, null, 0, false, false);
 
          TEST_OUTPUT.println("deleteAccount() - empty account ID");
-         accountID  = "";
-         playerID   = PLAYER_ID;
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
-
-         // if necessary, reset test environment
-         if (errorFound)
-            resetTestEnvironment();
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, "", 0, false, false);
 
          TEST_OUTPUT.println("deleteAccount() - invalid account ID");
-         accountID  = "invalidAccount";
-         playerID   = PLAYER_ID;
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
-
-         // if necessary, reset test environment
-         if (errorFound)
-            resetTestEnvironment();
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, "invalidAccount", 0, false, false);
 
          TEST_OUTPUT.println("deleteAccount() - null account owner");
-         accountID  = "testAccount1";
-         playerID   = null;
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
+         errorFound |= testerDeleteAccount(null, "testAccount1", 0, true, false);
 
          // if necessary, reset test environment
          if (errorFound)
             resetTestEnvironment();
 
          TEST_OUTPUT.println("deleteAccount() - invalid account owner");
-         accountID  = "testAccount1";
-         playerID   = UserInterfaceTerminal.getPlayerIDStatic("possibleID");
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().equals("(for possibleID) You are not permitted to delete " + accountID + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
-
-         // if necessary, reset test environment
-         if (errorFound)
-            resetTestEnvironment();
+         errorFound |= testerDeleteAccount("possibleID", "testAccount1", 0, true, false);
 
          TEST_OUTPUT.println("deleteAccount() - account user instead of owner");
-         accountID  = "testAccount1";
-         playerID   = UserInterfaceTerminal.getPlayerIDStatic("possibleID");
-         accounts.get(accountID).grantAccess(PLAYER_ID, playerID, accountID);
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().equals("(for possibleID) You are not permitted to delete " + accountID + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
+         accounts.get("testAccount2").grantAccess(PLAYER_ID, UserInterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount2");
+         errorFound |= testerDeleteAccount("possibleID", "testAccount2", 0, true, false);
 
          // if necessary, reset test environment
          if (errorFound)
             resetTestEnvironment();
 
          TEST_OUTPUT.println("deleteAccount() - server operator");
-         accountID  = "testAccount4";
-         playerID   = PLAYER_ID;
-         accountsSize--;
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (accounts.containsKey(accountID)) {
-            TEST_OUTPUT.println("   test account 4 exists when it shouldn't");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
-
-         // prepare for next test
-         accountsSize++;
-         resetTestEnvironment();
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, "testAccount4", 0, false, false);
 
          TEST_OUTPUT.println("deleteAccount() - personal account");
-         accountID  = UserInterfaceTerminal.playername;
-         playerID   = PLAYER_ID;
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().equals("Personal accounts may not be deleted" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, 10.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 1");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
-
-         // if necessary, reset test environment
-         if (errorFound)
-            resetTestEnvironment();
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, UserInterfaceTerminal.playername, 0, true, false);
 
          TEST_OUTPUT.println("deleteAccount() - valid account ID and owner");
-         accountID  = "testAccount1";
-         playerID   = PLAYER_ID;
-         money      = accounts.get(accountID).getMoney();
-         accountsSize--;
-
-         baosOut.reset(); // clear buffer holding console output
-         Account.deleteAccount(accountID, playerID);
-
-         // check console output
-         if (!baosOut.toString().equals("You received $" + money + " from " + accountID + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-         if (accounts.containsKey(accountID)) {
-            TEST_OUTPUT.println("   test account 1 exists when it shouldn't");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, 20.0f, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for test account 2");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount3, 30.0f, "possibleID")) {
-            TEST_OUTPUT.println("   unexpected values for test account 3");
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount4, 6.0f, null)) {
-            TEST_OUTPUT.println("   unexpected values for test account 4");
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, 30.0f + money, UserInterfaceTerminal.playername)) {
-            TEST_OUTPUT.println("   unexpected values for player account");
-            errorFound = true;
-         }
-         accountsSize++;
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, "testAccount2", 0, false, true);
          resetTestEnvironment();
 
 
-         // delete account_id
-         TEST_OUTPUT.println("delete() - null input");
+         // /delete <account_id>
+         TEST_OUTPUT.println("delete() - no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(null);
-         if (!baosOut.toString().equals("/delete <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("delete() - empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{});
-         if (!baosOut.toString().equals("/delete <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("delete() - blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - must provide account ID")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("delete() - too few args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{});
-         if (!baosOut.toString().equals("/delete <account_id>" + System.lineSeparator())) {
+         UserInterfaceTerminal.serviceRequest("/delete");
+         if (!baosOut.toString().equals(CommandEconomy.CMD_USAGE_DELETE + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
@@ -6086,7 +5789,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("delete() - too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{"possibleAccount", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/delete possibleAccount excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -6094,89 +5797,20 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("deleteAccount() - invalid account ID");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{"invalidAccount"});
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, "invalidAccount", 0, false, true);
 
          TEST_OUTPUT.println("delete() - account user instead of owner");
-         accounts.get(accountID).grantAccess(PLAYER_ID, playerID, accountID);
-         String playernameOrig = UserInterfaceTerminal.playername;
-         UserInterfaceTerminal.playername = "possibleID";
-         accountID  = "testAccount1";
-         playerID   = PLAYER_ID;
-
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{accountID});
-
-         // check console output
-         if (!baosOut.toString().equals("You are not permitted to delete " + accountID + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // prepare for next test
-         UserInterfaceTerminal.playername = playernameOrig;
-         resetTestEnvironment();
+         accounts.get("testAccount1").grantAccess(PLAYER_ID, UserInterfaceTerminal.getPlayerIDStatic("possibleID"), "testAccount1");
+         errorFound |= testerDeleteAccount("possibleID", "testAccount1", 0, true, true);
 
          TEST_OUTPUT.println("delete() - server operator");
-         accountID  = "testAccount4";
-         accountsSize--;
-
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{accountID});
-
-         // check console output
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         accountsSize++;
-         resetTestEnvironment();
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, "testAccount4", 0, false, true);
 
          TEST_OUTPUT.println("delete() - personal account");
-         accountID  = UserInterfaceTerminal.playername;
-
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{accountID});
-
-         // check console output
-         if (!baosOut.toString().equals("Personal accounts may not be deleted" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, UserInterfaceTerminal.playername, 0, true, true);
 
          TEST_OUTPUT.println("delete() - valid account ID and owner");
-         accountID  = "testAccount1";
-         money      = accounts.get(accountID).getMoney();
-         accountsSize--;
-
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestDelete(new String[]{accountID});
-
-         // check console output
-         if (!baosOut.toString().equals("You received $" + money + " from " + accountID + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         // check accounts
-         if (accounts.size() != accountsSize) {
-            TEST_OUTPUT.println("   unexpected number of accounts: " + accounts.size() + ", should be " + accountsSize);
-            errorFound = true;
-         }
+         errorFound |= testerDeleteAccount(UserInterfaceTerminal.playername, "testAccount2", 0, false, true);
       }
       catch (Exception e) {
          TEST_OUTPUT.println("deleteAccount() - fatal error: " + e);
@@ -6570,57 +6204,41 @@ public final class TestSuite
          resetTestEnvironment();
 
          // test requests
-         TEST_OUTPUT.println("default accounts - request: null arg");
+         TEST_OUTPUT.println("default accounts - request: no arg");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSetDefaultAccount(null);
-         if (!baosOut.toString().equals("/setDefaultAccount <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("default accounts - request: blank arg");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{""});
-         if (!baosOut.toString().equals("error - zero-length arguments: /setDefaultAccount <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("default accounts - request: empty args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{});
-         if (!baosOut.toString().equals("/setDefaultAccount <account_id>" + System.lineSeparator())) {
+         UserInterfaceTerminal.serviceRequest("/setDefaultAccount");
+         if (!baosOut.toString().equals(CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("default accounts - request: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"testAccount1", "excessArgument"});
-         if (!baosOut.toString().equals("error - wrong number of arguments: /setDefaultAccount <account_id>" + System.lineSeparator())) {
+         UserInterfaceTerminal.serviceRequest("/setDefaultAccount testAccount1 excessArgument");
+         if (!baosOut.toString().equals("error - wrong number of arguments: " + CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("default accounts - request: invalid account");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"invalidAccount"});
-         if (!baosOut.toString().equals("error - account not found: invalidAccount" + System.lineSeparator())) {
+         UserInterfaceTerminal.serviceRequest("/setDefaultAccount invalidAccount");
+         if (!baosOut.toString().equals(CommandEconomy.ERROR_ACCOUNT_MISSING + "invalidAccount" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("default accounts - request: no permissions");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"testAccount4"});
-         if (!baosOut.toString().equals("You don't have permission to access testAccount4" + System.lineSeparator())) {
+         UserInterfaceTerminal.serviceRequest("/setDefaultAccount testAccount4");
+         if (!baosOut.toString().equals(CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + "testAccount4" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("default accounts - request: valid usage");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSetDefaultAccount(new String[]{"testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/setDefaultAccount testAccount1");
          if (!baosOut.toString().equals("testAccount1 will now be used in place of your personal account" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7471,41 +7089,25 @@ public final class TestSuite
                                    1.0f, 1, false);
 
          // check ware_id [quantity]
-         TEST_OUTPUT.println("check() - request: null input");
+         TEST_OUTPUT.println("check() - request: no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(null);
-         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("check() - request: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("check() - request: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+         UserInterfaceTerminal.serviceRequest("/check");
+         if (!baosOut.toString().equals(CommandEconomy.CMD_USAGE_CHECK + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("check() - request: too few args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{});
-         if (!baosOut.toString().equals("/check (<ware_id> | held) [quantity]" + System.lineSeparator())) {
+         UserInterfaceTerminal.serviceRequest("/check");
+         if (!baosOut.toString().equals(CommandEconomy.CMD_USAGE_CHECK + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("check() - request: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"test:material1", "10", "excessArgument", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/check test:material1 10 excessArgument excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7514,7 +7116,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: invalid ware ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"invalidWareID"});
+         UserInterfaceTerminal.serviceRequest("/check invalidWareID");
          if (!baosOut.toString().equals("error - ware not found: invalidWareID" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7523,7 +7125,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: invalid quantity");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"test:material1", "invalidQuantity"});
+         UserInterfaceTerminal.serviceRequest("/check test:material1 invalidQuantity");
          if (!baosOut.toString().startsWith("error - invalid quantity")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7532,7 +7134,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: minimum args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"test:material1"});
+         UserInterfaceTerminal.serviceRequest("/check test:material1");
          if (!baosOut.toString().equals("test:material1: $1.00, 256" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7547,23 +7149,15 @@ public final class TestSuite
          price1   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_BUY);
          price2   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_SELL);
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"material4", String.valueOf(quantity)});
+         UserInterfaceTerminal.serviceRequest("/check material4 " + String.valueOf(quantity));
          if (!baosOut.toString().equals("material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "   for " + quantity + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("check() - request: null username");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{null, "material4", "10"});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("check() - request: empty username");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"", "material4", "10"});
+         UserInterfaceTerminal.serviceRequest("/check  material4 10");
          if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7574,7 +7168,7 @@ public final class TestSuite
          price1   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_BUY);
          price2   = Marketplace.getPrice(PLAYER_ID, testWare4, quantity, Marketplace.PriceType.CURRENT_SELL);
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"possibleID", "material4", String.valueOf(quantity)});
+         UserInterfaceTerminal.serviceRequest("/check possibleID material4 " + String.valueOf(quantity));
          if (!baosOut.toString().equals("(for possibleID) material4 (minecraft:material4): $8.00, 32" + System.lineSeparator() + "(for possibleID)    for " + quantity + ": Buy - $" + String.format("%.2f", price1) + " | Sell - $" + String.format("%.2f", price2) + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7587,7 +7181,7 @@ public final class TestSuite
          String playernameOrig = UserInterfaceTerminal.playername;
          UserInterfaceTerminal.playername = "notAnOp";
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"notAnOp", "material4", String.valueOf(quantity)});
+         UserInterfaceTerminal.serviceRequest("/check notAnOp material4 " + String.valueOf(quantity));
          if (!baosOut.toString().startsWith("material4 (minecraft:material4): $8.00, 32")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7595,7 +7189,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: checking for others without permissions");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"possibleID", "material4", String.valueOf(quantity)});
+         UserInterfaceTerminal.serviceRequest("/check possibleID material4 " + String.valueOf(quantity));
          if (!baosOut.toString().startsWith("You do not have permission to use this command for other players")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7605,7 +7199,7 @@ public final class TestSuite
          TEST_OUTPUT.println("check() - request: existing Forge OreDictionary Name");
          wareAliasTranslations.put("#testName", "test:material2");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"#testName"});
+         UserInterfaceTerminal.serviceRequest("/check #testName");
          if (!baosOut.toString().equals("test:material2: $55.20, 5" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7613,7 +7207,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("check() - request: nonexistent Forge OreDictionary Name");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCheck(new String[]{"#invalidName"});
+         UserInterfaceTerminal.serviceRequest("/check #invalidName");
          if (!baosOut.toString().equals("error - ware not found: #invalidName" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7873,34 +7467,18 @@ public final class TestSuite
          errorFound |= testerTrade("possibleID", null, testWare1, "testAccount3", null, "100.0", Float.NaN,
                                    Config.quanEquilibrium[testWare1.getLevel()], 20, 20, 0, false, true, false);
 
-         // buy ware_id quantity [max_unit_price] [account_id]
-         TEST_OUTPUT.println("buy() - request: null input");
+         // /buy <ware_id> <quantity> [max_unit_price] [account_id]
+         TEST_OUTPUT.println("buy() - request: no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(null);
-         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("buy() - request: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{});
-         if (!baosOut.toString().equals("/buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("buy() - request: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
+         UserInterfaceTerminal.serviceRequest("/buy");
+         if (!baosOut.toString().equals(CommandEconomy.CMD_USAGE_BUY + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("buy() - request: too few args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1");
          if (!baosOut.toString().equals("error - wrong number of arguments: /buy <ware_id> <quantity> [max_unit_price] [account_id]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7908,7 +7486,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "10.0", "testAccount1", "excessArgument", "excessArgument", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 10 10.0 testAccount1 excessArgument excessArgument excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7917,7 +7495,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: invalid ware ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"invalidWare", "10"});
+         UserInterfaceTerminal.serviceRequest("/buy invalidWare 10");
          if (!baosOut.toString().startsWith("error - ware not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7926,7 +7504,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: invalid quantity");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "invalidQuantity"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 invalidQuantity");
          if (!baosOut.toString().startsWith("error - invalid quantity")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7935,7 +7513,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: invalid price");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "invalidPrice", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 10 invalidPrice testAccount1");
          if (!baosOut.toString().startsWith("error - invalid price")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7944,7 +7522,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: invalid account ID without price");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "invalidAccount"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 10 invalidAccount");
          if (!baosOut.toString().startsWith("error - account not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7953,7 +7531,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: invalid account ID with valid price");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "10", "10.0", "invalidAccount"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 10 10.0 invalidAccount");
          if (!baosOut.toString().startsWith("error - account not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -7963,7 +7541,7 @@ public final class TestSuite
          TEST_OUTPUT.println("buy() - request: minimum args");
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade)});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 " + String.valueOf(quantityToTrade));
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
             errorFound = true;
             resetTestEnvironment();
@@ -7989,7 +7567,7 @@ public final class TestSuite
          quantityToTrade    = 2;
          price              = Marketplace.getPrice(PLAYER_ID, testWare4, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money              = testAccount2.getMoney();
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"material4", String.valueOf(quantityToTrade), "100.0", "testAccount2"});
+         UserInterfaceTerminal.serviceRequest("/buy material4 " + String.valueOf(quantityToTrade) + " 100.0 testAccount2");
          if (testAccountFields(testAccount2, money - price, UserInterfaceTerminal.playername)) {
             errorFound = true;
          }
@@ -7998,7 +7576,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: null coordinates");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{UserInterfaceTerminal.playername, null, "test:material1", "10"});
+         UserInterfaceTerminal.serviceRequest("/buy " + UserInterfaceTerminal.playername + "  test:material1 10");
          if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8012,7 +7590,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: invalid coordinates");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{UserInterfaceTerminal.playername, "invalidCoordinates", "test:material1", "10"});
+         UserInterfaceTerminal.serviceRequest("/buy " + UserInterfaceTerminal.playername + " invalidCoordinates test:material1 10");
          if (!baosOut.toString().startsWith("error - invalid quantity")
          ) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -8024,7 +7602,7 @@ public final class TestSuite
          quantityToTrade = 10;
          price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{UserInterfaceTerminal.playername, "south", "test:material1", String.valueOf(quantityToTrade)});
+         UserInterfaceTerminal.serviceRequest("/buy " + UserInterfaceTerminal.playername + " south test:material1 " + String.valueOf(quantityToTrade));
          if (!baosOut.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8042,7 +7620,7 @@ public final class TestSuite
          quantityToTrade = 10;
          price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{UserInterfaceTerminal.playername, "none", "test:material1", String.valueOf(quantityToTrade)});
+         UserInterfaceTerminal.serviceRequest("/buy " + UserInterfaceTerminal.playername + " none test:material1 " + String.valueOf(quantityToTrade));
          if (!baosOut.toString().startsWith("Bought 10 test:material1 for $" + String.format("%.2f", price) + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8058,7 +7636,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: null username");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{null, "none", "test:material1", "10"});
+         UserInterfaceTerminal.serviceRequest("/buy  none test:material1 10");
          if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8072,7 +7650,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("buy() - request: empty username");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"", "none", "test:material1", "10"});
+         UserInterfaceTerminal.serviceRequest("/buy  none test:material1 10");
          if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8090,7 +7668,7 @@ public final class TestSuite
          price           = Marketplace.getPrice(PLAYER_ID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_BUY);
          money           = testAccount3.getMoney();
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"possibleID", "none", "test:material1", String.valueOf(quantityToTrade), "testAccount3"});
+         UserInterfaceTerminal.serviceRequest("/buy possibleID none test:material1 " + String.valueOf(quantityToTrade) + " testAccount3");
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
             errorFound = true;
          }
@@ -8145,7 +7723,7 @@ public final class TestSuite
          quantityToTrade = 10;
          quantityWare    = testWare1.getQuantity();
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade), "$admin$"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 " + String.valueOf(quantityToTrade) + " $admin$");
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
             TEST_OUTPUT.println("   console output: " + baosOut.toString());
             errorFound = true;
@@ -8159,7 +7737,7 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade * 2), "100"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 " + String.valueOf(quantityToTrade * 2) + " 100");
 
          if (testWare1.getQuantity() != quantityWare - quantityToTrade) {
             TEST_OUTPUT.println("   unexpected quantity: " + testWare1.getQuantity() + ", should be " + (quantityWare - quantityToTrade));
@@ -8178,7 +7756,7 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", String.valueOf(quantityToTrade * 2), "10", UserInterfaceTerminal.playername});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 " + String.valueOf(quantityToTrade * 2) + " 10 " + UserInterfaceTerminal.playername);
 
          if (testWare1.getQuantity() != quantityWare - quantityToTrade) {
             TEST_OUTPUT.println("   unexpected quantity: " + testWare1.getQuantity() + ", should be " + (quantityWare - quantityToTrade));
@@ -8230,7 +7808,7 @@ public final class TestSuite
          money           = testAccount1.getMoney();
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestBuy(new String[]{"test:material1", "99999", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/buy test:material1 99999 testAccount1");
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare - quantityToTrade)) {
             errorFound = true;
@@ -8474,41 +8052,17 @@ public final class TestSuite
                                    Config.quanEquilibrium[testWare1.getLevel()], 20, 20, 0, false, false, false);
 
          // sell ware_id [quantity] [min_unit_price] [account_id]
-         TEST_OUTPUT.println("sell() - request: null input");
+         TEST_OUTPUT.println("sell() - request: no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSell(null);
-         if (!baosOut.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("sell() - request: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSell(new String[]{});
-         if (!baosOut.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("sell() - request: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSell(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("sell() - request: too few args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSell(new String[]{});
-         if (!baosOut.toString().equals("/sell (<ware_id> | held) [<quantity> [min_unit_price] [account_id]]" + System.lineSeparator())) {
+         UserInterfaceTerminal.serviceRequest("/sell");
+         if (!baosOut.toString().equals(CommandEconomy.CMD_USAGE_SELL + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("sell() - request: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "10", "0.1", "testAccount1", "excessArgument", "excessArgument", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/sell test:material1 10 0.1 testAccount1 excessArgument excessArgument excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8517,7 +8071,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - request: invalid ware ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSell(new String[]{"invalidWare", "10"});
+         UserInterfaceTerminal.serviceRequest("/sell invalidWare 10");
          if (!baosOut.toString().startsWith("error - ware not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8526,7 +8080,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - request: invalid quantity");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSell(new String[]{"test:material1", "invalidQuantity"});
+         UserInterfaceTerminal.serviceRequest("/sell test:material1 invalidQuantity");
          if (!baosOut.toString().startsWith("error - invalid quantity")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8564,7 +8118,7 @@ public final class TestSuite
          quantityWare    = testWare4.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, testWare4, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount2.getMoney();
-         UserInterfaceTerminal.serviceRequestSell(new String[]{"material4", String.valueOf(quantityToTrade), "0.1", "testAccount2"});
+         UserInterfaceTerminal.serviceRequest("/sell material4 " + String.valueOf(quantityToTrade) + " 0.1 testAccount2");
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) 3, 8.0f, quantityWare + quantityToTrade)) {
             errorFound = true;
          }
@@ -8576,7 +8130,7 @@ public final class TestSuite
          TEST_OUTPUT.println("sell() - request: null coordinates");
          baosOut.reset(); // clear buffer holding console output
          UserInterfaceTerminal.inventory.put("test:material1", 20); // give wares to the player
-         UserInterfaceTerminal.serviceRequestSell(new String[]{UserInterfaceTerminal.playername, null, "test:material1", "10"});
+         UserInterfaceTerminal.serviceRequest("/sell " + UserInterfaceTerminal.playername + "   test:material1 10");
          if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8861,33 +8415,17 @@ public final class TestSuite
                                      testWare1, testWare4, null, 5, 10, 0, 0, false);
 
          // /sellall [account_id]
-         TEST_OUTPUT.println("sellAll() - request: null input");
+         TEST_OUTPUT.println("sellAll() - request: no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSellAll(null);
+         UserInterfaceTerminal.serviceRequest("/sellall");
          if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("sellAll() - request: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{});
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("sellAll() - request: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("sellAll() - request: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{UserInterfaceTerminal.playername, "excessArgument", "excessArgument", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/sellall " + UserInterfaceTerminal.playername + " excessArgument excessArgument excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -8918,33 +8456,19 @@ public final class TestSuite
          errorFound |= testerSellAll(UserInterfaceTerminal.playername, CommandEconomy.INVENTORY_NONE, "testAccount1", null,
                                      testWare1, testWare3, null, 10, 10, 0, 0, true);
 
-         TEST_OUTPUT.println("sellAll() - request: null username");
-         baosOut.reset(); // clear buffer holding console output
-         // give wares to the player
-         UserInterfaceTerminal.inventory.put("test:material1", 10);
-         UserInterfaceTerminal.inventory.put("test:material3",  10);
-
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{null, "none", "testAccount1"});
-
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
          TEST_OUTPUT.println("sellAll() - request: empty username");
          baosOut.reset(); // clear buffer holding console output
          // give wares to the player
          UserInterfaceTerminal.inventory.put("test:material1", 10);
          UserInterfaceTerminal.inventory.put("test:material3",  10);
 
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{"", "none", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/sellall   none testAccount1");
 
          if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
+            resetTestEnvironment();
          }
-         resetTestEnvironment();
 
          TEST_OUTPUT.println("sellAll() - request: different username");
          errorFound |= testerSellAll("possibleID", CommandEconomy.INVENTORY_NONE, "testAccount3", null,
@@ -8953,7 +8477,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sellAll() - request: selling no items");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{UserInterfaceTerminal.playername, "none", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/sellall " + UserInterfaceTerminal.playername + " none testAccount1");
 
          if (!baosOut.toString().isEmpty()) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -8987,7 +8511,7 @@ public final class TestSuite
          UserInterfaceTerminal.inventory.put("test:material1", quantityToTrade1);
          UserInterfaceTerminal.inventory.put("test:processed1", quantityToTrade2);
 
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{UserInterfaceTerminal.playername, "none", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/sellall " + UserInterfaceTerminal.playername + " none testAccount1");
 
          // check test results
          // check first test ware
@@ -9020,7 +8544,7 @@ public final class TestSuite
          UserInterfaceTerminal.inventory.put("test:material1", quantityToTrade1);
          UserInterfaceTerminal.inventory.put("test:processed1", quantityToTrade2);
 
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{UserInterfaceTerminal.playername, "none", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/sellall " + UserInterfaceTerminal.playername + " none testAccount1");
 
          // check test results
          // check first test ware
@@ -9053,7 +8577,7 @@ public final class TestSuite
          UserInterfaceTerminal.inventory.put("test:material1", quantityToTrade1);
          UserInterfaceTerminal.inventory.put("test:processed1", quantityToTrade2);
 
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{UserInterfaceTerminal.playername, "none", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/sellall " + UserInterfaceTerminal.playername + " none testAccount1");
 
          // check test results
          // check first test ware
@@ -9086,7 +8610,7 @@ public final class TestSuite
          UserInterfaceTerminal.inventory.put("test:material1", quantityToTrade1);
          UserInterfaceTerminal.inventory.put("test:processed1", quantityToTrade2);
 
-         UserInterfaceTerminal.serviceRequestSellAll(new String[]{UserInterfaceTerminal.playername, "none", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/sellall " + UserInterfaceTerminal.playername + " none testAccount1");
 
          // check test results
          // check first test ware
@@ -9913,7 +9437,7 @@ public final class TestSuite
          // money [account_id]
          TEST_OUTPUT.println("serviceRequests() - money: null input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(null);
+         UserInterfaceTerminal.serviceRequest("/money");
          if (!baosOut.toString().equals("Your account: $30.00" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -9921,7 +9445,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - money: empty input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{});
+         UserInterfaceTerminal.serviceRequest("/money   ");
          if (!baosOut.toString().equals("Your account: $30.00" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -9929,17 +9453,8 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - money: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{UserInterfaceTerminal.playername, "testAccount2", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/money " + UserInterfaceTerminal.playername + " testAccount2 excessArgument");
          if (!baosOut.toString().startsWith("testAccount2: $")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - money: blank account ID");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
@@ -9947,7 +9462,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - money: invalid account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{"invalidAccount"});
+         UserInterfaceTerminal.serviceRequest("/money invalidAccount");
          if (!baosOut.toString().startsWith("error - account not found: invalidAccount")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -9956,7 +9471,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - money: minimum args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{});
+         UserInterfaceTerminal.serviceRequest("/money    ");
          if (!baosOut.toString().startsWith("Your account: $")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -9965,17 +9480,8 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - money: valid account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{"testAccount2"});
+         UserInterfaceTerminal.serviceRequest("/money testAccount2");
          if (!baosOut.toString().startsWith("testAccount2: $")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - money: null username");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{null, "testAccount2"});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
@@ -9983,7 +9489,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - money: empty username");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{"", "testAccount2"});
+         UserInterfaceTerminal.serviceRequest("/money  testAccount2");
          if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -9992,7 +9498,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - money: different username");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestMoney(new String[]{"possibleID", "testAccount3"});
+         UserInterfaceTerminal.serviceRequest("/money possibleID testAccount3");
          if (!baosOut.toString().startsWith("(for possibleID) testAccount3: $")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10000,28 +9506,10 @@ public final class TestSuite
          }
 
          // grantAccess player_id account_id
-         TEST_OUTPUT.println("serviceRequests() - grantAccess: null input");
+         TEST_OUTPUT.println("serviceRequests() - grantAccess: no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestGrantAccess(null);
+         UserInterfaceTerminal.serviceRequest("/grantAccess");
          if (!baosOut.toString().equals("/grantAccess <player_name> <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - grantAccess: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestGrantAccess(new String[]{});
-         if (!baosOut.toString().equals("/grantAccess <player_name> <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - grantAccess: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestGrantAccess(new String[]{"", ""});
-         if (!baosOut.toString().isEmpty()) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
@@ -10029,7 +9517,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - grantAccess: too few args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID"});
+         UserInterfaceTerminal.serviceRequest("/grantAccess possibleID");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10038,7 +9526,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - grantAccess: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID", "testAccount1", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/grantAccess possibleID testAccount1 excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10047,7 +9535,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - grantAccess: invalid account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID", "invalidAccount"});
+         UserInterfaceTerminal.serviceRequest("/grantAccess possibleID invalidAccount");
          if (!baosOut.toString().startsWith("error - account not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10056,7 +9544,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - grantAccess: valid account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestGrantAccess(new String[]{"possibleID", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/grantAccess possibleID testAccount1");
          if (!baosOut.toString().startsWith("possibleID may now access testAccount1")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10064,28 +9552,10 @@ public final class TestSuite
          }
 
          // revokeAccess player_id account_id
-         TEST_OUTPUT.println("serviceRequests() - revokeAccess: null input");
+         TEST_OUTPUT.println("serviceRequests() - revokeAccess: no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestRevokeAccess(null);
+         UserInterfaceTerminal.serviceRequest("/revokeAccess");
          if (!baosOut.toString().equals("/revokeAccess <player_name> <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - revokeAccess: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestRevokeAccess(new String[]{});
-         if (!baosOut.toString().equals("/revokeAccess <player_name> <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-            resetTestEnvironment();
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - revokeAccess: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestRevokeAccess(new String[]{"", ""});
-         if (!baosOut.toString().isEmpty()) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
             resetTestEnvironment();
@@ -10093,7 +9563,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - revokeAccess: too few args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID"});
+         UserInterfaceTerminal.serviceRequest("/revokeAccess possibleID");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10102,7 +9572,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - revokeAccess: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID", "testAccount1", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/revokeAccess possibleID testAccount1 excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10111,7 +9581,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - revokeAccess: invalid account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID", "invalidAccount"});
+         UserInterfaceTerminal.serviceRequest("/revokeAccess possibleID invalidAccount");
          if (!baosOut.toString().startsWith("error - account not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10121,7 +9591,7 @@ public final class TestSuite
          TEST_OUTPUT.println("serviceRequests() - revokeAccess: valid account ID");
          testAccount1.grantAccess(null, UserInterfaceTerminal.getPlayerIDStatic("possibleID"), null);
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestRevokeAccess(new String[]{"possibleID", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/revokeAccess possibleID testAccount1");
          if (!baosOut.toString().startsWith("possibleID may no longer access testAccount1")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10133,74 +9603,26 @@ public final class TestSuite
          Config.filenameWaresSave = "config" + File.separator + "CommandEconomy" + File.separator + "testWaresSaved.txt";
          Config.filenameAccounts = "config" + File.separator + "CommandEconomy" + File.separator + "testAccounts.txt";
 
-         TEST_OUTPUT.println("serviceRequests() - save: null input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSave(null);
-         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - save: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSave(new String[]{});
-         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - save: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSave(new String[]{""});
-         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+         TEST_OUTPUT.println("serviceRequests() - save: no input");
+         baosErr.reset(); // clear buffer holding console output
+         UserInterfaceTerminal.serviceRequest("/save");
+         if (!baosErr.toString().equals("Saved the economy" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosErr.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("serviceRequests() - save: too many args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSave(new String[]{"excessArgument"});
-         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - save: expected usage");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSave(new String[]{});
-         if (!baosOut.toString().equals("Saved the economy" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+         baosErr.reset(); // clear buffer holding console output
+         UserInterfaceTerminal.serviceRequest("/save excessArgument");
+         if (!baosErr.toString().equals("Saved the economy" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output: " + baosErr.toString());
             errorFound = true;
          }
 
          // reload (config || wares || accounts || all)
-         TEST_OUTPUT.println("serviceRequests() - reload: null input");
+         TEST_OUTPUT.println("serviceRequests() - reload: no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(null);
-         if (!baosOut.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - reload: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{});
-         if (!baosOut.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - reload: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{""});
-         if (!baosOut.toString().startsWith("error - must provide instructions for reload")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - reload: too few args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{});
+         UserInterfaceTerminal.serviceRequest("/reload");
          if (!baosOut.toString().equals("/commandeconomy reload (config | wares | accounts | all)" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10208,7 +9630,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - reload: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"wares", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/reload wares excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10216,7 +9638,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - reload: invalid arg");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"invalidArgument"});
+         UserInterfaceTerminal.serviceRequest("/reload invalidArgument");
          if (!baosOut.toString().startsWith("error - invalid argument")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10224,7 +9646,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - reload: config");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          if (!baosOut.toString().equals("Reloaded config." + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10232,7 +9654,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - reload: wares");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"wares"});
+         UserInterfaceTerminal.serviceRequest("/reload wares");
          if (!baosOut.toString().equals("Reloaded wares." + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10240,7 +9662,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - reload: accounts");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"accounts"});
+         UserInterfaceTerminal.serviceRequest("/reload accounts");
          if (!baosOut.toString().equals("Reloaded accounts." + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10248,7 +9670,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - reload: total reload");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"all"});
+         UserInterfaceTerminal.serviceRequest("/reload all");
          if (!baosOut.toString().equals("Reloaded config, wares, and accounts." + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10261,31 +9683,7 @@ public final class TestSuite
          // add quantity [account_id]
          TEST_OUTPUT.println("serviceRequests() - add: null input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestAdd(null);
-         if (!baosOut.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - add: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{});
-         if (!baosOut.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - add: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - add: too few args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{});
+         UserInterfaceTerminal.serviceRequest("/add");
          if (!baosOut.toString().equals("/add <quantity> [account_id]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10293,7 +9691,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - add: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{"10.0", "testAccount2", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/add 10.0 testAccount2 excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10302,7 +9700,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - add: invalid quantity");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{"invalidQuantity"});
+         UserInterfaceTerminal.serviceRequest("/add invalidQuantity");
          if (!baosOut.toString().startsWith("error - invalid quantity")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10310,7 +9708,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - add: invalid account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{"10.0", "invalidAccount"});
+         UserInterfaceTerminal.serviceRequest("/add 10.0 invalidAccount");
          if (!baosOut.toString().startsWith("error - account not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10319,7 +9717,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - add: minimum args");
          playerAccount.setMoney(30.0f);
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{"10.0"});
+         UserInterfaceTerminal.serviceRequest("/add 10.0");
          if (testAccountFields(playerAccount, 40.0f, UserInterfaceTerminal.playername)) {
             errorFound = true;
             resetTestEnvironment();
@@ -10327,7 +9725,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - add: valid account ID");
          testAccount2.setMoney(20.0f);
-         UserInterfaceTerminal.serviceRequestAdd(new String[]{"10.0", "testAccount2"});
+         UserInterfaceTerminal.serviceRequest("/add 10.0 testAccount2");
          if (testAccountFields(testAccount2, 30.0f, UserInterfaceTerminal.playername)) {
             errorFound = true;
             resetTestEnvironment();
@@ -10336,31 +9734,7 @@ public final class TestSuite
          // set quantity [account_id]
          TEST_OUTPUT.println("serviceRequests() - set: null input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSet(null);
-         if (!baosOut.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - set: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSet(new String[]{});
-         if (!baosOut.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - set: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSet(new String[]{""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - set: too few args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSet(new String[]{});
+         UserInterfaceTerminal.serviceRequest("/set");
          if (!baosOut.toString().equals("/set <quantity> [account_id]" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10368,7 +9742,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - set: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSet(new String[]{"10.0", "testAccount2", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/set 10.0 testAccount2 excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10377,7 +9751,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - set: invalid quantity");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSet(new String[]{"invalidQuantity"});
+         UserInterfaceTerminal.serviceRequest("/set invalidQuantity");
          if (!baosOut.toString().startsWith("error - invalid quantity")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10385,7 +9759,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - set: invalid account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestSet(new String[]{"10.0", "invalidAccount"});
+         UserInterfaceTerminal.serviceRequest("/set 10.0 invalidAccount");
          if (!baosOut.toString().startsWith("error - account not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10393,7 +9767,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - set: minimum args");
          playerAccount.setMoney(30.0f);
-         UserInterfaceTerminal.serviceRequestSet(new String[]{"10.0"});
+         UserInterfaceTerminal.serviceRequest("/set 10.0");
          if (testAccountFields(playerAccount, 10.0f, UserInterfaceTerminal.playername)) {
             errorFound = true;
             resetTestEnvironment();
@@ -10401,7 +9775,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - set: valid account ID");
          testAccount2.setMoney(20.0f);
-         UserInterfaceTerminal.serviceRequestSet(new String[]{"10.0", "testAccount2"});
+         UserInterfaceTerminal.serviceRequest("/set 10.0 testAccount2");
          if (testAccountFields(testAccount2, 10.0f, UserInterfaceTerminal.playername)) {
             errorFound = true;
             resetTestEnvironment();
@@ -10411,23 +9785,7 @@ public final class TestSuite
          // don't worry about changing the file written to since it's data is meant to be temporary
          TEST_OUTPUT.println("serviceRequests() - printMarket: null input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestPrintMarket(null);
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - printMarket: empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestPrintMarket(new String[]{});
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - printMarket: blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestPrintMarket(new String[]{""});
+         UserInterfaceTerminal.serviceRequest("/printMarket");
          if (!baosOut.toString().isEmpty()) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10435,15 +9793,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("serviceRequests() - printMarket: too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestPrintMarket(new String[]{"excessArgument"});
-         if (!baosOut.toString().isEmpty()) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("serviceRequests() - printMarket: expected usage");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestPrintMarket(new String[]{});
+         UserInterfaceTerminal.serviceRequest("/printMarket excessArgument");
          if (!baosOut.toString().isEmpty()) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -10980,33 +10330,9 @@ public final class TestSuite
 
       try {
          // create account_id
-         TEST_OUTPUT.println("create() - null input");
+         TEST_OUTPUT.println("create() - no input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCreate(null);
-         if (!baosOut.toString().equals("/create <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("create() - empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCreate(new String[]{});
-         if (!baosOut.toString().equals("/create <account_id>" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("create() - blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCreate(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - must provide account ID")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("create() - too few args");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCreate(new String[]{});
+         UserInterfaceTerminal.serviceRequest("/create");
          if (!baosOut.toString().equals("/create <account_id>" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11014,7 +10340,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("create() - too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCreate(new String[]{"possibleAccount", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/create possibleAccount excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11023,7 +10349,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("create() - existing account ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestCreate(new String[]{"testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/create testAccount1");
          if (!baosOut.toString().startsWith("error - account already exists")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11031,7 +10357,7 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("create() - valid account ID");
-         UserInterfaceTerminal.serviceRequestCreate(new String[]{"possibleAccount"});
+         UserInterfaceTerminal.serviceRequest("/create possibleAccount");
          if (!accounts.containsKey("possibleAccount")) {
             TEST_OUTPUT.println("   failed to create account");
             errorFound = true;
@@ -11065,31 +10391,15 @@ public final class TestSuite
 
          TEST_OUTPUT.println("changeStock() - null input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestChangeStock(null);
+         UserInterfaceTerminal.serviceRequest("/changeStock");
          if (!baosOut.toString().startsWith("/changeStock <ware_id> (<quantity> | equilibrium | overstocked | understocked)")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("changeStock() - empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{});
-         if (!baosOut.toString().startsWith("/changeStock <ware_id> (<quantity> | equilibrium | overstocked | understocked)")) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("changeStock() - blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("changeStock() - too few args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{""});
+         UserInterfaceTerminal.serviceRequest("/changeStock testWare1");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11097,7 +10407,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("changeStock() - too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"", "", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/changeStock testWare1 100 excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11105,7 +10415,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("changeStock() - invalid ware ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"invalidWare", "0"});
+         UserInterfaceTerminal.serviceRequest("/changeStock invalidWare 0");
          if (!baosOut.toString().startsWith("error - ware not found")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11113,7 +10423,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("changeStock() - invalid quantity");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material1", "invalidQuantity"});
+         UserInterfaceTerminal.serviceRequest("/changeStock test:material1 invalidQuantity");
          if (!baosOut.toString().startsWith("error - invalid quantity")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11122,7 +10432,7 @@ public final class TestSuite
          TEST_OUTPUT.println("changeStock() - zero quantity");
          baosOut.reset(); // clear buffer holding console output
          int quantity = testWare1.getQuantity();
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material1", "0"});
+         UserInterfaceTerminal.serviceRequest("/changeStock test:material1 0");
          if (!baosOut.toString().startsWith("test:material1's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11136,7 +10446,7 @@ public final class TestSuite
          TEST_OUTPUT.println("changeStock() - negative quantity");
          baosOut.reset(); // clear buffer holding console output
          quantity = testWare3.getQuantity() - 10;
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material3", "-10"});
+         UserInterfaceTerminal.serviceRequest("/changeStock test:material3 -10");
          if (!baosOut.toString().startsWith("test:material3's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11150,7 +10460,7 @@ public final class TestSuite
          TEST_OUTPUT.println("changeStock() - positive quantity");
          baosOut.reset(); // clear buffer holding console output
          quantity = testWareP1.getQuantity() + 100;
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"test:processed1", "100"});
+         UserInterfaceTerminal.serviceRequest("/changeStock test:processed1 100");
          if (!baosOut.toString().startsWith("test:processed1's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11164,7 +10474,7 @@ public final class TestSuite
          TEST_OUTPUT.println("changeStock() - equilibrium");
          baosOut.reset(); // clear buffer holding console output
          quantity = Config.quanEquilibrium[testWare4.getLevel()];
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"minecraft:material4", "equilibrium"});
+         UserInterfaceTerminal.serviceRequest("/changeStock minecraft:material4 equilibrium");
          if (!baosOut.toString().startsWith("minecraft:material4's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11178,7 +10488,7 @@ public final class TestSuite
          TEST_OUTPUT.println("changeStock() - overstocked");
          baosOut.reset(); // clear buffer holding console output
          quantity = Config.quanExcessive[testWare1.getLevel()];
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material1", "overstocked"});
+         UserInterfaceTerminal.serviceRequest("/changeStock test:material1 overstocked");
          if (!baosOut.toString().startsWith("test:material1's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11192,7 +10502,7 @@ public final class TestSuite
          TEST_OUTPUT.println("changeStock() - understocked");
          baosOut.reset(); // clear buffer holding console output
          quantity = Config.quanDeficient[testWare3.getLevel()];
-         UserInterfaceTerminal.serviceRequestChangeStock(new String[]{"test:material3", "understocked"});
+         UserInterfaceTerminal.serviceRequest("/changeStock test:material3 understocked");
          if (!baosOut.toString().startsWith("test:material3's stock is now " + quantity)) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -11919,7 +11229,7 @@ public final class TestSuite
 
          // try to load the test file
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
@@ -12020,7 +11330,7 @@ public final class TestSuite
 
          // try to load the test file
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
@@ -12119,7 +11429,7 @@ public final class TestSuite
 
          // try to reload configuration
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
          }
@@ -12150,7 +11460,7 @@ public final class TestSuite
 
          // try to reload configuration
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
          } 
@@ -12216,7 +11526,7 @@ public final class TestSuite
 
          // try to reload configuration
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
@@ -12264,7 +11574,7 @@ public final class TestSuite
 
          // try to reload configuration
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
@@ -12335,7 +11645,7 @@ public final class TestSuite
 
          // try to reload configuration
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
             aiHandler.run();
@@ -12387,7 +11697,7 @@ public final class TestSuite
 
          // try to reload configuration
          try {
-            UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+            UserInterfaceTerminal.serviceRequest("/reload config");
             Config.filenameNoPathAIProfessions = "testAIProfessions.json";
             Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
             aiHandler.run();
@@ -12431,7 +11741,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn off the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          Config.filenameNoPathAIProfessions = "testAIProfessions.json";
          Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
@@ -12456,7 +11766,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn on the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          Config.filenameNoPathAIProfessions = "testAIProfessions.json";
          Config.filenameAIProfessions       = "config" + File.separator + "CommandEconomy" + File.separator + "testAIProfessions.json";
 
@@ -12502,7 +11812,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - when disabled");
          Config.researchCostPerHierarchyLevel = 0.0f;
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material2"});
+         UserInterfaceTerminal.serviceRequest("/research test:material2");
          if (!baosOut.toString().equals("error - industrial research is disabled" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -12511,31 +11821,15 @@ public final class TestSuite
 
          TEST_OUTPUT.println("research() - null input");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(null);
+         UserInterfaceTerminal.serviceRequest("/research");
          if (!baosOut.toString().equals("/research <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("research() - empty input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{});
-         if (!baosOut.toString().equals("/research <ware_id> [max_price_acceptable] [account_id]" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-
-         TEST_OUTPUT.println("research() - blank input");
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"", ""});
-         if (!baosOut.toString().startsWith("error - zero-length arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
          }
 
          TEST_OUTPUT.println("research() - too many args");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material1", "excessArgument", "excessArgument", "excessArgument"});
+         UserInterfaceTerminal.serviceRequest("/research test:material1 excessArgument excessArgument excessArgument");
          if (!baosOut.toString().startsWith("error - wrong number of arguments")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -12544,7 +11838,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("research() - invalid ware ID");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"invalidWareID"});
+         UserInterfaceTerminal.serviceRequest("/research invalidWareID");
          if (!baosOut.toString().equals("error - ware not found: invalidWareID" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
             errorFound = true;
@@ -12560,8 +11854,8 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material2"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research test:material2");
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (!baosOut.toString().contains("test:material2 research price is " + CommandEconomy.truncatePrice(price) + "; to accept, use /research yes [max_price_acceptable] [account_id]") ||
              !baosOut.toString().contains("You do not have enough money" + System.lineSeparator())) {
@@ -12581,7 +11875,7 @@ public final class TestSuite
          wareQuantity = testWare1.getQuantity();
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material1"});
+         UserInterfaceTerminal.serviceRequest("/research test:material1");
 
          if (!baosOut.toString().equals("test:material1 is already as plentiful as possible" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12599,8 +11893,8 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material2"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research test:material2");
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWare2, WareMaterial.class, "", (byte) (wareLevel - 1), 27.6f, wareQuantity)) {
             errorFound = true;
@@ -12617,8 +11911,8 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:processed1"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research test:processed1");
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
             errorFound = true;
@@ -12636,8 +11930,8 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material3"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research test:material3");
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) (wareLevel - 1), 4.0f, wareQuantity)) {
             errorFound = true;
@@ -12655,8 +11949,8 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
             errorFound = true;
@@ -12673,7 +11967,7 @@ public final class TestSuite
          money        = playerAccount.getMoney();
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
+         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
 
          if (!baosOut.toString().equals("material4 is already plentiful" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12694,8 +11988,8 @@ public final class TestSuite
          money        = 1000000.0f;
          testAccount1.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:processed1", "testAccount1"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research test:processed1 testAccount1");
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
             errorFound = true;
@@ -12712,8 +12006,8 @@ public final class TestSuite
          money        = 1000000.0f;
          testAccount1.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material3"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes", "testAccount1"});
+         UserInterfaceTerminal.serviceRequest("/research test:material3");
+         UserInterfaceTerminal.serviceRequest("/research yes testAccount1");
 
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) (wareLevel - 1), 4.0f, wareQuantity)) {
             errorFound = true;
@@ -12731,8 +12025,8 @@ public final class TestSuite
          testAccount1.setMoney(money);
          testAccount2.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material2", "testAccount1"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes", "testAccount2"});
+         UserInterfaceTerminal.serviceRequest("/research test:material2 testAccount1");
+         UserInterfaceTerminal.serviceRequest("/research yes testAccount2");
 
          if (testWareFields(testWare2, WareMaterial.class, "", (byte) (wareLevel - 1), 27.6f, wareQuantity)) {
             errorFound = true;
@@ -12752,9 +12046,9 @@ public final class TestSuite
          wareLevel    = testWare2.getLevel();
          wareQuantity = testWare2.getQuantity();
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:material2", "testAccount4"});
+         UserInterfaceTerminal.serviceRequest("/research test:material2 testAccount4");
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (!baosOut.toString().equals("You don't have permission to access testAccount4" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12776,7 +12070,7 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:processed1", String.valueOf(price - 100.0f)});
+         UserInterfaceTerminal.serviceRequest("/research test:processed1 " + String.valueOf(price - 100.0f));
 
          if (!baosOut.toString().contains("test:processed1 research price is " + CommandEconomy.truncatePrice(price) + "; to accept, use /research yes [max_price_acceptable] [account_id]")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12799,7 +12093,7 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"test:processed1", String.valueOf(price + 100.0f)});
+         UserInterfaceTerminal.serviceRequest("/research test:processed1 " + String.valueOf(price + 100.0f));
 
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
             errorFound = true;
@@ -12809,7 +12103,7 @@ public final class TestSuite
          }
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (!baosOut.toString().equals("You don't have any pending research proposals" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12828,8 +12122,8 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
             errorFound = true;
@@ -12841,7 +12135,7 @@ public final class TestSuite
          TEST_OUTPUT.println("research() - accepting nonexistent proposal");
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (!baosOut.toString().equals("You don't have any pending research proposals" + System.lineSeparator())) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12858,7 +12152,7 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
+         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
 
          if (!baosOut.toString().startsWith("material4 research price is ")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12870,7 +12164,7 @@ public final class TestSuite
          price              = CommandEconomy.truncatePrice(price);
 
          baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (!baosOut.toString().contains("material4's commonality and price stability has increased")) {
             TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
@@ -12891,13 +12185,13 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
+         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
 
          testWare4.setQuantity((int) (testWare4.getQuantity() * 1.04));
          price              = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_BUY) * wareLevel * Config.researchCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
             errorFound = true;
@@ -12915,13 +12209,13 @@ public final class TestSuite
          money        = 1000000.0f;
          playerAccount.setMoney(money);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"minecraft:material4"});
+         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
 
          testWare4.setQuantity(wareQuantity);
          price              = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
          price              = CommandEconomy.truncatePrice(price);
 
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          if (testWareFields(testWare4, WareMaterial.class, "material4", wareLevel, 8.0f, wareQuantity)) {
             errorFound = true;
@@ -15957,7 +15251,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // grab the new timertask since frequency was changed
          timerTaskRandomEvents = (RandomEvents) fTimerTask.get(null);
@@ -15998,7 +15292,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // test printing after enabling printing changes
          baosOut.reset(); // clear buffer holding console output
@@ -16067,7 +15361,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          fRandomEvents.set(NULL_OBJECT, null); // prevent firing an event immediately, then hanging while waiting for randomEventsFrequency minutes to pass
          timerTaskRandomEvents.run();
 
@@ -16115,7 +15409,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          timerTaskRandomEvents.run();
 
          // set up expected results
@@ -16162,7 +15456,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          timerTaskRandomEvents.run();
 
          // set up expected results
@@ -16209,7 +15503,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          timerTaskRandomEvents.run();
 
          // set up expected results
@@ -16353,7 +15647,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
          Config.randomEventsFrequency = 1; // prevent hanging
          timerTaskRandomEvents.run();
          Config.randomEventsFrequency = 99999; // prevent thread from interfering
@@ -16411,7 +15705,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn off the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // check whether the feature is disabled
          timerRandomEvents = (Timer) fTimer.get(null);
@@ -16432,7 +15726,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn on the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // check whether the feature is enabled
          timerRandomEvents = (Timer) fTimer.get(null);
@@ -16451,7 +15745,7 @@ public final class TestSuite
             "crossWorldMarketplace = true\n"
          );
          fileWriter.close();
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
       }
       catch (Exception e) {
          TEST_OUTPUT.println("random events - fatal error: " + e);
@@ -16669,8 +15963,8 @@ public final class TestSuite
                   * Config.transactionFeeResearching;
 
          // perform action
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{ware1.getWareID()});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research " + ware1.getWareID());
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          // check fee
          price2 = feeCollectionAccount.getMoney();
@@ -16698,8 +15992,8 @@ public final class TestSuite
                   * Config.transactionFeeResearching;
 
          // perform action
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{ware1.getWareID()});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research " + ware1.getWareID());
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          // check fee
          price2 = feeCollectionAccount.getMoney();
@@ -16736,8 +16030,8 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          // perform action
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{ware1.getWareID()});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research " + ware1.getWareID());
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          // get the price when component is at equilibrium
          price1 = money - playerAccount.getMoney();
@@ -16750,8 +16044,8 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          // perform action
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{ware1.getWareID()});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research " + ware1.getWareID());
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          // get the price when component is in surplus
          price2 = money - playerAccount.getMoney();
@@ -16774,8 +16068,8 @@ public final class TestSuite
          playerAccount.setMoney(money);
 
          // perform action
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{ware1.getWareID()});
-         UserInterfaceTerminal.serviceRequestResearch(new String[]{"yes"});
+         UserInterfaceTerminal.serviceRequest("/research " + ware1.getWareID());
+         UserInterfaceTerminal.serviceRequest("/research yes");
 
          // get the price when component has scarcity
          price2 = money - playerAccount.getMoney();
@@ -17280,7 +16574,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn on the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // check whether the feature is enabled
          timerMarketRebalancer = (Timer) testTimer.get(null);
@@ -17313,7 +16607,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn on the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // check whether the feature is disabled
          timerMarketRebalancer = (Timer) testTimer.get(null);
@@ -17519,7 +16813,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn on the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // check whether the feature is enabled
          timerAccountInterestApplier = (Timer) testTimer.get(null);
@@ -17552,7 +16846,7 @@ public final class TestSuite
          fileWriter.close();
 
          // attempt to turn on the feature by reloading config
-         UserInterfaceTerminal.serviceRequestReload(new String[]{"config"});
+         UserInterfaceTerminal.serviceRequest("/reload config");
 
          // check whether the feature is disabled
          timerAccountInterestApplier = (Timer) testTimer.get(null);
