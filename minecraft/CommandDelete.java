@@ -12,7 +12,7 @@ public class CommandDelete extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.accountDelete(InterfaceMinecraft.getSenderID(sender), args);
+      CommandProcessor.accountDelete(UserInterfaceMinecraft.getSenderID(sender), args);
   }
 
    @Override
@@ -47,7 +47,7 @@ public class CommandDelete extends CommandBase {
          return new LinkedList<String>();
 
       if (args.length == 1)
-         return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
 
       return new LinkedList<String>();
    }

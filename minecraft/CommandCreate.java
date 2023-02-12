@@ -12,7 +12,7 @@ public class CommandCreate extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.accountCreate(InterfaceMinecraft.getSenderID(sender), args);
+      CommandProcessor.accountCreate(UserInterfaceMinecraft.getSenderID(sender), args);
   }
 
    @Override

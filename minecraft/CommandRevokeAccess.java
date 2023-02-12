@@ -14,7 +14,7 @@ public class CommandRevokeAccess extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.accountRevokeAccess(InterfaceMinecraft.getSenderID(sender), args);
+      CommandProcessor.accountRevokeAccess(UserInterfaceMinecraft.getSenderID(sender), args);
   }
 
    @Override
@@ -55,8 +55,8 @@ public class CommandRevokeAccess extends CommandBase {
 
       switch(args.length)
       {
-         case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
-         case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+         case 1:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+         case 2:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
          default: return new LinkedList<String>();
       }
    }

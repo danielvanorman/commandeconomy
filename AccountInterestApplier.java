@@ -101,7 +101,7 @@ public class AccountInterestApplier extends TimerTask  {
          for (Account account : Account.getAllAccounts()) {
             // apply compound interest
             // if the account's owner is online
-            if (Config.commandInterface.isPlayerOnline(account.getOwner()))
+            if (Config.userInterface.isPlayerOnline(account.getOwner()))
                account.setMoney(account.getMoney() * Config.accountPeriodicInterestPercent);
          }
       }

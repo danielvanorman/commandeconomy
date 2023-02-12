@@ -202,12 +202,12 @@ public abstract class Ware
     */
    boolean setComponents(String[] componentsIDs) {
       if (componentsIDs == null || componentsIDs.length == 0) {
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_IDS);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_IDS);
          return false;
       }
 
       if (yield <= 0) {
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_YIELD);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_YIELD);
          return false;
       }
 
@@ -634,7 +634,7 @@ public abstract class Ware
 
       // lacking inventory space should have its own error message
       if (inventorySpaceAvailable <= 0) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_NO_SPACE);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_NO_SPACE);
          return new float[] {0.0f, 0.0f};
       }
 

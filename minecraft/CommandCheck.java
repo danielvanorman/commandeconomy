@@ -13,7 +13,7 @@ public class CommandCheck extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.check(InterfaceMinecraft.getSenderID(sender), sender, server, args);
+      CommandProcessor.check(UserInterfaceMinecraft.getSenderID(sender), sender, server, args);
   }
 
    @Override
@@ -53,16 +53,16 @@ public class CommandCheck extends CommandBase {
       if (args.length == 1)
       {
          if (sender instanceof EntityPlayer)
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
+            return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.WARES);
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+            return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
       }
       else if (args.length == 2)
       {
          if (sender instanceof EntityPlayer)
             return new LinkedList<String>();
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
+            return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], UserInterfaceMinecraft.AutoCompletionStringCategories.WARES);
       }
 
       return new LinkedList<String>();

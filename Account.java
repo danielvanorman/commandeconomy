@@ -72,18 +72,18 @@ public final class Account {
     */
    public static Account makeAccount(final String accountID, final UUID accountOwner, final float startingMoney) {
       // grab the account owner's name once
-      String accountOwnerName = Config.commandInterface.getDisplayName(accountOwner);
+      String accountOwnerName = Config.userInterface.getDisplayName(accountOwner);
 
       // avoid creating an account whose ID matches an existing player's name
       // if the player isn't the one creating the account
-      if (Config.commandInterface.doesPlayerExist(accountID) && // if the account ID is a player's name and
+      if (Config.userInterface.doesPlayerExist(accountID) && // if the account ID is a player's name and
          !accountOwnerName.equals(accountID))            // if the player isn't the account owner
          return null;
 
       // avoid creating an account whose ID is a number
       try {
          float number = Float.parseFloat(accountID);
-         Config.commandInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_NUMERICAL_ID);
+         Config.userInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_NUMERICAL_ID);
          return null;
       } catch (Exception e) {}
 
@@ -104,11 +104,11 @@ public final class Account {
             UUID nonpersonalAccountOwner = account.getOwner();
             // if the non-personal account owner doesn't
             // have a personal account, open one for them
-            if (!accounts.containsKey(Config.commandInterface.getDisplayName(nonpersonalAccountOwner))) {
-               makeAccount(Config.commandInterface.getDisplayName(nonpersonalAccountOwner), nonpersonalAccountOwner,
+            if (!accounts.containsKey(Config.userInterface.getDisplayName(nonpersonalAccountOwner))) {
+               makeAccount(Config.userInterface.getDisplayName(nonpersonalAccountOwner), nonpersonalAccountOwner,
                   account.getMoney() + Config.accountStartingMoney);
             } else {
-               accounts.get(Config.commandInterface.getDisplayName(nonpersonalAccountOwner)).addMoney(account.getMoney());
+               accounts.get(Config.userInterface.getDisplayName(nonpersonalAccountOwner)).addMoney(account.getMoney());
             }
 
             // delete the non-personal account
@@ -117,7 +117,7 @@ public final class Account {
 
             // tell the non-personal account owner about
             // the non-personal account being deleted
-            Config.commandInterface.printErrorToUser(nonpersonalAccountOwner, accountID + "'s funds have been sent to your personal account." + System.lineSeparator() +
+            Config.userInterface.printErrorToUser(nonpersonalAccountOwner, accountID + "'s funds have been sent to your personal account." + System.lineSeparator() +
                accountID + " is now another player's personal account.");
          }
          // non-personal accounts cannot take the IDs of existing accounts
@@ -137,7 +137,7 @@ public final class Account {
          // check account creation limit
          if (Config.accountMaxCreatedByIndividual != -1 &&
             Config.accountMaxCreatedByIndividual <= Account.getNumAccountsCreatedByUser(accountOwner)) {
-            Config.commandInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_TOO_MANY);
+            Config.userInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_TOO_MANY);
             return null;
          }
 
@@ -186,15 +186,15 @@ public final class Account {
       Account account   = accounts.get(accountID);
       UUID    realOwner = account.getOwner();
       // only the account's owner and server administrators may delete the account
-      if ((realOwner == null || !realOwner.equals(accountOwner)) && !Config.commandInterface.isAnOp(accountOwner)) {
-         Config.commandInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_DENIED_DELETE + accountID);
+      if ((realOwner == null || !realOwner.equals(accountOwner)) && !Config.userInterface.isAnOp(accountOwner)) {
+         Config.userInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_DENIED_DELETE + accountID);
          return;
       }
 
       // if the account is personal, it may not be deleted
-      String playername = Config.commandInterface.getDisplayName(realOwner);
+      String playername = Config.userInterface.getDisplayName(realOwner);
       if (accountID.equals(playername)) {
-         Config.commandInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_DENIED_DELETE_PERSONAL);
+         Config.userInterface.printErrorToUser(accountOwner, CommandEconomy.MSG_ACCOUNT_DENIED_DELETE_PERSONAL);
          return;
       }
 
@@ -205,7 +205,7 @@ public final class Account {
          if (accountRecipient == null) {
             // if sending to a nonexistent personal account,
             // open the personal account
-            if (Config.commandInterface.doesPlayerExist(playername)) {
+            if (Config.userInterface.doesPlayerExist(playername)) {
                accountRecipient = makeAccount(playername, realOwner);
             }
          }
@@ -216,7 +216,7 @@ public final class Account {
             accountRecipient.addMoney(account.getMoney());
 
             // report the transfer
-            Config.commandInterface.printToUser(realOwner, "You received $" + Float.toString(account.getMoney()) + " from " + accountID);
+            Config.userInterface.printToUser(realOwner, "You received $" + Float.toString(account.getMoney()) + " from " + accountID);
          }
       }
 
@@ -256,23 +256,32 @@ public final class Account {
    }
 
    /**
-    * Grabs the account with the specified ID and checks the given player's permissions.
+    * Returns the account with the specified ID.
     * If the given ID is null or empty, the player's personal account is used or opened.
-    * If the account is not found or fails a check, the player is sent
-    * a corresponding error message and the function returns null.
+    * If the account is not found, returns null.
     *
     * @param accountID   internal name of account to be returned if found
-    * @param accountUser player wishing to access the account
-    * @return the account if it exists and passes all checks or null
+    * @param playername  name of player wishing to access the account
+    * @param accountUser ID of player wishing to access the account
+    * @return the account if it exists or null
     */
-   public static Account grabAndCheckAccount(final String accountID, final UUID accountUser) {
+   public static Account grabPlayerAccount(final String accountID, String playername, UUID accountUser) {
+      // validate parameters
+      if (playername == null && accountUser == null)
+         return null;
+      else if (playername == null)
+         playername = Config.userInterface.getDisplayName(accountUser);
+      else if (accountUser == null)
+         accountUser = Config.userInterface.getPlayerID(playername);
+
+      // account to be returned
       Account account = null;
 
       // if no account is given, use the player's personal account or default account
       // if the player's personal account is used, make sure it exists
-      String playername = Config.commandInterface.getDisplayName(accountUser);
       if (accountID == null || accountID.isEmpty() ||
-          accountID.equals(playername)) {
+          (Config.userInterface.doesPlayerExist(accountID) &&
+          accountID.equals(playername))) {
          // if the player set a default account, grab it
          account = defaultAccounts.get(accountUser);
 
@@ -293,21 +302,39 @@ public final class Account {
          }
       }
 
-      // grab account information
+      // if account is non-personal, try to grab directly
       if (account == null && accountID != null)
          account = accounts.get(accountID);
 
+      return account;
+   }
+
+   /**
+    * Grabs the account with the specified ID and checks the given player's permissions.
+    * If the given ID is null or empty, the player's personal account is used or opened.
+    * If the account is not found or fails a check, the player is sent
+    * a corresponding error message and the function returns null.
+    *
+    * @param accountID   internal name of account to be returned if found
+    * @param accountUser player wishing to access the account
+    * @return the account if it exists and passes all checks or null
+    */
+   public static Account grabAndCheckAccount(final String accountID, final UUID accountUser) {
+      // if no account is given, use the player's personal account or default account
+      // if the player's personal account is used, make sure it exists
+      Account account = grabPlayerAccount(accountID, null, accountUser);
+
       // if given account doesn't exist, stop
       if (account == null) {
-         Config.commandInterface.printErrorToUser(accountUser, CommandEconomy.ERROR_ACCOUNT_MISSING + accountID);
+         Config.userInterface.printErrorToUser(accountUser, CommandEconomy.ERROR_ACCOUNT_MISSING + accountID);
          return null;
       }
 
       // if the player doesn't have access to the account, stop
       if (!account.hasAccess(accountUser)) {
          // server administrators should have access to the admin account
-         if (!accountID.equals(CommandEconomy.ACCOUNT_ADMIN) || !Config.commandInterface.isAnOp(accountUser)) {
-           Config.commandInterface.printErrorToUser(accountUser, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
+         if (!accountID.equals(CommandEconomy.ACCOUNT_ADMIN) || !Config.userInterface.isAnOp(accountUser)) {
+           Config.userInterface.printErrorToUser(accountUser, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
            return null;
          }
       }
@@ -340,7 +367,7 @@ public final class Account {
       // check if account has enough money
       if (!Float.isNaN(minimumFunds) &&
           account.getMoney() < minimumFunds) {
-         Config.commandInterface.printErrorToUser(accountUser, CommandEconomy.MSG_ACCOUNT_NO_MONEY);
+         Config.userInterface.printErrorToUser(accountUser, CommandEconomy.MSG_ACCOUNT_NO_MONEY);
          return null;
       }
 
@@ -516,7 +543,7 @@ public final class Account {
 
       // check whether player has permission to use the account
       if (playerID != null && !hasAccess(playerID)) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
          return;
       }
 
@@ -530,7 +557,7 @@ public final class Account {
       // if player to have access granted already has access, say so
       if (accountUsers.contains(playerToAllowAccess)) {
          if (playerID != null)
-            Config.commandInterface.printToUser(playerID, Config.commandInterface.getDisplayName(playerToAllowAccess) + " already may access " + accountID);
+            Config.userInterface.printToUser(playerID, Config.userInterface.getDisplayName(playerToAllowAccess) + " already may access " + accountID);
          return;
       }
 
@@ -538,8 +565,8 @@ public final class Account {
       accountUsers.add(playerToAllowAccess);
       if (accountID != null && !accountID.isEmpty()) {
          if (playerID != null)
-            Config.commandInterface.printToUser(playerID, Config.commandInterface.getDisplayName(playerToAllowAccess) + " may now access " + accountID);
-         Config.commandInterface.printToUser(playerToAllowAccess, CommandEconomy.MSG_ACCOUNT_ACCESS_GRANTED + accountID);
+            Config.userInterface.printToUser(playerID, Config.userInterface.getDisplayName(playerToAllowAccess) + " may now access " + accountID);
+         Config.userInterface.printToUser(playerToAllowAccess, CommandEconomy.MSG_ACCOUNT_ACCESS_GRANTED + accountID);
       }
 
       // mark the new account as needing to be saved
@@ -560,7 +587,7 @@ public final class Account {
 
       // check whether player has permission to use the account
       if (playerID != null && !hasAccess(playerID)) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
          return;
       }
 
@@ -568,7 +595,7 @@ public final class Account {
       // if player to have access revoked doesn't have access, do nothing
       if (accountUsers == null || !accountUsers.contains(playerToDisallowAccess)) {
          if (playerID != null)
-            Config.commandInterface.printToUser(playerID, Config.commandInterface.getDisplayName(playerToDisallowAccess) + " already cannot access " + accountID + ".");
+            Config.userInterface.printToUser(playerID, Config.userInterface.getDisplayName(playerToDisallowAccess) + " already cannot access " + accountID + ".");
          return;
       }
 
@@ -579,8 +606,8 @@ public final class Account {
       accountUsers.remove(playerToDisallowAccess);
       if (accountID != null && !accountID.isEmpty()) {
          if (playerID != null)
-            Config.commandInterface.printToUser(playerID, Config.commandInterface.getDisplayName(playerToDisallowAccess) + " may no longer access " + accountID);
-         Config.commandInterface.printToUser(playerToDisallowAccess, CommandEconomy.MSG_ACCOUNT_ACCESS_REVOKED + accountID);
+            Config.userInterface.printToUser(playerID, Config.userInterface.getDisplayName(playerToDisallowAccess) + " may no longer access " + accountID);
+         Config.userInterface.printToUser(playerToDisallowAccess, CommandEconomy.MSG_ACCOUNT_ACCESS_REVOKED + accountID);
       }
 
       // check whether the account was the player's default account
@@ -608,12 +635,12 @@ public final class Account {
 
       // check whether player has permission to use the account
       if (!hasAccess(playerID)) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_ACCESS + accountID);
          return;
       }
 
       // print the quantity in the given account
-      Config.commandInterface.printToUser(playerID, accountID + ": " +
+      Config.userInterface.printToUser(playerID, accountID + ": " +
          CommandEconomy.PRICE_FORMAT.format(money));
    }
 
@@ -633,13 +660,13 @@ public final class Account {
 
       // check whether player has permission to use this account
       if (!hasAccess(playerID)) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_TRANSFER);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_DENIED_TRANSFER);
          return;
       }
 
       // check if quantity is valid
       if (quantity < 0.0f) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_QUANTITY);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_QUANTITY);
          return;
       }
       if (quantity == 0.0f)
@@ -665,49 +692,29 @@ public final class Account {
 
          // stop if there isn't enough money
          if (money + canNegativeFeeBePaid(fee) < quantity + fee) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY_FEE);
+            Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY_FEE);
             return;
          }
       } else {
          // check if sender is able to send the desired quantity
          if (money < quantity) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY);
+            Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_ACCOUNT_NO_MONEY);
             return;
          }
       }
 
       // check if recipient id is empty
       if (recipientID == null || recipientID.isEmpty()) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_ID_INVALID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_ID_INVALID);
          return;
       }
 
       // if the recipient account ID is a playername, grab their default account or personal account
-      Account accountRecipient = null;
-      if (Config.commandInterface.doesPlayerExist(recipientID)) {
-         // try to grab a default account
-         accountRecipient = defaultAccounts.get(Config.commandInterface.getPlayerID(recipientID));
-
-         // if there is no default account set,
-         // grab a personal account
-         if (accountRecipient == null) {
-            accountRecipient = accounts.get(recipientID);
-
-            // if sending to a nonexistent personal account,
-            // open the personal account
-            if (accountRecipient == null)
-               accountRecipient = makeAccount(recipientID, Config.commandInterface.getPlayerID(recipientID));
-         }
-      }
-
-      // grab non-personal account
-      else {
-         accountRecipient = accounts.get(recipientID);
-      }
+      Account accountRecipient = grabPlayerAccount(recipientID, recipientID, null);
 
       // check if recipient account exists
       if (accountRecipient == null) {
-         Config.commandInterface.printErrorToUser(playerID,CommandEconomy.ERROR_ACCOUNT_MISSING + recipientID);
+         Config.userInterface.printErrorToUser(playerID,CommandEconomy.ERROR_ACCOUNT_MISSING + recipientID);
          return;
       }
 
@@ -720,7 +727,7 @@ public final class Account {
       accountRecipient.addMoney(quantity);
 
       // report the transfer
-      Config.commandInterface.printToUser(playerID, "Successfully transferred " + CommandEconomy.PRICE_FORMAT.format(quantity) + " to " + recipientID);
+      Config.userInterface.printToUser(playerID, "Successfully transferred " + CommandEconomy.PRICE_FORMAT.format(quantity) + " to " + recipientID);
 
       // if the owner of the recipient account can be found,
       // tell them about the transfer
@@ -729,15 +736,15 @@ public final class Account {
          if (senderID == null || senderID.isEmpty()) {
             // use the name of the account transferred into if it isn't a personal account
             if (recipientID.equals(accountRecipient.accountUsers.getFirst()))
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " from an anonymous party");
+               Config.userInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " from an anonymous party");
             else
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " in " + recipientID + " from an anonymous party");
+               Config.userInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " in " + recipientID + " from an anonymous party");
          } else {
             // use the name of the account transferred into if it isn't a personal account
             if (recipientID.equals(accountRecipient.accountUsers.getFirst()))
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " from " + senderID);
+               Config.userInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " from " + senderID);
             else
-               Config.commandInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " in " + recipientID + " from " + senderID);
+               Config.userInterface.printToUser(accountRecipient.accountUsers.getFirst(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity) + " in " + recipientID + " from " + senderID);
          }
       }
 
@@ -755,7 +762,7 @@ public final class Account {
          money -= fee;
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, Config.transactionFeeSendingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.userInterface.printToUser(playerID, Config.transactionFeeSendingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
 
       // mark the new account as needing to be saved
@@ -835,7 +842,7 @@ public final class Account {
       // check file existence
       if (!fileAccounts.isFile()) {
          // don't throw an exception, print a warning to advise user to reload accounts 
-         Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAccounts +
+         Config.userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAccounts +
             System.lineSeparator() + "To load accounts, replace " + Config.filenameAccounts +
             ", " + System.lineSeparator() + "then use the command \"reload accounts\"."
          );
@@ -863,7 +870,7 @@ public final class Account {
       try {
          fileReader = new Scanner(fileAccounts);
       } catch (FileNotFoundException e) {
-         Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSED + Config.filenameAccounts);
+         Config.userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSED + Config.filenameAccounts);
          e.printStackTrace();
 
          // allow other threads to adjust accounts' properties
@@ -896,7 +903,7 @@ public final class Account {
                accountCreationRecords.append(String.join(",", data) + '\n');
             } catch (Exception e) {
                String erroredAccount = String.join(",", data);
-               Config.commandInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_CREATION + erroredAccount);
+               Config.userInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_CREATION + erroredAccount);
 
                // store the line entry for later
                accountsErrored.append(erroredAccount);
@@ -915,7 +922,7 @@ public final class Account {
                   account = null;
                if (account == null) {
                   String erroredAccount = String.join(",", data);
-                  Config.commandInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_NONEXISTENT + erroredAccount);
+                  Config.userInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_NONEXISTENT + erroredAccount);
                   continue; // skip to the next entry
                }
 
@@ -923,7 +930,7 @@ public final class Account {
                playerID = UUID.fromString(data[1]);
                if (playerID == null) {
                   String erroredAccount = String.join(",", data);
-                  Config.commandInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_UUID_DEFAULT + erroredAccount);
+                  Config.userInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_UUID_DEFAULT + erroredAccount);
                   continue; // skip to the next entry
                }
 
@@ -935,7 +942,7 @@ public final class Account {
                defaultAccounts.put(playerID, account);
             } catch (Exception e) {
                String erroredAccount = String.join(",", data);
-               Config.commandInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_DEFAULT + erroredAccount);
+               Config.userInterface.printToConsole(CommandEconomy.WARN_ACCOUNT_DEFAULT + erroredAccount);
 
                // store the line entry for later
                accountsErrored.append(erroredAccount);
@@ -952,7 +959,7 @@ public final class Account {
             try {
                money = Float.parseFloat(data[1]);
             } catch (Exception ef) {
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_ACCOUNT_PARSING + data[0]);
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_ACCOUNT_PARSING + data[0]);
 
                // store the line entry for later
                accountsErrored.append(String.join(",", data));
@@ -969,7 +976,7 @@ public final class Account {
                try {
                   account = new Account(data[0], UUID.fromString(data[2]), money);
                } catch (Exception eo) {
-                  Config.commandInterface.printToConsole("warning - could not parse account owner UUID " + data[2] + " for account " + data[0]);
+                  Config.userInterface.printToConsole("warning - could not parse account owner UUID " + data[2] + " for account " + data[0]);
 
                   // store the line entry for later
                   accountsErrored.append(String.join(",", data));
@@ -984,13 +991,13 @@ public final class Account {
                      try {
                         account.accountUsers.add(UUID.fromString(data[i]));
                      } catch (Exception eu) {
-                        Config.commandInterface.printToConsole("warning - could not parse account user UUID " + data[i] + " for account " + data[0]);
+                        Config.userInterface.printToConsole("warning - could not parse account user UUID " + data[i] + " for account " + data[0]);
                      }
                   }
                }
             }
          } catch (Exception e) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_LOAD_ACCOUNTS);
+            Config.userInterface.printToConsole(CommandEconomy.ERROR_FILE_LOAD_ACCOUNTS);
             e.printStackTrace();
          }
       }
@@ -1099,7 +1106,7 @@ public final class Account {
          if (accountsErrored.length() > 0)
             fileWriter.write(CommandEconomy.WARN_FILE_WARES_INVALID + accountsErrored + '\n');
       } catch (IOException e) {
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_SAVE_ACCOUNTS);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_FILE_SAVE_ACCOUNTS);
          e.printStackTrace();
       }
 
@@ -1129,7 +1136,7 @@ public final class Account {
          return false; // if there was a problem, an error has already been printed
 
       // grab the player's name to check if the account is personal
-      String playername = Config.commandInterface.getDisplayName(playerID);
+      String playername = Config.userInterface.getDisplayName(playerID);
 
       // check if another thread is adjusting accounts' properties
       waitForMutex();

@@ -12,7 +12,7 @@ public class CommandAdd extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.add(InterfaceMinecraft.getSenderID(sender), args);
+      CommandProcessor.add(UserInterfaceMinecraft.getSenderID(sender), args);
   }
 
   @Override
@@ -38,7 +38,7 @@ public class CommandAdd extends CommandBase {
          return new LinkedList<String>();
 
       if (args.length == 2)
-         return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
 
       return new LinkedList<String>();
    }

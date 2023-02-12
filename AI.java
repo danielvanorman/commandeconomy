@@ -283,6 +283,12 @@ public class AI {
       load(profession);
    }
 
+   /** AI Constructor: No-arguments for GSON. */
+   public AI() {
+      // default values
+      decisionsPerTradeEvent = 1;
+   }
+
    /**
     * Prepares and checks the AI's data, correcting errors where possible.
     * <p>
@@ -316,7 +322,7 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
+                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
                                                             CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware
@@ -371,7 +377,7 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
+                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
                                                             CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware
@@ -425,7 +431,7 @@ public class AI {
                // if a preference is invalid, remove it
                if (wareID == null || Float.isNaN(bias)) {
                   if (Config.aiReportInvalidWares)
-                     Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_PREF_PRO + profession +
+                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_PREF_PRO + profession +
                                                             CommandEconomy.WARN_AI_INVALID_PREF_IDS + wareID);
 
                   iterator.remove();
@@ -450,7 +456,7 @@ public class AI {
       // if ware IDs are mismatched,
       // report the matching ones
       if (!isValid && wareIDsMismatched != null)
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_PREFS_MISMATCH_PRO + profession +
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_PREFS_MISMATCH_PRO + profession +
                                                 CommandEconomy.ERROR_AI_PREFS_MISMATCH_IDS + wareIDsMismatched.substring(0, wareIDsMismatched.length() - 2)); // -2 characters removes ending comma and space
 
       return !isValid; // true == error detected
@@ -482,7 +488,7 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
+                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
                                                             CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware
@@ -534,7 +540,7 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
+                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
                                                             CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware

@@ -14,7 +14,7 @@ public class CommandSetDefaultAccount extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.setDefaultAccount(InterfaceMinecraft.getSenderID(sender), args);
+      CommandProcessor.setDefaultAccount(UserInterfaceMinecraft.getSenderID(sender), args);
   }
 
    @Override

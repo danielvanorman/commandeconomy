@@ -14,7 +14,7 @@ import java.text.DecimalFormat;                                   // for formatt
  * navigate to (or start in) the .java file's directory,
  * and enter the following:<br>
  * javac commandEconomy\*.java<br>
- * java commandEconomy.InterfaceTerminal
+ * java commandEconomy.UserInterfaceTerminal
  * <p>
  * To generate external documentation files, open a terminal (such as CMD),
  * navigate to (or start in) the .java file's directory,
@@ -156,7 +156,7 @@ public final class CommandEconomy {
    /** title case name for presentation */
    public static final String NAME    = "Command Economy";
    /** version of this mod */
-   public static final String VERSION = "0.8";
+   public static final String VERSION = "0.8.1";
 
    /** used to format currency before displaying */
    public static final DecimalFormat PRICE_FORMAT = new DecimalFormat("$###,##0.00");
@@ -166,12 +166,12 @@ public final class CommandEconomy {
    // FUNCTIONS
    /**
     * Main function for initializing the market.
-    * Warning: Config.commandInterface must be initialized before calling this function!
+    * Warning: Config.userInterface must be initialized before calling this function!
     *
     * @param args unused
     */
    public static void start(String[] args) {
-      if (Config.commandInterface == null) {
+      if (Config.userInterface == null) {
          System.err.println(INITIALIZATION_ERROR);
          return;
       }
@@ -188,7 +188,7 @@ public final class CommandEconomy {
          // advising users to use the command "reload accounts" if necessary
 
       // run the market
-      Config.commandInterface.serviceRequests(); // runs commands until a stop command is used
+      Config.userInterface.serviceRequests(); // runs commands until a stop command is used
    }
 
    /**
@@ -203,7 +203,7 @@ public final class CommandEconomy {
    }
 
    // INTERFACE CONSTANTS
-   public final static String INITIALIZATION_ERROR = "CommandEconomy initialization fatal error - must initialize Config.commandInterface before calling CommandEconomy.start()";
+   public final static String INITIALIZATION_ERROR = "CommandEconomy initialization fatal error - must initialize Config.userInterface before calling CommandEconomy.start()";
 
    // command names
    public final static String CMD_HELP                      = "help";

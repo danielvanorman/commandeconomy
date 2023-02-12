@@ -14,7 +14,7 @@ public class CommandChangeStock extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.changeStock(InterfaceMinecraft.getSenderID(sender), args);
+      CommandProcessor.changeStock(UserInterfaceMinecraft.getSenderID(sender), args);
   }
 
    @Override
@@ -46,11 +46,11 @@ public class CommandChangeStock extends CommandBase {
 
       if (args.length == 1)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.WARES);
       }
       else if (args.length == 2)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[1], CommandGeneral.CHANGE_STOCK_KEYWORDS);
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], CommandGeneral.CHANGE_STOCK_KEYWORDS);
       }
 
       return new LinkedList<String>();

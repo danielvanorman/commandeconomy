@@ -11,7 +11,7 @@ import java.util.LinkedList;
 public class CommandResearch extends CommandBase {
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.research(InterfaceMinecraft.getSenderID(sender), args);
+      CommandProcessor.research(UserInterfaceMinecraft.getSenderID(sender), args);
   }
 
    @Override
@@ -47,8 +47,8 @@ public class CommandResearch extends CommandBase {
 
       switch(args.length)
       {
-         case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
-         case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+         case 1:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.WARES);
+         case 3:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[2], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
          default: return new LinkedList<String>();
       }
    }

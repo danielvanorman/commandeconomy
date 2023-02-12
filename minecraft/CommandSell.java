@@ -13,7 +13,7 @@ public class CommandSell extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.sell(InterfaceMinecraft.getSenderID(sender), sender, server, args);
+      CommandProcessor.sell(UserInterfaceMinecraft.getSenderID(sender), sender, server, args);
   }
 
    @Override
@@ -53,20 +53,20 @@ public class CommandSell extends CommandBase {
       if (sender instanceof EntityPlayer) {
          switch(args.length)
          {
-            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
-            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
-            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
-            case 4:  return InterfaceMinecraft.getAutoCompletionStrings(args[3], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 1:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.WARES);
+            case 2:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 3:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[2], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 4:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[3], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
             default: return new LinkedList<String>();
          }
       } else {
          switch(args.length)
          {
-            case 1:  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
-            case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.INVENTORY);
-            case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
-            case 5:  return InterfaceMinecraft.getAutoCompletionStrings(args[4], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
-            case 6:  return InterfaceMinecraft.getAutoCompletionStrings(args[5], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 1:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+            case 2:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], UserInterfaceMinecraft.AutoCompletionStringCategories.INVENTORY);
+            case 3:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[2], UserInterfaceMinecraft.AutoCompletionStringCategories.WARES);
+            case 5:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[4], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            case 6:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[5], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
             default: return new LinkedList<String>();
          }
       }

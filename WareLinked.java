@@ -69,22 +69,22 @@ public class WareLinked extends Ware
     */
    boolean setComponents(String[] componentsIDs, int[] componentsAmounts) {
       if (componentsIDs == null || componentsIDs.length == 0) {
-         Config.commandInterface.printToConsole("error - could not set components for " + wareID + ": no component IDs were given");
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_IDS);
          return false;
       }
 
       if (componentsAmounts == null || componentsAmounts.length == 0) {
-         Config.commandInterface.printToConsole("error - could not set components for " + wareID + ": missing componentsAmounts array specifying amounts of each component used");
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENTS_AMOUNTS);
          return false;
       }
 
       if (componentsIDs.length != componentsAmounts.length) {
-         Config.commandInterface.printToConsole("error - could not set components for " + wareID + ": unequal lengths of component arrays");
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENTS_UNEQUAL_LEN);
          return false;
       }
 
       if (yield <= 0) {
-         Config.commandInterface.printToConsole("error - could not set components for " + wareID + ": no yield was given or invalid yield was given");
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_YIELD);
          return false;
       }
 
@@ -139,16 +139,16 @@ public class WareLinked extends Ware
    @Override
    public String reloadComponents() {
       if (componentsIDs == null || componentsIDs.length == 0)
-         return "no component IDs were given";
+         return CommandEconomy.ERROR_COMPONENT_IDS;
 
       if (componentsAmounts == null || componentsAmounts.length == 0)
-         return "missing componentsAmounts array specifying amounts of each component used";
+         return CommandEconomy.ERROR_COMPONENTS_AMOUNTS;
 
       if (componentsIDs.length != componentsAmounts.length)
-         return "unequal lengths of component arrays";
+         return CommandEconomy.ERROR_COMPONENTS_UNEQUAL_LEN;
 
       if (yield <= 0)
-         return "no yield was given or invalid yield was given";
+         return CommandEconomy.ERROR_COMPONENT_YIELD;
 
       // initialize components array if it hasn't been already
       if (components == null)
@@ -368,7 +368,7 @@ public class WareLinked extends Ware
          if (!errorMessage.isEmpty())
             errorMessage += ", ";
 
-         errorMessage += "missing componentsAmounts array specifying amounts of each component used";
+         errorMessage += CommandEconomy.ERROR_COMPONENTS_AMOUNTS;
       }
 
       else if (componentsIDs != null && componentsIDs.length > 0 &&
@@ -376,7 +376,7 @@ public class WareLinked extends Ware
          if (!errorMessage.isEmpty())
             errorMessage += ", ";
 
-         errorMessage += "unequal lengths of component arrays";
+         errorMessage += CommandEconomy.ERROR_COMPONENTS_UNEQUAL_LEN;
       }
 
       return errorMessage;

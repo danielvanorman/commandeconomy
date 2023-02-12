@@ -15,7 +15,7 @@ public class CommandMoney extends CommandBase {
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
-      CommandProcessor.money(InterfaceMinecraft.getSenderID(sender), sender, args);
+      CommandProcessor.money(UserInterfaceMinecraft.getSenderID(sender), sender, args);
   }
 
    @Override
@@ -60,16 +60,16 @@ public class CommandMoney extends CommandBase {
       if (args.length == 1)
       {
          if (sender instanceof EntityPlayer)
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+            return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
       }
       else if (args.length == 2)
       {
          if (sender instanceof EntityPlayer)
             return new LinkedList<String>();
          else
-            return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+            return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
       }
 
       return new LinkedList<String>();

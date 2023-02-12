@@ -143,7 +143,7 @@ public final class Marketplace {
       // check file existence
       if (!fileWares.isFile()) {
          // don't throw an exception, print a warning to advise user to reload wares
-         Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameWares +
+         Config.userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameWares +
             System.lineSeparator() + "To load wares, replace " + Config.filenameWares + " or " + Config.filenameWaresSave +
             "," + System.lineSeparator() + "then use the command \"reload wares\"."
          );
@@ -196,7 +196,7 @@ public final class Marketplace {
          fileReader = new Scanner(fileWares);
       }
       catch (FileNotFoundException e) {
-         Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSED + Config.filenameWares);
+         Config.userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSED + Config.filenameWares);
          e.printStackTrace();
          releaseMutex();
          // signal threads to reload their wares when possible
@@ -232,7 +232,7 @@ public final class Marketplace {
             ware = Ware.fromJSON(line);
 
             if (ware == null) {
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_PARSING + line);
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_PARSING + line);
                waresErrored.add(line);
                continue;
             }
@@ -242,7 +242,7 @@ public final class Marketplace {
 
             // if there was an uncorrectable error, report it
             if (!wareError.isEmpty()) {
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_ENTRY_INVALID + wareError + ": " + line);
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_ENTRY_INVALID + wareError + ": " + line);
                waresErrored.add(line);
                continue;
             }
@@ -255,10 +255,10 @@ public final class Marketplace {
             // If it doesn't exist, print an error and save
             // the line entry to the side in case it is part
             // of a mod which will be added back later.
-            if (!Config.commandInterface.doesWareExist(wareID) &&
+            if (!Config.userInterface.doesWareExist(wareID) &&
                 !(ware instanceof WareUntradeable)) {
                // warn the server
-               Config.commandInterface.printToConsole(CommandEconomy.WARN_WARE_NONEXISTENT + wareID);
+               Config.userInterface.printToConsole(CommandEconomy.WARN_WARE_NONEXISTENT + wareID);
 
                // store the line entry for later
                waresErrored.add(line);
@@ -274,7 +274,7 @@ public final class Marketplace {
             // deleting wares not in the marketplace.
             duplicateWare = wares.containsKey(wareID);
             if (duplicateWare)
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_MISSING + wareID);
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_MISSING + wareID);
                // Note: If a new alias is assigned to this duplicate ware ID,
                // then until wares are saved and reloaded,
                // the ware ID will have two aliases: the old one and the new one.
@@ -308,7 +308,7 @@ public final class Marketplace {
 
                if (wareIDUsingAlias != null &&
                    !wareIDUsingAlias.equals(wareID)) {
-                  Config.commandInterface.printToConsole(CommandEconomy.WARN_WARE_ALIAS_USED
+                  Config.userInterface.printToConsole(CommandEconomy.WARN_WARE_ALIAS_USED
                      + alias
                      + System.lineSeparator() + "   is used by " + wareIDUsingAlias
                      + System.lineSeparator() + "   failed to assign to " + wareID);
@@ -329,7 +329,7 @@ public final class Marketplace {
                priceBaseAverage += ware.getBasePrice();
             }
          } catch (Exception e) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_PARSING_EXCEPT + line);
+            Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_PARSING_EXCEPT + line);
             e.printStackTrace();
          }
       } // end while loop for parsing lines
@@ -357,9 +357,9 @@ public final class Marketplace {
             if (fileWares.isFile())
                loadWares(fileWares);
             else
-               Config.commandInterface.printToConsole(CommandEconomy.WARN_WARE_NONE_LOADED);
+               Config.userInterface.printToConsole(CommandEconomy.WARN_WARE_NONE_LOADED);
          } else {
-            Config.commandInterface.printToConsole(CommandEconomy.WARN_WARE_NONE_LOADED);
+            Config.userInterface.printToConsole(CommandEconomy.WARN_WARE_NONE_LOADED);
          }
       }
       else { // avoids division-by-zero
@@ -429,7 +429,7 @@ public final class Marketplace {
          // and at least one ware needs their starting quantity set,
          // something is very wrong
          if (startQuanBaseMedian <= 0.0f) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_STARTING_QUANTITIES + Float.toString(startQuanBaseMedian));
+            Config.userInterface.printToConsole(CommandEconomy.ERROR_STARTING_QUANTITIES + Float.toString(startQuanBaseMedian));
 
             // record base prices to find median
             for (Ware wareCurrent : wares.values()) {
@@ -533,7 +533,7 @@ public final class Marketplace {
             // if the ware is valid, add it to the marketplace
             // if there are any wares using the given alias, handle it
             if (ware.getAlias() != null && wareAliasTranslations.containsKey(ware.getAlias())) {
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_ALIAS
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_ALIAS
                   + wareID + ", AKA " + ware.getAlias());
                ware.setAlias(null);
             }
@@ -582,7 +582,7 @@ public final class Marketplace {
          wareID = ware.getWareID();
 
          // tell the console which ware could not be loaded
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_PARSING_ID + wareID + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_PARSING_ID + wareID + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
 
          // reload ware's components
          missingComponent = ware.reloadComponents();
@@ -592,14 +592,14 @@ public final class Marketplace {
          if (missingComponent.isEmpty()) {
             // if no component seems to be missing,
             // suggest considering adjusting the setting for maximum crafting depth
-            Config.commandInterface.printToConsole(CommandEconomy.WARN_CRAFTING_DEPTH);
+            Config.userInterface.printToConsole(CommandEconomy.WARN_CRAFTING_DEPTH);
 
             // Even though the ware could probably be loaded at this point, it is not since
             // it exceeds the maximum crafting depth and
             // to ease debugging in case this ware is a component of earlier wares.
          } else {
             // to ease debugging, print the first missing component
-            Config.commandInterface.printToConsole(CommandEconomy.WARN_COMPONENT_MISSING + missingComponent);
+            Config.userInterface.printToConsole(CommandEconomy.WARN_COMPONENT_MISSING + missingComponent);
          }
 
          // record ware entry
@@ -636,7 +636,7 @@ public final class Marketplace {
 
          // check if there is enough data to create an alias
          if (data.length < 3) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_ENTRY + "missing data: " + entry);
+            Config.userInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_ENTRY + "missing data: " + entry);
             continue;
          }
 
@@ -644,20 +644,20 @@ public final class Marketplace {
             // double-check entry type
             type = Byte.parseByte(data[0]);
             if (type != 4) {
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_ENTRY + "invalid type: " + entry);
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_ENTRY + "invalid type: " + entry);
                continue;
             }
 
             // double-check that an alias exists
             if (data[1] == null || data[1].isEmpty()) {
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_ENTRY + "missing alias: " + entry);
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_ENTRY + "missing alias: " + entry);
                continue;
             }
             alias = data[1];
 
             // check whether it is a tag and whether that tag exists
-            if (Config.wareTagsReportInvalid && alias.startsWith("#") && !Config.commandInterface.doesOreDictionaryNameExist(alias.substring(1, alias.length()))) {
-               Config.commandInterface.printToConsole(CommandEconomy.WARN_ORE_NAME_NONEXISTENT + alias.substring(1, alias.length()));
+            if (Config.wareTagsReportInvalid && alias.startsWith("#") && !Config.userInterface.doesOreDictionaryNameExist(alias.substring(1, alias.length()))) {
+               Config.userInterface.printToConsole(CommandEconomy.WARN_ORE_NAME_NONEXISTENT + alias.substring(1, alias.length()));
                continue;
             }
 
@@ -683,7 +683,7 @@ public final class Marketplace {
 
             // check if any loaded ware was found
             if (wareID == null) {
-               Config.commandInterface.printToConsole(CommandEconomy.WARN_ALT_ALIAS_UNUSED + alias);
+               Config.userInterface.printToConsole(CommandEconomy.WARN_ALT_ALIAS_UNUSED + alias);
                continue;
             }
 
@@ -691,7 +691,7 @@ public final class Marketplace {
             wareIDUsingAlias = wareAliasTranslations.get(alias);
             if (wareIDUsingAlias != null &&
                 !wareIDUsingAlias.equals(wareID)) {
-               Config.commandInterface.printToConsole(CommandEconomy.WARN_WARE_ALIAS_USED
+               Config.userInterface.printToConsole(CommandEconomy.WARN_WARE_ALIAS_USED
                   + alias
                   + System.lineSeparator() + "   is now used by " + wareIDUsingAlias
                   + System.lineSeparator() + "   was assigned to " + wareID);
@@ -703,7 +703,7 @@ public final class Marketplace {
          // if parsing fails, report the error
          // but continue loading other aliases
          catch (Exception e) {
-            Config.commandInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_PARSING + entry);
+            Config.userInterface.printToConsole(CommandEconomy.ERROR_ALT_ALIAS_PARSING + entry);
             e.printStackTrace();
          }
       }
@@ -805,7 +805,7 @@ public final class Marketplace {
             fileWriter.write(alternateAliasEntries.toString());
          }
       } catch (IOException e) {
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_SAVE_WARES);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_FILE_SAVE_WARES);
          e.printStackTrace();
       }
 
@@ -866,7 +866,7 @@ public final class Marketplace {
             lineEntry.setLength(0);
          }
       } catch (IOException e) {
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_FILE_PRINT_MARKET);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_FILE_PRINT_MARKET);
          e.printStackTrace();
       }
 
@@ -876,7 +876,7 @@ public final class Marketplace {
             fileWriter.close();
       } catch (Exception e) { }
 
-      Config.commandInterface.printToConsole(CommandEconomy.MSG_PRINT_MARKET);
+      Config.userInterface.printToConsole(CommandEconomy.MSG_PRINT_MARKET);
    }
 
    /**
@@ -1427,10 +1427,9 @@ public final class Marketplace {
     * @param maxUnitPrice stop buying if unit price is above this amount
     * @param pricePercent percentage multiplier for ware's price
     */
-   public static void buy(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public static void buy(UUID playerID, UserInterface.Coordinates coordinates,
                           String accountID, String wareID, int quantity, float maxUnitPrice, float pricePercent) {
-      if (Float.isNaN(maxUnitPrice) || // if something's wrong with the unit price, stop
-         quantity <= 0              || // if nothing should be bought, stop
+      if (quantity <= 0              || // if nothing should be bought, stop
          playerID == null)             // if no player was given, there is no party responsible for the purchase
          return;
 
@@ -1443,13 +1442,13 @@ public final class Marketplace {
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, stop
       if (ware == null) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
          return;
       }
       // if ware is invalid, stop
       if (Float.isNaN(ware.getBasePrice())) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_INVALID + wareID);
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_INVALID + ware.getWareID() + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_INVALID + wareID);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_INVALID + ware.getWareID() + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
          waresErrored.add(ware.toJSON() + '\n');
          wares.remove(ware.getWareID());
          return;
@@ -1458,7 +1457,7 @@ public final class Marketplace {
 
       // if ware is untradeable, stop
       if (ware instanceof WareUntradeable) {
-         Config.commandInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_BUY_UNTRADEABLE);
+         Config.userInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_BUY_UNTRADEABLE);
          return;
       }
 
@@ -1466,35 +1465,35 @@ public final class Marketplace {
       // unless the ware should be manufactured if possible
       if (ware.getQuantity() <= 0 &&
           !(Config.buyingOutOfStockWaresAllowed && ware.hasComponents())) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
          return;
       }
 
       // ---Analyze Player's Inventory:---
       // check whether it is possible to give the ware to the player
-      if (!Config.commandInterface.doesWareExist(wareID)) {
-         Config.commandInterface.printErrorToUser(playerID, "error - " + wareID + " does not appear to exist outside of the marketplace");
-         Config.commandInterface.printToConsole("commandeconomy - Marketplace.buy(), error - " + wareID + " does not appear to exist outside of the marketplace");
+      if (!Config.userInterface.doesWareExist(wareID)) {
+         Config.userInterface.printErrorToUser(playerID, "error - " + wareID + " does not appear to exist outside of the marketplace");
+         Config.userInterface.printToConsole("commandeconomy - Marketplace.buy(), error - " + wareID + " does not appear to exist outside of the marketplace");
          return;
       }
 
       // if player can't hold any more wares, stop
-      int inventorySpaceAvailable = Config.commandInterface.getInventorySpaceAvailable(playerID, coordinates);
+      int inventorySpaceAvailable = Config.userInterface.getInventorySpaceAvailable(playerID, coordinates);
       // check whether a player inventory or chest inventory should be used
       if (inventorySpaceAvailable == 0) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_NO_SPACE);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_NO_SPACE);
          return;
       }
       // check whether an inventory was found
       if (inventorySpaceAvailable == -1) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
          return;
       }
 
       // ---Analyze Account:---
       // if no account ID was given, use the player's personal account
       if (accountID == null || accountID.isEmpty())
-         accountID = Config.commandInterface.getDisplayName(playerID);
+         accountID = Config.userInterface.getDisplayName(playerID);
 
       // grab the account to be used
       Account account = Account.grabAndCheckAccount(accountID, playerID);
@@ -1508,7 +1507,7 @@ public final class Marketplace {
       int quantityToBuy = quantity;
 
       // only buy until the acceptable price is reached
-      if (maxUnitPrice != 0.0f) {
+      if (!Float.isNaN(maxUnitPrice)) {
          // find out how much quantity is for sale until the given price
          quantityToBuy = getQuantityUntilPrice(ware, maxUnitPrice / pricePercent, true);
 
@@ -1528,7 +1527,7 @@ public final class Marketplace {
          quantityToBuy = ware.getQuantity();
 
       // if quantity exceeds inventory space, only buy enough to fill inventory
-      inventorySpaceAvailable *= Config.commandInterface.getStackSize(wareID); // how many more items may be held
+      inventorySpaceAvailable *= Config.userInterface.getStackSize(wareID); // how many more items may be held
       if (quantityToBuy > inventorySpaceAvailable)
          quantityToBuy = inventorySpaceAvailable;
 
@@ -1586,7 +1585,7 @@ public final class Marketplace {
 
          // if not enough money to buy one ware, stop
          if (quantityToBuy <= 0) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_NO_MONEY);
+            Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_NO_MONEY);
             return;
          }
       }
@@ -1606,7 +1605,7 @@ public final class Marketplace {
           quantityToBuy < quantity) {
          // unless the unit price is too high,
          // purchase components and create wares
-         if (maxUnitPrice == 0.0f || maxUnitPrice >= ware.getBasePrice() * Config.priceCeiling * Config.buyingOutOfStockWaresPriceMult)
+         if (Float.isNaN(maxUnitPrice) || maxUnitPrice >= ware.getBasePrice() * Config.priceCeiling * Config.buyingOutOfStockWaresPriceMult)
             manufacturedWares = ware.manufacture(playerID, quantity - quantityToBuy,
                                                  moneyAvailable - price,  inventorySpaceAvailable - quantityToBuy);
          else
@@ -1619,7 +1618,7 @@ public final class Marketplace {
             // if the quantity manufactured is null,
             // the ware couldn't be manufactured
             if (manufacturedWares == null)
-               Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
+               Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_BUY_OUT_OF_STOCK + wareID);
             return;
          }
 
@@ -1643,7 +1642,7 @@ public final class Marketplace {
       account.subtractMoney(price);
 
       // give the ware to the player
-      Config.commandInterface.addToInventory(playerID, coordinates, wareID, quantityToBuy);
+      Config.userInterface.addToInventory(playerID, coordinates, wareID, quantityToBuy);
 
       // subtract from market's quantity
       waitForMutex(); // check if another thread is adjusting wares' properties
@@ -1667,23 +1666,23 @@ public final class Marketplace {
           * String accountName = ""     or " taken from " + accountID;
           *
           * Printing could be accomplished with:
-          * Config.commandInterface.printToUser(playerID, "Bought " + quantityToBuy + " " + wareName + " for " + CommandEconomy.PRICE_FORMAT.format(price) + accountName);
+          * Config.userInterface.printToUser(playerID, "Bought " + quantityToBuy + " " + wareName + " for " + CommandEconomy.PRICE_FORMAT.format(price) + accountName);
           */
 
          // print the name of the account used if it isn't a personal or default account
-         if (accountID.equals(Config.commandInterface.getDisplayName(account.getOwner())) ||
-             accountID.equals(Config.commandInterface.getDisplayName(playerID)))
-            Config.commandInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + wareID + " for " + CommandEconomy.PRICE_FORMAT.format(price));
+         if (accountID.equals(Config.userInterface.getDisplayName(account.getOwner())) ||
+             accountID.equals(Config.userInterface.getDisplayName(playerID)))
+            Config.userInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + wareID + " for " + CommandEconomy.PRICE_FORMAT.format(price));
          else
-            Config.commandInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + wareID + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from " + accountID);
+            Config.userInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + wareID + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from " + accountID);
       }
       else {
          // print the name of the account used if it isn't a personal or default account
-         if (accountID.equals(Config.commandInterface.getDisplayName(account.getOwner())) ||
-             accountID.equals(Config.commandInterface.getDisplayName(playerID)))
-            Config.commandInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(price));
+         if (accountID.equals(Config.userInterface.getDisplayName(account.getOwner())) ||
+             accountID.equals(Config.userInterface.getDisplayName(playerID)))
+            Config.userInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(price));
          else
-            Config.commandInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from " + accountID);
+            Config.userInterface.printToUser(playerID, "Bought " + Integer.toString(quantityToBuy) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(price) + " taken from " + accountID);
       }
 
       // pay the transaction fee
@@ -1706,7 +1705,7 @@ public final class Marketplace {
          account.subtractMoney(fee);
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, Config.transactionFeeBuyingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.userInterface.printToUser(playerID, Config.transactionFeeBuyingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
    }
 
@@ -1722,11 +1721,10 @@ public final class Marketplace {
     * @param minUnitPrice stop selling if unit price is below this amount
     * @param pricePercent percentage multiplier for ware's price
     */
-   public static void sell(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public static void sell(UUID playerID, UserInterface.Coordinates coordinates,
                            String accountID, String wareID, int quantity,
                            float minUnitPrice, float pricePercent) {
-      if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
-         quantity <  0              || // if nothing should be sold, stop; 0 quantity means sell everything
+      if (quantity <  0              || // if nothing should be sold, stop; 0 quantity means sell everything
          playerID == null)             // if no player was given, there is no party responsible for the purchase
          return;
 
@@ -1738,18 +1736,18 @@ public final class Marketplace {
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, check for a substitute
       if (ware == null && Config.allowWareTagSubstitution)
-         ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
+         ware = Config.userInterface.getOreDictionarySubstitution(wareID);
       // if no substitute exists or should be used, stop
       if (ware == null) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
          return;
       }
       String translatedID = ware.getWareID();
 
       // if ware is invalid, stop
       if (Float.isNaN(ware.getBasePrice())) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_INVALID + wareID);
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_INVALID + translatedID + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_INVALID + wareID);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_INVALID + translatedID + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
          waresErrored.add(ware.toJSON() + '\n');
          wares.remove(translatedID);
          return;
@@ -1758,7 +1756,7 @@ public final class Marketplace {
       // if selling at or past the price floor is prohibited,
       // then stop and warn players if they are about to
       if (Config.noGarbageDisposing && hasReachedPriceFloor(ware)) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_SELL_NO_GARBAGE_DISPOSING);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_SELL_NO_GARBAGE_DISPOSING);
          return;
       }
 
@@ -1768,9 +1766,9 @@ public final class Marketplace {
       // use the translated ID
       if (!wareID.startsWith("#") && // not a tag
           !wareID.contains(":"))     // not a base ID
-         waresFound = Config.commandInterface.checkInventory(playerID, coordinates, translatedID);
+         waresFound = Config.userInterface.checkInventory(playerID, coordinates, translatedID);
       else
-         waresFound = Config.commandInterface.checkInventory(playerID, coordinates, wareID);
+         waresFound = Config.userInterface.checkInventory(playerID, coordinates, wareID);
 
       // if player doesn't have the ware, stop
       if (waresFound.isEmpty())
@@ -1778,13 +1776,13 @@ public final class Marketplace {
 
       // check whether an inventory was found
       if (waresFound.get(0).quantity == -1) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
          return;
       }
 
       // if no account ID was given, use the player's personal account
       if (accountID == null || accountID.isEmpty())
-         accountID = Config.commandInterface.getDisplayName(playerID);
+         accountID = Config.userInterface.getDisplayName(playerID);
 
       // grab the account to be used
       Account account = Account.grabAndCheckAccount(accountID, playerID);
@@ -1797,7 +1795,7 @@ public final class Marketplace {
       int quantityToSell = quantity;
 
       // only sell until the acceptable price is reached
-      if (minUnitPrice != 0.0f) {
+      if (!Float.isNaN(minUnitPrice)) {
          // find out how much quantity is for sale until the given price
          quantityToSell = getQuantityUntilPrice(ware, minUnitPrice / pricePercent, false);
 
@@ -1815,7 +1813,7 @@ public final class Marketplace {
       // check whether profit will be made
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSelling != 0.0f &&
-          minUnitPrice >= 0.0f) {
+          (Float.isNaN(minUnitPrice) || minUnitPrice > 0.0f)) {
          // calculate potential income and fee
          float price = getPrice(null, ware, quantityToSell, PriceType.CURRENT_SELL) * pricePercent;
          float fee   = calcTransactionFeeSelling(price);
@@ -1823,7 +1821,7 @@ public final class Marketplace {
          // if selling is guaranteed to lose money, don't sell
          if (fee != 0.0f && // if the fee is zero, it cannot incur costs
              price - fee + Account.canNegativeFeeBePaid(fee) <= 0.0f) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
+            Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
             return;
          }
       }
@@ -1839,19 +1837,19 @@ public final class Marketplace {
       // if the ware has an alias, use it
       if (ware.getAlias() == null || ware.getAlias().isEmpty()) {
          // print the name of the account used if it isn't a personal or default account
-         if (accountID.equals(Config.commandInterface.getDisplayName(account.getOwner())) ||
-             accountID.equals(Config.commandInterface.getDisplayName(playerID)))
-            Config.commandInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + translatedID + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]));
+         if (accountID.equals(Config.userInterface.getDisplayName(account.getOwner())) ||
+             accountID.equals(Config.userInterface.getDisplayName(playerID)))
+            Config.userInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + translatedID + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]));
          else
-            Config.commandInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + translatedID + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
+            Config.userInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + translatedID + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
       }
       else {
          // print the name of the account used if it isn't a personal account
-         if (accountID.equals(Config.commandInterface.getDisplayName(account.getOwner())) ||
-             accountID.equals(Config.commandInterface.getDisplayName(playerID)))
-            Config.commandInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]));
+         if (accountID.equals(Config.userInterface.getDisplayName(account.getOwner())) ||
+             accountID.equals(Config.userInterface.getDisplayName(playerID)))
+            Config.userInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]));
          else
-            Config.commandInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
+            Config.userInterface.printToUser(playerID, "Sold " + Integer.toString(quantitySold) + " " + ware.getAlias() + " for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
       }
 
       // pay the transaction fee
@@ -1874,7 +1872,7 @@ public final class Marketplace {
          account.subtractMoney(fee);
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.userInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
    }
 
@@ -1888,7 +1886,7 @@ public final class Marketplace {
     * @param accountID    key used to retrieve account information
     * @param pricePercent percentage multiplier for ware's price
     */
-   public static void sellAll(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   public static void sellAll(UUID playerID, UserInterface.Coordinates coordinates,
       List<Stock> inventory, String accountID, float pricePercent) {
       if ((coordinates == null &&                            // if the given inventory is empty and no coordinates are given,
           (inventory   == null || inventory.isEmpty())) || // there is nothing to sell
@@ -1901,7 +1899,7 @@ public final class Marketplace {
 
       // if no account ID was given, use the player's personal account
       if (accountID == null || accountID.isEmpty())
-         accountID = Config.commandInterface.getDisplayName(playerID);
+         accountID = Config.userInterface.getDisplayName(playerID);
 
       // grab the account to be used
       Account account = Account.grabAndCheckAccount(accountID, playerID);
@@ -1912,8 +1910,8 @@ public final class Marketplace {
 
       // validate coordinates
       if (coordinates != null) {
-         if (Config.commandInterface.getInventorySpaceAvailable(playerID, coordinates) == -1) {
-            Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
+         if (Config.userInterface.getInventorySpaceAvailable(playerID, coordinates) == -1) {
+            Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_MISSING);
             return;
          }
       }
@@ -1923,7 +1921,7 @@ public final class Marketplace {
       if (Config.chargeTransactionFees &&
           Config.transactionFeeSellingIsMult &&
           Config.transactionFeeSelling >= 1.0f) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
          return;
       }
 
@@ -1939,11 +1937,11 @@ public final class Marketplace {
 
       // report success
       // print the name of the account used if it isn't a personal or default account
-      if (accountID.equals(Config.commandInterface.getDisplayName(account.getOwner())) ||
-          accountID.equals(Config.commandInterface.getDisplayName(playerID)))
-         Config.commandInterface.printToUser(playerID, "Sold " + Integer.toString((int) salesResults[1]) + " items for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]));
+      if (accountID.equals(Config.userInterface.getDisplayName(account.getOwner())) ||
+          accountID.equals(Config.userInterface.getDisplayName(playerID)))
+         Config.userInterface.printToUser(playerID, "Sold " + Integer.toString((int) salesResults[1]) + " items for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]));
       else
-         Config.commandInterface.printToUser(playerID, "Sold " + Integer.toString((int) salesResults[1]) + " items for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
+         Config.userInterface.printToUser(playerID, "Sold " + Integer.toString((int) salesResults[1]) + " items for " + CommandEconomy.PRICE_FORMAT.format(salesResults[0]) + ", sent money to " + accountID);
 
       // pay the transaction fee
       if (Config.chargeTransactionFees &&
@@ -1961,7 +1959,7 @@ public final class Marketplace {
          account.subtractMoney(fee);
 
          // report fee payment
-         Config.commandInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.userInterface.printToUser(playerID, Config.transactionFeeSellingMsg + CommandEconomy.PRICE_FORMAT.format(fee));
       }
    }
 
@@ -1981,11 +1979,10 @@ public final class Marketplace {
     * @param pricePercent percentage multiplier for ware's price
     * @return total money from selling wares and the quantity sold
     */
-   private static float[] sellStock(UUID playerID, InterfaceCommand.Coordinates coordinates,
+   private static float[] sellStock(UUID playerID, UserInterface.Coordinates coordinates,
                                     List<Stock> stocks, int quantity,
                                     float minUnitPrice, float pricePercent) {
-      if (Float.isNaN(minUnitPrice) || // if something's wrong with the acceptable price, stop
-          quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
+      if (quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
          return null;
 
       // if price multiplier is invalid, set it have no effect
@@ -2064,7 +2061,7 @@ public final class Marketplace {
             // if the transaction is profitable, sell the ware
             if (isProfitable) {
                // take the ware
-               Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, quantityToSell);
+               Config.userInterface.removeFromInventory(playerID, coordinates, stock.wareID, quantityToSell);
                quantitySold += quantityToSell;
 
                // add quantity sold to the marketplace
@@ -2082,7 +2079,7 @@ public final class Marketplace {
             if (quantity == quantitySold)
                break;
          } catch (Exception e) {
-            Config.commandInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
+            Config.userInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
             e.printStackTrace();
             // don't return, keep trying to sell wares and pay the player
          }
@@ -2093,7 +2090,7 @@ public final class Marketplace {
       // don't process it
       if (!isProfitable) {
          releaseMutex(); // allow other threads to adjust wares' properties
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE_SALES_LOSS);
          return new float[]{0.0f, 0.0f};
       }
 
@@ -2104,13 +2101,13 @@ public final class Marketplace {
          for (Stock stock : unsoldStocks) {
             try {
                // take the ware
-               Config.commandInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
+               Config.userInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
                quantitySold += stock.quantity;
 
                // add quantity sold to the marketplace
                stock.ware.addQuantity(stock.quantity);
             } catch (Exception e) {
-               Config.commandInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
+               Config.userInterface.printToConsole(CommandEconomy.MSG_SELLALL + stock.wareID);
                e.printStackTrace();
                // don't return, keep trying to sell wares and pay the player
             }
@@ -2143,7 +2140,7 @@ public final class Marketplace {
 
       // check if ware id is empty
       if (wareID == null || wareID.isEmpty()) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_ID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_ID);
          return;
       }
 
@@ -2151,18 +2148,18 @@ public final class Marketplace {
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, check for a substitute
       if (ware == null && Config.allowWareTagSubstitution)
-         ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
+         ware = Config.userInterface.getOreDictionarySubstitution(wareID);
       // if no substitute exists or should be used, stop
       if (ware == null) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
          return;
       }
       wareID = ware.getWareID();
 
       // if ware is invalid, stop
       if (Float.isNaN(ware.getBasePrice())) {
-         Config.commandInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_INVALID + wareID);
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_WARE_INVALID + wareID + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_INVALID + wareID);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_WARE_INVALID + wareID + CommandEconomy.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
          waresErrored.add(ware.toJSON() + '\n');
          wares.remove(wareID);
          return;
@@ -2191,10 +2188,10 @@ public final class Marketplace {
          // print the untradeable ware's price
          if (ALIAS != null &&
              !ALIAS.isEmpty()) {
-            Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+            Config.userInterface.printToUser(playerID, ALIAS + " (" + wareID
                + "): " + CommandEconomy.PRICE_FORMAT.format(priceBuy));
          } else {
-            Config.commandInterface.printToUser(playerID, wareID
+            Config.userInterface.printToUser(playerID, wareID
                + ": " + CommandEconomy.PRICE_FORMAT.format(priceBuy));
          }
          return;
@@ -2222,14 +2219,14 @@ public final class Marketplace {
           !ALIAS.isEmpty()) {
          // print prices for buying and selling
          if (PRINT_BOTH_PRICES) {
-            Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+            Config.userInterface.printToUser(playerID, ALIAS + " (" + wareID
                + "): Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
                + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell)
                + ", " + Integer.toString(ware.getQuantity()));
          }
          // only print one price
          else
-            Config.commandInterface.printToUser(playerID, ALIAS + " (" + wareID
+            Config.userInterface.printToUser(playerID, ALIAS + " (" + wareID
                + "): " + CommandEconomy.PRICE_FORMAT.format(priceSell)
                + ", " + Integer.toString(ware.getQuantity()));
       }
@@ -2238,14 +2235,14 @@ public final class Marketplace {
       else {
          // print prices for buying and selling
          if (PRINT_BOTH_PRICES) {
-            Config.commandInterface.printToUser(playerID, wareID
+            Config.userInterface.printToUser(playerID, wareID
                + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
                + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell)
                + ", " + Integer.toString(ware.getQuantity()));
          }
          // only print one price
          else
-            Config.commandInterface.printToUser(playerID, wareID
+            Config.userInterface.printToUser(playerID, wareID
                + ": " + CommandEconomy.PRICE_FORMAT.format(priceSell)
                + ", " + Integer.toString(ware.getQuantity()));
       }
@@ -2269,7 +2266,7 @@ public final class Marketplace {
          }
 
          // report prices
-         Config.commandInterface.printToUser(playerID, "   for " + Integer.toString(quantity)
+         Config.userInterface.printToUser(playerID, "   for " + Integer.toString(quantity)
             + ": Buy - " + CommandEconomy.PRICE_FORMAT.format(priceBuy)
             + " | Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
       }
@@ -2287,7 +2284,7 @@ public final class Marketplace {
     * @param playerID     user responsible for the trading
     * @param wareID       key used to retrieve ware information
     * @param quantity     how much would be traded
-    * @param percentWorth multiplier for price
+    * @param percentWorth ware's damage as a percentage
     * @param pricePercent percentage multiplier for ware's price
     */
    public static void check(UUID playerID, String wareID, int quantity,
@@ -2302,7 +2299,7 @@ public final class Marketplace {
       Ware ware = translateAndGrab(wareID);
       // if ware is not in the market, check for a substitute
       if (ware == null && Config.allowWareTagSubstitution)
-         ware = Config.commandInterface.getOreDictionarySubstitution(wareID);
+         ware = Config.userInterface.getOreDictionarySubstitution(wareID);
       // if no substitute exists or should be used, stop
       if (ware == null || Float.isNaN(ware.getBasePrice()) || ware instanceof WareUntradeable)
          return;
@@ -2327,7 +2324,7 @@ public final class Marketplace {
             }
 
             // report price
-            Config.commandInterface.printToUser(playerID, "   for held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
+            Config.userInterface.printToUser(playerID, "   for held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
          }
          else {
             // find selling price
@@ -2341,7 +2338,7 @@ public final class Marketplace {
             }
 
             // report price
-            Config.commandInterface.printToUser(playerID, "   for " + Integer.toString(quantity)
+            Config.userInterface.printToUser(playerID, "   for " + Integer.toString(quantity)
             + " of held inventory: Sell - " + CommandEconomy.PRICE_FORMAT.format(priceSell));
          }
       }

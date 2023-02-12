@@ -39,51 +39,51 @@ public class CommandGeneral extends CommandBase {
             break;
 
          case CommandEconomy.CMD_BUY:
-            InterfaceMinecraft.commandBuy.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandBuy.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_SELL:
-            InterfaceMinecraft.commandSell.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandSell.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_CHECK:
-            InterfaceMinecraft.commandCheck.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandCheck.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_SELLALL_LOWER:
-            InterfaceMinecraft.commandSellAll.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandSellAll.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case PlatformStrings.CMD_NOSELL_LOWER:
-            InterfaceMinecraft.commandNoSell.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandNoSell.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_MONEY:
-            InterfaceMinecraft.commandMoney.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandMoney.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_SEND:
-            InterfaceMinecraft.commandSend.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandSend.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_CREATE:
-            InterfaceMinecraft.commandCreate.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandCreate.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_DELETE:
-            InterfaceMinecraft.commandDelete.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandDelete.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_GRANT_ACCESS_LOWER:
-            InterfaceMinecraft.commandGrantAccess.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandGrantAccess.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_REVOKE_ACCESS_LOWER:
-            InterfaceMinecraft.commandRevokeAccess.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandRevokeAccess.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_RESEARCH:
-            CommandProcessor.research(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
+            CommandProcessor.research(UserInterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
             break;
 
          case CommandEconomy.CMD_SAVE:
@@ -96,7 +96,7 @@ public class CommandGeneral extends CommandBase {
             break;
 
          case CommandEconomy.CMD_ADD:
-            InterfaceMinecraft.commandAdd.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
+            UserInterfaceMinecraft.commandAdd.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
             return;
 
          case CommandEconomy.CMD_SET:
@@ -116,11 +116,11 @@ public class CommandGeneral extends CommandBase {
             break;
 
          case CommandEconomy.CMD_SET_DEFAULT_ACCOUNT_LOWER:
-            CommandProcessor.setDefaultAccount(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
+            CommandProcessor.setDefaultAccount(UserInterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
             break;
 
          default:
-            InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_INVALID_CMD);
+            UserInterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_INVALID_CMD);
             break;
       }
   }
@@ -202,15 +202,15 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestSave(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
+      if (!UserInterfaceMinecraft.permissionToExecuteStatic(UserInterfaceMinecraft.getSenderID(sender), sender, true)) {
+         UserInterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
       // call corresponding functions
       Marketplace.saveWares();
       Account.saveAccounts();
-      InterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_SAVED_ECONOMY);
+      UserInterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_SAVED_ECONOMY);
    }
 
    /**
@@ -222,16 +222,16 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestReload(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
+      if (!UserInterfaceMinecraft.permissionToExecuteStatic(UserInterfaceMinecraft.getSenderID(sender), sender, true)) {
+         UserInterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
       }
 
-      CommandProcessor.reload(InterfaceMinecraft.getSenderID(sender), args, 1);
+      CommandProcessor.reload(UserInterfaceMinecraft.getSenderID(sender), args, 1);
 
       // reload autocompletion strings for ware aliases and account IDs
       // in case they were changed if wares or accounts were reloaded
-      InterfaceMinecraft.sortAccountIDs();
-      InterfaceMinecraft.sortWareAliases();
+      UserInterfaceMinecraft.sortAccountIDs();
+      UserInterfaceMinecraft.sortWareAliases();
    }
 
    /**
@@ -253,12 +253,12 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestSet(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
+      if (!UserInterfaceMinecraft.permissionToExecuteStatic(UserInterfaceMinecraft.getSenderID(sender), sender, true)) {
+         UserInterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
-      CommandProcessor.set(InterfaceMinecraft.getSenderID(sender), args, 1);
+      CommandProcessor.set(UserInterfaceMinecraft.getSenderID(sender), args, 1);
    }
 
    /**
@@ -271,12 +271,12 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestChangeStock(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
+      if (!UserInterfaceMinecraft.permissionToExecuteStatic(UserInterfaceMinecraft.getSenderID(sender), sender, true)) {
+         UserInterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
-      CommandProcessor.changeStock(InterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
+      CommandProcessor.changeStock(UserInterfaceMinecraft.getSenderID(sender), Arrays.copyOfRange(args, 1, args.length));
    }
 
    /**
@@ -288,14 +288,14 @@ public class CommandGeneral extends CommandBase {
    protected static void serviceRequestPrintMarket(ICommandSender sender, String[] args) {
       // check if command sender has
       // permission to execute this command
-      if (!InterfaceMinecraft.permissionToExecuteStatic(InterfaceMinecraft.getSenderID(sender), sender, true)) {
-         InterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
+      if (!UserInterfaceMinecraft.permissionToExecuteStatic(UserInterfaceMinecraft.getSenderID(sender), sender, true)) {
+         UserInterfaceMinecraft.forwardErrorToUser(sender, CommandEconomy.ERROR_PERMISSION);
          return;
       }
 
       // call corresponding functions
       Marketplace.printMarket();
-      InterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_PRINT_MARKET);
+      UserInterfaceMinecraft.forwardToUser(sender, CommandEconomy.MSG_PRINT_MARKET);
    }
 
    @Override
@@ -330,25 +330,25 @@ public class CommandGeneral extends CommandBase {
 
       if (args.length == 1)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[0], COMMAND_NAMES);
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], COMMAND_NAMES);
       }
 
       if (args.length >= 2)
       {
          switch(args[0].toLowerCase())
          {
-            case CommandEconomy.CMD_HELP: return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.HELP_COMMAND_BLOCK});
+            case CommandEconomy.CMD_HELP: return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.HELP_COMMAND_BLOCK});
 
             case CommandEconomy.CMD_ADD:
             case CommandEconomy.CMD_SET:
                switch(args.length)
                {
-                  case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+                  case 3:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[2], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
                   default: return new LinkedList<String>();
                }
 
             case CommandEconomy.CMD_BUY:
-               return InterfaceMinecraft.commandBuy.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandBuy.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_CHANGE_STOCK_LOWER:
                if (args.length == 1)
@@ -356,54 +356,54 @@ public class CommandGeneral extends CommandBase {
 
                if (args.length == 2)
                {
-                  return InterfaceMinecraft.getAutoCompletionStrings(args[0], InterfaceMinecraft.AutoCompletionStringCategories.WARES);
+                  return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.WARES);
                }
                else if (args.length == 3)
                {
-                  return InterfaceMinecraft.getAutoCompletionStrings(args[1], CHANGE_STOCK_KEYWORDS);
+                  return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], CHANGE_STOCK_KEYWORDS);
                }
 
                return new LinkedList<String>();
 
             case CommandEconomy.CMD_CHECK:
-               return InterfaceMinecraft.commandCheck.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandCheck.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_CREATE:
-               return InterfaceMinecraft.commandCreate.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandCreate.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_DELETE:
-               return InterfaceMinecraft.commandDelete.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandDelete.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_GRANT_ACCESS_LOWER:
             case CommandEconomy.CMD_REVOKE_ACCESS_LOWER:
                switch(args.length)
                {
-                  case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], InterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
-                  case 3:  return InterfaceMinecraft.getAutoCompletionStrings(args[2], InterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+                  case 2:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], UserInterfaceMinecraft.AutoCompletionStringCategories.PLAYERS);
+                  case 3:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[2], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
                   default: return new LinkedList<String>();
                }
 
             case CommandEconomy.CMD_MONEY:
-               return InterfaceMinecraft.commandMoney.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandMoney.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case PlatformStrings.CMD_NOSELL_LOWER:
-               return InterfaceMinecraft.commandNoSell.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandNoSell.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_RELOAD:
                switch(args.length)
                {
-                  case 2:  return InterfaceMinecraft.getAutoCompletionStrings(args[1], RELOAD_KEYWORDS);
+                  case 2:  return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], RELOAD_KEYWORDS);
                   default: return new LinkedList<String>();
                }
 
             case CommandEconomy.CMD_SELL:
-               return InterfaceMinecraft.commandSell.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandSell.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_SELLALL_LOWER:
-               return InterfaceMinecraft.commandSellAll.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandSellAll.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             case CommandEconomy.CMD_SEND:
-               return InterfaceMinecraft.commandSend.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
+               return UserInterfaceMinecraft.commandSend.getTabCompletions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos);
 
             default: return new LinkedList<String>();
          }

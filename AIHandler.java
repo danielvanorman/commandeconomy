@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.EnumSet;
 import java.util.HashMap;                       // for storing AI professions and trade decisions
 import java.util.Map;                           // for iterating through hashmaps
-import java.util.HashSet;                       // for storing AI before their activation
+import java.util.Vector;                        // for storing AI before their activation
 
 /**
  * Creating an instance of this class initializes
@@ -89,7 +89,7 @@ public class AIHandler extends TimerTask {
             timerTaskAIHandler = new AIHandler();
 
             // initialize AI
-            timerAIHandler.scheduleAtFixedRate(timerTaskAIHandler, 0L, Config.aiTradeFrequency);
+            timerAIHandler.scheduleAtFixedRate(timerTaskAIHandler, Config.aiTradeFrequency, Config.aiTradeFrequency);
          }
 
          // reload AI trading frequency
@@ -200,11 +200,6 @@ public class AIHandler extends TimerTask {
     * Complexity: O(n), where n is the number of AI professions to load
     */
    private static void loadPrivate() {
-      // if the marketplace is uninitialized,
-      // there are no wares for AI to trade
-      if (Marketplace.getAllWares().size() == 0)
-         return;
-
       // try to load the professions file
       File fileAIProfessions = new File(Config.filenameAIProfessions);  // contains AI objects
       // if the local file isn't found, use the global file
@@ -215,7 +210,7 @@ public class AIHandler extends TimerTask {
       // check file existence
       if (!fileAIProfessions.isFile()) {
          // don't throw an exception, print a warning to advise user to reload AI
-         Config.commandInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAIProfessions +
+         Config.userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAIProfessions +
             System.lineSeparator() + "To use AI, replace " + Config.filenameAIProfessions +
             "," + System.lineSeparator() + "then use the command \"reload config\"."
          );
@@ -234,11 +229,11 @@ public class AIHandler extends TimerTask {
       }
       catch (JsonSyntaxException e) {
          professions = null; // disable AI
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_MISFORMAT + Config.filenameAIProfessions);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_MISFORMAT + Config.filenameAIProfessions);
       }
       catch (Exception e) {
          professions = null; // disable AI
-         Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_PARSING + Config.filenameAIProfessions);
+         Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_PARSING + Config.filenameAIProfessions);
          e.printStackTrace();
       }
 
@@ -252,36 +247,34 @@ public class AIHandler extends TimerTask {
       if (professions == null || professions.isEmpty()) {
          professions = null; // disable AI
 
-         Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
+         Config.userInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
          return;
       }
 
       // validate AI professions
-      String professionName;
-      AI     professionAI;
+      AI professionAI;
       for (Map.Entry<String, AI> entry : professions.entrySet()) {
-         professionName = entry.getKey();
-         professionAI   = entry.getValue();
+         professionAI = entry.getValue();
 
          // for paranoia's sake
          if (professionAI == null)
             continue;
 
          // try to load the AI profession
-         professionAI.load(professionName); // if loading fails, an error message has already been printed
+         professionAI.load(entry.getKey()); // if loading fails, an error message has already been printed
       }
 
       // check whether any AI professions are valid
       if (professions.isEmpty()) {
          professions = null; // disable AI
-         Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_INVALID);
+         Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID);
          return;
       }
 
       // activate AI
-      HashSet<AI> aiToActivate = null;
+      Vector<AI> aiToActivate = null;
       if (Config.activeAI != null) {
-         aiToActivate = new HashSet<AI>(); // store AI to be activated to handle repeats
+         aiToActivate = new Vector<AI>(); // store AI to be activated to handle repeats
          AI ai; // AI currently being processed
 
          for (String aiProfession : Config.activeAI) {
@@ -292,9 +285,9 @@ public class AIHandler extends TimerTask {
             // add it to active AI or increment its trade decisions
             if (ai != null) {
                // if the AI is a repeat, increment its trade decisions
-               if (aiToActivate.contains(aiProfession))
-                  ai.incrementDecisionsPerTradeEvent();
                // otherwise, set it to be activated
+               if (aiToActivate.contains(ai))
+                  ai.incrementDecisionsPerTradeEvent();
                else
                   aiToActivate.add(ai);
             }
@@ -302,23 +295,18 @@ public class AIHandler extends TimerTask {
             // if the AI profession doesn't exist,
             // warn the server
             else
-               Config.commandInterface.printToConsole(CommandEconomy.ERROR_AI_MISSING + aiProfession);
+               Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_MISSING + aiProfession);
          }
 
          // if no AI were found
          if (aiToActivate.isEmpty()) {
-            Config.commandInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
+            Config.userInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
             end();
          }
 
          // create active AI array
-         else {
-            // initialize array
-            activeAI = new AI[aiToActivate.size()];
-
-            // fill array
-            aiToActivate.toArray(activeAI);
-         }
+         else
+            activeAI = aiToActivate.toArray(new AI[0]);
       }
 
       // if no AI should be run
@@ -339,18 +327,16 @@ public class AIHandler extends TimerTask {
          return;
 
       // reload wares for each AI
-      String professionName;
-      AI     professionAI;
+      AI professionAI;
       for (Map.Entry<String, AI> entry : professions.entrySet()) {
-         professionName = entry.getKey();
-         professionAI   = entry.getValue();
+         professionAI = entry.getValue();
 
          // for paranoia's sake
          if (professionAI == null)
             continue;
 
          // tell the AI to relink its wares
-         professionAI.reload(professionName);
+         professionAI.reload(entry.getKey());
       }
    }
 
@@ -377,10 +363,10 @@ public class AIHandler extends TimerTask {
             return;
 
          // load AI from file
-         if (queue.contains(QueueCommands.LOAD)) {
+         if (queue.contains(QueueCommands.LOAD) &&
+             Marketplace.getAllWares().size() > 0) {
             queue.remove(QueueCommands.LOAD);
             loadPrivate();
-            return;
          }
 
          // recalculate values for adjusting wares' quantities for sale

@@ -183,11 +183,11 @@ public class CommandNoSell extends CommandBase {
 
       if (args.length == 1)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {CommandEconomy.TRUE, CommandEconomy.FALSE, CommandEconomy.ALL});
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {CommandEconomy.TRUE, CommandEconomy.FALSE, CommandEconomy.ALL});
       }
       else if (args.length == 2)
       {
-         return InterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.ALL});
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.ALL});
       }
 
       return new LinkedList<String>();
