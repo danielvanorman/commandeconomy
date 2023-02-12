@@ -442,13 +442,14 @@ public class UserInterfaceMinecraft implements UserInterface
    /**
     * Takes a specified quantity of a ware ID from a user.
     *
-    * @param wareID      unique ID used to refer to the ware
-    * @param quantity    how much to take from the user
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
+    * @param wareID        unique ID used to refer to the ware
+    * @param quantity      how much to take from the user
+    * @param inventorySlot where to begin selling within a container
+    * @param playerID      user responsible for the trading
+    * @param coordinates   where the inventory may be found
     */
    public void removeFromInventory(UUID playerID, UserInterface.Coordinates coordinates,
-      String wareID, int quantity) {
+      String wareID, int inventorySlot, int quantity) {
       // if no items should be removed, do nothing
       if (quantity <= 0)
          return;
@@ -456,6 +457,10 @@ public class UserInterfaceMinecraft implements UserInterface
       // check if ware id is empty
       if (wareID == null || wareID.isEmpty())
          return;
+
+      // inventory slots must be zero or positive
+      if (inventorySlot < 0)
+         inventorySlot = 0;
 
       // prepare to message the player
       EntityPlayer player = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(playerID);
@@ -473,6 +478,7 @@ public class UserInterfaceMinecraft implements UserInterface
       int maxSlots = 0;        // size of the inventory
       String oreName = "";       // holds the Forge OreDictionary name being used
       final boolean USING_ORE_NAME = wareID.startsWith("#");
+      final boolean NONZERO_INVENTORY_SLOT = inventorySlot > 0;
 
       // check if the given ID is a variant
       if (ampersandPosition != -1) {
@@ -519,8 +525,11 @@ public class UserInterfaceMinecraft implements UserInterface
       // for other inventories, check everything
       else
          maxSlots = inventory.getSlots();
+      // don't try to access beyond the last slots
+      if (inventorySlot >= maxSlots)
+         inventorySlot = maxSlots - 1;
 
-      for (int slot = 0; slot < maxSlots; slot++) {
+      for (int slot = inventorySlot; slot < maxSlots && quantity > 0; slot++) {
          itemStack = inventory.getStackInSlot(slot);
 
          // if the slot is empty, skip it
@@ -551,6 +560,14 @@ public class UserInterfaceMinecraft implements UserInterface
 
             // find out how much more should be taken
             quantity -= itemStack.getCount();
+         }
+
+         // if parsing started on partway in a container,
+         // wraparound if necessary
+         if (NONZERO_INVENTORY_SLOT && slot == maxSlots - 1 &&
+             inventorySlot != maxSlots) {
+            slot     = 0;             // wrap back to the beginning
+            maxSlots = inventorySlot; // stop at the original slot
          }
       }
    }

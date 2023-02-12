@@ -148,13 +148,14 @@ public interface UserInterface
    /**
     * Takes a specified quantity of a ware ID from a user.
     *
-    * @param wareID      unique ID used to refer to the ware
-    * @param quantity    how much to take from the user
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
+    * @param playerID      user responsible for the trading
+    * @param coordinates   where the inventory may be found
+    * @param wareID        unique ID used to refer to the ware
+    * @param inventorySlot where to begin selling within a container
+    * @param quantity      how much to take from the inventory
     */
    void removeFromInventory(UUID playerID, UserInterface.Coordinates coordinates,
-      String wareID, int quantity);
+      String wareID, int inventorySlot, int quantity);
 
    /**
     * Returns the quantities and corresponding qualities of

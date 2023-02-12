@@ -1713,16 +1713,17 @@ public final class Marketplace {
     * Sells a ware to the market for a player.
     *<p>
     * Complexity: O(n)
-    * @param playerID    user responsible for the trading
-    * @param coordinates where wares may be found
-    * @param accountID   key used to retrieve account information
-    * @param wareID      key used to retrieve ware information
-    * @param quantity    how much of the ware should be sold; 0 means sell everything
-    * @param minUnitPrice stop selling if unit price is below this amount
-    * @param pricePercent percentage multiplier for ware's price
+    * @param playerID      user responsible for the trading
+    * @param coordinates   where wares may be found
+    * @param accountID     key used to retrieve account information
+    * @param wareID        key used to retrieve ware information
+    * @param inventorySlot where to begin selling within a container
+    * @param quantity      how much of the ware should be sold; 0 means sell everything
+    * @param minUnitPrice  stop selling if unit price is below this amount
+    * @param pricePercent  percentage multiplier for ware's price
     */
    public static void sell(UUID playerID, UserInterface.Coordinates coordinates,
-                           String accountID, String wareID, int quantity,
+                           String accountID, String wareID, int inventorySlot, int quantity,
                            float minUnitPrice, float pricePercent) {
       if (quantity <  0              || // if nothing should be sold, stop; 0 quantity means sell everything
          playerID == null)             // if no player was given, there is no party responsible for the purchase
@@ -1827,7 +1828,7 @@ public final class Marketplace {
       }
 
       // sell the ware
-      float[] salesResults = sellStock(playerID, coordinates, waresFound, quantityToSell, minUnitPrice, pricePercent);
+      float[] salesResults = sellStock(playerID, coordinates, waresFound, inventorySlot, quantityToSell, minUnitPrice, pricePercent);
       int quantitySold = (int) salesResults[1];
 
       // give money to the player
@@ -1926,7 +1927,7 @@ public final class Marketplace {
       }
 
       // sell everything sellable
-      float[] salesResults = sellStock(playerID, coordinates, inventory, 0, 0.0001f, pricePercent);
+      float[] salesResults = sellStock(playerID, coordinates, inventory, 0, 0, 0.0001f, pricePercent);
 
       // deliver funds to account
       account.addMoney(salesResults[0]);
@@ -1971,18 +1972,20 @@ public final class Marketplace {
     * Complexity:<br>
     * O(n) without flat selling transaction fee<br>
     * O(n^2) with flat selling transaction fee
-    * @param playerID     user responsible for the trade
-    * @param coordinates  where wares may be found
-    * @param stocks       wares to be sold and their information
-    * @param quantity     how much wares should be sold; 0 means sell everything
-    * @param minUnitPrice stop selling if unit price is below this amount
-    * @param pricePercent percentage multiplier for ware's price
+    * @param playerID      user responsible for the trade
+    * @param coordinates   where wares may be found
+    * @param stocks        wares to be sold and their information
+    * @param inventorySlot where to begin selling within a container
+    * @param quantity      how much wares should be sold; 0 means sell everything
+    * @param minUnitPrice  stop selling if unit price is below this amount
+    * @param pricePercent  percentage multiplier for ware's price
     * @return total money from selling wares and the quantity sold
     */
    private static float[] sellStock(UUID playerID, UserInterface.Coordinates coordinates,
-                                    List<Stock> stocks, int quantity,
+                                    List<Stock> stocks, int inventorySlot, int quantity,
                                     float minUnitPrice, float pricePercent) {
-      if (quantity < 0)                // if nothing should be sold, stop; 0 quantity means sell everything
+      // if nothing should be sold, stop; 0 quantity means sell everything
+      if (quantity < 0)
          return null;
 
       // if price multiplier is invalid, set it have no effect
@@ -2061,7 +2064,7 @@ public final class Marketplace {
             // if the transaction is profitable, sell the ware
             if (isProfitable) {
                // take the ware
-               Config.userInterface.removeFromInventory(playerID, coordinates, stock.wareID, quantityToSell);
+               Config.userInterface.removeFromInventory(playerID, coordinates, stock.wareID, inventorySlot, quantityToSell);
                quantitySold += quantityToSell;
 
                // add quantity sold to the marketplace
@@ -2101,7 +2104,7 @@ public final class Marketplace {
          for (Stock stock : unsoldStocks) {
             try {
                // take the ware
-               Config.userInterface.removeFromInventory(playerID, coordinates, stock.wareID, stock.quantity);
+               Config.userInterface.removeFromInventory(playerID, coordinates, stock.wareID, inventorySlot, stock.quantity);
                quantitySold += stock.quantity;
 
                // add quantity sold to the marketplace

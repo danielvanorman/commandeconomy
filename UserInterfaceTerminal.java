@@ -451,13 +451,14 @@ public class UserInterfaceTerminal implements UserInterface
    /**
     * Takes a specified quantity of a ware ID from a user.
     *
-    * @param wareID      unique ID used to refer to the ware
-    * @param quantity    how much to take from the user
-    * @param playerID    user responsible for the trading
-    * @param coordinates where the inventory may be found
+    * @param wareID        unique ID used to refer to the ware
+    * @param quantity      how much to take from the user
+    * @param inventorySlot where to begin selling within a container
+    * @param playerID      user responsible for the trading
+    * @param coordinates   where the inventory may be found
     */
    public void removeFromInventory(UUID playerID, UserInterface.Coordinates coordinates,
-      String wareID, int quantity) {
+      String wareID, int inventorySlot, int quantity) {
       // if no items should be removed, do nothing
       if (quantity <= 0)
          return;

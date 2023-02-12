@@ -1952,7 +1952,7 @@ public final class TestSuite
          if (isPurchase)
             Marketplace.buy(TRADER_ID, coordinatesObject, accountID, WARE_ID, quantityToOffer, priceUnitFloat, pricePercentFloat);
          else
-            Marketplace.sell(TRADER_ID, coordinatesObject, accountID, WARE_ID, quantityToOffer, priceUnitFloat, pricePercentFloat);
+            Marketplace.sell(TRADER_ID, coordinatesObject, accountID, WARE_ID, 0, quantityToOffer, priceUnitFloat, pricePercentFloat);
       }
 
       // reset current player
@@ -2129,9 +2129,9 @@ public final class TestSuite
          else {
             // if the ware's price is negative, assume it is okay to sell at a negative unit price
             if (price < 0.0f)
-               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityToTrade, -100.0f, 1.0f);
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, 0, quantityToTrade, -100.0f, 1.0f);
             else
-               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityToTrade, 0.1f, 1.0f);
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, 0, quantityToTrade, 0.1f, 1.0f);
          }
       }
 
@@ -2143,9 +2143,9 @@ public final class TestSuite
          else {
             // if the ware's price is negative, assume it is okay to sell at a negative unit price
             if (price < 0.0f)
-               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityInventory, -100.0f, 1.0f);
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, 0, quantityInventory, -100.0f, 1.0f);
             else
-               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, quantityInventory, 0.1f, 1.0f);
+               Marketplace.sell(PLAYER_ID, null, null, WARE_ID, 0, quantityInventory, 0.1f, 1.0f);
          }
       }
 
@@ -2607,7 +2607,7 @@ public final class TestSuite
 
       // test as normal
       baosOut.reset(); // clear buffer holding console output
-      Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToOffer, minUnitPrice, 1.0f);
+      Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), 0, quantityToOffer, minUnitPrice, 1.0f);
 
       // check ware properties
       if (ware.getQuantity() != quantityWare + quantityToTrade) {
@@ -2713,7 +2713,7 @@ public final class TestSuite
          expectedMoney = accountMoney;
 
       baosOut.reset(); // clear buffer holding console output
-      Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 0.1f, 1.0f);
+      Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), 0, quantityToTrade, 0.1f, 1.0f);
 
       // check account existence
       if (account == null) { // account may be created upon collecting transaction fees
@@ -6387,7 +6387,7 @@ public final class TestSuite
          price           = Marketplace.getPrice(playerID, testWare1, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
 
-         Marketplace.sell(playerID, null, null, "test:material1", quantityToTrade, 0.0f, 1.0f);
+         Marketplace.sell(playerID, null, null, "test:material1", 0, quantityToTrade, 0.0f, 1.0f);
 
          if (testWareFields(testWare1, WareMaterial.class, "", (byte) 0, 1.0f, quantityWare + quantityToTrade)) {
             errorFound = true;
@@ -8338,7 +8338,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - null ware ID");
          money = testAccount1.getMoney();
-         Marketplace.sell(PLAYER_ID, null, "testAccount1", null, 1, 0.0f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, "testAccount1", null, 0, 1, 0.0f, 1.0f);
          if (testAccountFields(testAccount1, money, UserInterfaceTerminal.playername)) {
             errorFound = true;
             resetTestEnvironment();
@@ -8346,7 +8346,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - empty ware ID");
          money = testAccount1.getMoney();
-         Marketplace.sell(PLAYER_ID, null, "testAccount1", "", 1, 0.0f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, "testAccount1", "", 0, 1, 0.0f, 1.0f);
          if (testAccountFields(testAccount1, money, UserInterfaceTerminal.playername)) {
             errorFound = true;
             resetTestEnvironment();
@@ -8354,7 +8354,7 @@ public final class TestSuite
 
          TEST_OUTPUT.println("sell() - invalid ware ID");
          money = testAccount1.getMoney();
-         Marketplace.sell(PLAYER_ID, null, "testAccount1", "invalidWare", 1, 0.0f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, "testAccount1", "invalidWare", 0, 1, 0.0f, 1.0f);
          if (testAccountFields(testAccount1, money, UserInterfaceTerminal.playername)) {
             errorFound = true;
             resetTestEnvironment();
@@ -8372,7 +8372,7 @@ public final class TestSuite
          TEST_OUTPUT.println("sell() - selling ware player does not have");
          quantityWare    = testWare2.getQuantity();
          money           = testAccount1.getMoney();
-         Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:material2", 1, 0.0f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:material2", 0, 1, 0.0f, 1.0f);
          if (testWareFields(testWare2, WareMaterial.class, "", (byte) 1, 27.6f, quantityWare)) {
             errorFound = true;
          }
@@ -8387,7 +8387,7 @@ public final class TestSuite
          quantityWare    = testWareP1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
-         Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:processed1", 20, 0.0f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:processed1", 0, 20, 0.0f, 1.0f);
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) 4, 1.1f, quantityWare + quantityToTrade)) {
             errorFound = true;
          }
@@ -8402,7 +8402,7 @@ public final class TestSuite
          quantityWare    = testWareP1.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, testWareP1, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
-         Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:processed1", quantityToTrade, 0.0f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, "testAccount1", "test:processed1", 0, quantityToTrade, 0.0f, 1.0f);
          if (testWareFields(testWareP1, WareProcessed.class, "", (byte) 4, 1.1f, quantityWare + quantityToTrade)) {
             errorFound = true;
          }
@@ -8435,7 +8435,7 @@ public final class TestSuite
          quantityWare    = testWare3.getQuantity();
          price           = Marketplace.getPrice(PLAYER_ID, testWare3, quantityToTrade, Marketplace.PriceType.CURRENT_SELL);
          money           = testAccount1.getMoney();
-         Marketplace.sell(PLAYER_ID, null, "testAccount1", "mat3", quantityToTrade, 0.1f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, "testAccount1", "mat3", 0, quantityToTrade, 0.1f, 1.0f);
          if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) 2, 4.0f, quantityWare + quantityToTrade)) {
             errorFound = true;
          }
@@ -17640,7 +17640,7 @@ public final class TestSuite
 
       // test as normal
       baosOut.reset(); // clear buffer holding console output
-      Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToOffer, 0.0f, 1.0f);
+      Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), 0, quantityToOffer, 0.0f, 1.0f);
 
       // check ware properties
       if (ware.getQuantity() != quantityWare + quantityToTrade) {
@@ -17949,7 +17949,7 @@ public final class TestSuite
       // test as normal
       baosOut.reset(); // clear buffer holding console output
       if (isNotSellAll)
-         Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToOffer, Float.NaN, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), 0, quantityToOffer, Float.NaN, 1.0f);
       else
          Marketplace.sellAll(PLAYER_ID, null, getFormattedInventory(), null, 1.0f);
 
@@ -18162,7 +18162,7 @@ public final class TestSuite
          quantityToTrade = -quantityToTrade; // to ease checking ware's quantity available for sale
       }
       else {
-         Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), quantityToTrade, 0.0f, 1.0f);
+         Marketplace.sell(PLAYER_ID, null, null, ware.getWareID(), 0, quantityToTrade, 0.0f, 1.0f);
          priceUnitAfter = Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL);
       }
 

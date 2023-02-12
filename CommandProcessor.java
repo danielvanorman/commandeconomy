@@ -275,6 +275,7 @@ public final class CommandProcessor
       String accountID      = null;
       String wareID         = null;
       int    baseArgsLength = args.length; // number of args, not counting special keywords
+      int    inventorySlot  = 0;           // where to begin selling within a container
       int    quantity       = -1;
       float  priceUnit      = Float.NaN;
       float  pricePercent   = 1.0f;
@@ -451,7 +452,8 @@ public final class CommandProcessor
             return; // an error message has already been printed
 
          // get whatever is in the player's hand
-         wareID = handful.wareID;
+         wareID        = handful.wareID;
+         inventorySlot = handful.inventorySlot;
          if (quantity == -1)
             quantity = handful.quantity;
       }
@@ -462,7 +464,7 @@ public final class CommandProcessor
          quantity = 0;
 
       // call corresponding function
-      Marketplace.sell(playerID, coordinates, accountID, wareID, quantity, priceUnit, pricePercent);
+      Marketplace.sell(playerID, coordinates, accountID, wareID, inventorySlot, quantity, priceUnit, pricePercent);
    }
 
    /**
