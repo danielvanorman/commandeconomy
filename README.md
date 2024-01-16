@@ -1,6 +1,6 @@
 <p align="center"><img src="img/command-economy-logo.png" align="center" alt="Command Economy Logo" width="200" height="200"></p>
 
-`Command Economy`, a Minecraft mod, creates a highly configurable serverwide market with fluctuating prices and stock levels resembling a somewhat realistic economy.
+`Command Economy`, a Minecraft mod, creates an installable highly configurable server-side (ex: LAN or MMO) market for trading in-game items with fluctuating prices and quantities available for sale resembling a somewhat realistic economy.
 
 ### Contents
 
@@ -86,27 +86,27 @@ Command-Line Interpreter: <a href="https://www.dropbox.com/s/feqikldiy0s3ug9/Com
         </tr>
         <tr>
             <td style="width: 59.882%;">/money [account_id]</td>
-            <td style="width: 40.118%;">looks up how much is in an account</td>
+            <td style="width: 40.118%;">looks up how much is in a bank account</td>
         </tr>
         <tr>
             <td style="width: 59.882%;">/send &lt;quantity&gt; &lt;recipient_account_id&gt; [sender_account_id]</td>
-            <td style="width: 40.118%;">transfers money from one account to another</td>
+            <td style="width: 40.118%;">transfers money from one bank account to another</td>
         </tr>
         <tr>
             <td style="width: 59.882%;">/create &lt;account_id&gt;</td>
-            <td style="width: 40.118%;">opens a new account with the specified id</td>
+            <td style="width: 40.118%;">opens a new bank account with the specified id</td>
         </tr>
         <tr>
             <td style="width: 59.882%;">/delete &lt;account_id&gt;</td>
-            <td style="width: 40.118%;">closes the account with the specified id</td>
+            <td style="width: 40.118%;">closes the bank account with the specified id</td>
         </tr>
         <tr>
             <td style="width: 59.882%;">/grantAccess &lt;player_name&gt; &lt;account_id&gt;</td>
-            <td style="width: 40.118%;">allows a player to view and withdraw from a specified account</td>
+            <td style="width: 40.118%;">allows a player to view and withdraw from a specified bank account</td>
         </tr>
         <tr>
             <td style="width: 59.882%;">/revokeAccess &lt;player_name&gt; &lt;account_id&gt;</td>
-            <td style="width: 40.118%;">disallows a player to view and withdraw from a specified account</td>
+            <td style="width: 40.118%;">disallows a player to view and withdraw from a specified bank account</td>
         </tr>
         <tr>
             <td style="width: 59.882%;">/help [command_block]</td>
@@ -124,9 +124,8 @@ Command-Line Interpreter: <a href="https://www.dropbox.com/s/feqikldiy0s3ug9/Com
 
 #### User Manual
 <p>
-Download explanations of commands and configuration here: <a href="https://drive.google.com/file/d/1qiz-nPvxR_s286emBiSaKjlAqXUUmPLX/view?usp=sharing">https://drive.google.com/file/d/1qiz-nPvxR_s286emBiSaKjlAqXUUmPLX/view?usp=sharing</a>.
+Download explanations of commands and configuration here: <a href="https://www.dropbox.com/s/qpvp5iry3w5ybv5/User%20Manual.pdf?dl=0">https://www.dropbox.com/s/qpvp5iry3w5ybv5/User%20Manual.pdf?dl=0</a>.
 </p>
-
 
 ### Downloads
 
