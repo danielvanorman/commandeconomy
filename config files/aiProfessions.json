@@ -1,0 +1,196 @@
+{
+  "armorer": {
+    "purchasablesIDs": [
+      "coal", "lava_bucket"
+    ],
+    "sellablesIDs": [
+      "shield",
+      "iron_helmet", "iron_chestplate", "iron_leggings", "iron_boots",
+      "chainmail_helmet", "chainmail_chestplate", "chainmail_leggings", "chainmail_boots",
+      "diamond_helmet", "diamond_chestplate", "diamond_leggings", "diamond_boots"
+    ],
+    "preferences": {
+      "lava_bucket": 1.05,
+      "chainmail_helmet": 0.95, "chainmail_chestplate": 0.95, "chainmail_leggings": 0.95, "chainmail_boots": 0.95,
+      "diamond_helmet": 0.90, "diamond_chestplate": 0.90, "diamond_leggings": 0.90, "diamond_boots": 0.90
+    }
+  },
+  "butcher": {
+    "purchasablesIDs": [
+      "coal", "wood", "chicken", "porkchop", "rabbit", "mutton", "beef"
+    ],
+    "sellablesIDs": [
+      "cooked_chicken", "cooked_porkchop", "rabbit_stew", "cooked_mutton", "cooked_beef"
+    ],
+    "preferences": {
+      "mutton": 0.90, "cooked_mutton": 0.90,
+      "beef": 0.90, "cooked_beef": 0.90,
+      "coal": 0.95
+    }
+  },
+  "cleric": {
+    "purchasablesIDs": [
+      "rotten_flesh", "gold_ingot", "rabbit_foot", "glass_bottle", "nether_wart"
+    ],
+    "sellablesIDs": [
+      "redstone", "lapis_lazuli", "glowstone_dust", "ender_pearl"
+    ],
+    "preferences": {
+      "rotten_flesh": 1.10,
+      "gold_ingot": 1.10,
+      "nether_wart": 0.95,
+      "ender_pearl": 1.05
+    }
+  },
+  "farmer": {
+    "purchasablesIDs": [
+      "wheat", "potato", "carrot", "beetroot", "pumpkin", "melon"
+    ],
+    "sellablesIDs": [
+      "bread", "pumpkin_pie", "apple", "cookie", "cake", "mushroom_stew", "golden_carrot", "speckled_melon"
+    ],
+    "preferences": {
+      "pumpkin": 0.95,
+      "melon": 0.95,
+      "cake": 0.95,
+      "mushroom_stew": 0.90,
+      "golden_carrot": 0.85,
+      "speckled_melon": 0.85
+    }
+  },
+  "fisherman": {
+    "purchasablesIDs": [
+      "string", "coal", "fish", "boat"
+    ],
+    "sellablesIDs": [
+      "cooked_fish", "pufferfish", "fishing_rod"
+    ],
+    "preferences": {
+      "coal": 0.95,
+      "boat": 0.85,
+      "pufferfish": 0.90,
+      "fishing_rod": 0.90
+    }
+  },
+  "fletcher": {
+    "purchasablesIDs": [
+      "stick", "gravel", "flint", "string", "feather", "tripwire_hook"
+    ],
+    "sellablesIDs": [
+      "arrow", "flint", "bow", "spectral_arrow"
+    ],
+    "preferences": {
+      "gravel": 0.90,
+      "tripwire_hook": 0.90,
+      "bow": 0.95,
+      "spectral_arrow": 0.85
+    }
+  },
+  "leatherworker": {
+    "purchasablesIDs": [
+      "leather", "flint", "rabbit_hide"
+    ],
+    "sellablesIDs": [
+      "saddle",
+      "leather_helmet", "leather_chestplate", "leather_leggings", "leather_boots"
+    ],
+    "preferences": {
+      "rabbit_hide": 0.95,
+      "saddle": 0.90
+    }
+  },
+  "librarian": {
+    "purchasablesIDs": [
+      "paper", "book", "ink_sac", "book_and_quill"
+    ],
+    "sellablesIDs": [
+      "book", "bookshelf", "redstone_lamp", "glass", "glass_pane", "clock", "compass", "name_tag"
+    ],
+    "preferences": {
+      "book_and_quill": 0.95,
+      "redstone_lamp": 0.98,
+      "glass": 0.90,
+      "glass_pane": 0.95,
+      "clock": 0.90,
+      "compass": 0.90
+    }
+  },
+  "mason": {
+    "purchasablesIDs": [
+      "clay_ball", "stone", "granite", "andesite", "diorite", "quartz"
+    ],
+    "sellablesIDs": [
+      "brick", "bricks", "terracotta", "white_glazed_terracotta", "chiseled_stonebrick", "polished_granite", "polished_andesite", "polished_diorite", "quartz_pillar", "quartz_block"
+    ],
+    "preferences": {
+      "clay_ball": 1.05,
+      "brick": 1.05,
+      "quartz": 0.95,
+      "white_glazed_terracotta": 0.90,
+      "quartz_pillar": 0.95,
+      "quartz_block": 0.95
+    }
+  },
+  "shepherd": {
+    "purchasablesIDs": [
+      "wheat", "hay_bale", "seeds", "shears", "ink_sac", "bonemeal", "cactus_green",
+      "yellow_dye", "red_dye", "purple_dye", "cyan_dye", "light_gray_dye", "gray_dye", "pink_dye", "lime_dye", "light_blue_dye", "magenta_dye", "orange_dye"
+    ],
+    "sellablesIDs": [
+      "wool", "mutton", "wool", "carpet", "bed", "banner", "painting"
+    ],
+    "preferences": {
+      "hay_bale": 0.90,
+      "seeds": 0.95,
+      "shears": 0.90,
+      "carpet": 0.98,
+      "bed": 0.95
+    }
+  },
+  "toolsmith": {
+    "purchasablesIDs": [
+      "coal", "planks", "flint", "iron_ingot", "diamond"
+    ],
+    "sellablesIDs": [
+      "shears",
+      "stone_pickaxe", "stone_axe", "stone_shovel", "stone_hoe",
+      "iron_pickaxe", "iron_axe", "iron_shovel", "iron_hoe",
+      "diamond_pickaxe", "diamond_axe", "diamond_shovel", "diamond_hoe"
+    ],
+    "preferences": {
+      "flint": 0.95,
+      "diamond": 0.90,
+      "shears": 0.95,
+      "stone_pickaxe": 0.95, "stone_axe": 0.95, "stone_shovel": 0.95, "stone_hoe": 0.95,
+      "diamond_pickaxe": 0.90, "diamond_axe": 0.90, "diamond_shovel": 0.90, "diamond_hoe": 0.90
+    }
+  },
+  "weaponsmith": {
+    "purchasablesIDs": [
+      "coal", "lava_bucket", "flint", "iron_ingot", "diamond"
+    ],
+    "sellablesIDs": [
+      "iron_axe", "iron_sword",
+      "diamond_axe", "diamond_sword"
+    ],
+    "preferences": {
+      "lava_bucket": 1.05,
+      "flint": 0.95,
+      "diamond": 0.90,
+      "diamond_axe": 0.90, "diamond_sword": 0.90
+    }
+  },
+  "wandering_trader": {
+    "purchasablesIDs": [
+      "gold_ingot", "emerald", "diamond"
+    ],
+    "sellablesIDs": [
+      "fern", "vines", "sugarcane", "sand", "red_sand", "lily_pad", "mossy_cobblestone", "pumpkin", "glowstone", "cactus", "slime_ball", "gunpowder", "ice", "packed_ice", "podzol", "rose_bush", "peony", "sunflower", "brown_mushroom", "red_mushroom"
+    ],
+    "preferences": {
+      "gold_ingot": 0.95,
+      "emerald": 0.90,
+      "diamond": 0.90
+    }
+  }
+}
