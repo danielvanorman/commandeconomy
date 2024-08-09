@@ -16,18 +16,18 @@ public class CommandSaveCE extends CommandBase {
       // call corresponding functions
       Marketplace.saveWares();
       Account.saveAccounts();
-      errorMessage = new TextComponentString(CommandEconomy.MSG_SAVED_ECONOMY);
+      errorMessage = new TextComponentString(StringTable.MSG_SAVED_ECONOMY);
       sender.sendMessage(errorMessage);
   }
 
   @Override
   public String getName() {
-      return CommandEconomy.CMD_SAVECE;
+      return StringTable.CMD_SAVECE;
   }
 
   @Override
   public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_SAVECE;
+      return StringTable.CMD_USAGE_SAVECE;
   }
 
    @Override

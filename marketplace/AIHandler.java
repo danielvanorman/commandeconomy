@@ -210,7 +210,7 @@ public class AIHandler extends TimerTask {
       // check file existence
       if (!fileAIProfessions.isFile()) {
          // don't throw an exception, print a warning to advise user to reload AI
-         Config.userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameAIProfessions +
+         Config.userInterface.printToConsole(StringTable.WARN_FILE_MISSING + Config.filenameAIProfessions +
             System.lineSeparator() + "To use AI, replace " + Config.filenameAIProfessions +
             "," + System.lineSeparator() + "then use the command \"reload config\"."
          );
@@ -229,11 +229,11 @@ public class AIHandler extends TimerTask {
       }
       catch (JsonSyntaxException e) {
          professions = null; // disable AI
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_MISFORMAT + Config.filenameAIProfessions);
+         Config.userInterface.printToConsole(StringTable.ERROR_AI_MISFORMAT + Config.filenameAIProfessions);
       }
       catch (Exception e) {
          professions = null; // disable AI
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_PARSING + Config.filenameAIProfessions);
+         Config.userInterface.printToConsole(StringTable.ERROR_AI_PARSING + Config.filenameAIProfessions);
          e.printStackTrace();
       }
 
@@ -247,7 +247,7 @@ public class AIHandler extends TimerTask {
       if (professions == null || professions.isEmpty()) {
          professions = null; // disable AI
 
-         Config.userInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
+         Config.userInterface.printToConsole(StringTable.WARN_AI_NONE_LOADED);
          return;
       }
 
@@ -267,7 +267,7 @@ public class AIHandler extends TimerTask {
       // check whether any AI professions are valid
       if (professions.isEmpty()) {
          professions = null; // disable AI
-         Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID);
+         Config.userInterface.printToConsole(StringTable.WARN_AI_INVALID);
          return;
       }
 
@@ -295,12 +295,12 @@ public class AIHandler extends TimerTask {
             // if the AI profession doesn't exist,
             // warn the server
             else
-               Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_MISSING + aiProfession);
+               Config.userInterface.printToConsole(StringTable.ERROR_AI_MISSING + aiProfession);
          }
 
          // if no AI were found
          if (aiToActivate.isEmpty()) {
-            Config.userInterface.printToConsole(CommandEconomy.WARN_AI_NONE_LOADED);
+            Config.userInterface.printToConsole(StringTable.WARN_AI_NONE_LOADED);
             end();
          }
 

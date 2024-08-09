@@ -78,7 +78,7 @@ public final class CommandProcessor
    public static void buy(UUID senderID, Object sender, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printToUser(senderID, CommandEconomy.CMD_USAGE_BUY);
+         Config.userInterface.printToUser(senderID, StringTable.CMD_USAGE_BUY);
          return;
       }
 
@@ -96,12 +96,12 @@ public final class CommandProcessor
       for (String arg : args) {
          // if a zero-length arg is detected, stop
          if (arg == null || arg.length() == 0) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_BUY);
             return;
          }
 
          // special keywords start with certain symbols
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+         if (!arg.startsWith(StringTable.ARG_SPECIAL_PREFIX) && !arg.startsWith(StringTable.PRICE_PERCENT))
             continue;
 
          // if a special keyword is detected,
@@ -109,7 +109,7 @@ public final class CommandProcessor
          baseArgsLength--;
 
          // check whether user is specifying the transaction price multiplier
-         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+         if (arg.startsWith(StringTable.PRICE_PERCENT)) {
             pricePercent = parsePricePercentArgument(senderID, arg, true);
 
             // check for error
@@ -123,24 +123,24 @@ public final class CommandProcessor
       // command must have the right number of args
       if (baseArgsLength < 2 ||
           baseArgsLength > 6) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_BUY);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_BUY);
          return;
       }
 
       // if the second argument is a direction, a username and a direction should be given
       // otherwise, the second argument should be a number and, no username or direction should be given
-      if (args[1].equals(CommandEconomy.INVENTORY_NONE) ||
-          args[1].equals(CommandEconomy.INVENTORY_DOWN) ||
-          args[1].equals(CommandEconomy.INVENTORY_UP) ||
-          args[1].equals(CommandEconomy.INVENTORY_NORTH) ||
-          args[1].equals(CommandEconomy.INVENTORY_EAST) ||
-          args[1].equals(CommandEconomy.INVENTORY_WEST) ||
-          args[1].equals(CommandEconomy.INVENTORY_SOUTH)) {
+      if (args[1].equals(StringTable.INVENTORY_NONE) ||
+          args[1].equals(StringTable.INVENTORY_DOWN) ||
+          args[1].equals(StringTable.INVENTORY_UP) ||
+          args[1].equals(StringTable.INVENTORY_NORTH) ||
+          args[1].equals(StringTable.INVENTORY_EAST) ||
+          args[1].equals(StringTable.INVENTORY_WEST) ||
+          args[1].equals(StringTable.INVENTORY_SOUTH)) {
          // ensure passed args are valid types
          try {
             quantity = Integer.parseInt(args[3]);
          } catch (NumberFormatException e) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_BUY);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_BLOCK_BUY);
             return;
          }
 
@@ -163,7 +163,7 @@ public final class CommandProcessor
             try {
                priceUnit = Float.parseFloat(args[4]);
             } catch (NumberFormatException e) {
-               Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BLOCK_BUY);
+               Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PRICE + StringTable.CMD_USAGE_BLOCK_BUY);
                return;
             }
             accountID = args[5];
@@ -176,7 +176,7 @@ public final class CommandProcessor
          // translate coordinates
          coordinates = Config.userInterface.getInventoryCoordinates(senderID, sender, args[1]);
          if (coordinates == null) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_BUY);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_INVENTORY_DIR + StringTable.CMD_USAGE_BLOCK_BUY);
             return;
          }
       }
@@ -187,7 +187,7 @@ public final class CommandProcessor
          try {
             quantity = Integer.parseInt(args[1]);
          } catch (NumberFormatException e) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BUY);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_BUY);
             return;
          }
 
@@ -210,7 +210,7 @@ public final class CommandProcessor
             try {
                priceUnit = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
-               Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BUY);
+               Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PRICE + StringTable.CMD_USAGE_BUY);
                return;
             }
             accountID = args[3];
@@ -226,7 +226,7 @@ public final class CommandProcessor
       accountID = Config.userInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ENTITY_SELECTOR);
          return;
       }
       UUID playerID = Config.userInterface.getPlayerID(username);
@@ -234,14 +234,14 @@ public final class CommandProcessor
       // check if command sender has permission to
       // execute this command for other players
       if (!Config.userInterface.permissionToExecute(playerID, sender, false)) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PERMISSION);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_PERMISSION);
          return;
       }
 
       // check inventory existence
       if (coordinates != null &&
           Config.userInterface.getInventorySpaceAvailable(playerID, coordinates) == -1) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_BUY);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_INVENTORY_MISSING + StringTable.CMD_USAGE_BLOCK_BUY);
          return;
       }
 
@@ -265,7 +265,7 @@ public final class CommandProcessor
    public static void sell(UUID senderID, Object sender, Object server, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printToUser(senderID, CommandEconomy.CMD_USAGE_SELL);
+         Config.userInterface.printToUser(senderID, StringTable.CMD_USAGE_SELL);
          return;
       }
 
@@ -284,12 +284,12 @@ public final class CommandProcessor
       for (String arg : args) {
          // if a zero-length arg is detected, stop
          if (arg == null || arg.length() == 0) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_BUY);
             return;
          }
 
          // special keywords start with certain symbols
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+         if (!arg.startsWith(StringTable.ARG_SPECIAL_PREFIX) && !arg.startsWith(StringTable.PRICE_PERCENT))
             continue;
 
          // if a special keyword is detected,
@@ -297,7 +297,7 @@ public final class CommandProcessor
          baseArgsLength--;
 
          // check whether user is specifying the transaction price multiplier
-         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+         if (arg.startsWith(StringTable.PRICE_PERCENT)) {
             pricePercent = parsePricePercentArgument(senderID, arg, true);
 
             // check for error
@@ -311,7 +311,7 @@ public final class CommandProcessor
       // command must have the right number of args
       if (baseArgsLength < 1 ||
           baseArgsLength > 6) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELL);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_SELL);
          return;
       }
 
@@ -319,13 +319,13 @@ public final class CommandProcessor
       // if the second argument is a direction, a username and a direction should be given
       // if a username and a direction should be given
       if (baseArgsLength >= 3 &&
-          (args[1].equals(CommandEconomy.INVENTORY_NONE) ||
-           args[1].equals(CommandEconomy.INVENTORY_DOWN) ||
-           args[1].equals(CommandEconomy.INVENTORY_UP) ||
-           args[1].equals(CommandEconomy.INVENTORY_NORTH) ||
-           args[1].equals(CommandEconomy.INVENTORY_EAST) ||
-           args[1].equals(CommandEconomy.INVENTORY_WEST) ||
-           args[1].equals(CommandEconomy.INVENTORY_SOUTH))) {
+          (args[1].equals(StringTable.INVENTORY_NONE) ||
+           args[1].equals(StringTable.INVENTORY_DOWN) ||
+           args[1].equals(StringTable.INVENTORY_UP) ||
+           args[1].equals(StringTable.INVENTORY_NORTH) ||
+           args[1].equals(StringTable.INVENTORY_EAST) ||
+           args[1].equals(StringTable.INVENTORY_WEST) ||
+           args[1].equals(StringTable.INVENTORY_SOUTH))) {
          // ensure passed args are valid types
          // if at least four arguments are given,
          // the fourth must be a quantity
@@ -333,7 +333,7 @@ public final class CommandProcessor
             try {
                quantity = Integer.parseInt(args[3]);
             } catch (NumberFormatException e) {
-               Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SELL);
+               Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_BLOCK_SELL);
                return;
             }
          }
@@ -357,7 +357,7 @@ public final class CommandProcessor
             try {
                   priceUnit = Float.parseFloat(args[4]);
             } catch (NumberFormatException e) {
-               Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_BLOCK_SELL);
+               Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PRICE + StringTable.CMD_USAGE_BLOCK_SELL);
                return;
             }
             accountID = args[5];
@@ -370,7 +370,7 @@ public final class CommandProcessor
          // translate coordinates
          coordinates = Config.userInterface.getInventoryCoordinates(senderID, sender, args[1]);
          if (coordinates == null) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_SELL);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_INVENTORY_DIR + StringTable.CMD_USAGE_BLOCK_SELL);
             return;
          }
       }
@@ -384,7 +384,7 @@ public final class CommandProcessor
             try {
                quantity = Integer.parseInt(args[1]);
             } catch (NumberFormatException e) {
-               Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_SELL);
+               Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_SELL);
                return;
             }
          }
@@ -408,7 +408,7 @@ public final class CommandProcessor
             try {
                   priceUnit = Float.parseFloat(args[2]);
             } catch (NumberFormatException e) {
-               Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_SELL);
+               Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PRICE + StringTable.CMD_USAGE_SELL);
                return;
             }
             accountID = args[3];
@@ -424,7 +424,7 @@ public final class CommandProcessor
       accountID = Config.userInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ENTITY_SELECTOR);
          return;
       }
       UUID playerID = Config.userInterface.getPlayerID(username);
@@ -432,21 +432,21 @@ public final class CommandProcessor
       // check if command sender has permission to
       // execute this command for other players
       if (!Config.userInterface.permissionToExecute(playerID, sender, false)) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PERMISSION);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PERMISSION);
          return;
       }
 
       // check inventory existence
       if (coordinates != null &&
           Config.userInterface.getInventorySpaceAvailable(playerID, coordinates) == -1) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_BUY);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_INVENTORY_MISSING + StringTable.CMD_USAGE_BLOCK_BUY);
          return;
       }
 
       // check whether the ware the user is currently holding should be sold
       // the idea of selling the user's held item is from
       // DynamicEconomy ( https://dev.bukkit.org/projects/dynamiceconomy-v-01 )
-      if (wareID.equalsIgnoreCase(CommandEconomy.HELD_ITEM)) {
+      if (wareID.equalsIgnoreCase(StringTable.HELD_ITEM)) {
          UserInterface.Handful handful = Config.userInterface.checkHand(playerID, sender, server, username);
          if (handful == null)
             return; // an error message has already been printed
@@ -482,7 +482,7 @@ public final class CommandProcessor
    public static void check(UUID senderID, Object sender, Object server, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printToUser(senderID, CommandEconomy.CMD_USAGE_CHECK);
+         Config.userInterface.printToUser(senderID, StringTable.CMD_USAGE_CHECK);
          return;
       }
 
@@ -497,12 +497,12 @@ public final class CommandProcessor
       for (String arg : args) {
          // if a zero-length arg is detected, stop
          if (arg == null || arg.length() == 0) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHECK);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_CHECK);
             return;
          }
 
          // special keywords start with certain symbols
-         if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+         if (!arg.startsWith(StringTable.ARG_SPECIAL_PREFIX) && !arg.startsWith(StringTable.PRICE_PERCENT))
             continue;
 
          // if a special keyword is detected,
@@ -510,7 +510,7 @@ public final class CommandProcessor
          baseArgsLength--;
 
          // check whether user is specifying the transaction price multiplier
-         if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+         if (arg.startsWith(StringTable.PRICE_PERCENT)) {
             pricePercent = parsePricePercentArgument(senderID, arg, false);
 
             // check for error
@@ -524,7 +524,7 @@ public final class CommandProcessor
       // command must have the right number of args
       if (baseArgsLength < 1 ||
           baseArgsLength > 3) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHECK);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_CHECK);
          return;
       }
 
@@ -542,7 +542,7 @@ public final class CommandProcessor
             // assume the second argument is a number
             quantity = Integer.parseInt(args[1]);
          } catch (NumberFormatException e) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_CHECK);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_CHECK);
             return;
          }
 
@@ -558,7 +558,7 @@ public final class CommandProcessor
          try {
             quantity = Integer.parseInt(args[2]);
          } catch (NumberFormatException e) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BLOCK_CHECK);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_BLOCK_CHECK);
             return;
          }
 
@@ -570,7 +570,7 @@ public final class CommandProcessor
       // check for entity selectors
       username = Config.userInterface.parseEntitySelector(sender, username);
       if (username != null && username.equals("")) { // empty string indicates an invalid selector
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ENTITY_SELECTOR);
          return;
       }
       UUID playerID = Config.userInterface.getPlayerID(username);
@@ -578,14 +578,14 @@ public final class CommandProcessor
       // check if command sender has permission to
       // execute this command for other players
       if (!Config.userInterface.permissionToExecute(playerID, sender, false)) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PERMISSION);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PERMISSION);
          return;
       }
 
       // check whether the ware the user is currently holding should be checked
       // the idea of checking the user's held item is from
       // DynamicEconomy ( https://dev.bukkit.org/projects/dynamiceconomy-v-01 )
-      if (wareID.equalsIgnoreCase(CommandEconomy.HELD_ITEM)) {
+      if (wareID.equalsIgnoreCase(StringTable.HELD_ITEM)) {
          UserInterface.Handful handful = Config.userInterface.checkHand(playerID, sender, server, username);
          if (handful == null)
             return; // an error message has already been printed
@@ -642,12 +642,12 @@ public final class CommandProcessor
          for (String arg : args) {
             // if a zero-length arg is detected, stop
             if (arg == null || arg.length() == 0) {
-               Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_BUY);
+               Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_BUY);
                return;
             }
 
             // special keywords start with certain symbols
-            if (!arg.startsWith(CommandEconomy.ARG_SPECIAL_PREFIX) && !arg.startsWith(CommandEconomy.PRICE_PERCENT))
+            if (!arg.startsWith(StringTable.ARG_SPECIAL_PREFIX) && !arg.startsWith(StringTable.PRICE_PERCENT))
                continue;
 
             // if a special keyword is detected,
@@ -655,7 +655,7 @@ public final class CommandProcessor
             baseArgsLength--;
 
             // check whether user is specifying the transaction price multiplier
-            if (arg.startsWith(CommandEconomy.PRICE_PERCENT)) {
+            if (arg.startsWith(StringTable.PRICE_PERCENT)) {
                pricePercent = parsePricePercentArgument(senderID, arg, true);
 
                // check for error
@@ -671,7 +671,7 @@ public final class CommandProcessor
       if (args != null &&
           (baseArgsLength < 0 ||
            baseArgsLength > 3)) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SELLALL);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_SELLALL);
          return;
       }
 
@@ -683,7 +683,7 @@ public final class CommandProcessor
          // translate coordinates
          coordinates = Config.userInterface.getInventoryCoordinates(senderID, sender, args[1]);
          if (coordinates == null) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_INVENTORY_DIR + CommandEconomy.CMD_USAGE_BLOCK_SELLALL);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_INVENTORY_DIR + StringTable.CMD_USAGE_BLOCK_SELLALL);
             return;
          }
 
@@ -706,7 +706,7 @@ public final class CommandProcessor
       accountID = Config.userInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ENTITY_SELECTOR);
          return;
       }
       UUID playerID = Config.userInterface.getPlayerID(username);
@@ -714,14 +714,14 @@ public final class CommandProcessor
       // check if command sender has permission to
       // execute this command for other players
       if (!Config.userInterface.permissionToExecute(playerID, sender, false)) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PERMISSION);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PERMISSION);
          return;
       }
 
       // get the inventory
       inventory = Config.userInterface.getInventoryContents(playerID, coordinates);
       if (inventory == null) {
-         System.out.println(CommandEconomy.ERROR_INVENTORY_MISSING + CommandEconomy.CMD_USAGE_BLOCK_SELLALL);
+         System.out.println(StringTable.ERROR_INVENTORY_MISSING + StringTable.CMD_USAGE_BLOCK_SELLALL);
          return;
       }
 
@@ -746,7 +746,7 @@ public final class CommandProcessor
       if (args != null && 
           ((args.length >= 1 && (args[0] == null || args[0].length() == 0)) ||
            (args.length >= 2 && (args[1] == null || args[1].length() == 0)))) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_MONEY);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_MONEY);
          return;
       }
 
@@ -755,7 +755,7 @@ public final class CommandProcessor
       if (args == null || args.length == 0) {
          Account account = Account.grabAndCheckAccount(null, senderID);
 
-         account.check(senderID, CommandEconomy.MSG_PERSONAL_ACCOUNT);
+         account.check(senderID, StringTable.MSG_PERSONAL_ACCOUNT);
          return;
       }
 
@@ -779,7 +779,7 @@ public final class CommandProcessor
       accountID = Config.userInterface.parseEntitySelector(sender, accountID);
       if ((username != null && username.equals("")) ||
           (accountID != null && accountID.equals(""))) { // empty string indicates an invalid selector
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ENTITY_SELECTOR);
          return;
       }
       UUID playerID = Config.userInterface.getPlayerID(username);
@@ -787,7 +787,7 @@ public final class CommandProcessor
       // check if command sender has permission to
       // execute this command for other players
       if (!Config.userInterface.permissionToExecute(playerID, sender, false)) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_PERMISSION);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_PERMISSION);
          return;
       }
 
@@ -812,14 +812,14 @@ public final class CommandProcessor
    public static void send(UUID senderID, Object sender, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printToUser(senderID, CommandEconomy.CMD_USAGE_SEND);
+         Config.userInterface.printToUser(senderID, StringTable.CMD_USAGE_SEND);
          return;
       }
 
       // command must have the right number of args
       if (args.length < 2 ||
           args.length > 4) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SEND);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_SEND);
          return;
       }
 
@@ -828,7 +828,7 @@ public final class CommandProcessor
           args[1] == null || args[1].length() == 0 ||
           (args.length == 3 && (args[2] == null || args[2].length() == 0)) ||
           (args.length == 4 && (args[3] == null || args[3].length() == 0))) {
-         Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SEND);
+         Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_SEND);
          return;
       }
 
@@ -860,7 +860,7 @@ public final class CommandProcessor
          try {
             quantity = Float.parseFloat(args[1]);
          } catch (NumberFormatException nfe) {
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_BLOCK_SEND);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_BLOCK_SEND);
             return;
          }
 
@@ -885,7 +885,7 @@ public final class CommandProcessor
          if ((username != null && username.equals("")) ||
              (recipientAccountID != null && recipientAccountID.equals("")) ||
              (senderAccountID != null && senderAccountID.equals(""))) { // empty string indicates an invalid selector
-            Config.userInterface.printErrorToUser(senderID, CommandEconomy.ERROR_ENTITY_SELECTOR);
+            Config.userInterface.printErrorToUser(senderID, StringTable.ERROR_ENTITY_SELECTOR);
             return;
          }
       }
@@ -907,32 +907,32 @@ public final class CommandProcessor
    public static void accountCreate(UUID playerID, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_CREATE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_CREATE);
          return;
       }
 
       // check for zero-length args
       if (args.length < 1 || args[0] == null || args[0].length() == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_ID_MISSING + CommandEconomy.CMD_USAGE_CREATE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_ID_MISSING + StringTable.CMD_USAGE_CREATE);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CREATE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_CREATE);
          return;
       }
 
       // don't overwrite an existing account
       if (Account.getAccount(args[0]) != null) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_EXISTS + CommandEconomy.CMD_USAGE_CREATE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_EXISTS + StringTable.CMD_USAGE_CREATE);
          return;
       }
 
       // don't create an account with the same name as a player
       // unless the account creator is that player
       if (!Config.userInterface.getDisplayName(playerID).equals(args[0]) && Config.userInterface.doesPlayerExist(args[0])) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_IS_PLAYER + CommandEconomy.CMD_USAGE_CREATE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_IS_PLAYER + StringTable.CMD_USAGE_CREATE);
          return;
       }
 
@@ -954,19 +954,19 @@ public final class CommandProcessor
    public static void accountDelete(UUID playerID, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_DELETE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_DELETE);
          return;
       }
 
       // check for zero-length args
       if (args.length < 1 || args[0] == null || args[0].length() == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_ID_MISSING);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_ID_MISSING);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_DELETE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_DELETE);
          return;
       }
 
@@ -984,13 +984,13 @@ public final class CommandProcessor
    public static void accountGrantAccess(UUID playerID, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_GRANT_ACCESS);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_GRANT_ACCESS);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 2) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_GRANT_ACCESS);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_GRANT_ACCESS);
          return;
       }
 
@@ -1001,7 +1001,7 @@ public final class CommandProcessor
       // don't overwrite an existing account
       Account account = Account.getAccount(args[1].intern());
       if (account == null) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_MISSING + CommandEconomy.CMD_USAGE_GRANT_ACCESS);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_MISSING + StringTable.CMD_USAGE_GRANT_ACCESS);
          return;
       }
 
@@ -1019,13 +1019,13 @@ public final class CommandProcessor
    public static void accountRevokeAccess(UUID playerID, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_REVOKE_ACCESS);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_REVOKE_ACCESS);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 2) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_REVOKE_ACCESS);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_REVOKE_ACCESS);
          return;
       }
 
@@ -1036,7 +1036,7 @@ public final class CommandProcessor
       // don't overwrite an existing account
       Account account = Account.getAccount(args[1].intern());
       if (account == null) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_MISSING + CommandEconomy.CMD_USAGE_REVOKE_ACCESS);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_MISSING + StringTable.CMD_USAGE_REVOKE_ACCESS);
          return;
       }
 
@@ -1057,13 +1057,13 @@ public final class CommandProcessor
    public static void research(UUID playerID, String[] args) {
       // check if the industrial research command is enabled
       if (Config.researchCostPerHierarchyLevel == 0.0f) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_RESEARCH_DISABLED);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_RESEARCH_DISABLED);
          return;
       }
 
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_RESEARCH);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_RESEARCH);
          return;
       }
 
@@ -1071,13 +1071,13 @@ public final class CommandProcessor
       if (args[0] == null || args[0].length() == 0 ||
           (args.length >= 2 && (args[1] == null || args[1].length() == 0)) ||
           (args.length >= 3 && (args[2] == null || args[2].length() == 0))) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_RESEARCH);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_RESEARCH);
          return;
       }
 
       // command must have the right number of args
       if (args.length > 3) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_RESEARCH);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_RESEARCH);
          return;
       }
 
@@ -1115,20 +1115,20 @@ public final class CommandProcessor
          try {
             priceAcceptable = Float.parseFloat(args[1]);
          } catch (NumberFormatException e) {
-            Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PRICE + CommandEconomy.CMD_USAGE_RESEARCH);
+            Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_PRICE + StringTable.CMD_USAGE_RESEARCH);
             return;
          }
          accountID = args[2].intern();
       }
 
       // check if player is accepting a proposal
-      if (args[0].equalsIgnoreCase(CommandEconomy.YES)) {
+      if (args[0].equalsIgnoreCase(StringTable.YES)) {
          // grab the old research proposal
          ResearchProposal oldProposal = researchProposals.get(playerID);
 
          // if there is no proposal, tell the player
          if (oldProposal == null) {
-            Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_RESEARCH_NO_OFFERS);
+            Config.userInterface.printErrorToUser(playerID, StringTable.MSG_RESEARCH_NO_OFFERS);
             return;
          }
 
@@ -1183,9 +1183,9 @@ public final class CommandProcessor
             priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]  - Config.quanDeficient[researchProposal.ware.getLevel() - 1]));
             priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]        - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
             priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() - 1]    - Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]));
-            consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
-                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
-                         .append("% lower\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+            consoleOutput.append(" research price is ").append(PriceFormatter.truncatePrice(researchProposal.price + fee)).append(StringTable.MSG_RESEARCH_USAGE_YES)
+                         .append("\n   price fluctuation during surplus: ").append(PriceFormatter.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
+                         .append("% lower\n   price fluctuation during scarcity: ").append(PriceFormatter.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
             if (researchProposal.ware.getQuantity() < Config.quanEquilibrium[researchProposal.ware.getLevel() - 1])
                consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]);
@@ -1247,9 +1247,9 @@ public final class CommandProcessor
             priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]  - Config.quanDeficient[researchProposal.ware.getLevel() - 1]));
             priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]        - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
             priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() - 1]    - Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]));
-            consoleOutput.append(" research price is ").append(CommandEconomy.truncatePrice(researchProposal.price + fee)).append(CommandEconomy.MSG_RESEARCH_USAGE_YES)
-                         .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
-                         .append("% lower\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+            consoleOutput.append(" research price is ").append(PriceFormatter.truncatePrice(researchProposal.price + fee)).append(StringTable.MSG_RESEARCH_USAGE_YES)
+                         .append("\n   price fluctuation during surplus: ").append(PriceFormatter.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
+                         .append("% lower\n   price fluctuation during scarcity: ").append(PriceFormatter.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
             if (researchProposal.ware.getQuantity() < Config.quanEquilibrium[researchProposal.ware.getLevel() - 1])
                consoleOutput.append("\n   quantity available for sale: ").append(researchProposal.ware.getQuantity()).append(" to ").append(Config.quanEquilibrium[researchProposal.ware.getLevel() - 1]);
@@ -1289,9 +1289,9 @@ public final class CommandProcessor
       priceFluctSurplusNew  = ((Config.priceCeiling - 1.0f) / (Config.quanEquilibrium[researchProposal.ware.getLevel()]     - Config.quanDeficient[researchProposal.ware.getLevel()]));
       priceFluctScarcityOld = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel() + 1]   - Config.quanEquilibrium[researchProposal.ware.getLevel() + 1]));
       priceFluctScarcityNew = ((Config.priceCeiling - 1.0f) / (Config.quanExcessive[researchProposal.ware.getLevel()]       - Config.quanEquilibrium[researchProposal.ware.getLevel()]));
-      consoleOutput.append(CommandEconomy.MSG_RESEARCH_SUCCESS)
-                   .append("\n   price fluctuation during surplus: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
-                   .append("% lower\n   price fluctuation during scarcity: ").append(CommandEconomy.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
+      consoleOutput.append(StringTable.MSG_RESEARCH_SUCCESS)
+                   .append("\n   price fluctuation during surplus: ").append(PriceFormatter.truncatePrice((1.0f - (priceFluctSurplusNew / priceFluctSurplusOld)) * 100.0f))
+                   .append("% lower\n   price fluctuation during scarcity: ").append(PriceFormatter.truncatePrice((1.0f - (priceFluctScarcityNew / priceFluctScarcityOld)) * 100.0f)).append("% lower");
 
       if (Config.quanEquilibrium[researchProposal.ware.getLevel()] == researchProposal.ware.getQuantity())
          consoleOutput.append("\n   new quantity available for sale: ").append(researchProposal.ware.getQuantity());
@@ -1311,7 +1311,7 @@ public final class CommandProcessor
          account.subtractMoney(fee);
 
          // report fee payment
-         Config.userInterface.printToUser(playerID, CommandEconomy.MSG_TRANSACT_FEE + CommandEconomy.PRICE_FORMAT.format(fee));
+         Config.userInterface.printToUser(playerID, StringTable.MSG_TRANSACT_FEE + PriceFormatter.PRICE_FORMAT.format(fee));
       }
 
       // remove any old proposal
@@ -1327,7 +1327,7 @@ public final class CommandProcessor
    public static void save(String[] args) {
       Marketplace.saveWares();
       Account.saveAccounts();
-      Config.userInterface.printToConsole(CommandEconomy.MSG_SAVED_ECONOMY);
+      Config.userInterface.printToConsole(StringTable.MSG_SAVED_ECONOMY);
    }
 
    /**
@@ -1341,43 +1341,43 @@ public final class CommandProcessor
    public static void reload(UUID playerID, String[] args, int indexOffset) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_RELOAD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_RELOAD);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1 + indexOffset) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_RELOAD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_RELOAD);
          return;
       }
 
       // input argument should not be null
       if (args[indexOffset] == null || args[indexOffset].length() == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_RELOAD_MISSING + CommandEconomy.CMD_USAGE_RELOAD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_RELOAD_MISSING + StringTable.CMD_USAGE_RELOAD);
          return;
       }
 
       // call corresponding function or report error
-      if (args[indexOffset].equals(CommandEconomy.RELOAD_CONFIG)) {
+      if (args[indexOffset].equals(StringTable.RELOAD_CONFIG)) {
          Config.loadConfig();
-         Config.userInterface.printToUser(playerID, CommandEconomy.MSG_RELOAD_CONFIG);
+         Config.userInterface.printToUser(playerID, StringTable.MSG_RELOAD_CONFIG);
       }
-      else if (args[indexOffset].equals(CommandEconomy.RELOAD_WARES)) {
+      else if (args[indexOffset].equals(StringTable.RELOAD_WARES)) {
          Marketplace.loadWares();
-         Config.userInterface.printToUser(playerID, CommandEconomy.MSG_RELOAD_WARES);
+         Config.userInterface.printToUser(playerID, StringTable.MSG_RELOAD_WARES);
       }
-      else if (args[indexOffset].equals(CommandEconomy.RELOAD_ACCOUNTS)) {
+      else if (args[indexOffset].equals(StringTable.RELOAD_ACCOUNTS)) {
          Account.loadAccounts();
-         Config.userInterface.printToUser(playerID, CommandEconomy.MSG_RELOAD_ACCOUNTS);
+         Config.userInterface.printToUser(playerID, StringTable.MSG_RELOAD_ACCOUNTS);
       }
-      else if (args[indexOffset].equals(CommandEconomy.ALL)) {
+      else if (args[indexOffset].equals(StringTable.ALL)) {
          Config.loadConfig();
          Marketplace.loadWares();
          Account.loadAccounts();
-         Config.userInterface.printToUser(playerID, CommandEconomy.MSG_RELOAD_ALL);
+         Config.userInterface.printToUser(playerID, StringTable.MSG_RELOAD_ALL);
       }
       else {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ARG + CommandEconomy.CMD_USAGE_RELOAD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ARG + StringTable.CMD_USAGE_RELOAD);
       }
    }
 
@@ -1391,21 +1391,21 @@ public final class CommandProcessor
    public static void add(final UUID playerID, final String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_ADD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_ADD);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1 &&
           args.length != 2) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_ADD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_ADD);
          return;
       }
 
       // check for zero-length args
       if (args[0] == null || args[0].length() == 0 ||
           (args.length == 2 && (args[1] == null || args[1].length() == 0))) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_ADD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_ADD);
          return;
       }
 
@@ -1416,7 +1416,7 @@ public final class CommandProcessor
       try {
          quantity = Float.parseFloat(args[0]);
       } catch (NumberFormatException e) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_ADD);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_ADD);
          return;
       }
 
@@ -1430,7 +1430,7 @@ public final class CommandProcessor
          // check if account exists
          account = Account.grabPlayerAccount(args[1], args[1], null);
          if (account == null) {
-            Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_MISSING + CommandEconomy.CMD_USAGE_ADD);
+            Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_MISSING + StringTable.CMD_USAGE_ADD);
             return;
          }
 
@@ -1438,8 +1438,8 @@ public final class CommandProcessor
          account.addMoney(quantity);
 
          // tell players about the money
-         Config.userInterface.printToUser(playerID, "Gave " + CommandEconomy.PRICE_FORMAT.format(quantity) + " to " + args[1]);
-         Config.userInterface.printToUser(account.getOwner(), "Received " + CommandEconomy.PRICE_FORMAT.format(quantity));
+         Config.userInterface.printToUser(playerID, "Gave " + PriceFormatter.PRICE_FORMAT.format(quantity) + " to " + args[1]);
+         Config.userInterface.printToUser(account.getOwner(), "Received " + PriceFormatter.PRICE_FORMAT.format(quantity));
       }
       // if no account ID is given,
       // use the player's personal account
@@ -1451,7 +1451,7 @@ public final class CommandProcessor
          account.addMoney(quantity);
 
          // tell the player about the money
-         Config.userInterface.printToUser(playerID, "Received " + CommandEconomy.PRICE_FORMAT.format(quantity));
+         Config.userInterface.printToUser(playerID, "Received " + PriceFormatter.PRICE_FORMAT.format(quantity));
       }
    }
 
@@ -1466,21 +1466,21 @@ public final class CommandProcessor
    public static void set(UUID playerID, String[] args, int indexOffset) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_SET);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_SET);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1 + indexOffset &&
           args.length != 2 + indexOffset) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SET);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_SET);
          return;
       }
 
       // check for zero-length args
       if (args[indexOffset] == null || args[indexOffset].length() == 0 ||
           (args.length == 2 + indexOffset && (args[1 + indexOffset] == null || args[1 + indexOffset].length() == 0))) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SET);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_SET);
          return;
       }
 
@@ -1491,7 +1491,7 @@ public final class CommandProcessor
       try {
          quantity = Float.parseFloat(args[indexOffset]);
       } catch (NumberFormatException e) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_SET);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_SET);
          return;
       }
 
@@ -1505,7 +1505,7 @@ public final class CommandProcessor
          // check if account exists
          account = Account.getAccount(args[1 + indexOffset]);
          if (account == null) {
-            Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ACCOUNT_MISSING + CommandEconomy.CMD_USAGE_SET);
+            Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ACCOUNT_MISSING + StringTable.CMD_USAGE_SET);
             return;
          }
 
@@ -1513,9 +1513,9 @@ public final class CommandProcessor
          account.setMoney(quantity);
 
          // tell players about the money
-         Config.userInterface.printToUser(playerID, "Set " + args[1 + indexOffset] + " funds to " + CommandEconomy.PRICE_FORMAT.format(quantity));
+         Config.userInterface.printToUser(playerID, "Set " + args[1 + indexOffset] + " funds to " + PriceFormatter.PRICE_FORMAT.format(quantity));
          if (!playerID.equals(account.getOwner()))
-            Config.userInterface.printToUser(account.getOwner(), args[1 + indexOffset] + " funds to " + CommandEconomy.PRICE_FORMAT.format(quantity));
+            Config.userInterface.printToUser(account.getOwner(), args[1 + indexOffset] + " funds to " + PriceFormatter.PRICE_FORMAT.format(quantity));
       }
       // if no account ID is given,
       // use the player's personal account
@@ -1531,7 +1531,7 @@ public final class CommandProcessor
          account.setMoney(quantity);
 
          // tell the player about the money
-         Config.userInterface.printToUser(playerID, "Personal funds set to " + CommandEconomy.PRICE_FORMAT.format(quantity));
+         Config.userInterface.printToUser(playerID, "Personal funds set to " + PriceFormatter.PRICE_FORMAT.format(quantity));
       }
    }
 
@@ -1546,20 +1546,20 @@ public final class CommandProcessor
    public static void changeStock(UUID playerID, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_CHANGE_STOCK);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_CHANGE_STOCK);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 2) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_CHANGE_STOCK);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_CHANGE_STOCK);
          return;
       }
 
       // check for zero-length args
       if (args[0] == null || args[0].length() == 0 ||
           args[1] == null || args[1].length() == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_CHANGE_STOCK);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_CHANGE_STOCK);
          return;
       }
 
@@ -1571,16 +1571,16 @@ public final class CommandProcessor
       ware = Marketplace.translateAndGrab(args[0].intern());
       // if ware is not in the market, stop
       if (ware == null) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + args[0]);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_WARE_MISSING + args[0]);
          return;
       }
 
       // find where to set stock to
-      if (args[1].equalsIgnoreCase(CommandEconomy.CHANGE_STOCK_EQUILIBRIUM))
+      if (args[1].equalsIgnoreCase(StringTable.CHANGE_STOCK_EQUILIBRIUM))
          quantity = Config.quanEquilibrium[ware.getLevel()];
-      else if (args[1].equalsIgnoreCase(CommandEconomy.CHANGE_STOCK_OVERSTOCKED))
+      else if (args[1].equalsIgnoreCase(StringTable.CHANGE_STOCK_OVERSTOCKED))
          quantity = Config.quanExcessive[ware.getLevel()];
-      else if (args[1].equalsIgnoreCase(CommandEconomy.CHANGE_STOCK_UNDERSTOCKED))
+      else if (args[1].equalsIgnoreCase(StringTable.CHANGE_STOCK_UNDERSTOCKED))
          quantity = Config.quanDeficient[ware.getLevel()];
       else {
          try {
@@ -1590,7 +1590,7 @@ public final class CommandProcessor
          }
       }
       if (quantity == 2147483647) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_QUANTITY + CommandEconomy.CMD_USAGE_CHANGE_STOCK);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_QUANTITY + StringTable.CMD_USAGE_CHANGE_STOCK);
          return;
       }
 
@@ -1611,19 +1611,19 @@ public final class CommandProcessor
    public static void setDefaultAccount(UUID playerID, String[] args) {
       // request should not be null
       if (args == null || args.length == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT);
+         Config.userInterface.printErrorToUser(playerID, StringTable.CMD_USAGE_SET_DEFAULT_ACCOUNT);
          return;
       }
 
       // command must have the right number of args
       if (args.length != 1) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_NUM_ARGS + CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_NUM_ARGS + StringTable.CMD_USAGE_SET_DEFAULT_ACCOUNT);
          return;
       }
 
       // check for zero-length args
       if (args[0] == null || args[0].length() == 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_ZERO_LEN_ARGS + CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_ZERO_LEN_ARGS + StringTable.CMD_USAGE_SET_DEFAULT_ACCOUNT);
          return;
       }
 
@@ -1649,7 +1649,7 @@ public final class CommandProcessor
       Ware ware = Marketplace.translateAndGrab(wareID);
       // if ware is not in the market, stop
       if (ware == null) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_WARE_MISSING + wareID);
+         Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_WARE_MISSING + wareID);
          return null;
       }
       wareID = ware.getWareID();
@@ -1659,36 +1659,36 @@ public final class CommandProcessor
       // verify that the ware is suitable for research
       if (ware.getLevel() == 0) {
          if (HAS_ALIAS)
-            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_LOWEST_LEVEL);
+            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + StringTable.MSG_RESEARCH_LOWEST_LEVEL);
          else
-            Config.userInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_LOWEST_LEVEL);
+            Config.userInterface.printErrorToUser(playerID, wareID + StringTable.MSG_RESEARCH_LOWEST_LEVEL);
 
          return null;
       }
 
       if (ware instanceof WareUntradeable) {
          if (HAS_ALIAS)
-            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_BUY_UNTRADEABLE);
+            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + StringTable.MSG_BUY_UNTRADEABLE);
          else
-            Config.userInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_BUY_UNTRADEABLE);
+            Config.userInterface.printErrorToUser(playerID, wareID + StringTable.MSG_BUY_UNTRADEABLE);
 
          return null;
       }
 
       if (ware instanceof WareLinked) {
          if (HAS_ALIAS)
-            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_LINKED);
+            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + StringTable.MSG_RESEARCH_LINKED);
          else
-            Config.userInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_LINKED);
+            Config.userInterface.printErrorToUser(playerID, wareID + StringTable.MSG_RESEARCH_LINKED);
 
          return null;
       }
 
       if (ware.getQuantity() >= Config.quanExcessive[ware.getLevel()]) {
          if (HAS_ALIAS)
-            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_QUAN_HIGH);
+            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + StringTable.MSG_RESEARCH_QUAN_HIGH);
          else
-            Config.userInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_QUAN_HIGH);
+            Config.userInterface.printErrorToUser(playerID, wareID + StringTable.MSG_RESEARCH_QUAN_HIGH);
 
          return null;
       }
@@ -1699,14 +1699,14 @@ public final class CommandProcessor
          priceResearch *= Marketplace.getCurrentPriceAverage();
 
       // truncate the price to avoid rounding and multiplication errors
-      priceResearch = CommandEconomy.truncatePrice(priceResearch);
+      priceResearch = PriceFormatter.truncatePrice(priceResearch);
 
       // if research price is 0, the ware cannot be researched
       if (priceResearch == 0.0f) {
          if (HAS_ALIAS)
-            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + CommandEconomy.MSG_RESEARCH_FAILED);
+            Config.userInterface.printErrorToUser(playerID, ware.getAlias() + StringTable.MSG_RESEARCH_FAILED);
          else
-            Config.userInterface.printErrorToUser(playerID, wareID + CommandEconomy.MSG_RESEARCH_FAILED);
+            Config.userInterface.printErrorToUser(playerID, wareID + StringTable.MSG_RESEARCH_FAILED);
 
          return null;
       }
@@ -1728,8 +1728,8 @@ public final class CommandProcessor
     */
    public static float parsePricePercentArgument(UUID playerID, String arg, boolean isTrading) {
       // remove keyword, if present
-      if (arg.startsWith(CommandEconomy.PRICE_PERCENT))
-         arg = arg.substring(CommandEconomy.PRICE_PERCENT.length()); // remove identifying character(s)
+      if (arg.startsWith(StringTable.PRICE_PERCENT))
+         arg = arg.substring(StringTable.PRICE_PERCENT.length()); // remove identifying character(s)
 
       // check user permissions
       if ((isTrading && Config.userInterface.isAnOp(playerID)) || // buying/selling requires permission to change prices
@@ -1739,14 +1739,14 @@ public final class CommandProcessor
             return Float.parseFloat(arg);
          }
          catch (Exception e) {
-            Config.userInterface.printErrorToUser(playerID, CommandEconomy.ERROR_PRICE_ADJUST_INVALID + arg);
+            Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_PRICE_ADJUST_INVALID + arg);
             return Float.NaN;
          }
       }
 
       // invalid permissions
       else {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_PRICE_ADJUST_NO_PERM);
+         Config.userInterface.printErrorToUser(playerID, StringTable.MSG_PRICE_ADJUST_NO_PERM);
          return Float.NaN;
       }
    }

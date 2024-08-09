@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandSellAll extends CommandBase {
-   private final List<String> aliases = Arrays.asList(CommandEconomy.CMD_SELLALL_LOWER);
+   private final List<String> aliases = Arrays.asList(StringTable.CMD_SELLALL_LOWER);
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -20,7 +20,7 @@ public class CommandSellAll extends CommandBase {
 
    @Override
    public String getName() {
-      return CommandEconomy.CMD_SELLALL;
+      return StringTable.CMD_SELLALL;
    }
 
    @Override
@@ -31,9 +31,9 @@ public class CommandSellAll extends CommandBase {
    @Override
    public String getUsage(ICommandSender sender) {
       if (sender instanceof EntityPlayer)
-         return CommandEconomy.CMD_USAGE_SELL;
+         return StringTable.CMD_USAGE_SELL;
       else
-         return CommandEconomy.CMD_USAGE_BLOCK_SELLALL;
+         return StringTable.CMD_USAGE_BLOCK_SELLALL;
    }
 
    @Override

@@ -243,7 +243,7 @@ public interface UserInterface
     * if the user lacks permission to use such tokens.
     * Does not print an error if one occurs
     * in case multiple selectors are processed in series.
-    * The appropriate error to print is CommandEconomy.ERROR_ENTITY_SELECTOR.
+    * The appropriate error to print is StringTable.ERROR_ENTITY_SELECTOR.
     *
     * @param sender   player or command block executing the command
     * @param selector string which might be an entity selector

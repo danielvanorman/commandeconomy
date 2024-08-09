@@ -17,12 +17,12 @@ public class CommandDelete extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_DELETE;
+       return StringTable.CMD_DELETE;
    }
 
    @Override
    public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_DELETE;
+      return StringTable.CMD_USAGE_DELETE;
    }
 
    @Override

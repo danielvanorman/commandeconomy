@@ -21,9 +21,9 @@ public class WareMaterial extends Ware
       byte level) {
       this.components    = null;
       this.componentsIDs = null;
-      this.wareID = wareID;
+      this.wareID        = wareID;
       setAlias(alias);
-      this.priceBase = priceBase;
+      this.priceBase     = priceBase;
       this.quantity      = quantity;
       this.yield         = 1;
       setLevel(level);
@@ -32,7 +32,7 @@ public class WareMaterial extends Ware
    /** Material Ware Constructor: No-arguments for GSON. */
    public WareMaterial () {
       // default values
-      yield    = 1;
+      yield = 1;
    }
 
    /**

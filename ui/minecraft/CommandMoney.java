@@ -20,7 +20,7 @@ public class CommandMoney extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_MONEY;
+       return StringTable.CMD_MONEY;
    }
 
    @Override
@@ -31,9 +31,9 @@ public class CommandMoney extends CommandBase {
    @Override
    public String getUsage(ICommandSender sender) {
       if (sender instanceof EntityPlayer)
-         return CommandEconomy.CMD_USAGE_MONEY;
+         return StringTable.CMD_USAGE_MONEY;
       else
-         return CommandEconomy.CMD_USAGE_BLOCK_MONEY;
+         return StringTable.CMD_USAGE_BLOCK_MONEY;
    }
 
    @Override

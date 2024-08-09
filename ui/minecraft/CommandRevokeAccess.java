@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandRevokeAccess extends CommandBase {
-   private final List<String> aliases = Arrays.asList(CommandEconomy.CMD_REVOKE_ACCESS_LOWER);
+   private final List<String> aliases = Arrays.asList(StringTable.CMD_REVOKE_ACCESS_LOWER);
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -19,7 +19,7 @@ public class CommandRevokeAccess extends CommandBase {
 
    @Override
    public String getName() {
-      return CommandEconomy.CMD_REVOKE_ACCESS;
+      return StringTable.CMD_REVOKE_ACCESS;
    }
 
    @Override
@@ -29,7 +29,7 @@ public class CommandRevokeAccess extends CommandBase {
 
    @Override
    public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_REVOKE_ACCESS;
+      return StringTable.CMD_USAGE_REVOKE_ACCESS;
    }
 
    @Override

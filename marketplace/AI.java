@@ -322,8 +322,8 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
-                                                            CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
+                     Config.userInterface.printToConsole(StringTable.WARN_AI_INVALID_WARE_PRO + profession +
+                                                            StringTable.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware
                   continue;
@@ -377,8 +377,8 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
-                                                            CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
+                     Config.userInterface.printToConsole(StringTable.WARN_AI_INVALID_WARE_PRO + profession +
+                                                            StringTable.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware
                   continue;
@@ -431,8 +431,8 @@ public class AI {
                // if a preference is invalid, remove it
                if (wareID == null || Float.isNaN(bias)) {
                   if (Config.aiReportInvalidWares)
-                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_PREF_PRO + profession +
-                                                            CommandEconomy.WARN_AI_INVALID_PREF_IDS + wareID);
+                     Config.userInterface.printToConsole(StringTable.WARN_AI_INVALID_PREF_PRO + profession +
+                                                            StringTable.WARN_AI_INVALID_PREF_IDS + wareID);
 
                   iterator.remove();
                   continue;
@@ -456,8 +456,8 @@ public class AI {
       // if ware IDs are mismatched,
       // report the matching ones
       if (!isValid && wareIDsMismatched != null)
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_AI_PREFS_MISMATCH_PRO + profession +
-                                                CommandEconomy.ERROR_AI_PREFS_MISMATCH_IDS + wareIDsMismatched.substring(0, wareIDsMismatched.length() - 2)); // -2 characters removes ending comma and space
+         Config.userInterface.printToConsole(StringTable.ERROR_AI_PREFS_MISMATCH_PRO + profession +
+                                                StringTable.ERROR_AI_PREFS_MISMATCH_IDS + wareIDsMismatched.substring(0, wareIDsMismatched.length() - 2)); // -2 characters removes ending comma and space
 
       return !isValid; // true == error detected
    }
@@ -488,8 +488,8 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
-                                                            CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
+                     Config.userInterface.printToConsole(StringTable.WARN_AI_INVALID_WARE_PRO + profession +
+                                                            StringTable.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware
                   continue;
@@ -540,8 +540,8 @@ public class AI {
                if (ware == null) {
                   // print a warning
                   if (Config.aiReportInvalidWares)
-                     Config.userInterface.printToConsole(CommandEconomy.WARN_AI_INVALID_WARE_PRO + profession +
-                                                            CommandEconomy.WARN_AI_INVALID_WARE_IDS + wareID);
+                     Config.userInterface.printToConsole(StringTable.WARN_AI_INVALID_WARE_PRO + profession +
+                                                            StringTable.WARN_AI_INVALID_WARE_IDS + wareID);
 
                   // skip the ware
                   continue;

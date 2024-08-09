@@ -202,12 +202,12 @@ public abstract class Ware
     */
    boolean setComponents(String[] componentsIDs) {
       if (componentsIDs == null || componentsIDs.length == 0) {
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_IDS);
+         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_IDS);
          return false;
       }
 
       if (yield <= 0) {
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_YIELD);
+         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_YIELD);
          return false;
       }
 
@@ -265,10 +265,10 @@ public abstract class Ware
     */
    public String reloadComponents() {
       if (componentsIDs == null || componentsIDs.length == 0)
-         return CommandEconomy.ERROR_COMPONENT_IDS;
+         return StringTable.ERROR_COMPONENT_IDS;
 
       if (yield <= 0)
-         return CommandEconomy.ERROR_COMPONENT_YIELD;
+         return StringTable.ERROR_COMPONENT_YIELD;
 
       // initialize components array if it hasn't been already
       if (components == null)
@@ -364,7 +364,7 @@ public abstract class Ware
 
       // every ware should have an ID
       if (wareID == null || wareID.isEmpty())
-         errorMessage = CommandEconomy.ERROR_WARE_ID_MISSING;
+         errorMessage = StringTable.ERROR_WARE_ID_MISSING;
 
       // aliases shouldn't have colons nor be empty strings
       if (alias != null && !alias.isEmpty()) {
@@ -381,7 +381,7 @@ public abstract class Ware
          if (!errorMessage.isEmpty())
             errorMessage += ", ";
 
-         errorMessage += CommandEconomy.ERROR_WARE_NO_PRICE;
+         errorMessage += StringTable.ERROR_WARE_NO_PRICE;
       }
 
       // level must be between 0 and 5 inclusive
@@ -408,7 +408,7 @@ public abstract class Ware
 
       // every ware should have an ID
       if (wareID == null || wareID.isEmpty())
-         errorMessage = CommandEconomy.ERROR_WARE_ID_MISSING;
+         errorMessage = StringTable.ERROR_WARE_ID_MISSING;
 
       // aliases shouldn't have colons nor be empty strings
       if (alias != null && !alias.isEmpty()) {
@@ -439,7 +439,7 @@ public abstract class Ware
          if (!errorMessage.isEmpty())
             errorMessage += ", ";
 
-         errorMessage += CommandEconomy.ERROR_COMPONENTS_MISSING;
+         errorMessage += StringTable.ERROR_COMPONENTS_MISSING;
       }
 
       // components' IDs should not be blank
@@ -451,7 +451,7 @@ public abstract class Ware
                if (!errorMessage.isEmpty())
                   errorMessage += ", ";
 
-               errorMessage += CommandEconomy.ERROR_COMPONENT_ID_BLANK;
+               errorMessage += StringTable.ERROR_COMPONENT_ID_BLANK;
                break;
             }
          }
@@ -634,7 +634,7 @@ public abstract class Ware
 
       // lacking inventory space should have its own error message
       if (inventorySpaceAvailable <= 0) {
-         Config.userInterface.printErrorToUser(playerID, CommandEconomy.MSG_INVENTORY_NO_SPACE);
+         Config.userInterface.printErrorToUser(playerID, StringTable.MSG_INVENTORY_NO_SPACE);
          return new float[] {0.0f, 0.0f};
       }
 

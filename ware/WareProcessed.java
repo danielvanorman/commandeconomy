@@ -54,7 +54,7 @@ public class WareProcessed extends Ware
       else
          // adjust price by its corresponding multiplier
          // truncate the price to avoid rounding and multiplication errors
-         return CommandEconomy.truncatePrice(priceBase * Config.priceProcessed);
+         return PriceFormatter.truncatePrice(priceBase * Config.priceProcessed);
    }
 
    /**
@@ -77,7 +77,7 @@ public class WareProcessed extends Ware
    public String toJSON() {
       // avoid an illegal state exception
       if (Float.isNaN(priceBase))
-         priceBase    = 0.0f;
+         priceBase = 0.0f;
 
       jsonObject = gson.toJsonTree(this).getAsJsonObject();
       jsonObject.addProperty("type", "processed");

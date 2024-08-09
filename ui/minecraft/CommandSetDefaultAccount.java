@@ -10,7 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Arrays;                                    // for storing command aliases
 
 public class CommandSetDefaultAccount extends CommandBase {
-   private final List<String> aliases = Arrays.asList(CommandEconomy.CMD_SET_DEFAULT_ACCOUNT_LOWER);
+   private final List<String> aliases = Arrays.asList(StringTable.CMD_SET_DEFAULT_ACCOUNT_LOWER);
 
   @Override
   public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
@@ -19,7 +19,7 @@ public class CommandSetDefaultAccount extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_SET_DEFAULT_ACCOUNT;
+       return StringTable.CMD_SET_DEFAULT_ACCOUNT;
    }
 
    @Override
@@ -29,7 +29,7 @@ public class CommandSetDefaultAccount extends CommandBase {
 
    @Override
    public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_SET_DEFAULT_ACCOUNT;
+      return StringTable.CMD_USAGE_SET_DEFAULT_ACCOUNT;
    }
 
    @Override

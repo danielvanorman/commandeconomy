@@ -167,13 +167,13 @@ public final class Config
    /** whether or not to charge for buying, selling, and possibly sending */
    protected static boolean chargeTransactionFees = false;
    /** what to say when telling users a fee for purchasing has been applied */
-   protected static String transactionFeeBuyingMsg      = CommandEconomy.MSG_TRANSACT_FEE;
+   protected static String transactionFeeBuyingMsg      = StringTable.MSG_TRANSACT_FEE;
    /** what to say when telling users a fee for selling has been applied */
-   protected static String transactionFeeSellingMsg     = CommandEconomy.MSG_TRANSACT_FEE;
+   protected static String transactionFeeSellingMsg     = StringTable.MSG_TRANSACT_FEE;
    /** what to say when telling users a fee for transferring has been applied */
-   protected static String transactionFeeSendingMsg     = CommandEconomy.MSG_TRANSACT_FEE;
+   protected static String transactionFeeSendingMsg     = StringTable.MSG_TRANSACT_FEE;
    /** what to say when telling users a fee for investing has been applied */
-   protected static String transactionFeeResearchingMsg = CommandEconomy.MSG_TRANSACT_FEE;
+   protected static String transactionFeeResearchingMsg = StringTable.MSG_TRANSACT_FEE;
    /** how much to charge per transaction for buying */
    protected static float transactionFeeBuying     = 0.05f;
    /** how much to charge per transaction for selling */
@@ -195,7 +195,7 @@ public final class Config
     *  charging based off of total funds transferred */
    protected static boolean transactionFeeResearchingIsMult = true;
    /** the account which transaction fees are paid to */
-   protected static String transactionFeesAccount = CommandEconomy.TRANSACT_FEE_COLLECTION;
+   protected static String transactionFeesAccount = StringTable.TRANSACT_FEE_COLLECTION;
    /** if true, money from paid fees is put into transactionFeeAccount */
    protected static boolean transactionFeesShouldPutFeesIntoAccount = true;
 
@@ -383,8 +383,8 @@ public final class Config
             break;
 
          default:
-            userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption +
-                                         CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
+            userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_SET + configOption +
+                                         StringTable.ERROR_CONFIG_OPTION_VALUE + value);
       }
    }
 
@@ -411,7 +411,7 @@ public final class Config
             break;
 
          default:
-            userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
+            userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_SET + configOption);
       }
    }
 
@@ -514,7 +514,7 @@ public final class Config
             break;
 
          default:
-            userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption);
+            userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_SET + configOption);
       }
    }
 
@@ -565,8 +565,8 @@ public final class Config
             break;
 
          default:
-            userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_SET + configOption
-                                         + CommandEconomy.ERROR_CONFIG_OPTION_VALUE + value);
+            userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_SET + configOption
+                                         + StringTable.ERROR_CONFIG_OPTION_VALUE + value);
       }
    }
 
@@ -592,7 +592,7 @@ public final class Config
       // check file existence
       if (!fileConfig.isFile()) {
          // don't throw an exception, print a warning to advise user to reload config
-         userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + filenameConfig
+         userInterface.printToConsole(StringTable.WARN_FILE_MISSING + filenameConfig
                               + System.lineSeparator() + "To load custom settings, replace " + filenameConfig
                               + "," + System.lineSeparator() + "then use the command \"reload config\"."
          );
@@ -623,7 +623,7 @@ public final class Config
         fileReader = new Scanner(fileConfig);
      }
      catch (FileNotFoundException e) {
-        userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSED + filenameConfig);
+        userInterface.printToConsole(StringTable.WARN_FILE_MISSED + filenameConfig);
         e.printStackTrace();
         return;
      }
@@ -654,7 +654,7 @@ public final class Config
 
          // if line has no or multiple equal signs, something is wrong
          if (data.length != 2) {
-            userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_FORMAT + data[0]);
+            userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_FORMAT + data[0]);
             continue;
          }
 
@@ -679,7 +679,7 @@ public final class Config
               // if the array's size does not match config arrays,
               // report an error and move on
               if (inputArray.length != 6) {
-                 userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_LOAD + data[0] + CommandEconomy.ERROR_CONFIG_OPTION_ARRAY + inputArray.length);
+                 userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_LOAD + data[0] + StringTable.ERROR_CONFIG_OPTION_ARRAY + inputArray.length);
                  continue;
               }
 
@@ -712,17 +712,17 @@ public final class Config
                  setConfig(data[0], input);
               } catch (Exception e) {
                   // if the value is not a float
-                  if (data[1].equalsIgnoreCase(CommandEconomy.TRUE) || data[1].equalsIgnoreCase(CommandEconomy.FALSE))
+                  if (data[1].equalsIgnoreCase(StringTable.TRUE) || data[1].equalsIgnoreCase(StringTable.FALSE))
                      setConfig(data[0], Boolean.parseBoolean(data[1]));
                   else
                      setConfig(data[0], data[1]);
               }
            }
         } catch (NumberFormatException e) {
-           userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_LOAD + data[0] + CommandEconomy.ERROR_CONFIG_OPTION_PARSING + data[1]);
+           userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_LOAD + data[0] + StringTable.ERROR_CONFIG_OPTION_PARSING + data[1]);
            continue;
         } catch (Exception e) {
-           userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_OPTION_LOAD + data[0]);
+           userInterface.printToConsole(StringTable.ERROR_CONFIG_OPTION_LOAD + data[0]);
            continue;
         }
      }
@@ -874,10 +874,10 @@ public final class Config
 
       // transaction fees
       chargeTransactionFees           = false;
-      transactionFeeBuyingMsg         = CommandEconomy.MSG_TRANSACT_FEE;
-      transactionFeeSellingMsg        = CommandEconomy.MSG_TRANSACT_FEE;
-      transactionFeeSendingMsg        = CommandEconomy.MSG_TRANSACT_FEE;
-      transactionFeeResearchingMsg    = CommandEconomy.MSG_TRANSACT_FEE;
+      transactionFeeBuyingMsg         = StringTable.MSG_TRANSACT_FEE;
+      transactionFeeSellingMsg        = StringTable.MSG_TRANSACT_FEE;
+      transactionFeeSendingMsg        = StringTable.MSG_TRANSACT_FEE;
+      transactionFeeResearchingMsg    = StringTable.MSG_TRANSACT_FEE;
       transactionFeeBuying            = 0.05f;
       transactionFeeSelling           = 0.00f;
       transactionFeeSending           = 0.02f;
@@ -886,7 +886,7 @@ public final class Config
       transactionFeeSellingIsMult     = true;
       transactionFeeSendingIsMult     = true;
       transactionFeeResearchingIsMult = true;
-      transactionFeesAccount          = CommandEconomy.TRANSACT_FEE_COLLECTION;
+      transactionFeesAccount          = StringTable.TRANSACT_FEE_COLLECTION;
       transactionFeesShouldPutFeesIntoAccount = true;
 
       // random events
@@ -941,7 +941,7 @@ public final class Config
             fileWriter.write("// ===Prices:===\n// =Global:=\n// scales prices linearly\npriceMult = 1.0\n// pushes prices closer together or farther apart\npriceSpread = 1.0\n\n// the highest a ware's price may increase based on stock quantity\n// 2.0 == 2x price base after stock falls below quanDeficient\npriceCeiling = 2.0\n// the lowest a ware's price may decrease based on stock quantity\n// 0.0 == free after stock surpasses quanExcessive\npriceFloor = 0.0\n\n// =Targeted Multipliers:=\n// processed wares' prices are adjusted by this multiplier\n// ex: charcoal's price == wood's price * priceProcessed\npriceProcessed = 1.5\n// crafted wares' prices are adjusted by this multiplier\n// ex: piston's price == sum of piston's components' prices * priceCrafted\npriceCrafted = 1.2\n\n// multiplies the cost of purchasing a ware, but keeps selling the same\n// 1.2 == 20% higher price when buying than selling\npriceBuyUpchargeMult = 1.0\n\n// if true, out-of-stock processed/crafted wares may be purchased\n// if their components have enough available stock on the market\nbuyingOutOfStockWaresAllowed = true\n\n// how much to charge for purchasing out-of-stock processed/crafted wares\n// this charge is in addition to processed/crafted price multipliers\n// 1.10 == +10% out-of-stock price\nbuyingOutOfStockWaresPriceMult = 1.10\n\n// =Linked Prices:=\n// if true, current prices of components used to create a ware\n// affect the current price of the created ware,\n// even if the ware cannot be reverted into its components\n// ex: if wood is scarce, charcoal automatically costs more\nshouldComponentsCurrentPricesAffectWholesPrice = true\n\n// the most components' prices may affect a created ware's price\n// ex: 0.75 == can lower created's price as much as 75% and\n// can raise created's price by 75% of components' prices\nlinkedPricesPercent = 0.75\n\n// =Transaction Fees:=\n// whether or not to charge for buying, selling, or sending\nchargeTransactionFees = false\n\n// how much to charge per transaction for buying/etc.\n// 0.05 == fee is 5% of total price or $0.05\ntransactionFeeBuying    = 0.05\ntransactionFeeSelling   = 0.00\ntransactionFeeSending   = 0.02\ntransactionFeeResearching = 0.015\n\n// if true, transactionFee is treated as a multiplier,\n// charging based off of purchases' total prices \n// if false, transactionFee is treated as a flat rate\ntransactionFeeBuyingIsMult    = true\ntransactionFeeSellingIsMult   = true\ntransactionFeeSendingIsMult   = true\ntransactionFeeResearchingIsMult = true\n\n// what to say when telling users a fee for\n// purchasing/selling/transferring has been applied\ntransactionFeeBuyingMsg    = Sales tax paid: \ntransactionFeeSellingMsg   = Income tax paid: \ntransactionFeeSendingMsg   = Transfer fee applied: \ntransactionFeeResearchingMsg = Brokerage fee applied: \n\n// if true, money from fees is put into transactionFeeAccount\ntransactionFeesShouldPutFeesIntoAccount = true\n\n// the account which transaction fees are paid to\n// if this account doesn't exist,\n// an inaccessible account is made\ntransactionFeesAccount = cumulativeTransactionFees\n\n// ===Wares' Quantities for Sale:===\n// =Supply and Demand:=\n// quantity > this is considered saturated\nquanExcessive   = 65536, 43008, 14336, 10240, 6144, 3072\n// quantity = this is considered balanced\nquanEquilibrium = 16384,  9216,  5120,  3072, 2048, 1024\n// quantity < this is considered scarce\nquanDeficient   =  4096,  2048,  1536,  1024,  768,  512\n\n// true means it is truly a command economy\npricesIgnoreSupplyAndDemand = false\n\n// if true, wares with prices at or below\n// the price floor cannot be sold\nnoGarbageDisposing = false\n\n// =Starting Quantities:=\n// starting stock for each level\nstartQuanBase = 16384, 9216, 5120, 3072, 2048, 1024\n// scales starting stock linearly\nstartQuanMult = 1.0\n// pushes starting stock levels closer together or farther apart\nstartQuanSpread = 1.0\n\n// =Investment:=\n// Investments into industrial research and manufacturing\n// increase a ware's supply and demand, reduces price fluctuations,\n// and resets quantity available for sale to equilibrium.\n\n// investing in a ware costs increases this much\n// per ware hierarchy level (represents rarity)\n// set to 0 to disable this feature\nresearchCostPerHierarchyLevel = 185.0\n\n// if true, the cost of investing in a ware is a multiplier\n// applied to the market's current price average\nresearchCostIsAMultOfAvgPrice = true\n\n// =Automatic Market Rebalancing:=\n// whether stock levels should bring themselves\n// to equilibrium by periodically increasing or decreasing\nautomaticStockRebalancing = false\n\n// how often quantities for sale should change to rebalance themselves\n// 45 == change every 45 minutes\nautomaticStockRebalancingFrequency = 45\n\n// how much quantities for sale should change per rebalancing event\n// 0.005 == 0.5% of equilibrium quantity\nautomaticStockRebalancingPercent = 0.005\n\n// ===Ware-Handling:===\n// contains wares to be tradeable within the marketplace\nfilenameWares = wares.txt\n\n// save file containing tradeable wares within the marketplace\n// if this file exists, it is loaded instead of filenameWares\nfilenameWaresSave = waresSaved.txt\n\n// if true, checking ware IDs for corresponding items\n// existing within Minecraft does not check metadata\n// useful for mods which do not register items properly\n// bad for validating ware entries since it may\n// allow loading wares which don't exist\nitemExistenceCheckIgnoresMeta = false\n\n// whether wares which are not in the market\n// may be sold using a Forge OreDictionary name\n// it shares with a ware in the market\n// ex: sell different copper ingots from multiple mods,\n// pretending they are all from the mod\n// whose copper ingot is in the market\nallowWareTagSubstitution = true\n\n// whether to print warnings for not finding\n// Forge OreDictionary names used by alternative aliases\nwareTagsReportInvalid = false\n\n// max tolerance for how long a crafting chain may go, where a crafted item is crafted using another crafted item, which is crafted using another crafted item, and so forth\n// Ex: 5 means allows loading Item6, where Item6 is crafted using Item5, which uses Item4, which uses Item3, which uses Item2, which uses Item1. However, 5 would flag an error for Item7 since Item7's crafting chain would be too long.\nmaxCraftingDepth = 10\n\n// ===Accounts:===\n// how much money an account should start with\naccountStartingMoney = 0.0\n\n// how many accounts a single player is allowed to create\n// 0 == no new accounts except default, personal ones\n// -1 == no restriction or infinity accounts\naccountMaxCreatedByIndividual = 3\n\n// contains accounts usable within the marketplace\nfilenameAccounts = accounts.txt\n\n// =Interest:=\n// if true, account funds experience compound interest\naccountPeriodicInterestEnabled = false\n\n// interest rate at which account funds are compounded\n// 1.5 == 1.5%; accurate to 0.01\naccountPeriodicInterestPercent = 1.5\n\n// how often compound interest is applied\n// dedicated server recommended: 120 == 2 hours\n// singleplayer recommended: 15 == 15 minutes\naccountPeriodicInterestFrequency = 120\n\n// if true, interest is only applied when\n// account owners are logged onto the server\naccountPeriodicInterestOnlyWhenPlaying = false\n\n// ===Administrative:===\n// All files except filenameMarket can be saved\n// in a world's directory in ../CommandEconomy/\n// or the Minecraft game directory\n// in ../config/CommandEconomy/.\n// The world's directory is checked for files first\n// unless crossWorldMarketplace is true.\n\n// If true, ware and account save files\n// will be shared across all worlds.\n// To exclude a world while set to true,\n// go to the world's Command Economy directory\n// and create a local config file named \"config.txt\".\n// As long as this config file exists,\n// that world will load it\n// instead of the main config file.\ncrossWorldMarketplace = false\n\n// output file for printing wares within the marketplace\n// \"/printMarket\" to print to this file\nfilenameMarket = market.txt\n\n// disables automatically saving wares and accounts when the world is saved\ndisableAutoSaving = false\n\n// ===Additional Factors:===\n// =AI:=\n// whether AI should be used\nenableAI = false\n\n// which AI professions should be used\n// repeats increase the number of times a profession trades per event\nactiveAI = armorer, cleric, farmer, farmer, fletcher, librarian\n\n// how often AI should trade, in minutes\naiTradeFrequency = 60\n\n// how many units AI should buy or sell per trade\n// in percentage of equilibrium stock\n// ex: ware's quanEquilibrium = 100 and aiTradeQuantityPercent = 0.05\n// means AI will buy or sell 5 units of the ware at a time\naiTradeQuantityPercent = 0.05\n\n// how randomized AI trade decisions should be\n// 0.0 == trade according to wares' supply and demand\n// 1.0 == trades are mostly unpredictable\naiRandomness = 0.05\n\n// contains possible AI, the wares they may trade,\n// and their preferences\nfilenameAIProfessions = aiProfessions.json\n\n// =Random Events:=\n// whether or not to periodically trigger events\n// summoning or destroying wares' quantities for sale\nrandomEvents = false\n\n// on average, an event should occur every X minutes\nrandomEventsFrequency = 180\n\n// events may occur anywhere from\n// frequency *  (1 - variance) to frequency * variance\n// so if frequency is 180 minutes and variance is 0.25,\n// events could occur anywhere from every 135 minutes to 225 minutes\nrandomEventsVariance = 0.25\n\n// if true, random events display which wares\n// have been affected when an event fires\nrandomEventsPrintChanges = false\n\n// if true, the changes in quantities for sale listed below\n// are considered percentages of equilibrium quantity\n// if false, they are considered flat values\nrandomEventsAreChangesPercents = true\n\n// each random event may affect stock levels\n// up to the amounts listed below\n// 0.15 == 15% of equilibrium or 0 change\n// 15 == 1500% or +/-15 stock for hierarchy level 2 (iron),\n// flat rates scale according to equilibrium stock for other levels\nrandomEventsLargeChange  = 0.15\nrandomEventsMediumChange = 0.10\nrandomEventsSmallChange  = 0.05\n\n// contains possible events, their descriptions,\n// the wares they may affect and how much each ware is affected\nfilenameRandomEvents = randomEvents.json");
             fileWriter.close();
          } catch (IOException e) {
-            Config.userInterface.printToConsole(CommandEconomy.ERROR_CONFIG_FILE_CREATE + filenameConfig);
+            Config.userInterface.printToConsole(StringTable.ERROR_CONFIG_FILE_CREATE + filenameConfig);
             e.printStackTrace();
          }
       }

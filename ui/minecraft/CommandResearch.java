@@ -16,12 +16,12 @@ public class CommandResearch extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_RESEARCH;
+       return StringTable.CMD_RESEARCH;
    }
 
    @Override
    public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_RESEARCH;
+      return StringTable.CMD_USAGE_RESEARCH;
    }
 
    @Override

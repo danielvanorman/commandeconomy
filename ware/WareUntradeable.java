@@ -27,7 +27,7 @@ public class WareUntradeable extends Ware
       componentsIDs     = null;
       this.wareID       = wareID;
       setAlias(alias);
-      this.priceBase = priceBase;
+      this.priceBase    = priceBase;
       quantity          = Integer.MAX_VALUE;
       yield             = 0;
       level             = 0;
@@ -80,7 +80,7 @@ public class WareUntradeable extends Ware
       // finalize base price
       if (!Float.isNaN(priceBase)) {
          // truncate the price to avoid rounding and multiplication errors
-         priceBase = CommandEconomy.truncatePrice(priceBase);
+         priceBase = PriceFormatter.truncatePrice(priceBase);
       }
 
       return loadedCorrectly;

@@ -83,7 +83,7 @@ public class UserInterfaceMinecraft implements UserInterface
       WARES
    }
    /** valid arguments for referring to an inventory */
-   public static final String[] INVENTORY_KEYWORDS = new String[] {CommandEconomy.INVENTORY_NONE, CommandEconomy.INVENTORY_DOWN, CommandEconomy.INVENTORY_UP, CommandEconomy.INVENTORY_NORTH, CommandEconomy.INVENTORY_EAST, CommandEconomy.INVENTORY_WEST, CommandEconomy.INVENTORY_SOUTH};
+   public static final String[] INVENTORY_KEYWORDS = new String[] {StringTable.INVENTORY_NONE, StringTable.INVENTORY_DOWN, StringTable.INVENTORY_UP, StringTable.INVENTORY_NORTH, StringTable.INVENTORY_EAST, StringTable.INVENTORY_WEST, StringTable.INVENTORY_SOUTH};
    /** valid arguments for referring to accounts */
    private static Set<String> accountIDs = null;
    /** valid arguments for referring to wares' alternate names */
@@ -155,31 +155,31 @@ public class UserInterfaceMinecraft implements UserInterface
          // y-axis: up    = +y, down  = -y
          // z-axis: south = +z, north = -z
 
-         case CommandEconomy.INVENTORY_NONE:
+         case StringTable.INVENTORY_NONE:
             position = new BlockPos(0, 0, 0);
             break;
 
-         case CommandEconomy.INVENTORY_DOWN:
+         case StringTable.INVENTORY_DOWN:
             position = position.down();
             break;
 
-         case CommandEconomy.INVENTORY_UP:
+         case StringTable.INVENTORY_UP:
             position = position.up();
             break;
 
-         case CommandEconomy.INVENTORY_NORTH:
+         case StringTable.INVENTORY_NORTH:
             position = position.north();
             break;
 
-         case CommandEconomy.INVENTORY_EAST:
+         case StringTable.INVENTORY_EAST:
             position = position.east();
             break;
 
-         case CommandEconomy.INVENTORY_WEST:
+         case StringTable.INVENTORY_WEST:
             position = position.west();
             break;
 
-         case CommandEconomy.INVENTORY_SOUTH:
+         case StringTable.INVENTORY_SOUTH:
             position = position.south();
             break;
 
@@ -986,7 +986,7 @@ public class UserInterfaceMinecraft implements UserInterface
     * if the user lacks permission to use such tokens.
     * Does not print an error if one occurs
     * in case multiple selectors are processed in series.
-    * The appropriate error to print is CommandEconomy.ERROR_ENTITY_SELECTOR.
+    * The appropriate error to print is StringTable.ERROR_ENTITY_SELECTOR.
     *
     * @param sender   player or command block executing the command
     * @param selector string which might be an entity selector

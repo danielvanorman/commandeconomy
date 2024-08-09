@@ -40,17 +40,17 @@ public class CommandNoSell extends CommandBase {
       Boolean shouldSell = false;
       if (args.length > 0 &&
           args[0] != null && args[0].length() != 0 &&
-          args[0].equalsIgnoreCase(CommandEconomy.FALSE)) {
+          args[0].equalsIgnoreCase(StringTable.FALSE)) {
          shouldSell = true;
       }
 
       // check whether one or all items should be affected
       if ((args.length >= 1 &&
           args[0] != null && args[0].length() != 0 &&
-          args[0].equalsIgnoreCase(CommandEconomy.ALL)) ||
+          args[0].equalsIgnoreCase(StringTable.ALL)) ||
           (args.length >= 2 &&
            args[1] != null && args[1].length() != 0 &&
-           args[1].equalsIgnoreCase(CommandEconomy.ALL))) {
+           args[1].equalsIgnoreCase(StringTable.ALL))) {
          // loop through the player's main inventory
          ItemStack itemStack;
          for (int slot = 0; slot < 36; slot++) {
@@ -183,11 +183,11 @@ public class CommandNoSell extends CommandBase {
 
       if (args.length == 1)
       {
-         return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {CommandEconomy.TRUE, CommandEconomy.FALSE, CommandEconomy.ALL});
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], new String[] {StringTable.TRUE, StringTable.FALSE, StringTable.ALL});
       }
       else if (args.length == 2)
       {
-         return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {CommandEconomy.ALL});
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[1], new String[] {StringTable.ALL});
       }
 
       return new LinkedList<String>();

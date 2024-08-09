@@ -17,12 +17,12 @@ public class CommandCreate extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_CREATE;
+       return StringTable.CMD_CREATE;
    }
 
    @Override
    public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_CREATE;
+      return StringTable.CMD_USAGE_CREATE;
    }
 
    @Override

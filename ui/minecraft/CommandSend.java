@@ -18,15 +18,15 @@ public class CommandSend extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_SEND;
+       return StringTable.CMD_SEND;
    }
 
    @Override
    public String getUsage(ICommandSender sender) {
       if (sender instanceof EntityPlayer)
-         return CommandEconomy.CMD_USAGE_SEND;
+         return StringTable.CMD_USAGE_SEND;
       else
-         return CommandEconomy.CMD_USAGE_BLOCK_SEND;
+         return StringTable.CMD_USAGE_BLOCK_SEND;
    }
 
    @Override

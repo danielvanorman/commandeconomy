@@ -69,22 +69,22 @@ public class WareLinked extends Ware
     */
    boolean setComponents(String[] componentsIDs, int[] componentsAmounts) {
       if (componentsIDs == null || componentsIDs.length == 0) {
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_IDS);
+         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_IDS);
          return false;
       }
 
       if (componentsAmounts == null || componentsAmounts.length == 0) {
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENTS_AMOUNTS);
+         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENTS_AMOUNTS);
          return false;
       }
 
       if (componentsIDs.length != componentsAmounts.length) {
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENTS_UNEQUAL_LEN);
+         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENTS_UNEQUAL_LEN);
          return false;
       }
 
       if (yield <= 0) {
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_COMPONENTS_SET + wareID + ": " + CommandEconomy.ERROR_COMPONENT_YIELD);
+         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_YIELD);
          return false;
       }
 
@@ -123,7 +123,7 @@ public class WareLinked extends Ware
       }
 
       // truncate the price to avoid rounding and multiplication errors
-      priceBase = CommandEconomy.truncatePrice(priceBase);
+      priceBase = PriceFormatter.truncatePrice(priceBase);
 
       // if there were no problems loading the current ware
       return true;
@@ -139,16 +139,16 @@ public class WareLinked extends Ware
    @Override
    public String reloadComponents() {
       if (componentsIDs == null || componentsIDs.length == 0)
-         return CommandEconomy.ERROR_COMPONENT_IDS;
+         return StringTable.ERROR_COMPONENT_IDS;
 
       if (componentsAmounts == null || componentsAmounts.length == 0)
-         return CommandEconomy.ERROR_COMPONENTS_AMOUNTS;
+         return StringTable.ERROR_COMPONENTS_AMOUNTS;
 
       if (componentsIDs.length != componentsAmounts.length)
-         return CommandEconomy.ERROR_COMPONENTS_UNEQUAL_LEN;
+         return StringTable.ERROR_COMPONENTS_UNEQUAL_LEN;
 
       if (yield <= 0)
-         return CommandEconomy.ERROR_COMPONENT_YIELD;
+         return StringTable.ERROR_COMPONENT_YIELD;
 
       // initialize components array if it hasn't been already
       if (components == null)
@@ -183,7 +183,7 @@ public class WareLinked extends Ware
       }
 
       // truncate the price to avoid rounding and multiplication errors
-      priceBase = CommandEconomy.truncatePrice(priceBase);
+      priceBase = PriceFormatter.truncatePrice(priceBase);
 
       // if there were no problems reloading the current ware
       return "";
@@ -349,7 +349,7 @@ public class WareLinked extends Ware
          return 0.0f;
 
       // truncate the price to avoid rounding and multiplication errors
-      return CommandEconomy.truncatePrice(price);
+      return PriceFormatter.truncatePrice(price);
    }
 
    /**
@@ -368,7 +368,7 @@ public class WareLinked extends Ware
          if (!errorMessage.isEmpty())
             errorMessage += ", ";
 
-         errorMessage += CommandEconomy.ERROR_COMPONENTS_AMOUNTS;
+         errorMessage += StringTable.ERROR_COMPONENTS_AMOUNTS;
       }
 
       else if (componentsIDs != null && componentsIDs.length > 0 &&
@@ -376,7 +376,7 @@ public class WareLinked extends Ware
          if (!errorMessage.isEmpty())
             errorMessage += ", ";
 
-         errorMessage += CommandEconomy.ERROR_COMPONENTS_UNEQUAL_LEN;
+         errorMessage += StringTable.ERROR_COMPONENTS_UNEQUAL_LEN;
       }
 
       return errorMessage;

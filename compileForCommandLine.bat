@@ -1,7 +1,7 @@
 set file=output.txt
 set currentdirectory=%cd%
 
-javac *.java ware\*.java bank\*.java marketplace\*.java config\*.java ui\*.java ui\terminal\*.java -d bin 2> "%file%"
+javac utility\*.java ware\*.java bank\*.java marketplace\*.java config\*.java ui\*.java *.java ui\terminal\*.java -d bin 2> "%file%"
 
 rem Check for compilation errors before executing the test suite
 call :CheckEmpty "%file%"

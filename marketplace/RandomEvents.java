@@ -260,7 +260,7 @@ public class RandomEvents extends TimerTask {
       // check file existence
       if (!fileRandomEvents.isFile()) {
          // don't throw an exception, print a warning to advise user to reload wares
-         Config.userInterface.printToConsole(CommandEconomy.WARN_FILE_MISSING + Config.filenameRandomEvents +
+         Config.userInterface.printToConsole(StringTable.WARN_FILE_MISSING + Config.filenameRandomEvents +
             System.lineSeparator() + "To use random events, replace " + Config.filenameRandomEvents +
             "," + System.lineSeparator() + "then use the command \"reload config\"."
          );
@@ -278,11 +278,11 @@ public class RandomEvents extends TimerTask {
       }
       catch (JsonSyntaxException e) {
          randomEvents = null; // disable random events
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_FILE_RANDOM_EVENTS_INVALID + Config.filenameRandomEvents);
+         Config.userInterface.printToConsole(StringTable.ERROR_FILE_RANDOM_EVENTS_INVALID + Config.filenameRandomEvents);
       }
       catch (Exception e) {
          randomEvents = null; // disable random events
-         Config.userInterface.printToConsole(CommandEconomy.ERROR_FILE_RANDOM_EVENTS_PARSING + Config.filenameRandomEvents);
+         Config.userInterface.printToConsole(StringTable.ERROR_FILE_RANDOM_EVENTS_PARSING + Config.filenameRandomEvents);
          e.printStackTrace();
       }
 
@@ -302,7 +302,7 @@ public class RandomEvents extends TimerTask {
                fileReader.close();
          } catch (Exception e) { }
 
-         Config.userInterface.printToConsole(CommandEconomy.WARN_RANDOM_EVENTS_NONE_LOADED);
+         Config.userInterface.printToConsole(StringTable.WARN_RANDOM_EVENTS_NONE_LOADED);
          end();
          return;
       }
@@ -320,7 +320,7 @@ public class RandomEvents extends TimerTask {
 
          // validate description
          if (randomEvent.description == null || randomEvent.description.isEmpty()) {
-            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_DESC_MISSING);
+            loadingErrors.append(StringTable.ERROR_RANDOM_EVENT_DESC_MISSING);
             invalidEntries++; // mark how many random events fail to load
             continue;
          }
@@ -328,14 +328,14 @@ public class RandomEvents extends TimerTask {
          // validate effects
          // check whether magnitudes were loaded
          if (randomEvent.changeMagnitudes == null) {
-            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            loadingErrors.append(StringTable.ERROR_RANDOM_EVENT_MAGNITUDES_MISSING + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
             invalidEntries++;
             continue;
          }
 
          // check whether magnitudes entries were loaded
          if (randomEvent.changeMagnitudes.length == 0) {
-            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            loadingErrors.append(StringTable.ERROR_RANDOM_EVENT_MAGNITUDES_BLANK + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
             invalidEntries++;
             continue;
          }
@@ -343,7 +343,7 @@ public class RandomEvents extends TimerTask {
          // check whether magnitudes entries are valid
          for (QuantityForSaleChangeMagnitudes changeMagnitude : randomEvent.changeMagnitudes) {
             if (changeMagnitude == null) {
-               loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_MAGNITUDES_INVALID + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+               loadingErrors.append(StringTable.ERROR_RANDOM_EVENT_MAGNITUDES_INVALID + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
                invalidEntries++;
                continue outerLoop;
             }
@@ -352,14 +352,14 @@ public class RandomEvents extends TimerTask {
          // validate ware IDs
          // check whether ware IDs were loaded
          if (randomEvent.changedWaresIDs == null) {
-            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_MISSING + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            loadingErrors.append(StringTable.ERROR_RANDOM_EVENT_WARES_MISSING + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
             invalidEntries++;
             continue;
          }
 
          // check whether ware ID entries were loaded
          if (randomEvent.changedWaresIDs.length == 0) {
-            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            loadingErrors.append(StringTable.ERROR_RANDOM_EVENT_WARES_BLANK + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
             invalidEntries++;
             continue;
          }
@@ -367,7 +367,7 @@ public class RandomEvents extends TimerTask {
          // validate effects and ware IDs
          // check whether the is a magnitude for every ware ID
          if (randomEvent.changedWaresIDs.length != randomEvent.changeMagnitudes.length) {
-            loadingErrors.append(CommandEconomy.ERROR_RANDOM_EVENT_CHANGES_MISMATCH + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
+            loadingErrors.append(StringTable.ERROR_RANDOM_EVENT_CHANGES_MISMATCH + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description + System.lineSeparator());
             invalidEntries++;
             continue;
          }
@@ -401,7 +401,7 @@ public class RandomEvents extends TimerTask {
       // check whether any events were loaded
       if (randomEvents.length <= 0) {
          randomEvents = null; // disable random events
-         Config.userInterface.printToConsole(CommandEconomy.WARN_RANDOM_EVENTS_NONE_LOADED);
+         Config.userInterface.printToConsole(StringTable.WARN_RANDOM_EVENTS_NONE_LOADED);
          end();
          return;
       }
@@ -474,7 +474,7 @@ public class RandomEvents extends TimerTask {
          // if wares cannot be loaded, flag an error
          if (randomEvent.changedWaresIDs == null ||
              randomEvent.changedWaresIDs.length == 0) {
-            Config.userInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_BLANK + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description);
+            Config.userInterface.printToConsole(StringTable.ERROR_RANDOM_EVENT_WARES_BLANK + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description);
             randomEvents[randomEventsIndex] = null;
             invalidEvents++;
             randomEventsIndex++;
@@ -507,9 +507,9 @@ public class RandomEvents extends TimerTask {
                      invalidWareIDs = new StringBuilder();
 
                   // prepare front matter for reporting the event's invalid IDs
-                  invalidWareIDs.append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID +
-                                        CommandEconomy.MSG_RANDOM_EVENT_DESC).append(randomEvent.description)
-                                        .append(CommandEconomy.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
+                  invalidWareIDs.append(StringTable.ERROR_RANDOM_EVENT_WARES_INVALID +
+                                        StringTable.MSG_RANDOM_EVENT_DESC).append(randomEvent.description)
+                                        .append(StringTable.ERROR_RANDOM_EVENT_WARES_INVALID_LIST);
                }
 
                // flag that at least one invalid entry has been found
@@ -523,7 +523,7 @@ public class RandomEvents extends TimerTask {
 
          // check whether any wares were loaded
          if (changedWaresIndex == 0) {
-            Config.userInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENT_WARES_NO_VALID + CommandEconomy.MSG_RANDOM_EVENT_DESC + randomEvent.description);
+            Config.userInterface.printToConsole(StringTable.ERROR_RANDOM_EVENT_WARES_NO_VALID + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description);
             randomEvents[randomEventsIndex] = null;
             invalidEvents++;
             randomEventsIndex++;
@@ -778,7 +778,7 @@ public class RandomEvents extends TimerTask {
          try {
             Thread.sleep(additionalWaitTime);
          } catch (Exception e) {
-            Config.userInterface.printToConsole(CommandEconomy.ERROR_RANDOM_EVENTS_SLEEP + e);
+            Config.userInterface.printToConsole(StringTable.ERROR_RANDOM_EVENTS_SLEEP + e);
          }
       }
    }
@@ -889,7 +889,7 @@ public class RandomEvents extends TimerTask {
          Marketplace.releaseMutex();
 
          // print scenario description
-         Config.userInterface.printToAllUsers(CommandEconomy.MSG_RANDOM_EVENT_OCCURRED + description);
+         Config.userInterface.printToAllUsers(StringTable.MSG_RANDOM_EVENT_OCCURRED + description);
 
          // print effects on wares
          if (Config.randomEventsPrintChanges && descriptionChangedWares != null)

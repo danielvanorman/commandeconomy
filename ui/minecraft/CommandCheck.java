@@ -18,15 +18,15 @@ public class CommandCheck extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_CHECK;
+       return StringTable.CMD_CHECK;
    }
 
    @Override
    public String getUsage(ICommandSender sender) {
       if (sender instanceof EntityPlayer)
-         return CommandEconomy.CMD_USAGE_CHECK;
+         return StringTable.CMD_USAGE_CHECK;
       else
-         return CommandEconomy.CMD_USAGE_BLOCK_CHECK;
+         return StringTable.CMD_USAGE_BLOCK_CHECK;
    }
 
    @Override

@@ -17,12 +17,12 @@ public class CommandAdd extends CommandBase {
 
   @Override
   public String getName() {
-      return CommandEconomy.CMD_ADD;
+      return StringTable.CMD_ADD;
   }
 
   @Override
   public String getUsage(ICommandSender sender) {
-      return CommandEconomy.CMD_USAGE_ADD;
+      return StringTable.CMD_USAGE_ADD;
   }
 
    @Override

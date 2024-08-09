@@ -18,15 +18,15 @@ public class CommandBuy extends CommandBase {
 
    @Override
    public String getName() {
-       return CommandEconomy.CMD_BUY;
+       return StringTable.CMD_BUY;
    }
 
    @Override
    public String getUsage(ICommandSender sender) {
       if (sender instanceof EntityPlayer)
-         return CommandEconomy.CMD_USAGE_BUY;
+         return StringTable.CMD_USAGE_BUY;
       else
-         return CommandEconomy.CMD_USAGE_BLOCK_BUY;
+         return StringTable.CMD_USAGE_BLOCK_BUY;
    }
 
    @Override
