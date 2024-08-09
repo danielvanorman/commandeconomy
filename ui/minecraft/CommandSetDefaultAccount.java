@@ -41,6 +41,12 @@ public class CommandSetDefaultAccount extends CommandBase {
    @Override
    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
    {
+      if (args == null || args.length == 0)
+         return new LinkedList<String>();
+
+      if (args.length == 1)
+         return UserInterfaceMinecraft.getAutoCompletionStrings(args[0], UserInterfaceMinecraft.AutoCompletionStringCategories.ACCOUNTS);
+
       return new LinkedList<String>();
    }
 }
