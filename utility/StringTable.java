@@ -182,6 +182,9 @@ public final class StringTable {
    public final static String MSG_SELL_NO_GARBAGE_DISPOSING = "Cannot sell at or below the price floor";
 
    // file-handling
+   public final static String ERROR_FILE_CREATE_SAVE_WARES    = "error - unable to create a save file for wares";
+   public final static String ERROR_FILE_CREATE_SAVE_ACCOUNTS = "error - unable to create a save file for bank accounts";
+
    public final static String ERROR_FILE_LOAD_ACCOUNTS   = "error - unable to load accounts";
    public final static String ERROR_FILE_SAVE_WARES      = "error - unable to save wares";
    public final static String ERROR_FILE_SAVE_ACCOUNTS   = "error - unable to save accounts";

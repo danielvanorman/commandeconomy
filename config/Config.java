@@ -927,14 +927,13 @@ public final class Config
       // check existence of Command Economy main config folder
       // create it if it doesn't exist
       File directoryGlobal = new File("config" + File.separator + "CommandEconomy");
-      if (!directoryGlobal.exists()){
+      if (!directoryGlobal.exists())
          directoryGlobal.mkdirs();
-      }
 
       // check existence of main config file
       // create it if it doesn't exist
       File fileConfig = new File("config" + File.separator + filenameConfig);
-      if (!fileConfig.exists()){
+      if (!fileConfig.exists()) {
          // try to fill the file with default values
          try {
             FileWriter fileWriter = new FileWriter("config" + File.separator + filenameConfig, false);
@@ -949,8 +948,7 @@ public final class Config
       // check existence of Command Economy local save folder
       // create it if it doesn't exist
       File directoryLocal = new File(userInterface.getSaveDirectory() + File.separator + "CommandEconomy");
-      if (!directoryLocal.exists()){
-         directoryLocal.mkdir();
-      }
+      if (!directoryLocal.exists())
+         directoryLocal.mkdirs();
    }
 }

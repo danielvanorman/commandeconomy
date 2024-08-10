@@ -1074,6 +1074,19 @@ public final class Account {
       }
       regenerateDefaultAccountEntries = false;
 
+      // ensure the save file and directory exist
+      try {
+         File fileAccounts = new File (Config.filenameAccounts);
+         if (!fileAccounts.exists()) {
+            fileAccounts.getParentFile().mkdirs();
+            fileAccounts.createNewFile();
+         }
+      } catch (IOException e) {
+         Config.userInterface.printToConsole(StringTable.ERROR_FILE_CREATE_SAVE_ACCOUNTS);
+         e.printStackTrace();
+         return;
+      }
+
       BufferedWriter fileWriter = null; // use a handle to ensure the file gets closed
       try {
          // open the accounts file, create it if it doesn't exist

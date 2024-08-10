@@ -762,6 +762,20 @@ public final class Marketplace {
       // check if another thread is adjusting wares' properties
       acquireMutex();
 
+      // ensure the save file and directory exist
+      try {
+         File fileWaresSave = new File (Config.filenameWaresSave);
+         if (!fileWaresSave.exists()) {
+            fileWaresSave.getParentFile().mkdirs();
+            fileWaresSave.createNewFile();
+         }
+      } catch (IOException e) {
+         Config.userInterface.printToConsole(StringTable.ERROR_FILE_CREATE_SAVE_WARES);
+         e.printStackTrace();
+         releaseMutex();
+         return;
+      }
+
       // regenerate entries for changed wares
       for (String wareID : waresChangedSinceLastSave) {
          json = wareEntries.get(wareID);
