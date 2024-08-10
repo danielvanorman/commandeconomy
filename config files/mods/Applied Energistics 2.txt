@@ -1,0 +1,147 @@
+// ===Applied Energistics 2:===
+// raw materials
+{"type":"material","alias":"certus_quartz","wareID":"appliedenergistics2:material&0","priceBase":2.0,"level":3}
+{"type":"material","alias":"charged_certus_quartz","wareID":"appliedenergistics2:material&1","priceBase":10.0,"level":4}
+
+// processed materials
+{"type":"processed","alias":"flour","wareID":"appliedenergistics2:material&4","level":0,"yield":1,"componentsIDs":["minecraft:wheat"]}
+{"type":"processed","alias":"ender_dust","wareID":"appliedenergistics2:material&46","level":4,"yield":1,"componentsIDs":["minecraft:ender_pearl"]}
+
+{"type":"processed","alias":"quartz_dust","wareID":"appliedenergistics2:material&3","level":3,"yield":1,"componentsIDs":["minecraft:quartz"]}
+{"type":"processed","alias":"pure_certus_quartz","wareID":"appliedenergistics2:material&10","level":3,"yield":2,"componentsIDs":["quartz_dust","minecraft:sand","fluid:water","fluid:water"]}
+{"type":"processed","alias":"fluix_crystal","wareID":"appliedenergistics2:material&7","level":4,"yield":2,"componentsIDs":["appliedenergistics2:material&1","minecraft:quartz","minecraft:redstone"]}
+{"type":"processed","alias":"fluix_dust","wareID":"appliedenergistics2:material&8","level":4,"yield":1,"componentsIDs":["appliedenergistics2:material&7"]}
+
+{"type":"processed","alias":"silicon","wareID":"appliedenergistics2:material&5","level":3,"yield":1,"componentsIDs":["quartz_dust"]}
+
+// intermediate materials
+{"type":"crafted","alias":"wooden_gear","wareID":"appliedenergistics2:material&40","level":1,"yield":1,"componentsIDs":["minecraft:stick","minecraft:stick","minecraft:stick","minecraft:stick"]}
+
+{"type":"crafted","alias":"quartz_glass","wareID":"appliedenergistics2:quartz_glass","level":3,"yield":4,"componentsIDs":["minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass","appliedenergistics2:material&3","appliedenergistics2:material&3","appliedenergistics2:material&3","appliedenergistics2:material&3","appliedenergistics2:material&3"]}
+
+{"type":"crafted","alias":"illuminated_panel","wareID":"appliedenergistics2:part&180","level":3,"yield":3,"componentsIDs":["quartz_dust","quartz_dust","quartz_dust","minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:redstone","minecraft:iron_ingot"]}
+
+{"type":"crafted","alias":"quartz_fiber","wareID":"appliedenergistics2:part&140","level":3,"yield":1,"componentsIDs":["minecraft:glass","minecraft:glass","quartz_dust"]}
+
+{"type":"crafted","alias":"fluix_pearl","wareID":"appliedenergistics2:material&9","level":5,"yield":1,"componentsIDs":["fluix_dust","fluix_dust","fluix_dust","fluix_dust","fluix_crystal","fluix_crystal","fluix_crystal","fluix_crystal","minecraft:ender_pearl"]}
+
+// inscriber outputs
+{"type":"processed","alias":"inscriber_calculation_press","wareID":"appliedenergistics2:material&13","level":4,"yield":1,"componentsIDs":["minecraft:iron_block"]}
+{"type":"processed","alias":"inscriber_engineering_press","wareID":"appliedenergistics2:material&14","level":4,"yield":1,"componentsIDs":["minecraft:iron_block"]}
+{"type":"processed","alias":"inscriber_logic_press","wareID":"appliedenergistics2:material&15","level":4,"yield":1,"componentsIDs":["minecraft:iron_block"]}
+{"type":"processed","alias":"inscriber_silicon_press","wareID":"appliedenergistics2:material&19","level":4,"yield":1,"componentsIDs":["minecraft:iron_block"]}
+
+{"type":"processed","alias":"printed_calculation_circuit","wareID":"appliedenergistics2:material&16","level":3,"yield":1,"componentsIDs":["pure_certus_quartz"]}
+{"type":"processed","alias":"printed_logic_circuit","wareID":"appliedenergistics2:material&18","level":3,"yield":1,"componentsIDs":["minecraft:gold_ingot"]}
+{"type":"processed","alias":"printed_engineering_circuit","wareID":"appliedenergistics2:material&17","level":4,"yield":1,"componentsIDs":["minecraft:diamond"]}
+{"type":"processed","alias":"printed_silicon","wareID":"appliedenergistics2:material&20","level":4,"yield":1,"componentsIDs":["silicon"]}
+
+{"type":"processed","alias":"calculation_processor","wareID":"appliedenergistics2:material&23","level":4,"yield":1,"componentsIDs":["printed_logic_circuit","minecraft:redstone","printed_silicon"]}
+{"type":"processed","alias":"engineering_processor","wareID":"appliedenergistics2:material&24","level":4,"yield":1,"componentsIDs":["printed_engineering_circuit","minecraft:redstone","printed_silicon"]}
+{"type":"processed","alias":"logic_processor","wareID":"appliedenergistics2:material&22","level":4,"yield":1,"componentsIDs":["printed_calculation_circuit","minecraft:redstone","printed_silicon"]}
+
+// advanced resources
+{"type":"crafted","alias":"blank_pattern","wareID":"appliedenergistics2:material&52","level":3,"yield":1,"componentsIDs":["appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust","appliedenergistics2:material&3"]}
+
+{"type":"crafted","alias":"formation_core","wareID":"appliedenergistics2:material&43","level":4,"yield":2,"componentsIDs":["certus_quartz","fluix_dust","logic_processor"]}
+{"type":"crafted","alias":"annihilation_core","wareID":"appliedenergistics2:material&44","level":4,"yield":2,"componentsIDs":["minecraft:quartz","fluix_dust","logic_processor"]}
+
+// storage cell materials
+{"type":"crafted","alias":"me_storage_housing","wareID":"appliedenergistics2:material&39","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone","minecraft:redstone","minecraft:redstone","quartz_glass","quartz_glass"]}
+
+{"type":"crafted","alias":"1k_me_storage_component","wareID":"appliedenergistics2:material&35","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","certus_quartz","certus_quartz","certus_quartz","certus_quartz","logic_processor"]}
+{"type":"crafted","alias":"4k_me_storage_component","wareID":"appliedenergistics2:material&36","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","1k_me_storage_component","1k_me_storage_component","1k_me_storage_component","quartz_glass","calculation_processor"]}
+{"type":"crafted","alias":"16k_me_storage_component","wareID":"appliedenergistics2:material&37","level":5,"yield":1,"componentsIDs":["minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust","4k_me_storage_component","4k_me_storage_component","4k_me_storage_component","quartz_glass","calculation_processor"]}
+{"type":"crafted","alias":"64k_me_storage_component","wareID":"appliedenergistics2:material&38","level":5,"yield":1,"componentsIDs":["minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust","16k_me_storage_component","16k_me_storage_component","16k_me_storage_component","quartz_glass","calculation_processor"]}
+
+{"type":"crafted","alias":"1k_me_fluid_storage_component","wareID":"appliedenergistics2:material&54","level":4,"yield":1,"componentsIDs":["minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","certus_quartz","certus_quartz","certus_quartz","certus_quartz","logic_processor"]}
+{"type":"crafted","alias":"4k_me_fluid_storage_component","wareID":"appliedenergistics2:material&55","level":4,"yield":1,"componentsIDs":["minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","1k_me_fluid_storage_component","1k_me_fluid_storage_component","1k_me_fluid_storage_component","quartz_glass","calculation_processor"]}
+{"type":"crafted","alias":"16k_me_fluid_storage_component","wareID":"appliedenergistics2:material&56","level":5,"yield":1,"componentsIDs":["minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","4k_me_fluid_storage_component","4k_me_fluid_storage_component","4k_me_fluid_storage_component","quartz_glass","calculation_processor"]}
+{"type":"crafted","alias":"64k_me_fluid_storage_component","wareID":"appliedenergistics2:material&57","level":5,"yield":1,"componentsIDs":["minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","16k_me_fluid_storage_component","16k_me_fluid_storage_component","16k_me_fluid_storage_component","quartz_glass","calculation_processor"]}
+
+// tools
+{"type":"crafted","alias":"crank","wareID":"appliedenergistics2:crank","level":0,"yield":1,"componentsIDs":["minecraft:stick","minecraft:stick","minecraft:stick","minecraft:stick","minecraft:stick"]}
+
+{"type":"crafted","alias":"charger","wareID":"appliedenergistics2:charger","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","fluix_crystal","fluix_crystal"]}
+
+{"type":"crafted","alias":"tiny_tnt","wareID":"appliedenergistics2:tiny_tnt","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","appliedenergistics2:material&0","appliedenergistics2:material&0"]}
+
+{"type":"crafted","alias":"meteorite_compass","wareID":"appliedenergistics2:sky_compass","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","certus_quartz"]}
+
+{"type":"crafted","alias":"biometric_card","wareID":"appliedenergistics2:biometric_card","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gold_ingot","minecraft:gold_ingot","minecraft:redstone","engineering_processor"]}
+{"type":"crafted","alias":"memory_card","wareID":"appliedenergistics2:memory_card","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gold_ingot","minecraft:gold_ingot","minecraft:redstone","calculation_processor"]}
+
+// stations
+{"type":"crafted","alias":"cell_workbench","wareID":"appliedenergistics2:cell_workbench","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:wool","minecraft:wool","minecraft:chest","calculation_processor"]}
+
+// wiring
+{"type":"crafted","alias":"me_glass_cable","wareID":"appliedenergistics2:part&16","level":4,"yield":4,"componentsIDs":["fluix_crystal","fluix_crystal","quartz_fiber"]}
+{"type":"crafted","alias":"me_covered_cable","wareID":"appliedenergistics2:part&36","level":4,"yield":1,"componentsIDs":["me_glass_cable","minecraft:wool"]}
+
+{"type":"untradeable","alias":"me_dense_cable","wareID":"appliedenergistics2:me_dense_cable","yield":1,"componentsIDs":["me_covered_cable","me_covered_cable","me_covered_cable","me_covered_cable","minecraft:redstone","minecraft:glowstone_dust"]}
+
+// cards
+{"type":"crafted","alias":"basic_card","wareID":"appliedenergistics2:material&25","level":3,"yield":2,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gold_ingot","minecraft:gold_ingot","minecraft:redstone","calculation_processor"]}
+{"type":"crafted","alias":"advanced_card","wareID":"appliedenergistics2:material&28","level":3,"yield":2,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:diamond","minecraft:diamond","minecraft:redstone","calculation_processor"]}
+
+{"type":"crafted","alias":"capacity_card","wareID":"appliedenergistics2:material&27","level":4,"yield":1,"componentsIDs":["basic_card","certus_quartz"]}
+{"type":"crafted","alias":"crafting_card","wareID":"appliedenergistics2:material&53","level":4,"yield":1,"componentsIDs":["basic_card","minecraft:crafting_table"]}
+{"type":"crafted","alias":"fuzzy_card","wareID":"appliedenergistics2:material&29","level":4,"yield":1,"componentsIDs":["advanced_card","minecraft:wool"]}
+{"type":"crafted","alias":"inverter_card","wareID":"appliedenergistics2:material&31","level":4,"yield":1,"componentsIDs":["advanced_card","minecraft:redstone_torch"]}
+{"type":"crafted","alias":"redstone_card","wareID":"appliedenergistics2:material&26","level":4,"yield":1,"componentsIDs":["basic_card","minecraft:redstone_torch"]}
+{"type":"crafted","alias":"acceleration_card","wareID":"appliedenergistics2:material&30","level":4,"yield":1,"componentsIDs":["advanced_card","fluix_crystal"]}
+
+// busses and ME interfaces
+{"type":"crafted","alias":"me_interface","wareID":"appliedenergistics2:interface","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:glass","minecraft:glass","annihilation_core","formation_core"]}
+{"type":"crafted","alias":"me_fluid_interface","wareID":"appliedenergistics2:fluid_interface","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:dye&4","minecraft:dye&4","annihilation_core","formation_core"]}
+
+{"type":"crafted","alias":"me_storage_bus","wareID":"appliedenergistics2:part&220","level":4,"yield":1,"componentsIDs":["minecraft:piston","minecraft:piston","minecraft:slime_ball","appliedenergistics2:interface"]}
+{"type":"crafted","alias":"me_fluid_storage_bus","wareID":"appliedenergistics2:part&221","level":4,"yield":1,"componentsIDs":["minecraft:piston","minecraft:piston","minecraft:slime_ball","appliedenergistics2:interface","minecraft:dye&4"]}
+
+{"type":"crafted","alias":"me_import_bus","wareID":"appliedenergistics2:part&240","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:piston","minecraft:slime_ball","annihilation_core"]}
+{"type":"crafted","alias":"me_fluid_import_bus","wareID":"appliedenergistics2:part&241","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:piston","minecraft:slime_ball","annihilation_core","minecraft:dye&4","minecraft:dye&4"]}
+
+{"type":"crafted","alias":"me_export_bus","wareID":"appliedenergistics2:part&260","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:piston","formation_core"]}
+{"type":"crafted","alias":"me_fluid_export_bus","wareID":"appliedenergistics2:part&261","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:dye&4","minecraft:dye&4","minecraft:piston","formation_core"]}
+
+// terminals
+{"type":"crafted","alias":"me_terminal","wareID":"appliedenergistics2:part&380","level":4,"yield":1,"componentsIDs":["appliedenergistics2:interface","illuminated_panel","logic_processor","annihilation_core","formation_core"]}
+{"type":"crafted","alias":"me_crafting_terminal","wareID":"appliedenergistics2:part&360","level":4,"yield":1,"componentsIDs":["me_terminal","calculation_processor","minecraft:crafting_table"]}
+{"type":"crafted","alias":"me_pattern_terminal","wareID":"appliedenergistics2:part&340","level":4,"yield":1,"componentsIDs":["me_crafting_terminal","engineering_processor"]}
+{"type":"crafted","alias":"me_interface_terminal","wareID":"appliedenergistics2:part&480","level":4,"yield":1,"componentsIDs":["appliedenergistics2:interface","illuminated_panel","engineering_processor"]}
+{"type":"crafted","alias":"me_fluid_terminal","wareID":"appliedenergistics2:part&520","level":4,"yield":1,"componentsIDs":["me_terminal","logic_processor","minecraft:dye&4"]}
+
+// simpler devices
+{"type":"crafted","alias":"me_level_emitter","wareID":"appliedenergistics2:part&280","level":4,"yield":1,"componentsIDs":["calculation_processor","minecraft:redstone_torch"]}
+
+// energy cells
+// Since energy cells rely on NBT data to differentiate between different types","
+// they are not currently suitable for Command Economy.
+{"type":"untradeable","alias":"energy_cell","wareID":"appliedenergistics2:energy_cell","yield":1,"componentsIDs":["certus_quartz","certus_quartz","certus_quartz","certus_quartz","fluix_dust","fluix_dust","fluix_dust","fluix_dust","quartz_glass"]}
+
+// machinery
+{"type":"crafted","alias":"grindstone","wareID":"appliedenergistics2:grindstone","level":3,"yield":1,"componentsIDs":["minecraft:stone","minecraft:stone","minecraft:stone","minecraft:cobblestone","minecraft:cobblestone","minecraft:quartz","minecraft:quartz","minecraft:quartz","appliedenergistics2:material&40"]}
+{"type":"crafted","alias":"energy_acceptor","wareID":"appliedenergistics2:energy_acceptor","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","appliedenergistics2:material&7"]}
+{"type":"crafted","alias":"vibration_chamber","wareID":"appliedenergistics2:vibration_chamber","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:furnace","appliedenergistics2:energy_acceptor"]}
+
+{"type":"crafted","alias":"inscriber","wareID":"appliedenergistics2:inscriber","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:piston","minecraft:piston","minecraft:slime_ball","minecraft:slime_ball","fluix_crystal"]}
+{"type":"crafted","alias":"matter_condenser","wareID":"appliedenergistics2:condenser","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass","fluix_dust"]}
+
+// mainframe setup
+{"type":"crafted","alias":"me_chest","wareID":"appliedenergistics2:chest","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:glass","minecraft:glass","me_glass_cable","me_glass_cable","fluix_crystal","me_terminal"]}
+
+{"type":"crafted","alias":"me_drive","wareID":"appliedenergistics2:drive","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","me_glass_cable","me_glass_cable","engineering_processor","engineering_processor"]}
+
+// crafting CPU
+{"type":"crafted","alias":"molecular_assembler","wareID":"appliedenergistics2:molecular_assembler","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","annihilation_core","formation_core","minecraft:crafting_table"]}
+
+// quantum network bridge
+{"type":"crafted","alias":"me_quantum_link_chamber","wareID":"appliedenergistics2:quantum_link","level":5,"yield":1,"componentsIDs":["appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","appliedenergistics2:quartz_glass","fluix_pearl","fluix_pearl","fluix_pearl","fluix_pearl"]}
+{"type":"crafted","alias":"me_quantum_ring_chamber","wareID":"appliedenergistics2:quantum_ring","level":5,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","logic_processor","logic_processor","engineering_processor","me_dense_cable","appliedenergistics2:energy_cell"]}
+
+// wireless
+{"type":"crafted","alias":"wireless_receiver","wareID":"appliedenergistics2:material&41","level":5,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","quartz_fiber","fluix_pearl"]}
+
+{"type":"crafted","alias":"wireless_booster","wareID":"appliedenergistics2:material&42","level":4,"yield":2,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","fluix_dust","ender_dust","certus_quartz"]}
+
+{"type":"crafted","alias":"wireless_access_point","wareID":"appliedenergistics2:wireless_access_point","level":5,"yield":1,"componentsIDs":["wireless_receiver","calculation_processor","me_glass_cable"]}

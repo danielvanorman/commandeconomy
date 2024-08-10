@@ -1,0 +1,165 @@
+// ===Immersive Engineering:===
+// plates
+{"type":"processed","alias":"steel_plate","wareID":"immersiveengineering:metal&38","level":3,"yield":1,"componentsIDs":["steel_ingot"]}
+
+// rods
+{"type":"crafted","alias":"iron_rod","wareID":"immersiveengineering:material&1","level":2,"yield":2,"componentsIDs":["minecraft:iron_ingot"]}
+{"type":"crafted","alias":"steel_rod","wareID":"immersiveengineering:material&2","level":3,"yield":2,"componentsIDs":["steel_ingot"]}
+{"type":"crafted","alias":"aluminum_rod","wareID":"immersiveengineering:material&3","level":2,"yield":2,"componentsIDs":["aluminum_ingot"]}
+
+// basic materials
+{"type":"processed","alias":"industrial_hemp_seeds","wareID":"immersiveengineering:seed","level":1,"yield":1,"componentsIDs":["minecraft:wheat_seeds","minecraft:wheat_seeds"]}
+{"type":"processed","alias":"industrial_hemp_fiber","wareID":"immersiveengineering:material&4","level":1,"yield":1,"componentsIDs":["minecraft:reeds"]}
+
+{"type":"processed","alias":"slag","wareID":"immersiveengineering:material&7","level":1,"yield":1,"componentsIDs":["minecraft:gravel"]}
+{"type":"untradeable","wareID":"fluid:creosote_oil","priceBase":0.5}
+
+{"type":"crafted","alias":"treated_wood_planks","wareID":"immersiveengineering:treated_wood","level":2,"yield":8,"componentsIDs":["minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","fluid:creosote_oil"]}
+{"type":"crafted","alias":"treated_stick","wareID":"immersiveengineering:material&0","level":2,"yield":2,"componentsIDs":["immersiveengineering:treated_wood"]}
+{"type":"crafted","alias":"treated_wood_fence","wareID":"immersiveengineering:wooden_decoration&0","level":2,"yield":3,"componentsIDs":["immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:material&0","immersiveengineering:material&0"]}
+{"type":"crafted","alias":"treated_wood_slab","wareID":"immersiveengineering:treated_wood_slab","level":2,"yield":2,"componentsIDs":["immersiveengineering:treated_wood"]}
+
+{"type":"processed","alias":"coal_coke","wareID":"immersiveengineering:material&6","level":3,"yield":1,"componentsIDs":["minecraft:coal","minecraft:coal"]}
+
+// mechanical parts
+{"type":"crafted","alias":"iron_mechanical_component","wareID":"immersiveengineering:material&8","level":2,"yield":1,"componentsIDs":["iron_plate","iron_plate","pulverized_copper"]}
+{"type":"crafted","alias":"steel_mechanical_component","wareID":"immersiveengineering:material&9","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","pulverized_copper"]}
+
+{"type":"crafted","alias":"tough_fabric","wareID":"immersiveengineering:material&5","level":1,"yield":1,"componentsIDs":["immersiveengineering:material&4","immersiveengineering:material&4","immersiveengineering:material&4","immersiveengineering:material&4","immersiveengineering:material&4","immersiveengineering:material&4","immersiveengineering:material&4","immersiveengineering:material&4","minecraft:stick"]}
+
+{"type":"crafted","alias":"fluid_pipe","wareID":"immersiveengineering:metal_device1&6","level":2,"yield":8,"componentsIDs":["iron_plate","iron_plate","iron_plate","iron_plate","iron_plate","iron_plate"]}
+
+{"type":"crafted","alias":"insulating_glass","wareID":"immersiveengineering:stone_decoration&8","level":2,"yield":2,"componentsIDs":["minecraft:glass","minecraft:glass","pulverized_iron","pulverized_iron","minecraft:dye&2"]}
+
+// wiring
+{"type":"crafted","alias":"copper_wire","wareID":"immersiveengineering:material&20","level":1,"yield":4,"componentsIDs":["copper_plate"]}
+{"type":"crafted","alias":"electrum_wire","wareID":"immersiveengineering:material&21","level":3,"yield":4,"componentsIDs":["electrum_ingot"]}
+{"type":"crafted","alias":"steel_wire","wareID":"immersiveengineering:material&23","level":3,"yield":4,"componentsIDs":["steel_ingot"]}
+{"type":"crafted","alias":"aluminum_wire","wareID":"immersiveengineering:material&22","level":2,"yield":4,"componentsIDs":["aluminum_ingot"]}
+
+{"type":"crafted","alias":"lv_wire_coil","wareID":"immersiveengineering:wirecoil&0","level":1,"yield":4,"componentsIDs":["immersiveengineering:material&20","immersiveengineering:material&20","immersiveengineering:material&20","immersiveengineering:material&20","minecraft:stick"]}
+{"type":"crafted","alias":"mv_wire_coil","wareID":"immersiveengineering:wirecoil&1","level":3,"yield":4,"componentsIDs":["immersiveengineering:material&21","immersiveengineering:material&21","immersiveengineering:material&21","immersiveengineering:material&21","minecraft:stick"]}
+{"type":"crafted","alias":"hv_wire_coil","wareID":"immersiveengineering:wirecoil&2","level":3,"yield":4,"componentsIDs":["immersiveengineering:material&23","immersiveengineering:material&23","immersiveengineering:material&22","immersiveengineering:material&22","minecraft:stick"]}
+
+{"type":"crafted","alias":"insulated_lv_wire_coil","wareID":"immersiveengineering:wirecoil&6","level":2,"yield":4,"componentsIDs":["immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5"]}
+{"type":"crafted","alias":"insulated_mv_wire_coil","wareID":"immersiveengineering:wirecoil&7","level":3,"yield":4,"componentsIDs":["immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","fluid:creosote_oil"]}
+
+{"type":"crafted","alias":"copper_coil_block","wareID":"immersiveengineering:metal_decoration0&0","level":1,"yield":1,"componentsIDs":["immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","immersiveengineering:wirecoil&0","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"electrum_coil_block","wareID":"immersiveengineering:metal_decoration0&1","level":3,"yield":1,"componentsIDs":["immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","immersiveengineering:wirecoil&1","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"high_voltage_coil_block","wareID":"immersiveengineering:metal_decoration0&2","level":3,"yield":1,"componentsIDs":["immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","minecraft:iron_ingot"]}
+
+{"type":"crafted","alias":"lv_wire_connector","wareID":"immersiveengineering:connector&0","level":2,"yield":4,"componentsIDs":["minecraft:hardened_clay","minecraft:hardened_clay","minecraft:hardened_clay","minecraft:hardened_clay","pulverized_copper","pulverized_copper","pulverized_copper"]}
+{"type":"crafted","alias":"lv_wire_relay","wareID":"immersiveengineering:connector&1","level":2,"yield":8,"componentsIDs":["minecraft:hardened_clay","minecraft:hardened_clay","pulverized_copper","pulverized_copper"]}
+{"type":"crafted","alias":"mv_wire_connector","wareID":"immersiveengineering:connector&2","level":2,"yield":4,"componentsIDs":["minecraft:hardened_clay","minecraft:hardened_clay","minecraft:hardened_clay","minecraft:hardened_clay","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"mv_wire_relay","wareID":"immersiveengineering:connector&3","level":2,"yield":8,"componentsIDs":["minecraft:hardened_clay","minecraft:hardened_clay","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"hv_wire_connector","wareID":"immersiveengineering:connector&4","level":2,"yield":4,"componentsIDs":["minecraft:hardened_clay","minecraft:hardened_clay","minecraft:hardened_clay","minecraft:hardened_clay","aluminum_ingot","aluminum_ingot","aluminum_ingot"]}
+{"type":"crafted","alias":"hv_wire_relay","wareID":"immersiveengineering:connector&5","level":2,"yield":8,"componentsIDs":["immersiveengineering:stone_decoration&8","immersiveengineering:stone_decoration&8","aluminum_ingot","aluminum_ingot"]}
+{"type":"crafted","alias":"structural_cable_connector","wareID":"immersiveengineering:connector&6","level":3,"yield":8,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","immersiveengineering:material&2"]}
+
+{"type":"crafted","alias":"transformer","wareID":"immersiveengineering:connector&7","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","immersiveengineering:connector&0","immersiveengineering:connector&0","immersiveengineering:metal_decoration0&1"]}
+{"type":"crafted","alias":"hv_transformer","wareID":"immersiveengineering:connector&8","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","immersiveengineering:connector&2","immersiveengineering:connector&2","immersiveengineering:metal_decoration0&2"]}
+
+{"type":"crafted","alias":"lv_capacitor","wareID":"immersiveengineering:metal_device0&0","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","pulverized_copper","pulverized_copper","lead_ingot","immersiveengineering:treated_wood","immersiveengineering:treated_wood","minecraft:redstone"]}
+{"type":"crafted","alias":"mv_capacitor","wareID":"immersiveengineering:metal_device0&1","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","electrum_ingot","electrum_ingot","lead_ingot","immersiveengineering:treated_wood","immersiveengineering:treated_wood","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone"]}
+{"type":"crafted","alias":"hv_capacitor","wareID":"immersiveengineering:metal_device0&2","level":3,"yield":1,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","aluminum_ingot","aluminum_ingot","lead_ingot","lead_ingot","lead_ingot","lead_ingot","lead_ingot","lead_ingot","lead_ingot","lead_ingot","lead_ingot","immersiveengineering:treated_wood","immersiveengineering:treated_wood","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone"]}
+
+// electronic components
+{"type":"crafted","alias":"vacuum_tube","wareID":"immersiveengineering:material&26","level":3,"yield":3,"componentsIDs":["immersiveengineering:material&20","minecraft:glass","minecraft:redstone","nickel_plate"]}
+{"type":"crafted","alias":"circuit_board","wareID":"immersiveengineering:material&27","level":3,"yield":1,"componentsIDs":["immersiveengineering:material&26","immersiveengineering:material&26","copper_plate","immersiveengineering:stone_decoration&8"]}
+
+// multiblock structures"," mechanical
+{"type":"crafted","alias":"coke_brick","wareID":"immersiveengineering:stone_decoration&0","level":2,"yield":3,"componentsIDs":["minecraft:clay_ball","minecraft:clay_ball","minecraft:clay_ball","minecraft:clay_ball","minecraft:brick","minecraft:brick","minecraft:brick","minecraft:brick","minecraft:sandstone"]}
+
+{"type":"crafted","alias":"blast_brick","wareID":"immersiveengineering:stone_decoration&1","level":3,"yield":3,"componentsIDs":["minecraft:brick","minecraft:brick","minecraft:brick","minecraft:brick","minecraft:netherbrick","minecraft:netherbrick","minecraft:netherbrick","minecraft:netherbrick","minecraft:blaze_powder"]}
+{"type":"crafted","alias":"reinforced_blast_brick","wareID":"immersiveengineering:stone_decoration&2","level":3,"yield":1,"componentsIDs":["steel_plate","immersiveengineering:stone_decoration&1"]}
+
+{"type":"crafted","alias":"kiln_brick","wareID":"immersiveengineering:stone_decoration&10","level":3,"yield":2,"componentsIDs":["minecraft:brick","minecraft:brick","minecraft:sandstone","minecraft:sandstone"]}
+
+{"type":"crafted","alias":"windmill_blade","wareID":"immersiveengineering:material&11","level":1,"yield":1,"componentsIDs":["immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood"]}
+{"type":"crafted","alias":"windmill_sail","wareID":"immersiveengineering:material&12","level":1,"yield":1,"componentsIDs":["immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5"]}
+{"type":"crafted","alias":"windmill","wareID":"immersiveengineering:wooden_device1&1","level":1,"yield":1,"componentsIDs":["immersiveengineering:material&11","immersiveengineering:material&11","immersiveengineering:material&11","immersiveengineering:material&11","immersiveengineering:material&11","immersiveengineering:material&11","immersiveengineering:material&11","immersiveengineering:material&11","minecraft:iron_ingot"]}
+
+{"type":"crafted","alias":"waterwheel_segment","wareID":"immersiveengineering:material&10","level":2,"yield":1,"componentsIDs":["immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:material&0"]}
+{"type":"crafted","alias":"waterwheel","wareID":"immersiveengineering:wooden_device1&0","level":2,"yield":1,"componentsIDs":["immersiveengineering:material&10","immersiveengineering:material&10","immersiveengineering:material&10","immersiveengineering:material&10","steel_ingot"]}
+
+{"type":"crafted","alias":"external_heater","wareID":"immersiveengineering:metal_device1&1","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","copper_ingot","copper_ingot","copper_ingot","minecraft:redstone","immersiveengineering:metal_decoration0&0"]}
+{"type":"crafted","alias":"blast_furnace_preheater","wareID":"immersiveengineering:metal_device1&0","level":3,"yield":1,"componentsIDs":["immersiveengineering:metal_device1&1","immersiveengineering:sheetmetal&9","immersiveengineering:sheetmetal&9","immersiveengineering:sheetmetal&9","immersiveengineering:sheetmetal&9","immersiveengineering:sheetmetal&9","immersiveengineering:sheetmetal&9","immersiveengineering:sheetmetal&9"]}
+
+// multiblock structures"," electrical
+{"type":"crafted","alias":"redstone_engineering_block","wareID":"immersiveengineering:metal_decoration0&3","level":3,"yield":2,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","copper_ingot"]}
+{"type":"crafted","alias":"light_engineering_block","wareID":"immersiveengineering:metal_decoration0&4","level":2,"yield":2,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","copper_ingot","copper_ingot","copper_ingot","immersiveengineering:material&8","immersiveengineering:material&8"]}
+{"type":"crafted","alias":"heavy_engineering_block","wareID":"immersiveengineering:metal_decoration0&5","level":3,"yield":2,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","minecraft:piston","minecraft:piston","immersiveengineering:material&9","immersiveengineering:material&9","electrum_ingot"]}
+
+{"type":"crafted","alias":"generator_block","wareID":"immersiveengineering:metal_decoration0&6","level":3,"yield":2,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot","electrum_ingot","electrum_ingot","immersiveengineering:metal_device1&2"]}
+{"type":"crafted","alias":"radiator_block","wareID":"immersiveengineering:metal_decoration0&7","level":3,"yield":2,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","copper_ingot","copper_ingot","copper_ingot","copper_ingot","fluid:water"]}
+
+{"type":"crafted","alias":"iron_sheetmetal","wareID":"immersiveengineering:sheetmetal&9","level":2,"yield":1,"componentsIDs":["iron_plate"]}
+{"type":"crafted","alias":"steel_scaffolding","wareID":"immersiveengineering:metal_decoration1&1","level":3,"yield":2,"componentsIDs":["steel_ingot","steel_rod"]}
+{"type":"crafted","alias":"steel_fence","wareID":"immersiveengineering:metal_decoration1&0","level":3,"yield":3,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_rod","steel_rod","steel_rod"]}
+
+// generators
+{"type":"crafted","alias":"kinetic_dynamo","wareID":"immersiveengineering:metal_device1&2","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone","minecraft:redstone","immersiveengineering:metal_decoration0&0"]}
+{"type":"crafted","alias":"thermoelectric_generator","wareID":"immersiveengineering:metal_device1&3","level":3,"yield":1,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","constantan_plate","constantan_plate","constantan_plate","constantan_plate","constantan_plate","immersiveengineering:metal_decoration0&0"]}
+
+// machinery
+{"type":"crafted","alias":"conveyor_belt","wareID":"immersiveengineering:conveyor","level":3,"yield":8,"componentsIDs":["minecraft:leather","minecraft:leather","minecraft:leather","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone"]}
+
+{"type":"crafted","alias":"fluid_pump","wareID":"immersiveengineering:metal_device0&5","level":3,"yield":1,"componentsIDs":["immersiveengineering:metal_device1&6","immersiveengineering:metal_device1&6","immersiveengineering:metal_device1&6","iron_plate","iron_plate","iron_plate","immersiveengineering:material&8"]}
+
+{"type":"crafted","alias":"garden_cloche","wareID":"immersiveengineering:metal_device1&13","level":3,"yield":1,"componentsIDs":["minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:material&26","immersiveengineering:material&8"]}
+
+// tools
+{"type":"crafted","alias":"engineers_hammer","wareID":"immersiveengineering:tool&0","level":2,"yield":1,"componentsIDs":["minecraft:stick","minecraft:stick","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:string"]}
+{"type":"crafted","alias":"engineers_wire_cutters","wareID":"immersiveengineering:tool&1","level":2,"yield":1,"componentsIDs":["minecraft:stick","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"engineers_voltmeter","wareID":"immersiveengineering:tool&2","level":3,"yield":1,"componentsIDs":["minecraft:stick","minecraft:stick","minecraft:compass","pulverized_copper"]}
+
+{"type":"crafted","alias":"jerrycan","wareID":"immersiveengineering:jerrycan","level":3,"yield":1,"componentsIDs":["minecraft:bucket","minecraft:bucket","minecraft:bucket","minecraft:bucket","iron_plate","iron_plate","iron_plate","iron_plate"]}
+
+{"type":"crafted","alias":"engineers_toolbox","wareID":"immersiveengineering:toolbox","level":3,"yield":1,"componentsIDs":["minecraft:dye&1","minecraft:dye&1","minecraft:compass","aluminum_plate","aluminum_plate","aluminum_plate"]}
+{"type":"crafted","alias":"engineers_manual","wareID":"immersiveengineering:tool&3","level":2,"yield":1,"componentsIDs":["minecraft:book","minecraft:lever"]}
+
+// revolver
+{"type":"crafted","alias":"wooden_grip","wareID":"immersiveengineering:material&13","level":3,"yield":1,"componentsIDs":["pulverized_copper","immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:material&0","immersiveengineering:material&0"]}
+{"type":"crafted","alias":"revolver_barrel","wareID":"immersiveengineering:material&14","level":3,"yield":1,"componentsIDs":["immersiveengineering:material&2","immersiveengineering:material&2"]}
+{"type":"crafted","alias":"revolver_drum","wareID":"immersiveengineering:material&15","level":3,"yield":1,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","immersiveengineering:material&8"]}
+{"type":"crafted","alias":"revolver_hammer","wareID":"immersiveengineering:material&16","level":3,"yield":1,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot"]}
+{"type":"crafted","alias":"revolver","wareID":"immersiveengineering:revolver","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","immersiveengineering:material&13","immersiveengineering:material&13","immersiveengineering:material&14","immersiveengineering:material&15","immersiveengineering:material&16"]}
+{"type":"crafted","alias":"revolver_speedloader","wareID":"immersiveengineering:speedloader","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","steel_ingot"]}
+
+{"type":"crafted","alias":"empty_casing","wareID":"immersiveengineering:bullet&0","level":2,"yield":2,"componentsIDs":["pulverized_copper"]}
+{"type":"crafted","alias":"empty_shell","wareID":"immersiveengineering:bullet&1","level":2,"yield":5,"componentsIDs":["pulverized_copper","minecraft:paper","minecraft:paper","minecraft:paper","minecraft:paper","minecraft:dye&1","minecraft:dye&1"]}
+
+{"type":"crafted","alias":"bayonet","wareID":"immersiveengineering:toolupgrade&4","level":3,"yield":1,"componentsIDs":["minecraft:iron_sword","steel_ingot","steel_ingot","immersiveengineering:treated_wood"]}
+{"type":"crafted","alias":"extended_magazine","wareID":"immersiveengineering:toolupgrade&5","level":3,"yield":1,"componentsIDs":["pulverized_copper","pulverized_copper","pulverized_copper","pulverized_copper","steel_ingot","immersiveengineering:material&8"]}
+{"type":"crafted","alias":"amplifier_electron_tubes","wareID":"immersiveengineering:toolupgrade&6","level":3,"yield":1,"componentsIDs":["immersiveengineering:material&26","immersiveengineering:material&26","immersiveengineering:material&26","immersiveengineering:material&2","immersiveengineering:material&2","immersiveengineering:material&20"]}
+
+// railgun
+{"type":"crafted","alias":"railgun","wareID":"immersiveengineering:railgun","level":4,"yield":1,"componentsIDs":["immersiveengineering:material&13","immersiveengineering:material&14","immersiveengineering:material&14","immersiveengineering:metal_device0&2","immersiveengineering:metal_device0&2","immersiveengineering:metal_decoration0&1","immersiveengineering:metal_decoration0&1"]}
+{"type":"crafted","alias":"precision_scope","wareID":"immersiveengineering:toolupgrade&8","level":4,"yield":1,"componentsIDs":["copper_ingot","copper_ingot","copper_ingot","copper_ingot","minecraft:glass_pane","minecraft:glass_pane"]}
+{"type":"crafted","alias":"additional_capacitors","wareID":"immersiveengineering:toolupgrade&9","level":4,"yield":1,"componentsIDs":["immersiveengineering:metal_device0&2","immersiveengineering:metal_device0&2","immersiveengineering:metal_device0&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2","immersiveengineering:wirecoil&2"]}
+
+// stations
+{"type":"crafted","alias":"engineers_workbench","wareID":"immersiveengineering:wooden_device0&2","level":2,"yield":1,"componentsIDs":["minecraft:crafting_table","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:wooden_decoration&0"]}
+
+// decoration
+{"type":"crafted","alias":"wooden_post","wareID":"immersiveengineering:wooden_device1&3","level":2,"yield":1,"componentsIDs":["immersiveengineering:wooden_decoration&0","immersiveengineering:wooden_decoration&0","minecraft:stonebrick"]}
+{"type":"crafted","alias":"wooden_wallmount","wareID":"immersiveengineering:wooden_device1&4","level":2,"yield":4,"componentsIDs":["immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:material&0"]}
+
+{"type":"crafted","alias":"strip_curtain","wareID":"immersiveengineering:cloth_device&2","level":2,"yield":1,"componentsIDs":["immersiveengineering:material&5","immersiveengineering:material&5","aluminum_rod"]}
+
+{"type":"crafted","alias":"wooden_barrel","wareID":"immersiveengineering:wooden_device0&1","level":2,"yield":1,"componentsIDs":["immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood","immersiveengineering:treated_wood_slab","immersiveengineering:treated_wood_slab","immersiveengineering:treated_wood_slab"]}
+{"type":"crafted","alias":"gunpowder_barrel","wareID":"immersiveengineering:wooden_device0&4","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","immersiveengineering:wooden_device0&1","immersiveengineering:material&4"]}
+
+// miscellaneous
+{"type":"crafted","alias":"jump_cushion","wareID":"immersiveengineering:cloth_device&0","level":2,"yield":3,"componentsIDs":["immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5"]}
+{"type":"crafted","alias":"balloon","wareID":"immersiveengineering:cloth_device&1","level":2,"yield":2,"componentsIDs":["immersiveengineering:material&5","immersiveengineering:material&5","immersiveengineering:material&5","minecraft:torch","immersiveengineering:treated_wood_slab"]}
+
+// metal press molds
+{"type":"crafted","alias":"metal_press_mold_plate","wareID":"immersiveengineering:mold&0","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}
+{"type":"crafted","alias":"metal_press_mold_gear","wareID":"immersiveengineering:mold&1","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}
+{"type":"crafted","alias":"metal_press_mold_rod","wareID":"immersiveengineering:mold&2","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}
+{"type":"crafted","alias":"metal_press_mold_bullet_casing","wareID":"immersiveengineering:mold&3","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}
+{"type":"crafted","alias":"metal_press_mold_wire","wareID":"immersiveengineering:mold&4","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}
+{"type":"crafted","alias":"metal_press_mold_packing_2x2","wareID":"immersiveengineering:mold&5","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}
+{"type":"crafted","alias":"metal_press_mold_packing_3x3","wareID":"immersiveengineering:mold&6","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}
+{"type":"crafted","alias":"metal_press_mold_unpacking","wareID":"immersiveengineering:mold&7","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","steel_plate"]}

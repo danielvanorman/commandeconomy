@@ -1,0 +1,73 @@
+//===Astral Sorcery:===
+// materials
+{"type":"processed","alias":"marble","wareID":"astralsorcery:blockmarble","level":1,"yield":1,"componentsIDs":["minecraft:stone&1"]}
+{"type":"processed","alias":"sooty_marble","wareID":"astralsorcery:blockblackmarble","level":1,"yield":1,"componentsIDs":["astralsorcery:blockmarble","astralsorcery:blockmarble","astralsorcery:blockmarble","astralsorcery:blockmarble","astralsorcery:blockmarble","astralsorcery:blockmarble","astralsorcery:blockmarble","astralsorcery:blockmarble","minecraft:coal"]}
+{"type":"processed","alias":"aquamarine","wareID":"astralsorcery:itemcraftingcomponent&0","level":1,"yield":3,"componentsIDs":["minecraft:emerald"]}
+
+{"type":"processed","alias":"starmetal_ingot","wareID":"astralsorcery:itemcraftingcomponent&1","level":2,"yield":1,"componentsIDs":["minecraft:iron_ingot"]}
+{"type":"processed","alias":"starmetal_dust","wareID":"astralsorcery:itemcraftingcomponent&2","level":2,"yield":1,"componentsIDs":["minecraft:iron_ingot"]}
+
+{"type":"processed","alias":"rock_crystal","wareID":"astralsorcery:itemrockcrystalsimple","level":3,"yield":1,"componentsIDs":["minecraft:dye&4"]}
+{"type":"processed","alias":"celestial_crystal","wareID":"astralsorcery:itemcelestialcrystal","level":3,"yield":1,"componentsIDs":["astralsorcery:itemrockcrystalsimple","astralsorcery:itemcraftingcomponent&2"]}
+
+{"type":"untradeable","wareID":"fluid:liquid_starlight","priceBase":6.0}
+
+// building blocks
+{"type":"processed","alias":"marble_bricks","wareID":"astralsorcery:blockmarble&1","level":1,"yield":1,"componentsIDs":["astralsorcery:blockmarble"]}
+{"type":"processed","alias":"marble_pillar","wareID":"astralsorcery:blockmarble&2","level":1,"yield":1,"componentsIDs":["astralsorcery:blockmarble"]}
+{"type":"processed","alias":"marble_arch","wareID":"astralsorcery:blockmarble&3","level":1,"yield":1,"componentsIDs":["astralsorcery:blockmarble"]}
+{"type":"processed","alias":"chiseled_marble","wareID":"astralsorcery:blockmarble&4","level":1,"yield":1,"componentsIDs":["astralsorcery:blockmarble"]}
+{"type":"processed","alias":"engraved_marble","wareID":"astralsorcery:blockmarble&5","level":1,"yield":1,"componentsIDs":["astralsorcery:blockmarble"]}
+{"type":"processed","alias":"runed_marble","wareID":"astralsorcery:blockmarble&6","level":1,"yield":1,"componentsIDs":["astralsorcery:blockmarble"]}
+
+{"type":"processed","alias":"sooty_marble_bricks","wareID":"astralsorcery:blockblackmarble&1","level":1,"yield":1,"componentsIDs":["astralsorcery:blockblackmarble"]}
+{"type":"processed","alias":"sooty_marble_pillar","wareID":"astralsorcery:blockblackmarble&2","level":1,"yield":1,"componentsIDs":["astralsorcery:blockblackmarble"]}
+{"type":"processed","alias":"sooty_marble_arch","wareID":"astralsorcery:blockblackmarble&3","level":1,"yield":1,"componentsIDs":["astralsorcery:blockblackmarble"]}
+{"type":"processed","alias":"chiseled_sooty_marble","wareID":"astralsorcery:blockblackmarble&4","level":1,"yield":1,"componentsIDs":["astralsorcery:blockblackmarble"]}
+{"type":"processed","alias":"engraved_sooty_marble","wareID":"astralsorcery:blockblackmarble&5","level":1,"yield":1,"componentsIDs":["astralsorcery:blockblackmarble"]}
+{"type":"processed","alias":"runed_sooty_marble","wareID":"astralsorcery:blockblackmarble&6","level":1,"yield":1,"componentsIDs":["astralsorcery:blockblackmarble"]}
+
+// intermediate components
+{"type":"processed","alias":"glass_lens","wareID":"astralsorcery:itemcraftingcomponent&3","level":1,"yield":1,"componentsIDs":["minecraft:glass_pane"]}
+{"type":"processed","alias":"resonating_gem","wareID":"astralsorcery:itemcraftingcomponent&4","level":2,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&0"]}
+{"type":"crafted","alias":"parchment","wareID":"astralsorcery:itemcraftingcomponent&5","level":2,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&0","minecraft:paper","minecraft:paper","minecraft:paper","minecraft:paper"]}
+
+{"type":"processed","alias":"orange_colored_lens","wareID":"astralsorcery:itemcoloredlens","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&3","astralsorcery:itemcraftingcomponent&0","minecraft:blaze_powder","minecraft:blaze_powder","minecraft:blaze_powder","minecraft:blaze_powder","minecraft:blaze_powder","minecraft:blaze_powder","minecraft:blaze_powder","minecraft:blaze_powder"]}
+{"type":"processed","alias":"pink_colored_lens","wareID":"astralsorcery:itemcoloredlens&4","level":4,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&3","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","minecraft:ghast_tear"]}
+{"type":"processed","alias":"purple_colored_lens","wareID":"astralsorcery:itemcoloredlens&6","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&3","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemusabledust&0"]}
+
+{"type":"processed","alias":"infused_glass","wareID":"astralsorcery:iteminfusedglass","level":1,"yield":1,"componentsIDs":["astralsorcery:itemcoloredlens","astralsorcery:itemcraftingcomponent&3","astralsorcery:itemcraftingcomponent&3","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2"]}
+
+{"type":"crafted","alias":"illumination_dust","wareID":"astralsorcery:itemusabledust&0","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&0","minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust"]}
+{"type":"crafted","alias":"nocturnal_dust","wareID":"astralsorcery:itemusabledust&1","level":3,"yield":1,"componentsIDs":["astralsorcery:itemusabledust&0","minecraft:coal","minecraft:coal","minecraft:dye&4","minecraft:dye"]}
+
+{"type":"crafted","alias":"shifting_star","wareID":"astralsorcery:itemshiftingstar","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","fluid:liquid_starlight","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0"]}
+
+// tools
+{"type":"crafted","alias":"astral_tome","wareID":"astralsorcery:itemjournal","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&5","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","minecraft:book"]}
+{"type":"crafted","alias":"scroll_of_written_expertise","wareID":"astralsorcery:itemknowledgeshare","level":3,"yield":1,"componentsIDs":["astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&5","minecraft:dye","minecraft:feather"]}
+
+{"type":"crafted","alias":"looking_glass","wareID":"astralsorcery:itemhandtelescope","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&3","minecraft:stick","minecraft:stick","minecraft:stick","minecraft:stick","minecraft:planks","minecraft:gold_ingot"]}
+{"type":"crafted","alias":"linking_tool","wareID":"astralsorcery:itemlinkingtool","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemrockcrystalsimple","minecraft:stick","minecraft:stick","minecraft:stick","minecraft:stick","minecraft:log","minecraft:log"]}
+{"type":"crafted","alias":"sextant","wareID":"astralsorcery:itemsextant","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&3","astralsorcery:itemcraftingcomponent&3","minecraft:stick","minecraft:stick","minecraft:stick","minecraft:gold_ingot","minecraft:gold_ingot"]}
+
+{"type":"crafted","alias":"sealing_sigil","wareID":"astralsorcery:itemperkseal","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:itemusabledust&1","astralsorcery:itemusabledust&1","astralsorcery:itemusabledust&1","astralsorcery:itemcraftingcomponent&3"]}
+
+{"type":"processed","alias":"mantle_of_stars","wareID":"astralsorcery:itemcape","level":4,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&1","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","minecraft:ender_pearl","minecraft:leather_chestplate","astralsorcery:itemrockcrystalsimple","minecraft:feather"]}
+{"type":"processed","alias":"resplendent_prism","wareID":"astralsorcery:itemenchantmentamulet","level":4,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","minecraft:ender_eye","minecraft:string","minecraft:gold_ingot","minecraft:gold_ingot","astralsorcery:itemshiftingstar"]}
+
+{"type":"crafted","alias":"constellation_paper","wareID":"astralsorcery:itemconstellationpaper","level":3,"yield":1,"componentsIDs":["minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:feather","minecraft:feather","minecraft:quartz","minecraft:ice","minecraft:dye","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&5"]}
+
+// wands
+{"type":"crafted","alias":"resonating_wand","wareID":"astralsorcery:itemwand","level":4,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","astralsorcery:blockmarble","astralsorcery:blockmarble","minecraft:ender_pearl"]}
+{"type":"processed","alias":"illumination_wand","wareID":"astralsorcery:itemilluminationwand","level":4,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&4","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:itemrockcrystalsimple","astralsorcery:itemrockcrystalsimple","astralsorcery:itemusabledust&0"]}
+
+{"type":"crafted","alias":"formation_wand","wareID":"astralsorcery:itemarchitectwand","level":2,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","minecraft:dye&5","minecraft:dye&5"]}
+{"type":"crafted","alias":"conversion_wand","wareID":"astralsorcery:itemexchangewand","level":2,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","minecraft:diamond","minecraft:diamond"]}
+{"type":"crafted","alias":"impulsion_wand","wareID":"astralsorcery:itemgrapplewand","level":2,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","minecraft:dye&5","minecraft:ender_pearl","minecraft:ender_pearl"]}
+
+// stations
+{"type":"crafted","alias":"fosic_resonator","wareID":"astralsorcery:itemskyresonator","level":3,"yield":1,"componentsIDs":["astralsorcery:itemcraftingcomponent&0","fluid:liquid_starlight","minecraft:gold_ingot","astralsorcery:blockmarble","astralsorcery:blockmarble"]}
+{"type":"crafted","alias":"lightwell","wareID":"astralsorcery:blockwell","level":2,"yield":1,"componentsIDs":["astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:blockmarble&6","astralsorcery:blockmarble&4","astralsorcery:blockmarble&4","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemcraftingcomponent&0","astralsorcery:itemrockcrystalsimple"]}
+
+{"type":"processed","alias":"floating_crystal","wareID":"astralsorcery:blockcollectorcrystal","level":3,"yield":1,"componentsIDs":["astralsorcery:itemrockcrystalsimple","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemcraftingcomponent&2","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemusabledust&0","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4","astralsorcery:itemcraftingcomponent&4"]}

@@ -1,0 +1,109 @@
+// ===Tinker's Construct:===
+// basic  materials
+{"type":"crafted","alias":"pattern","wareID":"tconstruct:pattern","level":0,"yield":2,"componentsIDs":["minecraft:planks","minecraft:stick"]}
+{"type":"processed","alias":"blank_cast","wareID":"tconstruct:cast","level":3,"yield":1,"componentsIDs":["minecraft:gold_ingot"]}
+{"type":"crafted","alias":"grout","wareID":"tconstruct:soil&0","level":1,"yield":2,"componentsIDs":["minecraft:clay_ball","minecraft:sand","minecraft:gravel"]}
+{"type":"processed","alias":"seared_brick","wareID":"tconstruct:materials&0","level":1,"yield":1,"componentsIDs":["tconstruct:soil&0"]}
+{"type":"crafted","alias":"seared_bricks","wareID":"tconstruct:seared&3","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0"]}
+{"type":"processed","alias":"seared_stone","wareID":"tconstruct:seared&0","level":1,"yield":1,"componentsIDs":["minecraft:stone"]}
+
+{"type":"processed","alias":"clear_glass","wareID":"tconstruct:clear_glass","level":1,"yield":1,"componentsIDs":["minecraft:sand"]}
+
+{"type":"crafted","alias":"stone_rod","wareID":"tconstruct:stone_stick","level":0,"yield":4,"componentsIDs":["minecraft:cobblestone","minecraft:cobblestone"]}
+
+// stations
+{"type":"crafted","alias":"crafting_station","wareID":"tconstruct:tooltables&0","level":1,"yield":1,"componentsIDs":["tconstruct:pattern","minecraft:crafting_table"]}
+{"type":"crafted","alias":"tool_station","wareID":"tconstruct:tooltables&3","level":1,"yield":1,"componentsIDs":["tconstruct:pattern","minecraft:crafting_table"]}
+{"type":"crafted","alias":"part_builder","wareID":"tconstruct:tooltables&2","level":1,"yield":1,"componentsIDs":["tconstruct:pattern","minecraft:log"]}
+{"type":"crafted","alias":"pattern_chest","wareID":"tconstruct:tooltables&4","level":1,"yield":1,"componentsIDs":["tconstruct:pattern","minecraft:chest"]}
+{"type":"crafted","alias":"part_chest","wareID":"tconstruct:tooltables&5","level":1,"yield":1,"componentsIDs":["tconstruct:pattern","minecraft:stick","minecraft:stick","minecraft:planks","minecraft:chest"]}
+
+{"type":"crafted","alias":"item_rack","wareID":"tconstruct:rack","level":1,"yield":1,"componentsIDs":["minecraft:wooden_slab","minecraft:wooden_slab"]}
+{"type":"crafted","alias":"drying_rack","wareID":"tconstruct:rack&1","level":1,"yield":1,"componentsIDs":["minecraft:wooden_slab","minecraft:wooden_slab","minecraft:wooden_slab"]}
+
+// multiblock structures
+{"type":"crafted","alias":"seared_drain","wareID":"tconstruct:smeltery_io&0","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0"]}
+{"type":"crafted","alias":"seared_furnace_controller","wareID":"tconstruct:seared_furnace_controller","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","minecraft:furnace"]}
+{"type":"crafted","alias":"smeltery_controller","wareID":"tconstruct:smeltery_controller","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0"]}
+{"type":"crafted","alias":"tinker_tank_controller","wareID":"tconstruct:tinker_tank_controller","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","minecraft:bucket"]}
+
+{"type":"crafted","alias":"casting_channel","wareID":"tconstruct:channel","level":1,"yield":3,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0"]}
+{"type":"crafted","alias":"seared_faucet","wareID":"tconstruct:faucet","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0"]}
+
+{"type":"crafted","alias":"seared_tank","wareID":"tconstruct:seared_tank","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","minecraft:glass"]}
+{"type":"crafted","alias":"seared_gauge","wareID":"tconstruct:seared_tank&1","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass"]}
+{"type":"crafted","alias":"seared_window","wareID":"tconstruct:seared_tank&2","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","minecraft:glass","minecraft:glass","minecraft:glass"]}
+
+{"type":"crafted","alias":"seared_glass","wareID":"tconstruct:seared_glass","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","minecraft:glass"]}
+
+{"type":"crafted","alias":"casting_table","wareID":"tconstruct:casting&0","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0"]}
+{"type":"crafted","alias":"casting_basin","wareID":"tconstruct:casting&1","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0","tconstruct:materials&0"]}
+
+// modifiers
+{"type":"crafted","alias":"expander_horizontal","wareID":"tconstruct:materials&12","level":3,"yield":1,"componentsIDs":["minecraft:dye&4","minecraft:dye&4","minecraft:piston","minecraft:piston","minecraft:slime_ball"]}
+{"type":"crafted","alias":"expander_vertical","wareID":"tconstruct:materials&13","level":3,"yield":1,"componentsIDs":["minecraft:dye&4","minecraft:dye&4","minecraft:piston","minecraft:piston","minecraft:slime_ball"]}
+{"type":"crafted","alias":"reinforcement","wareID":"tconstruct:materials&14","level":3,"yield":1,"componentsIDs":["minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","tconstruct:cast"]}
+{"type":"crafted","alias":"silky_cloth","wareID":"tconstruct:materials&15","level":3,"yield":1,"componentsIDs":["minecraft:string","minecraft:string","minecraft:string","minecraft:string","minecraft:string","minecraft:string","minecraft:string","minecraft:string","minecraft:gold_ingot"]}
+{"type":"crafted","alias":"silky_jewel","wareID":"tconstruct:materials&16","level":4,"yield":1,"componentsIDs":["tconstruct:materials&15","tconstruct:materials&15","tconstruct:materials&15","tconstruct:materials&15","minecraft:emerald"]}
+{"type":"processed","alias":"necrotic_bone","wareID":"tconstruct:materials&17","level":3,"yield":3,"componentsIDs":["minecraft:skull&1"]}
+{"type":"crafted","alias":"ball_of_moss","wareID":"tconstruct:materials&18","level":1,"yield":1,"componentsIDs":["minecraft:mossy_cobblestone","minecraft:mossy_cobblestone","minecraft:mossy_cobblestone","minecraft:mossy_cobblestone","minecraft:mossy_cobblestone","minecraft:mossy_cobblestone","minecraft:mossy_cobblestone","minecraft:mossy_cobblestone","minecraft:mossy_cobblestone"]}
+{"type":"processed","alias":"mending_moss","wareID":"tconstruct:materials&19","level":1,"yield":1,"componentsIDs":["tconstruct:materials&18","tconstruct:materials&18"]}
+{"type":"crafted","alias":"graveyard_soil","wareID":"tconstruct:soil&3","level":1,"yield":1,"componentsIDs":["minecraft:dirt","minecraft:rotten_flesh","minecraft:dye&15"]}
+{"type":"processed","alias":"consecrated_soil","wareID":"tconstruct:soil&4","level":1,"yield":1,"componentsIDs":["tconstruct:soil&3"]}
+
+// decoration
+{"type":"crafted","alias":"seared_cobblestone","wareID":"tconstruct:seared&1","level":1,"yield":1,"componentsIDs":["tconstruct:seared&0"]}
+
+{"type":"crafted","alias":"seared_bricks_slab","wareID":"tconstruct:_slab&3","level":1,"yield":1,"componentsIDs":["tconstruct:materials&0","tconstruct:materials&0"]}
+{"type":"crafted","alias":"seared_stone_slab","wareID":"tconstruct:seared_slab&0","level":1,"yield":2,"componentsIDs":["tconstruct:seared&0"]}
+
+// usables
+{"type":"crafted","alias":"glow_ball","wareID":"tconstruct:throwball&0","level":3,"yield":1,"componentsIDs":["minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:glowstone_dust"]}
+{"type":"crafted","alias":"efln","wareID":"tconstruct:throwball&1","level":2,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:flint"]}
+
+// edibles
+{"type":"processed","alias":"bacon","wareID":"tconstruct:edible&0","level":2,"yield":1,"componentsIDs":["minecraft:porkchop"]}
+
+{"type":"processed","alias":"monster_jerky","wareID":"tconstruct:edible&10","level":0,"yield":1,"componentsIDs":["minecraft:rotten_flesh"]}
+{"type":"processed","alias":"beef_jerky","wareID":"tconstruct:edible&11","level":0,"yield":1,"componentsIDs":["minecraft:beef"]}
+{"type":"processed","alias":"chicken_jerky","wareID":"tconstruct:edible&12","level":0,"yield":1,"componentsIDs":["minecraft:chicken"]}
+{"type":"processed","alias":"bacon_jerky","wareID":"tconstruct:edible&13","level":0,"yield":1,"componentsIDs":["minecraft:porkchop"]}
+{"type":"processed","alias":"mutton_jerky","wareID":"tconstruct:edible&14","level":0,"yield":1,"componentsIDs":["minecraft:mutton"]}
+{"type":"processed","alias":"rabbit_jerky","wareID":"tconstruct:edible&15","level":0,"yield":1,"componentsIDs":["minecraft:rabbit"]}
+{"type":"processed","alias":"fish_jerky","wareID":"tconstruct:edible&20","level":0,"yield":1,"componentsIDs":["minecraft:fish"]}
+{"type":"processed","alias":"salmon_jerky","wareID":"tconstruct:edible&21","level":0,"yield":1,"componentsIDs":["minecraft:fish"]}
+{"type":"processed","alias":"clownfish_jerky","wareID":"tconstruct:edible&22","level":0,"yield":1,"componentsIDs":["minecraft:fish"]}
+{"type":"processed","alias":"fugu_jerky","wareID":"tconstruct:edible&23","level":0,"yield":1,"componentsIDs":["minecraft:fish&3"]}
+
+{"type":"processed","alias":"blue_slimeball","wareID":"tconstruct:edible&1","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball"]}
+{"type":"processed","alias":"purple_slimeball","wareID":"tconstruct:edible&2","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball"]}
+{"type":"processed","alias":"coagulated_blood","wareID":"tconstruct:edible&3","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball"]}
+{"type":"processed","alias":"orange_slimeball","wareID":"tconstruct:edible&4","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball"]}
+
+{"type":"processed","alias":"gelatinous_slime_drop","wareID":"tconstruct:edible&30","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball"]}
+{"type":"processed","alias":"blue_gelatinous_slime_drop","wareID":"tconstruct:edible&31","level":2,"yield":1,"componentsIDs":["tconstruct:edible&1"]}
+{"type":"processed","alias":"purple_gelatinous_slime_drop","wareID":"tconstruct:edible&32","level":2,"yield":1,"componentsIDs":["tconstruct:edible&2"]}
+{"type":"processed","alias":"coagulated_blood_drop","wareID":"tconstruct:edible&33","level":2,"yield":1,"componentsIDs":["tconstruct:edible&3"]}
+{"type":"processed","alias":"orange_gelatinous_slime_drop","wareID":"tconstruct:edible&34","level":2,"yield":1,"componentsIDs":["tconstruct:edible&4"]}
+
+// advanced materials
+{"type":"crafted","alias":"green_slimy_mud","wareID":"tconstruct:soil&1","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:sand","minecraft:dirt"]}
+{"type":"crafted","alias":"blue_slimy_mud","wareID":"tconstruct:soil&2","level":2,"yield":1,"componentsIDs":["tconstruct:edible&1","tconstruct:edible&1","tconstruct:edible&1","tconstruct:edible&1","minecraft:sand","minecraft:dirt"]}
+{"type":"crafted","alias":"slimy_magma_mud","wareID":"tconstruct:soil&5","level":2,"yield":1,"componentsIDs":["tconstruct:edible&4","tconstruct:edible&4","minecraft:magma_cream","minecraft:magma_cream","minecraft:soul_sand","minecraft:netherrack"]}
+
+{"type":"processed","alias":"green_slime_crystal","wareID":"tconstruct:materials&9","level":2,"yield":1,"componentsIDs":["tconstruct:soil&1"]}
+{"type":"processed","alias":"blue_slime_crystal","wareID":"tconstruct:materials&10","level":2,"yield":1,"componentsIDs":["tconstruct:soil&2"]}
+{"type":"processed","alias":"magma_slime_crystal","wareID":"tconstruct:materials&11","level":2,"yield":1,"componentsIDs":["tconstruct:soil&5"]}
+
+// gear
+{"type":"crafted","alias":"piggybackpack","wareID":"tconstruct:piggybackpack","level":2,"yield":1,"componentsIDs":["minecraft:stick","minecraft:stick","minecraft:leather","minecraft:leather"]}
+
+{"type":"crafted","alias":"slime_boots","wareID":"tconstruct:slime_boots","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball"]}
+
+// miscellaneous
+{"type":"crafted","alias":"materials_and_you","wareID":"tconstruct:book","level":2,"yield":1,"componentsIDs":["minecraft:book","tconstruct:pattern"]}
+
+{"type":"crafted","alias":"stone_ladder","wareID":"tconstruct:stone_ladder","level":1,"yield":3,"componentsIDs":["tconstruct:stone_stick","tconstruct:stone_stick","tconstruct:stone_stick","tconstruct:stone_stick","tconstruct:stone_stick","tconstruct:stone_stick","tconstruct:stone_stick"]}
+{"type":"crafted","alias":"stone_torch","wareID":"tconstruct:stone_torch","level":1,"yield":4,"componentsIDs":["tconstruct:stone_stick","minecraft:coal&1"]}
+
+{"type":"crafted","alias":"wooden_hopper","wareID":"tconstruct:wooden_hopper","level":1,"yield":1,"componentsIDs":["minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","minecraft:chest"]}

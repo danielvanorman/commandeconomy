@@ -1,0 +1,11 @@
+// ===Mekanism: Generators===
+// advanced resources
+{"type":"crafted","alias":"solar_panel","wareID":"mekanismgenerators:solarpanel","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","minecraft:redstone","minecraft:redstone","mekanism:ingot&1","mekanism:ingot&1","mekanism:ingot&1","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane"]}
+
+// machinery
+{"type":"crafted","alias":"heat_generator","wareID":"mekanismgenerators:generator&0","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","mekanism:ingot&1","minecraft:furnace","minecraft:planks","minecraft:planks","mekanism:ingot&5"]}
+{"type":"crafted","alias":"solar_generator","wareID":"mekanismgenerators:generator&1","level":4,"yield":1,"componentsIDs":["mekanismgenerators:solarpanel","mekanismgenerators:solarpanel","mekanismgenerators:solarpanel","mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:iron_ingot","mekanism:dust&2","mekanism:dust&2","mekanism:energytablet"]}
+{"type":"crafted","alias":"gas_burning_generator","wareID":"mekanismgenerators:generator&3","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:electrolyticcore","mekanism:ingot&1","mekanism:ingot&1","mekanism:ingot&1","mekanism:ingot&1","mekanism:basicblock&8","mekanism:basicblock&8"]}
+{"type":"crafted","alias":"bio_generator","wareID":"mekanismgenerators:generator&4","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone","minecraft:redstone","mekanism:biofuel","mekanism:biofuel","mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:controlcircuit"]}
+{"type":"crafted","alias":"advanced_solar_generator","wareID":"mekanismgenerators:generator&5","level":5,"yield":1,"componentsIDs":["mekanismgenerators:generator&1","mekanismgenerators:generator&1","mekanismgenerators:generator&1","mekanismgenerators:generator&1","mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"wind_generator","wareID":"mekanismgenerators:generator&6","level":4,"yield":1,"componentsIDs":["mekanism:ingot&1","mekanism:ingot&1","mekanism:ingot&1","mekanism:controlcircuit","mekanism:enrichedalloy","mekanism:energytablet","mekanism:energytablet"]}

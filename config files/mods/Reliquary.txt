@@ -1,0 +1,86 @@
+// ===Reliquary:===
+// mob drops
+// reliquary mob drops tend to have 1/10 of the chance chance of vanilla mob drops
+// reliquary mob drops generally have a 10% drop chance for 1
+// vanilla mob drops generally have a 33% drop chance for 1 and 33% for 2 --> 99 drops for 100 mobs killed
+{"type":"processed","alias":"rib_bone","wareID":"xreliquary:mob_ingredient&0","level":1,"yield":1,"componentsIDs":["minecraft:bone","minecraft:bone","minecraft:bone","minecraft:bone","minecraft:bone","minecraft:bone","minecraft:bone","minecraft:bone","minecraft:bone","minecraft:bone"]}
+{"type":"processed","alias":"withered_rib","wareID":"xreliquary:mob_ingredient&1","level":3,"yield":4,"componentsIDs":["minecraft:skull&1"]}
+// spider eye's drop chance is 50% for 1"," chelicerae's is 10% for 1
+// 1 chelicerae is convertable to 1 spider eye
+{"type":"processed","alias":"chelicerae","wareID":"xreliquary:mob_ingredient&2","level":1,"yield":1,"componentsIDs":["minecraft:spider_eye","minecraft:spider_eye","minecraft:spider_eye","minecraft:spider_eye","minecraft:spider_eye"]}
+{"type":"processed","alias":"catalyzing_gland","wareID":"xreliquary:mob_ingredient&3","level":1,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder"]}
+{"type":"processed","alias":"slime_pearl","wareID":"xreliquary:mob_ingredient&4","level":2,"yield":1,"componentsIDs":["minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball"]}
+// bats drop nothing"," so pretend they drop brown wool and chicken
+{"type":"processed","alias":"bat_wing","wareID":"xreliquary:mob_ingredient&5","level":2,"yield":1,"componentsIDs":["minecraft:wool","minecraft:dye&3","minecraft:chicken","minecraft:wool","minecraft:dye&3","minecraft:chicken"]}
+{"type":"processed","alias":"zombie_heart","wareID":"xreliquary:mob_ingredient&6","level":1,"yield":1,"componentsIDs":["minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:rotten_flesh"]}
+// blaze rod's drop chance is 50% for 1"," molten core's is 15% for 1
+// 1 molten core is convertable to 2 blaze rods
+{"type":"processed","alias":"molten_core","wareID":"xreliquary:mob_ingredient&7","level":3,"yield":1,"componentsIDs":["minecraft:blaze_rod","minecraft:blaze_rod"]}
+// eye of the storm is convertable to 10 gunpowder
+// catalyzing gland is convertable to 5 gunpowder
+{"type":"processed","alias":"eye_of_the_storm","wareID":"xreliquary:mob_ingredient&8","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3"]}
+{"type":"crafted","alias":"fertile_essence","wareID":"xreliquary:mob_ingredient&9","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&4","minecraft:dye&2"]}
+// 1 frozen core is convertable to 5 snowballs 
+// snowball's drop chance is 87.50%
+{"type":"processed","alias":"frozen_core","wareID":"xreliquary:mob_ingredient&10","level":2,"yield":1,"componentsIDs":["minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball","minecraft:snowball"]}
+{"type":"processed","alias":"nebulous_heart","wareID":"xreliquary:mob_ingredient&11","level":3,"yield":1,"componentsIDs":["minecraft:ender_pearl","minecraft:ender_pearl","minecraft:ender_pearl","minecraft:ender_pearl","minecraft:ender_pearl"]}
+{"type":"processed","alias":"squid_beak","wareID":"xreliquary:mob_ingredient&12","level":1,"yield":1,"componentsIDs":["minecraft:dye","minecraft:dye","minecraft:dye","minecraft:dye","minecraft:dye","minecraft:dye","minecraft:dye","minecraft:dye","minecraft:dye","minecraft:dye"]}
+{"type":"crafted","alias":"infernal_claw","wareID":"xreliquary:mob_ingredient&13","level":3,"yield":1,"componentsIDs":["minecraft:leather","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&4"]}
+{"type":"crafted","alias":"kraken_shell_fragment","wareID":"xreliquary:mob_ingredient&14","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&12","xreliquary:mob_ingredient&12","xreliquary:mob_ingredient&12","xreliquary:mob_ingredient&4"]}
+{"type":"crafted","alias":"crimson_cloth","wareID":"xreliquary:mob_ingredient&15","level":3,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","minecraft:wool","minecraft:wool"]}
+{"type":"processed","alias":"guardian_spike","wareID":"xreliquary:mob_ingredient&16","level":2,"yield":1,"componentsIDs":["minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:prismarine_shard"]}
+{"type":"processed","alias":"witch_hat","wareID":"xreliquary:witch_hat","level":2,"yield":1,"componentsIDs":["minecraft:glowstone_dust","minecraft:glowstone_dust","minecraft:glowstone_dust"]}
+
+// advanced components
+{"type":"crafted","alias":"void_tear","wareID":"xreliquary:void_tear","level":3,"yield":1,"componentsIDs":["minecraft:ghast_tear","minecraft:dye&4","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&4"]}
+{"type":"crafted","alias":"condensed_potion_vial","wareID":"xreliquary:potion","level":2,"yield":1,"componentsIDs":["minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane"]}
+
+// potions
+// since potion vials are returned upon usage"," potion contents are untradeable
+{"type":"untradeable","wareID":"fluid:angelheart_vial","yield":1,"componentsIDs":["xreliquary:mob_ingredient&9","xreliquary:mob_ingredient&9","fluid:milk","xreliquary:mob_ingredient&13"]}
+{"type":"untradeable","wareID":"fluid:glowing_water","yield":1,"componentsIDs":["fluid:water","minecraft:nether_wart","minecraft:glowstone_dust","minecraft:gunpowder"]}
+
+// tools and gadgets
+{"type":"crafted","alias":"angelheart_vial","wareID":"xreliquary:angelheart_vial","level":3,"yield":1,"componentsIDs":["xreliquary:potion","fluid:angelheart_vial"]}
+{"type":"crafted","alias":"glowing_water","wareID":"xreliquary:glowing_water","level":3,"yield":1,"componentsIDs":["xreliquary:potion","fluid:glowing_water"]}
+
+{"type":"crafted","alias":"cross_of_mercy","wareID":"xreliquary:mercy_cross","level":3,"yield":1,"componentsIDs":["minecraft:gold_ingot","minecraft:gold_ingot","minecraft:gold_ingot","minecraft:gold_ingot","minecraft:leather","xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&1","xreliquary:mob_ingredient&6","minecraft:skull&1"]}
+{"type":"crafted","alias":"rending_gale","wareID":"xreliquary:rending_gale","level":3,"yield":1,"componentsIDs":["minecraft:gold_ingot","minecraft:gold_ingot","xreliquary:mob_ingredient&5","xreliquary:mob_ingredient&5","xreliquary:mob_ingredient&8","xreliquary:void_tear","minecraft:stick"]}
+
+{"type":"crafted","alias":"ender_staff","wareID":"xreliquary:ender_staff","level":3,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&5","xreliquary:mob_ingredient&5","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","xreliquary:void_tear","minecraft:ender_eye","minecraft:stick"]}
+
+{"type":"crafted","alias":"angelic_feather","wareID":"xreliquary:angelic_feather","level":3,"yield":1,"componentsIDs":["minecraft:feather","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&5","xreliquary:mob_ingredient&9"]}
+{"type":"crafted","alias":"phoenix_down","wareID":"xreliquary:phoenix_down","level":3,"yield":1,"componentsIDs":["fluid:angelheart_vial","fluid:angelheart_vial","fluid:angelheart_vial","xreliquary:angelic_feather"]}
+{"type":"crafted","alias":"salamanders_eye","wareID":"xreliquary:salamander_eye","level":3,"yield":1,"componentsIDs":["minecraft:ender_eye","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&10","xreliquary:mob_ingredient&11"]}
+{"type":"crafted","alias":"kraken_shell","wareID":"xreliquary:kraken_shell","level":3,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&14","xreliquary:mob_ingredient&14","xreliquary:mob_ingredient&14","xreliquary:mob_ingredient&11"]}
+
+{"type":"crafted","alias":"interdiction_torch","wareID":"xreliquary:interdiction_torch","level":3,"yield":4,"componentsIDs":["xreliquary:mob_ingredient&5","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&11","minecraft:blaze_rod"]}
+{"type":"crafted","alias":"shears_of_winter","wareID":"xreliquary:shears_of_winter","level":4,"yield":1,"componentsIDs":["minecraft:diamond","minecraft:diamond","minecraft:shears","xreliquary:mob_ingredient&10"]}
+{"type":"crafted","alias":"emperors_chalice","wareID":"xreliquary:emperor_chalice","level":3,"yield":1,"componentsIDs":["minecraft:gold_ingot","minecraft:emerald","minecraft:bucket","xreliquary:void_tear"]}
+{"type":"crafted","alias":"lantern_of_paranoia","wareID":"xreliquary:lantern_of_paranoia","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:glass","minecraft:glass","xreliquary:mob_ingredient&4","xreliquary:mob_ingredient&7"]}
+
+// miscellaneous
+{"type":"crafted","alias":"glowing_bread","wareID":"xreliquary:glowing_bread","level":3,"yield":3,"componentsIDs":["minecraft:bread","minecraft:bread","minecraft:bread","fluid:glowing_water"]}
+
+// mob charms
+{"type":"crafted","alias":"zombie_charm_fragment","wareID":"xreliquary:mob_charm_fragment&0","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:bone"]}
+{"type":"crafted","alias":"skeleton_charm_fragment","wareID":"xreliquary:mob_charm_fragment&1","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&0","xreliquary:mob_ingredient&0","minecraft:bone","minecraft:bone","minecraft:flint"]}
+{"type":"crafted","alias":"wither_skeleton_charm_fragment","wareID":"xreliquary:mob_charm_fragment&2","level":3,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&1","xreliquary:mob_ingredient&1","xreliquary:mob_ingredient&1","xreliquary:mob_ingredient&1","xreliquary:mob_ingredient&1","xreliquary:mob_ingredient&1","minecraft:bone","minecraft:bone","minecraft:skull&1"]}
+{"type":"crafted","alias":"creeper_charm_fragment","wareID":"xreliquary:mob_charm_fragment&3","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3","minecraft:gunpowder","minecraft:gunpowder","minecraft:bone"]}
+{"type":"crafted","alias":"witch_charm_fragment","wareID":"xreliquary:mob_charm_fragment&4","level":2,"yield":1,"componentsIDs":["xreliquary:witch_hat","xreliquary:witch_hat","xreliquary:witch_hat","xreliquary:witch_hat","xreliquary:witch_hat","xreliquary:witch_hat","minecraft:glass_bottle","minecraft:glass_bottle","minecraft:spider_eye"]}
+{"type":"crafted","alias":"zombie_pigman_charm_fragment","wareID":"xreliquary:mob_charm_fragment&5","level":3,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","xreliquary:mob_ingredient&6","minecraft:rotten_flesh","minecraft:rotten_flesh","minecraft:golden_sword"]}
+{"type":"crafted","alias":"cave_spider_charm_fragment","wareID":"xreliquary:mob_charm_fragment&6","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","minecraft:string","minecraft:string","minecraft:nether_wart"]}
+{"type":"crafted","alias":"spider_charm_fragment","wareID":"xreliquary:mob_charm_fragment&7","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","xreliquary:mob_ingredient&2","minecraft:string","minecraft:string","minecraft:spider_eye"]}
+{"type":"crafted","alias":"enderman_charm_fragment","wareID":"xreliquary:mob_charm_fragment&8","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","xreliquary:mob_ingredient&11","minecraft:ender_pearl","minecraft:ender_pearl"]}
+{"type":"crafted","alias":"ghast_charm_fragment","wareID":"xreliquary:mob_charm_fragment&9","level":3,"yield":1,"componentsIDs":["minecraft:ghast_tear","minecraft:ghast_tear","minecraft:ghast_tear","minecraft:ghast_tear","minecraft:ghast_tear","minecraft:ghast_tear","minecraft:gunpowder","minecraft:gunpowder","xreliquary:mob_ingredient&3"]}
+{"type":"crafted","alias":"slime_charm_fragment","wareID":"xreliquary:mob_charm_fragment&10","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&4","xreliquary:mob_ingredient&4","xreliquary:mob_ingredient&4","xreliquary:mob_ingredient&4","xreliquary:mob_ingredient&4","xreliquary:mob_ingredient&4","minecraft:slime_ball","minecraft:slime_ball","minecraft:slime_ball"]}
+{"type":"crafted","alias":"magma_cube_charm_fragment","wareID":"xreliquary:mob_charm_fragment&11","level":3,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","minecraft:magma_cream","minecraft:magma_cream","minecraft:magma_cream"]}
+{"type":"crafted","alias":"blaze_charm_fragment","wareID":"xreliquary:mob_charm_fragment&12","level":3,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","xreliquary:mob_ingredient&7","minecraft:blaze_rod","minecraft:blaze_rod","minecraft:blaze_powder"]}
+{"type":"crafted","alias":"guardian_charm_fragment","wareID":"xreliquary:mob_charm_fragment&13","level":2,"yield":1,"componentsIDs":["xreliquary:mob_ingredient&16","xreliquary:mob_ingredient&16","xreliquary:mob_ingredient&16","xreliquary:mob_ingredient&16","xreliquary:mob_ingredient&16","xreliquary:mob_ingredient&16","minecraft:prismarine_shard","minecraft:prismarine_shard","minecraft:fish"]}
+
+// completed mob charms depend entirely on NBT data"," so they cannot be traded
+
+{"type":"crafted","alias":"charm_belt","wareID":"xreliquary:mob_charm_belt","level":3,"yield":1,"componentsIDs":["xreliquary:mob_charm_fragment&9","xreliquary:mob_charm_fragment&9","xreliquary:mob_charm_fragment&9","xreliquary:mob_charm_fragment&9","xreliquary:mob_charm_fragment&9","minecraft:leather","minecraft:leather","minecraft:leather"]}
+
+// crafting stations
+{"type":"crafted","alias":"apothecary_mortar","wareID":"xreliquary:apothecary_mortar","level":2,"yield":1,"componentsIDs":["minecraft:quartz_block&1","minecraft:quartz_block&1","minecraft:quartz_block&1","minecraft:quartz_block&1","minecraft:quartz_block&1","minecraft:quartz_block&1","xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3","xreliquary:mob_ingredient&3"]}
