@@ -1,0 +1,106 @@
+// ===Mekanism:===
+// ingots
+{"type":"material","alias":"copper_ingot","wareID":"mekanism:ingot&5","priceBase":5.0,"level":1}
+{"type":"material","alias":"tin_ingot","wareID":"mekanism:ingot&6","priceBase":3.0,"level":1}
+{"type":"material","alias":"osmium_ingot","wareID":"mekanism:ingot&1","priceBase":50.0,"level":4}
+
+// dusts
+{"type":"processed","alias":"iron_dust","wareID":"mekanism:dust&0","level":2,"yield":1,"componentsIDs":["minecraft:iron_ingot"]}
+{"type":"processed","alias":"gold_dust","wareID":"mekanism:dust&1","level":3,"yield":1,"componentsIDs":["minecraft:gold_ingot"]}
+{"type":"processed","alias":"copper_dust","wareID":"mekanism:dust&3","level":1,"yield":1,"componentsIDs":["copper_ingot"]}
+{"type":"processed","alias":"tin_dust","wareID":"mekanism:dust&4","level":1,"yield":1,"componentsIDs":["tin_ingot"]}
+{"type":"processed","alias":"diamond_dust","wareID":"mekanism:otherdust&0","level":4,"yield":1,"componentsIDs":["minecraft:diamond"]}
+{"type":"processed","alias":"obsidian_dust","wareID":"mekanism:otherdust&6","priceBase":4,"level":3,"yield":4,"componentsIDs":["minecraft:obsidian"]}
+
+{"type":"processed","alias":"enriched_iron","wareID":"mekanism:enrichediron","priceBase":2,"level":3,"yield":2,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:coal&1"]}
+{"type":"processed","alias":"steel_dust","wareID":"mekanism:otherdust&1","priceBase":2,"level":3,"yield":2,"componentsIDs":["mekanism:enrichediron","mekanism:enrichediron","minecraft:coal&1"]}
+{"type":"processed","alias":"osmium_dust","wareID":"mekanism:dust&2","level":5,"yield":1,"componentsIDs":["osmium_ingot"]}
+{"type":"processed","alias":"refined_obsidian_dust","wareID":"mekanism:otherdust&5","level":4,"yield":1,"componentsIDs":["mekanism:otherdust&0","mekanism:otherdust&6"]}
+
+// alloys, metals
+{"type":"processed","alias":"steel_ingot","wareID":"mekanism:ingot&4","level":3,"yield":1,"componentsIDs":["mekanism:otherdust&1"]}
+{"type":"processed","alias":"bronze_ingot","wareID":"mekanism:ingot&2","priceBase":2,"level":2,"yield":2,"componentsIDs":["copper_ingot","tin_ingot"]}
+{"type":"processed","alias":"glowstone_ingot","wareID":"mekanism:ingot&3","level":4,"yield":1,"componentsIDs":["osmium_ingot","minecraft:glowstone_dust"]}
+{"type":"processed","alias":"refined_obsidian_ingot","wareID":"mekanism:ingot&0","level":5,"yield":1,"componentsIDs":["osmium_ingot","mekanism:otherdust&5"]}
+
+// alloys, technical
+{"type":"processed","alias":"enriched_alloy","wareID":"mekanism:enrichedalloy","level":3,"yield":10,"componentsIDs":["minecraft:iron_ingot","minecraft:redstone"]}
+{"type":"processed","alias":"reinforced_alloy","wareID":"mekanism:reinforcedalloy","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","minecraft:diamond","minecraft:diamond"]}
+{"type":"processed","alias":"atomic_alloy","wareID":"mekanism:atomicalloy","level":4,"yield":1,"componentsIDs":["mekanism:reinforcedalloy","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:diamond"]}
+
+// control circuits
+{"type":"processed","alias":"basic_control_circuit","wareID":"mekanism:controlcircuit","level":4,"yield":10,"componentsIDs":["minecraft:redstone","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot"]}
+{"type":"crafted","alias":"advanced_control_circuit","wareID":"mekanism:controlcircuit&1","level":4,"yield":1,"componentsIDs":["mekanism:controlcircuit","mekanism:enrichedalloy","mekanism:enrichedalloy"]}
+{"type":"crafted","alias":"elite_control_circuit","wareID":"mekanism:controlcircuit&2","level":4,"yield":1,"componentsIDs":["mekanism:controlcircuit&1","mekanism:reinforcedalloy","mekanism:reinforcedalloy"]}
+{"type":"crafted","alias":"ultimate_control_circuit","wareID":"mekanism:controlcircuit&3","level":4,"yield":1,"componentsIDs":["mekanism:controlcircuit&2","mekanism:atomicalloy","mekanism:atomicalloy"]}
+
+// compressed
+{"type":"processed","alias":"compressed_carbon","wareID":"mekanism:compressedcarbon","level":1,"yield":1,"componentsIDs":["minecraft:coal&1"]}
+{"type":"processed","alias":"compressed_redstone","wareID":"mekanism:compressedredstone","level":3,"yield":1,"componentsIDs":["minecraft:redstone"]}
+{"type":"processed","alias":"compressed_diamond","wareID":"mekanism:compresseddiamond","level":4,"yield":1,"componentsIDs":["minecraft:diamond"]}
+{"type":"processed","alias":"compressed_obsidian","wareID":"mekanism:compressedobsidian","level":4,"yield":1,"componentsIDs":["minecraft:obsidian"]}
+
+// advanced resources
+{"type":"processed","alias":"bio_fuel","wareID":"mekanism:biofuel","priceBase":4,"level":2,"yield":4,"componentsIDs":["minecraft:wheat"]}
+{"type":"crafted","alias":"steel_casing","wareID":"mekanism:basicblock&8","level":3,"yield":1,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","osmium_ingot","minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass"]}
+
+{"type":"crafted","alias":"electrolytic_core","wareID":"mekanism:electrolyticcore","level":3,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","iron_dust","gold_dust","mekanism:dust&2","mekanism:dust&2"]}
+{"type":"crafted","alias":"teleportation_core","wareID":"mekanism:teleportationcore","level":5,"yield":1,"componentsIDs":["mekanism:atomicalloy","mekanism:atomicalloy","minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","minecraft:dye&4","minecraft:gold_ingot","minecraft:gold_ingot","minecraft:diamond"]}
+
+// tools
+{"type":"crafted","alias":"energy_tablet","wareID":"mekanism:energytablet","level":3,"yield":1,"componentsIDs":["minecraft:gold_ingot","minecraft:gold_ingot","minecraft:gold_ingot","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","mekanism:enrichedalloy","mekanism:enrichedalloy"]}
+{"type":"crafted","alias":"portable_teleporter","wareID":"mekanism:portableteleporter","level":5,"yield":1,"componentsIDs":["mekanism:energytablet","mekanism:energytablet","mekanism:teleportationcore","mekanism:controlcircuit","mekanism:controlcircuit"]}
+
+{"type":"crafted","alias":"personal_chest","wareID":"mekanism:machineblock&13","level":4,"yield":1,"componentsIDs":["steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot","minecraft:chest","minecraft:chest","minecraft:glass","mekanism:controlcircuit"]}
+
+// machinery
+{"type":"crafted","alias":"enrichment_chamber","wareID":"mekanism:machineblock&0","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:iron_ingot","minecraft:iron_ingot","mekanism:basicblock&8","mekanism:controlcircuit","mekanism:controlcircuit"]}
+{"type":"crafted","alias":"osmium_compressor","wareID":"mekanism:machineblock&1","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:bucket","minecraft:bucket","mekanism:basicblock&8","mekanism:controlcircuit&1","mekanism:controlcircuit&1"]}
+{"type":"crafted","alias":"combiner","wareID":"mekanism:machineblock&2","level":5,"yield":1,"componentsIDs":["mekanism:reinforcedalloy","mekanism:reinforcedalloy","mekanism:reinforcedalloy","mekanism:reinforcedalloy","minecraft:cobblestone","minecraft:cobblestone","mekanism:basicblock&8","mekanism:controlcircuit&2","mekanism:controlcircuit&2"]}
+{"type":"crafted","alias":"crusher","wareID":"mekanism:machineblock&3","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:lava_bucket","minecraft:lava_bucket","mekanism:basicblock&8","mekanism:controlcircuit","mekanism:controlcircuit"]}
+{"type":"crafted","alias":"metallurgic_infuser","wareID":"mekanism:machineblock&8","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone","minecraft:redstone","osmium_ingot","minecraft:furnace","minecraft:furnace"]}
+{"type":"crafted","alias":"purification_chamber","wareID":"mekanism:machineblock&9","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","osmium_ingot","osmium_ingot","mekanism:machineblock&0","mekanism:controlcircuit&1","mekanism:controlcircuit&1"]}
+{"type":"crafted","alias":"energized_smelter","wareID":"mekanism:machineblock&10","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:glass","minecraft:glass","mekanism:basicblock&8","mekanism:controlcircuit","mekanism:controlcircuit"]}
+// the only Mekanism factory tradeable is the smelting factory
+// since Mekanism uses NBT tags to differentiate between factories
+{"type":"crafted","alias":"basic_smelting_factory","wareID":"mekanism:machineblock&5","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:iron_ingot","minecraft:iron_ingot","mekanism:machineblock&10","mekanism:controlcircuit","mekanism:controlcircuit"]}
+{"type":"crafted","alias":"advanced_smelting_factory","wareID":"mekanism:machineblock&6","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:enrichedalloy","osmium_ingot","osmium_ingot","mekanism:machineblock&5","mekanism:controlcircuit&1","mekanism:controlcircuit&1"]}
+{"type":"crafted","alias":"elite_smelting_factory","wareID":"mekanism:machineblock&7","level":5,"yield":1,"componentsIDs":["mekanism:reinforcedalloy","mekanism:reinforcedalloy","mekanism:reinforcedalloy","mekanism:reinforcedalloy","minecraft:gold_ingot","minecraft:gold_ingot","mekanism:machineblock&5","mekanism:controlcircuit&2","mekanism:controlcircuit&2"]}
+
+{"type":"crafted","alias":"electrolytic_separator","wareID":"mekanism:machineblock2&4","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:electrolyticcore","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone","minecraft:redstone"]}
+
+{"type":"crafted","alias":"logistical_sorter","wareID":"mekanism:machineblock&15","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:piston","mekanism:controlcircuit"]}
+
+{"type":"crafted","alias":"electric_pump","wareID":"mekanism:machineblock&12","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","mekanism:basicblock&8","minecraft:bucket","osmium_ingot","osmium_ingot","osmium_ingot"]}
+{"type":"crafted","alias":"formulaic_assemblicator","wareID":"mekanism:machineblock3&5","level":4,"yield":1,"componentsIDs":["mekanism:basicblock&8","minecraft:crafting_table","minecraft:chest","mekanism:controlcircuit","mekanism:controlcircuit","steel_ingot","steel_ingot","steel_ingot","steel_ingot"]}
+{"type":"crafted","alias":"teleporter","wareID":"mekanism:machineblock&11","level":5,"yield":1,"componentsIDs":["mekanism:basicblock&8","mekanism:basicblock&8","mekanism:basicblock&8","mekanism:basicblock&8","mekanism:controlcircuit","mekanism:controlcircuit","mekanism:controlcircuit","mekanism:controlcircuit","mekanism:teleportationcore"]}
+{"type":"crafted","alias":"quantum_entangloporter","wareID":"mekanism:machineblock3&0","level":5,"yield":1,"componentsIDs":["mekanism:teleportationcore","mekanism:controlcircuit&3","mekanism:controlcircuit&3","mekanism:atomicalloy","mekanism:atomicalloy","mekanism:ingot&0","mekanism:ingot&0","mekanism:ingot&0","mekanism:ingot&0"]}
+{"type":"crafted","alias":"robit","wareID":"mekanism:robit","level":5,"yield":1,"componentsIDs":["mekanism:energytablet","mekanism:energytablet","mekanism:ingot&0","mekanism:ingot&0","steel_ingot","mekanism:atomicalloy","mekanism:machineblock&13"]}
+{"type":"crafted","alias":"digital_miner","wareID":"mekanism:machineblock&4","level":5,"yield":1,"componentsIDs":["mekanism:machineblock&15","mekanism:machineblock&15","mekanism:atomicalloy","mekanism:atomicalloy","mekanism:teleportationcore","mekanism:teleportationcore","mekanism:basicblock&8","mekanism:controlcircuit","mekanism:robit"]}
+
+{"type":"crafted","alias":"security_desk","wareID":"mekanism:machineblock2&9","level":5,"yield":1,"componentsIDs":["mekanism:controlcircuit&2","mekanism:controlcircuit&2","mekanism:basicblock&8","mekanism:teleportationcore","minecraft:glass","steel_ingot","steel_ingot","steel_ingot","steel_ingot"]}
+
+// generators
+{"type":"crafted","alias":"fuelwood_heater","wareID":"mekanism:machineblock3&6","level":4,"yield":1,"componentsIDs":["mekanism:basicblock&8","minecraft:furnace","minecraft:furnace","mekanism:controlcircuit","steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot"]}
+
+// upgrades
+{"type":"crafted","alias":"speed_upgrade","wareID":"mekanism:speedupgrade","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:glass","minecraft:glass","mekanism:dust&2"]}
+{"type":"crafted","alias":"energy_upgrade","wareID":"mekanism:energyupgrade","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:glass","minecraft:glass","gold_dust"]}
+{"type":"crafted","alias":"muffling_upgrade","wareID":"mekanism:mufflingupgrade","level":3,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:glass","minecraft:glass","steel_dust"]}
+{"type":"crafted","alias":"gas_upgrade","wareID":"mekanism:gasupgrade","level":3,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:glass","minecraft:glass","iron_dust"]}
+{"type":"crafted","alias":"anchor_upgrade","wareID":"mekanism:anchorupgrade","level":4,"yield":1,"componentsIDs":["mekanism:enrichedalloy","mekanism:enrichedalloy","minecraft:glass","minecraft:glass","diamond_dust"]}
+
+// storage devices
+{"type":"crafted","alias":"basic_energy_cube","wareID":"mekanism:energycube","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","mekanism:energytablet","mekanism:energytablet","mekanism:basicblock&8","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"basic_fluid_tank","wareID":"mekanism:machineblock2&11","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"basic_gas_tank","wareID":"mekanism:gastank&0","level":4,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","osmium_ingot","osmium_ingot","osmium_ingot","osmium_ingot"]}
+// other energy cubes/fluid tanks/etc. cannot be added since Mekanism relies on NBT data to differentiate between energy cubes/fluid tanks/etc.
+
+// cables
+{"type":"crafted","alias":"basic_universal_cable","wareID":"mekanism:transmitter","priceBase":8,"level":3,"yield":8,"componentsIDs":["minecraft:redstone","steel_ingot","steel_ingot"]}
+// higher level cables cannot be added since Mekanism relies on NBT data to differentiate between cable levels
+
+// miscellaneous
+{"type":"crafted","alias":"jetpack","wareID":"mekanism:jetpack","level":4,"yield":1,"componentsIDs":["mekanism:controlcircuit","tin_ingot","tin_ingot","tin_ingot","steel_ingot","steel_ingot"]}
+{"type":"crafted","alias":"armored_jetpack","wareID":"mekanism:armoredjetpack","level":4,"yield":1,"componentsIDs":["mekanism:jetpack","bronze_ingot","bronze_ingot","diamond_dust","diamond_dust","steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot","steel_ingot"]}
+{"type":"crafted","alias":"obsidian_tnt","wareID":"mekanism:obsidiantnt","level":3,"yield":1,"componentsIDs":["minecraft:tnt","minecraft:tnt","minecraft:tnt","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian"]}

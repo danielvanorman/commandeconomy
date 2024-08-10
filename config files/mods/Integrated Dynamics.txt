@@ -1,0 +1,23 @@
+// Menril trees and basics
+{"type":"crafted","alias":"menril_sapling","wareID":"integrateddynamics:menril_sapling","level":2,"yield":4,"componentsIDs":["minecraft:sapling","minecraft:redstone"]}
+{"type":"processed","alias":"menril_berries","wareID":"integrateddynamics:menril_berries","level":2,"yield":1,"componentsIDs":["minecraft:carrot"]}
+
+{"type":"crafted","alias":"menril_wood","wareID":"integrateddynamics:menril_log","level":2,"yield":4,"componentsIDs":["minecraft:log&3","minecraft:redstone"]}
+{"type":"linked","alias":"menril_planks","wareID":"integrateddynamics:menril_planks","yield":4,"componentsIDs":["integrateddynamics:menril_log"],"componentsAmounts":[1]}
+
+{"type":"processed","alias":"crystalized_menril_block","wareID":"integrateddynamics:crystalized_menril_block","level":3,"yield":1,"componentsIDs":["integrateddynamics:menril_log"]}
+{"type":"linked","alias":"crystalized_menril_chunk","wareID":"integrateddynamics:crystalized_menril_chunk","yield":9,"componentsIDs":["integrateddynamics:crystalized_menril_block"],"componentsAmounts":[1]}
+
+{"type":"crafted","alias":"enriched_menril_wood","wareID":"integrateddynamics:menril_log_filled","level":3,"yield":1,"componentsIDs":["integrateddynamics:menril_log","integrateddynamics:crystalized_menril_chunk"]}
+
+// Menril decoration
+{"type":"crafted","alias":"menril_wood_stairs","wareID":"integrateddynamics:menril_planks_stairs","level":2,"yield":2,"componentsIDs":["integrateddynamics:menril_planks","integrateddynamics:menril_planks","integrateddynamics:menril_planks"]}
+{"type":"crafted","alias":"menril_door","wareID":"integrateddynamics:menril_door","level":2,"yield":1,"componentsIDs":["integrateddynamics:menril_planks","integrateddynamics:menril_planks"]}
+
+{"type":"crafted","alias":"crystalized_menril_brick","wareID":"integrateddynamics:crystalized_menril_brick","level":3,"yield":1,"componentsIDs":["integrateddynamics:crystalized_menril_block"]}
+
+{"type":"crafted","alias":"menril_torch","wareID":"integrateddynamics:menril_torch","level":2,"yield":4,"componentsIDs":["minecraft:stick", "integrateddynamics:menril_berries"]}
+{"type":"crafted","alias":"menril_stone_torch","wareID":"integrateddynamics:menril_torch_stone","level":2,"yield":4,"componentsIDs":["minecraft:cobblestone","minecraft:cobblestone", "integrateddynamics:menril_berries"]}
+
+// basic components
+{"type":"crafted","alias":"variable_card","wareID":"integrateddynamics:variable","level":2,"yield":24,"componentsIDs":[ "integrateddynamics:crystalized_menril_chunk", "integrateddynamics:crystalized_menril_chunk", "integrateddynamics:crystalized_menril_chunk", "integrateddynamics:crystalized_menril_chunk", "integrateddynamics:crystalized_menril_chunk", "integrateddynamics:crystalized_menril_chunk", "integrateddynamics:crystalized_menril_chunk", "minecraft:paper"]}

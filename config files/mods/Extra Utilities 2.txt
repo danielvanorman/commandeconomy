@@ -1,0 +1,5 @@
+// basic materials
+{"type":"crafted","alias":"polished_stone","wareID":"extrautils2:decorativesolid&2","level":2,"yield":1,"componentsIDs":["minecraft:stonebrick"]}
+
+// decorations
+{"type":"crafted","alias":"redstone_lantern","wareID":"extrautils2:redstonelantern","level":3,"yield":1,"componentsIDs":["minecraft:redstone","minecraft:redstone","minecraft:redstone","minecraft:redstone","polished_stone","polished_stone","polished_stone","minecraft:coal","minecraft:comparator"]}

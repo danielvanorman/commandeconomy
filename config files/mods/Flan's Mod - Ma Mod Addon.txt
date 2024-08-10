@@ -1,0 +1,51 @@
+// ===Flan's Mod:===
+// ---Ma Mod:---
+// The entries below are for a small addon I made for Flan's Mod.
+
+// Rifles
+{"type":"crafted","alias":"fast_rifle","wareID":"flansmod:mmriflefast","level":4,"yield":1,"componentsIDs":["minecraft:redstone_block","minecraft:redstone_block","minecraft:glass","minecraft:glass","minecraft:iron_block","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"power_rifle","wareID":"flansmod:mmriflepower","level":5,"yield":1,"componentsIDs":["minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_block","minecraft:diamond","minecraft:piston"]}
+
+// Rifle Ammo
+{"type":"crafted","alias":"rifle_ammo","wareID":"flansmod:mmrifleammo","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:sand"]}
+{"type":"crafted","alias":"surplus_rifle_ammo","wareID":"flansmod:mmrifleammosurplus","level":4,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:sand"]}
+{"type":"crafted","alias":"hollow_point_rifle_ammo","wareID":"flansmod:mmrifleammohollowpoint","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:glass","minecraft:white_glazed_terracotta"]}
+{"type":"crafted","alias":"armor_piercing_rifle_ammo","wareID":"flansmod:mmrifleammoarmorpiercing","level":4,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:coal&1"]}
+{"type":"crafted","alias":"incendiary_rifle_ammo","wareID":"flansmod:mmrifleammoincendiary","level":5,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:fire_charge"]}
+
+// Machine Guns
+{"type":"crafted","alias":"fast_machine_gun","wareID":"flansmod:mmmachinegunfast","level":4,"yield":1,"componentsIDs":["minecraft:redstone_block","minecraft:redstone_block","minecraft:iron_block"]}
+{"type":"crafted","alias":"power_machine_gun","wareID":"flansmod:mmmachinegunpower","level":5,"yield":1,"componentsIDs":["minecraft:iron_block","minecraft:iron_block","minecraft:emerald","minecraft:piston"]}
+{"type":"crafted","alias":"minigun","wareID":"flansmod:mmmachinegunspecialminigun","level":5,"yield":1,"componentsIDs":["minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_block","minecraft:iron_block","minecraft:emerald","minecraft:diamond"]}
+
+// Machine Gun Ammo
+{"type":"crafted","alias":"machine_gun_ammo","wareID":"flansmod:mmmachinegunammo","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"surplus_machine_gun_ammo","wareID":"flansmod:mmmachinegunammosurplus","level":4,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"hollow_point_machine_gun_ammo","wareID":"flansmod:mmmachinegunammohollowpoint","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:glass","minecraft:white_glazed_terracotta"]}
+{"type":"crafted","alias":"armor_piercing_machine_gun_ammo","wareID":"flansmod:mmmachinegunammoarmorpiercing","level":4,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:coal&1"]}
+{"type":"crafted","alias":"incendiary_machine_gun_ammo","wareID":"flansmod:mmmachinegunammoincendiary","level":5,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:fire_charge"]}
+
+// Shotguns
+{"type":"crafted","alias":"fast_shotgun","wareID":"flansmod:mmshotgunfast","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:redstone_block","minecraft:redstone_block"]}
+{"type":"crafted","alias":"power_shotgun","wareID":"flansmod:mmshotgunpower","level":4,"yield":1,"componentsIDs":["minecraft:piston","minecraft:piston","minecraft:iron_ingot","minecraft:iron_block","minecraft:diamond"]}
+{"type":"crafted","alias":"full_auto_shotgun","wareID":"flansmod:mmshotgunspecialauto","level":5,"yield":1,"componentsIDs":["minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:iron_block","minecraft:emerald","minecraft:diamond"]}
+{"type":"crafted","alias":"van_orman_family_shotgun","wareID":"flansmod:mmshotgunspecialvanorman","level":5,"yield":1,"componentsIDs":["minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_block","minecraft:emerald","minecraft:diamond"]}
+
+// Shotgun Ammo
+{"type":"crafted","alias":"shotgun_ammo","wareID":"flansmod:mmshotgunammo","level":3,"yield":1,"componentsIDs":["minecraft:sand","minecraft:sand","minecraft:sand","minecraft:gunpowder","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"surplus_shotgun_ammo","wareID":"flansmod:mmshotgunammosurplus","level":4,"yield":1,"componentsIDs":["minecraft:sand","minecraft:sand","minecraft:sand","minecraft:sand","minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"hollow_point_shotgun_ammo","wareID":"flansmod:mmshotgunammohollowpoint","level":3,"yield":1,"componentsIDs":["minecraft:glass","minecraft:glass","minecraft:glass","minecraft:gunpowder","minecraft:iron_ingot","minecraft:white_glazed_terracotta"]}
+{"type":"crafted","alias":"armor_piercing_shotgun_ammo","wareID":"mmshotgunammoarmorpiercing:mmmachinegunammoarmorpiercing","level":4,"yield":1,"componentsIDs":["minecraft:sand","minecraft:sand","minecraft:sand","minecraft:sand","minecraft:gunpowder","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:coal&1"]}
+{"type":"crafted","alias":"incendiary_shotgun_ammo","wareID":"flansmod:mmshotgunammoincendiary","level":5,"yield":1,"componentsIDs":["minecraft:sand","minecraft:gunpowder","minecraft:iron_ingot","minecraft:fire_charge"]}
+
+// Explosives
+{"type":"crafted","alias":"grenade_gun","wareID":"flansmod:mmexplosivesgrenadegun","level":4,"yield":1,"componentsIDs":["minecraft:redstone_block","minecraft:redstone_block","minecraft:redstone_block","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:iron_block","minecraft:iron_block","minecraft:piston"]}
+{"type":"crafted","alias":"big_bomber","wareID":"flansmod:mmexplosivesbigbomber","level":4,"yield":1,"componentsIDs":["minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:leather","minecraft:leather","minecraft:leather","minecraft:iron_block","minecraft:iron_block","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"handheld_nuke_launcher","wareID":"flansmod:mmexplosiveshandheldnukelauncher","level":5,"yield":1,"componentsIDs":["minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:piston","minecraft:minecart","minecraft:minecart","minecraft:minecart","minecraft:minecart","minecraft:minecart","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:obsidian","minecraft:iron_block","minecraft:iron_block","minecraft:iron_block","minecraft:iron_block","minecraft:iron_block","minecraft:diamond","minecraft:diamond","minecraft:diamond","minecraft:emerald","minecraft:emerald"]}
+{"type":"crafted","alias":"creepy_powder","wareID":"flansmod:mmexplosivesspecialcreepypowder","level":5,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:emerald","minecraft:web"]}
+
+// Explosives Ammo
+{"type":"crafted","alias":"grenade_gun_ammo","wareID":"flansmod:mmexplosivesammogrenadegun","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"big_bomber_ammo","wareID":"flansmod:mmexplosivesammobigbomber","level":3,"yield":1,"componentsIDs":["minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:sand","minecraft:sand","minecraft:sand","minecraft:sand","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"mini_nuke","wareID":"flansmod:mmexplosivesammohandheldnukelauncher","level":4,"yield":1,"componentsIDs":["minecraft:tnt","minecraft:tnt","minecraft:tnt","minecraft:tnt","minecraft:tnt","minecraft:minecart","minecraft:minecart","minecraft:minecart","minecraft:redstone_block","minecraft:redstone_block","minecraft:nether_star"]}
+{"type":"crafted","alias":"creepy_spark","wareID":"flansmod:mmexplosivesammospecialcreepypowder","level":5,"yield":1,"componentsIDs":["minecraft:flint_and_steel","minecraft:emerald"]}

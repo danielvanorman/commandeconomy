@@ -1,0 +1,35 @@
+
+// Mercury
+{"type":"processed","alias":"mercury_surface_rock","wareID":"galaxyspace:mercuryblocks&0","level":2,"yield":1,"componentsIDs":["minecraft:grass"}
+{"type":"crafted","alias":"mercury_subsurface_rock","wareID":"galaxyspace:mercuryblocks&1","level":2,"yield":1,"componentsIDs":["minecraft:cobblestone","minecraft:cobblestone"]}
+{"type":"processed","alias":"mercury_stone","wareID":"galaxyspace:mercuryblocks&2","level":2,"yield":1,"componentsIDs":["minecraft:stone","minecraft:stone"]}
+
+// Ceres
+{"type":"crafted","alias":"ceres_surface_rock","wareID":"galaxyspace:ceresblocks&0","level":2,"yield":1,"componentsIDs":["mercury_surface_rock"]}
+{"type":"crafted","alias":"ceres_subsurface_rock","wareID":"galaxyspace:ceresblocks&1","level":2,"yield":1,"componentsIDs":["mercury_subsurface_rock"]}
+
+{"type":"processed","alias":"ceres_dungeon_brick","wareID":"galaxyspace:dungeon_blocks&0","level":2,"yield":1,"componentsIDs":["moon_dungeon_brick"]}
+{"type":"processed","alias":"ceres_dungeon_floor","wareID":"galaxyspace:ceresblocks&5","level":2,"yield":1,"componentsIDs":["moon_turf"]}
+
+// Io
+{"type":"crafted","alias":"io_surface_rock","wareID":"galaxyspace:ioblocks&0","level":3,"yield":1,"componentsIDs":["ceres_surface_rock"]}
+{"type":"crafted","alias":"io_stone","wareID":"galaxyspace:ioblocks&1","level":3,"yield":1,"componentsIDs":["ceres_subsurface_rock"]}
+{"type":"crafted","alias":"io_ash","wareID":"galaxyspace:ioblocks&2","level":3,"yield":1,"componentsIDs":["ceres_subsurface_rock"]}
+
+// Proxima B
+{"type":"crafted","alias":"proxima_b_surface","wareID":"galaxyspace:proxima_b_blocks&0","level":3,"yield":1,"componentsIDs":["io_surface_rock"]}
+{"type":"crafted","alias":"proxima_b_subsurface","wareID":"galaxyspace:proxima_b_blocks&1","level":3,"yield":1,"componentsIDs":["io_ash"]}
+{"type":"crafted","alias":"proxima_b_stone","wareID":"galaxyspace:proxima_b_blocks&2","level":3,"yield":1,"componentsIDs":["io_stone"]}
+
+// compressed
+{"type":"processed","alias":"compressed_coal","wareID":"galaxyspace:compressed_plates&0","level":2,"yield":1,"componentsIDs":["minecraft:coal_block"]}
+
+{"type":"processed","alias":"compressed_sdhc_120_alloy","wareID":"galaxyspace:compressed_plates&4","level":2,"yield":1,"componentsIDs":["bronze_plate","compressed_coal","aluminum_plate"]}
+
+// advanced intermediate
+{"type":"processed","alias":"modern_wafer","wareID":"galaxyspace:gs_basic&5","level":5,"yield":1,"componentsIDs":["lunar_sapphire","lunar_sapphire","minecraft:diamond","minecraft:redstone","advanced_wafer"]}
+
+{"type":"crafted","alias":"basic_machine_frame","wareID":"galaxyspace:machineframes&0","level":3,"yield":1,"componentsIDs":["steel_plate","steel_plate","steel_plate","steel_plate","basic_wafer","basic_wafer","minecraft:redstone_block"]}
+
+// crafting
+{"type":"crafted","alias":"modification_table","wareID":"galaxyspace:modification_table","level":5,"yield":1,"componentsIDs":["advanced_wafer","advanced_wafer","minecraft:redstone","minecraft:redstone","bronze_plate","bronze_plate","galaxyspace:machineframes&0","modern_wafer"]}

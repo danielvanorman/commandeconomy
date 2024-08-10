@@ -1,0 +1,28 @@
+// basic materials
+{"type":"crafted","alias":"desh_ingot","wareID":"galacticraftplanets:item_basic_mars&2","level":3,"yield":1,"componentsIDs":["meteoric_iron_ingot"]}
+
+{"type":"crafted","alias":"solar_dust","wareID":"galacticraftplanets:basic_item_venus&4","level":4,"yield":2,"componentsIDs":["desh_ingot"]}
+
+// cloth
+{"type":"crafted","alias":"thermal_cloth","wareID":"galacticraftplanets:item_basic_asteroids&7","level":3,"yield":1,"componentsIDs":["minecraft:wool","minecraft:wool","minecraft:wool","minecraft:wool","minecraft:redstone"]}
+{"type":"crafted","alias":"isothermal_fabric","wareID":"galacticraftplanets:basic_item_venus&3","level":4,"yield":1,"componentsIDs":["thermal_cloth","thermal_cloth","desh_ingot"]}
+
+// Mars
+{"type":"processed","alias":"mars_regolith","wareID":"galacticraftplanets:mars&6","level":1,"yield":1,"componentsIDs":["minecraft:dirt"]}
+{"type":"crafted","alias":"mars_fine_regolith","wareID":"galacticraftplanets:mars&5","level":1,"yield":1,"componentsIDs":["galacticraftplanets:mars&6"]}
+{"type":"processed","alias":"mars_stone","wareID":"galacticraftplanets:mars&9","level":1,"yield":1,"componentsIDs":["minecraft:stone"]}
+{"type":"processed","alias":"mars_cobblestone","wareID":"galacticraftplanets:mars&4","level":1,"yield":1,"componentsIDs":["minecraft:cobblestone"]}
+
+{"type":"processed","alias":"mars_dungeon_brick","wareID":"galacticraftplanets:mars&7","level":2,"yield":1,"componentsIDs":["minecraft:stonebrick"]}
+
+{"type":"processed","alias":"cavernous_vines","wareID":"galacticraftplanets:cavern_vines","level":2,"yield":1,"componentsIDs":["minecraft:rotten_flesh","minecraft:vine","minecraft:skull"]}
+
+// Venus
+{"type":"processed","alias":"venus_soft_rock","wareID":"galacticraftplanets:venus&0","level":1,"yield":1,"componentsIDs":["mars_regolith"]}
+{"type":"processed","alias":"venus_hard_rock","wareID":"galacticraftplanets:venus&1","level":1,"yield":1,"componentsIDs":["mars_cobblestone"]}
+{"type":"processed","alias":"venus_volcanic_rock","wareID":"galacticraftplanets:venus&2","level":1,"yield":1,"componentsIDs":["mars_stone"]}
+{"type":"processed","alias":"scorched_venus_rock","wareID":"galacticraftplanets:venus_rock_scorched","level":1,"yield":1,"componentsIDs":["mars_fine_regolith"]}
+{"type":"processed","alias":"pumice","wareID":"galacticraftplanets:venus&3","level":1,"yield":1,"componentsIDs":["mars_regolith"]}
+
+{"type":"processed","alias":"venus_dungeon_brick_i","wareID":"galacticraftplanets:venus&4","level":2,"yield":1,"componentsIDs":["mars_dungeon_brick"]}
+{"type":"processed","alias":"venus_dungeon_brick_ii","wareID":"galacticraftplanets:venus&5","level":2,"yield":1,"componentsIDs":["mars_dungeon_brick"]}

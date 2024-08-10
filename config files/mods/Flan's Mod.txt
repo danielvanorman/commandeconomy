@@ -1,0 +1,53 @@
+// ===Flan's Mod:===
+// ---Simple Parts:---
+{"type":"crafted","alias":"blowtorch","wareID":"flansmod:blowTorch","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:coal"]}
+
+{"type":"crafted","alias":"fuel_can","wareID":"flansmod:fuelcan","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:coal","minecraft:coal","minecraft:coal","minecraft:coal"]}
+
+{"type":"crafted","alias":"wooden_tail","wareID":"flansmod:woodenTail","level":2,"yield":1,"componentsIDs":["minecraft:planks","minecraft:planks","minecraft:planks","minecraft:planks","minecraft:stick"]}
+{"type":"crafted","alias":"wooden_propeller","wareID":"flansmod:woodenPropeller","level":2,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:stick","minecraft:stick","minecraft:stick"]}
+{"type":"crafted","alias":"wooden_cockpit","wareID":"flansmod:woodenCockpit","level":2,"yield":1,"componentsIDs":["minecraft:boat"]}
+
+{"type":"crafted","alias":"tank_barrel","wareID":"flansmod:tankBarrel","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"wheel","wareID":"flansmod:wheel","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:leather"]}
+
+{"type":"crafted","alias":"small_car_chassis","wareID":"flansmod:smallChassis","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:leather","minecraft:glass"]}
+{"type":"crafted","alias":"seat","wareID":"flansmod:vehicleSeat","priceBase":2,"level":3,"yield":2,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:leather","minecraft:leather","minecraft:leather"]}
+
+// ---WW2:---
+{"type":"crafted","alias":"parachute","wareID":"flansmod:ww2Parachute","level":3,"yield":1,"componentsIDs":["minecraft:wool","minecraft:wool","minecraft:wool","minecraft:wool","minecraft:wool","minecraft:string","minecraft:string"]}
+{"type":"crafted","alias":"medkit","wareID":"flansmod:ww2MedKit","level":3,"yield":1,"componentsIDs":["minecraft:leather","minecraft:leather","minecraft:leather","minecraft:leather","minecraft:leather","minecraft:leather","minecraft:speckled_melon","minecraft:speckled_melon","minecraft:speckled_melon"]}
+
+// American
+{"type":"crafted","alias":"m1_garand","wareID":"flansmod:m1Garand","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log"]}
+{"type":"crafted","alias":"m1_garand_ammo","wareID":"flansmod:m1GarandAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder"]}
+
+{"type":"crafted","alias":"thompson","wareID":"flansmod:thompson","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log"]}
+{"type":"crafted","alias":"thompson_ammo","wareID":"flansmod:thompsonAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder"]}
+
+{"type":"crafted","alias":"m3a1","wareID":"flansmod:m3a1","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"m3a1_ammo","wareID":"flansmod:m3a1Ammo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder"]}
+
+{"type":"crafted","alias":"trenchgun","wareID":"flansmod:trenchgun","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log"]}
+{"type":"crafted","alias":"trenchgun_ammo","wareID":"flansmod:trenchgunAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder","minecraft:paper"]}
+
+{"type":"crafted","alias":"flamethrower","wareID":"flansmod:flamethrower","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:flint_and_steel"]}
+{"type":"crafted","alias":"flamethrower_ammo","wareID":"flansmod:flamethrowerAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","flansmod:fuelcan"]}
+
+// British
+{"type":"crafted","alias":"lee_enfield_sniper","wareID":"flansmod:leeEnfieldSniper","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:glass","minecraft:glass","minecraft:glass","minecraft:glass"]}
+{"type":"crafted","alias":"lee_enfield","wareID":"flansmod:leeEnfield","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log"]}
+{"type":"crafted","alias":"lee_enfield_ammo","wareID":"flansmod:leeEnfieldAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder","minecraft:gunpowder"]}
+
+{"type":"crafted","alias":"webley","wareID":"flansmod:webley","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:log","minecraft:log","minecraft:log","minecraft:log"]}
+{"type":"crafted","alias":"webley_ammo","wareID":"flansmod:webleyAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder"]}
+
+{"type":"crafted","alias":"piat","wareID":"flansmod:piat","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"piat_ammo","wareID":"flansmod:piatAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder"]}
+
+// German
+{"type":"crafted","alias":"panzerschreck","wareID":"flansmod:panzerschreck","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log","minecraft:log"]}
+{"type":"crafted","alias":"panzerschreck_ammo","wareID":"flansmod:panzerschreckAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder","minecraft:gunpowder","minecraft:gunpowder"]}
+
+{"type":"crafted","alias":"panzerfaust","wareID":"flansmod:panzerfaust","level":4,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"crafted","alias":"panzerfaust_ammo","wareID":"flansmod:panzerfaustAmmo","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot","minecraft:gunpowder","minecraft:gunpowder"]}

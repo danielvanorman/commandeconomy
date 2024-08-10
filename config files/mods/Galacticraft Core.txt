@@ -1,0 +1,110 @@
+// basic materials
+{"type":"processed","alias":"meteoric_iron_ingot","wareID":"galacticraftcore:item_basic_moon&0","level":3,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot","minecraft:iron_ingot"]}
+{"type":"processed","alias":"lunar_sapphire","wareID":"galacticraftcore:item_basic_moon&2","level":5,"yield":1,"componentsIDs":["minecraft:diamond","minecraft:emerald"]}
+
+// basic planetary materials
+// moon
+{"type":"crafted","alias":"moon_dirt","wareID":"galacticraftcore:basic_block_moon&3","level":0,"yield":1,"componentsIDs":["minecraft:dirt"]}
+{"type":"crafted","alias":"moon_rock","wareID":"galacticraftcore:basic_block_moon&4","level":0,"yield":1,"componentsIDs":["minecraft:stone"]}
+{"type":"crafted","alias":"moon_turf","wareID":"galacticraftcore:basic_block_moon&5","level":0,"yield":1,"componentsIDs":["minecraft:grass"]}
+{"type":"crafted","alias":"moon_dungeon_brick","wareID":"galacticraftcore:basic_block_moon&14","level":2,"yield":1,"componentsIDs":["minecraft:stonebrick"]}
+
+// compressed
+{"type":"processed","alias":"compressed_meteoric_iron","wareID":"galacticraftcore:item_basic_moon&1","level":3,"yield":1,"componentsIDs":["galacticraftcore:item_basic_moon&0"]}
+{"type":"processed","alias":"compressed_copper","wareID":"galacticraftcore:basic_item&6","level":1,"yield":1,"componentsIDs":["copper_ingot","copper_ingot"]}
+{"type":"processed","alias":"compressed_tin","wareID":"galacticraftcore:basic_item&7","level":1,"yield":1,"componentsIDs":["tin_ingot","tin_ingot"]}
+{"type":"processed","alias":"compressed_aluminum","wareID":"galacticraftcore:basic_item&8","level":2,"yield":1,"componentsIDs":["aluminum_ingot","aluminum_ingot"]}
+{"type":"processed","alias":"compressed_steel","wareID":"galacticraftcore:basic_item&9","level":3,"yield":1,"componentsIDs":["steel_ingot","steel_ingot"]}
+{"type":"processed","alias":"compressed_bronze","wareID":"galacticraftcore:basic_item&10","level":2,"yield":1,"componentsIDs":["bronze_ingot","bronze_ingot"]}
+{"type":"processed","alias":"compressed_iron","wareID":"galacticraftcore:basic_item&11","level":2,"yield":1,"componentsIDs":["minecraft:iron_ingot","minecraft:iron_ingot"]}
+
+// basic intermediate
+{"type":"crafted","alias":"tin_wall_block","wareID":"galacticraftcore:basic_block_core&4","level":1,"yield":4,"componentsIDs":["minecraft:stone","minecraft:stone","minecraft:stone","minecraft:stone","compressed_tin"]}
+
+{"type":"crafted","alias":"steel_pole","wareID":"galacticraftcore:steel_pole","level":3,"yield":2,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel"]}
+
+{"type":"crafted","alias":"tin_canister","wareID":"galacticraftcore:canister&0","level":1,"yield":2,"componentsIDs":["tin_ingot","tin_ingot","tin_ingot","tin_ingot","tin_ingot","tin_ingot","tin_ingot"]}
+{"type":"crafted","alias":"copper_canister","wareID":"galacticraftcore:canister&1","level":1,"yield":2,"componentsIDs":["copper_ingot","copper_ingot","copper_ingot","copper_ingot","copper_ingot","copper_ingot","copper_ingot"]}
+
+{"type":"crafted","alias":"heavy_duty_plate","wareID":"galacticraftcore:heavy_plating","level":3,"yield":1,"componentsIDs":["compressed_steel","compressed_aluminum","compressed_bronze"]}
+
+{"type":"crafted","alias":"oxygen_vent","wareID":"galacticraftcore:air_vent","level":3,"yield":1,"componentsIDs":["compressed_tin","compressed_tin","compressed_tin","compressed_steel"]}
+
+{"type":"crafted","alias":"canvas","wareID":"galacticraftcore:canvas","level":1,"yield":1,"componentsIDs":["minecraft:string","minecraft:string","minecraft:string","minecraft:string","minecraft:string","minecraft:stick","minecraft:stick"]}
+
+// wires
+{"type":"crafted","alias":"aluminum_wire_gc","wareID":"galacticraftcore:aluminum_wire&0","level":2,"yield":2,"componentsIDs":["minecraft:wool","minecraft:wool","aluminum_ingot"]}
+{"type":"crafted","alias":"heavy_aluminum_wire_gc","wareID":"galacticraftcore:aluminum_wire&1","level":2,"yield":2,"componentsIDs":["minecraft:wool","galacticraftcore:aluminum_wire&0","aluminum_ingot"]}
+
+{"type":"crafted","alias":"fluid_pipe_gc","wareID":"galacticraftcore:fluid_pipe","level":1,"yield":1,"componentsIDs":["minecraft:glass_pane"]}
+
+{"type":"crafted","alias":"sealable_aluminum_wire","wareID":"galacticraftcore:enclosed&14","level":2,"yield":1,"componentsIDs":["tin_wall_block","tin_wall_block","galacticraftcore:aluminum_wire&0"]}
+{"type":"crafted","alias":"sealable_heavy_aluminum_wire","wareID":"galacticraftcore:enclosed&15","level":2,"yield":1,"componentsIDs":["tin_wall_block","tin_wall_block","galacticraftcore:aluminum_wire&1"]}
+{"type":"crafted","alias":"sealable_fluid_pipe","wareID":"galacticraftcore:enclosed&1","level":2,"yield":1,"componentsIDs":["tin_wall_block","tin_wall_block","galacticraftcore:fluid_pipe"]}
+
+// advanced intermediate
+{"type":"processed","alias":"basic_wafer","wareID":"galacticraftcore:basic_item&13","level":4,"yield":3,"componentsIDs":["silicon","silicon","minecraft:diamond","minecraft:redstone","minecraft:redstone_torch"]}
+{"type":"processed","alias":"advanced_wafer","wareID":"galacticraftcore:basic_item&14","level":4,"yield":1,"componentsIDs":["silicon","silicon","minecraft:diamond","minecraft:redstone","minecraft:repeater"]}
+
+{"type":"crafted","alias":"oxygen_fan","wareID":"galacticraftcore:air_fan","level":3,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","minecraft:redstone","basic_wafer"]}
+
+{"type":"crafted","alias":"oxygen_concentrator","wareID":"galacticraftcore:oxygen_concentrator","level":3,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","tin_canister","oxygen_vent"]}
+
+// canisters and tanks
+{"type":"crafted","alias":"empty_canister","wareID":"galacticraftcore:oil_canister_partial&1001","level":3,"yield":1,"componentsIDs":["compressed_tin","compressed_tin","compressed_tin","compressed_steel","tin_canister","minecraft:glass"]}
+
+{"type":"processed","alias":"heavy_oxygen_tank","wareID":"galacticraftcore:oxygen_tank_heavy_full","level":3,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","tin_canister","tin_canister","tin_canister","minecraft:wool","minecraft:wool","minecraft:wool"]}
+
+// air lock
+{"type":"crafted","alias":"air_lock_frame","wareID":"galacticraftcore:air_lock_frame&0","level":3,"yield":4,"componentsIDs":["compressed_aluminum","compressed_aluminum","compressed_aluminum","compressed_aluminum","compressed_aluminum","compressed_aluminum","compressed_steel","compressed_steel","galacticraftcore:oxygen_concentrator"]}
+{"type":"crafted","alias":"air_lock_controller","wareID":"galacticraftcore:air_lock_frame&1","level":3,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","compressed_steel","compressed_steel","compressed_meteoric_iron","compressed_meteoric_iron","basic_wafer"]}
+
+// rocket parts
+{"type":"crafted","alias":"nose_cone","wareID":"galacticraftcore:nose_cone","level":3,"yield":1,"componentsIDs":["heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","minecraft:redstone_torch"]}
+{"type":"crafted","alias":"rocket_fins","wareID":"galacticraftcore:rocket_fins","level":3,"yield":1,"componentsIDs":["heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","compressed_steel","compressed_steel"]}
+
+{"type":"crafted","alias":"tier_1_rocket_engine","wareID":"galacticraftcore:engine&0","level":3,"yield":1,"componentsIDs":["heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","copper_canister","oxygen_vent","minecraft:flint_and_steel", "minecraft:stone_button"]}
+
+// rockets
+{"type":"crafted","alias":"rocket_launch_pad","wareID":"galacticraftcore:landing_pad","level":2,"yield":3,"componentsIDs":["minecraft:iron_block","minecraft:iron_block","minecraft:iron_block","compressed_iron","compressed_iron","compressed_iron"]}
+
+{"type":"crafted","alias":"tier_1_rocket","wareID":"galacticraftcore:rocket_t1","level":4,"yield":1,"componentsIDs":["heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","heavy_duty_plate","rocket_fins","rocket_fins","rocket_fins","rocket_fins","nose_cone","tier_1_rocket_engine"]}
+
+// tools
+{"type":"crafted","alias":"standard_wrench","wareID":"galacticraftcore:standard_wrench","level":3,"yield":1,"componentsIDs":["compressed_bronze","compressed_bronze","compressed_steel"]}
+
+{"type":"crafted","alias":"flag","wareID":"galacticraftcore:flag","level":3,"yield":1,"componentsIDs":["galacticraftcore:canvas","galacticraftcore:canvas","galacticraftcore:canvas","galacticraftcore:canvas","steel_pole","steel_pole","steel_pole"]}
+
+{"type":"crafted","alias":"battery","wareID":"galacticraftcore:battery","level":2,"yield":2,"componentsIDs":["compressed_tin","compressed_tin","compressed_tin","compressed_tin","compressed_tin","minecraft:coal","minecraft:redstone"]}
+
+// space suit
+{"type":"crafted","alias":"oxygen_mask","wareID":"galacticraftcore:oxygen_mask","level":2,"yield":1,"componentsIDs":["minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:glass_pane","minecraft:iron_helmet"]}
+{"type":"crafted","alias":"oxygen_gear","wareID":"galacticraftcore:oxygen_mask","level":3,"yield":1,"componentsIDs":["galacticraftcore:fluid_pipe","galacticraftcore:fluid_pipe","galacticraftcore:fluid_pipe","galacticraftcore:fluid_pipe","galacticraftcore:fluid_pipe","oxygen_concentrator"]}
+{"type":"crafted","alias":"parachute_gc","wareID":"galacticraftcore:parachute","level":1,"yield":1,"componentsIDs":["minecraft:string","minecraft:string","minecraft:string","galacticraftcore:canvas","galacticraftcore:canvas","galacticraftcore:canvas"]}
+
+// machinery
+{"type":"crafted","alias":"circuit_fabricator","wareID":"galacticraftcore:machine2&4","level":3,"yield":1,"componentsIDs":["aluminum_ingot","aluminum_ingot","galacticraftcore:aluminum_wire&0","galacticraftcore:aluminum_wire&0","minecraft:stone","minecraft:stone","minecraft:lever","minecraft:furnace","minecraft:redstone_torch"]}
+
+{"type":"crafted","alias":"fuel_loader","wareID":"galacticraftcore:fuel_loader","level":4,"yield":1,"componentsIDs":["compressed_copper","compressed_copper","compressed_copper","compressed_copper","compressed_copper","compressed_tin","compressed_tin","tin_canister","basic_wafer"]}
+{"type":"crafted","alias":"refinery","wareID":"galacticraftcore:refinery","level":4,"yield":1,"componentsIDs":["copper_canister","copper_canister","minecraft:stone","minecraft:stone","compressed_steel","compressed_steel","minecraft:furnace"]}
+
+{"type":"crafted","alias":"oxygen_collector","wareID":"galacticraftcore:collector","level":4,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_aluminum","compressed_aluminum","oxygen_fan","tin_canister","oxygen_vent","oxygen_concentrator"]}
+{"type":"crafted","alias":"oxygen_compressor","wareID":"galacticraftcore:oxygen_compressor&0","level":4,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","compressed_aluminum","compressed_aluminum","compressed_aluminum","compressed_bronze","oxygen_concentrator"]}
+
+{"type":"crafted","alias":"oxygen_sealer","wareID":"galacticraftcore:sealer","level":4,"yield":1,"componentsIDs":["compressed_aluminum","compressed_aluminum","compressed_aluminum","compressed_aluminum","compressed_steel","compressed_steel","oxygen_vent","oxygen_vent","oxygen_fan"]}
+{"type":"crafted","alias":"oxygen_bubble_distributor","wareID":"galacticraftcore:distributor","level":4,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","oxygen_vent","oxygen_vent","oxygen_fan","oxygen_fan","compressed_aluminum"]}
+
+// solar panels
+{"type":"processed","alias":"blue_solar_wafer","wareID":"galacticraftcore:basic_item&12","level":4,"yield":9,"componentsIDs":["silicon","silicon","minecraft:diamond","minecraft:redstone","minecraft:dye&4"]}
+{"type":"crafted","alias":"single_solar_module","wareID":"galacticraftcore:basic_item&0","level":4,"yield":2,"componentsIDs":["minecraft:glass","minecraft:glass","minecraft:glass","blue_solar_wafer","blue_solar_wafer","blue_solar_wafer","galacticraftcore:aluminum_wire&0","galacticraftcore:aluminum_wire&0","galacticraftcore:aluminum_wire&0"]}
+{"type":"crafted","alias":"full_solar_panel","wareID":"galacticraftcore:basic_item&1","level":4,"yield":1,"componentsIDs":["single_solar_module","single_solar_module","single_solar_module","single_solar_module","single_solar_module","single_solar_module","galacticraftcore:aluminum_wire&0","galacticraftcore:aluminum_wire&0","galacticraftcore:aluminum_wire&0"]}
+
+{"type":"crafted","alias":"basic_solar_panel","wareID":"galacticraftcore:solar&0","level":4,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","galacticraftcore:aluminum_wire&0","galacticraftcore:aluminum_wire&0","basic_wafer","steel_pole","full_solar_panel"]}
+{"type":"crafted","alias":"advanced_solar_panel","wareID":"galacticraftcore:solar&4","level":5,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","galacticraftcore:aluminum_wire&1","galacticraftcore:aluminum_wire&1","advanced_wafer","steel_pole","full_solar_panel"]}
+
+// storage modules
+{"type":"crafted","alias":"oxygen_storage_module","wareID":"galacticraftcore:machine2&8","level":3,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","compressed_steel","heavy_oxygen_tank","heavy_oxygen_tank","heavy_oxygen_tank"]}
+{"type":"crafted","alias":"energy_storage_module","wareID":"galacticraftcore:machine_tiered&0","level":3,"yield":1,"componentsIDs":["compressed_steel","compressed_steel","compressed_steel","compressed_steel","compressed_steel","galacticraftcore:battery","galacticraftcore:battery","galacticraftcore:battery"]}
+
+// miscellaneous
+{"type":"crafted","alias":"glowstone_torch","wareID":"galacticraftcore:glowstone_torch","level":3,"yield":4,"componentsIDs":["minecraft:glowstone_dust","minecraft:stick"]}

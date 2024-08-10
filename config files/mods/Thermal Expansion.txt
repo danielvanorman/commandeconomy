@@ -1,0 +1,5 @@
+// ===Thermal Expansion:===
+// machine upgrades
+{"type":"crafted","alias":"augment_flux_anodizers","wareID":"thermalexpansion:augment&257","level":4,"yield":1,"componentsIDs":["invar_plate","invar_plate","pyrotheum_dust","redstone_conductance_coil","bronze_gear"]}
+
+{"type":"crafted","alias":"augment_fuel_catalyzer","wareID":"thermalexpansion:augment&513","level":3,"yield":1,"componentsIDs":["lead_ingot","lead_ingot","lead_ingot","lead_ingot","redstone_conductance_coil"]}
