@@ -10,6 +10,8 @@ package commandeconomy;
 public final class StringTable {
    /** lowercase name for accessing services and information */
    public static final String MODID   = "commandeconomy";
+   /** version of this mod */
+   public static final String VERSION = "0.8.3";
 
    // INTERFACE CONSTANTS
    public final static String INITIALIZATION_ERROR = "CommandEconomy initialization fatal error - must initialize Config.userInterface before calling CommandEconomy.start()";

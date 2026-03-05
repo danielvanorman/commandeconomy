@@ -154,7 +154,7 @@ public final class CommandEconomy {
    /** title case name for presentation */
    public static final String NAME    = "Command Economy";
    /** version of this mod */
-   public static final String VERSION = "0.8.2";
+   public static final String VERSION = StringTable.VERSION;
 
    // FUNCTIONS
    /**
