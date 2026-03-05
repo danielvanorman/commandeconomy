@@ -310,11 +310,18 @@ public interface UserInterface
    void printErrorToUser(UUID playerID, String message);
 
    /**
-    * Handles the contents for an error message normal users shouldn't necessarily see.
+    * Handles a message that normal users shouldn't necessarily see.
+    *
+    * @param message a notification for server administrators and any related details
+    */
+   void printToConsole(String message);
+
+   /**
+    * Handles an error message that normal users shouldn't necessarily see.
     *
     * @param message error encountered and possible details
     */
-   void printToConsole(String message);
+   void printErrorToConsole(String message);
 
    /**
     * Fulfills commands given through the interface.

@@ -69,22 +69,22 @@ public class WareLinked extends Ware
     */
    boolean setComponents(String[] componentsIDs, int[] componentsAmounts) {
       if (componentsIDs == null || componentsIDs.length == 0) {
-         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_IDS);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_IDS);
          return false;
       }
 
       if (componentsAmounts == null || componentsAmounts.length == 0) {
-         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENTS_AMOUNTS);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENTS_AMOUNTS);
          return false;
       }
 
       if (componentsIDs.length != componentsAmounts.length) {
-         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENTS_UNEQUAL_LEN);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENTS_UNEQUAL_LEN);
          return false;
       }
 
       if (yield <= 0) {
-         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_YIELD);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_YIELD);
          return false;
       }
 

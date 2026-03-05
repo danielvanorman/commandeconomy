@@ -260,7 +260,7 @@ public class RandomEvents extends TimerTask {
       // check file existence
       if (!fileRandomEvents.isFile()) {
          // don't throw an exception, print a warning to advise user to reload wares
-         Config.userInterface.printToConsole(StringTable.WARN_FILE_MISSING + Config.filenameRandomEvents +
+         Config.userInterface.printErrorToConsole(StringTable.WARN_FILE_MISSING + Config.filenameRandomEvents +
             System.lineSeparator() + "To use random events, replace " + Config.filenameRandomEvents +
             "," + System.lineSeparator() + "then use the command \"reload config\"."
          );
@@ -278,11 +278,11 @@ public class RandomEvents extends TimerTask {
       }
       catch (JsonSyntaxException e) {
          randomEvents = null; // disable random events
-         Config.userInterface.printToConsole(StringTable.ERROR_FILE_RANDOM_EVENTS_INVALID + Config.filenameRandomEvents);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_RANDOM_EVENTS_INVALID + Config.filenameRandomEvents);
       }
       catch (Exception e) {
          randomEvents = null; // disable random events
-         Config.userInterface.printToConsole(StringTable.ERROR_FILE_RANDOM_EVENTS_PARSING + Config.filenameRandomEvents);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_RANDOM_EVENTS_PARSING + Config.filenameRandomEvents);
          e.printStackTrace();
       }
 
@@ -302,7 +302,7 @@ public class RandomEvents extends TimerTask {
                fileReader.close();
          } catch (Exception e) { }
 
-         Config.userInterface.printToConsole(StringTable.WARN_RANDOM_EVENTS_NONE_LOADED);
+         Config.userInterface.printErrorToConsole(StringTable.WARN_RANDOM_EVENTS_NONE_LOADED);
          end();
          return;
       }
@@ -391,7 +391,7 @@ public class RandomEvents extends TimerTask {
          randomEvents = compressedRandomEvents;
 
          // print error messages
-         Config.userInterface.printToConsole(loadingErrors.substring(0, loadingErrors.length() - System.lineSeparator().length())); // remove the trailing new line
+         Config.userInterface.printErrorToConsole(loadingErrors.substring(0, loadingErrors.length() - System.lineSeparator().length())); // remove the trailing new line
          loadingErrors = null; // deallocate memory sooner rather than later
       }
 
@@ -401,7 +401,7 @@ public class RandomEvents extends TimerTask {
       // check whether any events were loaded
       if (randomEvents.length <= 0) {
          randomEvents = null; // disable random events
-         Config.userInterface.printToConsole(StringTable.WARN_RANDOM_EVENTS_NONE_LOADED);
+         Config.userInterface.printErrorToConsole(StringTable.WARN_RANDOM_EVENTS_NONE_LOADED);
          end();
          return;
       }
@@ -474,7 +474,7 @@ public class RandomEvents extends TimerTask {
          // if wares cannot be loaded, flag an error
          if (randomEvent.changedWaresIDs == null ||
              randomEvent.changedWaresIDs.length == 0) {
-            Config.userInterface.printToConsole(StringTable.ERROR_RANDOM_EVENT_WARES_BLANK + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description);
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_RANDOM_EVENT_WARES_BLANK + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description);
             randomEvents[randomEventsIndex] = null;
             invalidEvents++;
             randomEventsIndex++;
@@ -523,7 +523,7 @@ public class RandomEvents extends TimerTask {
 
          // check whether any wares were loaded
          if (changedWaresIndex == 0) {
-            Config.userInterface.printToConsole(StringTable.ERROR_RANDOM_EVENT_WARES_NO_VALID + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description);
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_RANDOM_EVENT_WARES_NO_VALID + StringTable.MSG_RANDOM_EVENT_DESC + randomEvent.description);
             randomEvents[randomEventsIndex] = null;
             invalidEvents++;
             randomEventsIndex++;
@@ -542,7 +542,7 @@ public class RandomEvents extends TimerTask {
 
             // check whether invalid ware IDs should be printed
             if (Config.randomEventsReportInvalidWares) {
-               Config.userInterface.printToConsole(invalidWareIDs.substring(0, invalidWareIDs.length() - 2)); // remove the trailing comma and space
+               Config.userInterface.printErrorToConsole(invalidWareIDs.substring(0, invalidWareIDs.length() - 2)); // remove the trailing comma and space
                invalidWareIDs.setLength(0); // clear buffer
             }
          }
@@ -778,7 +778,7 @@ public class RandomEvents extends TimerTask {
          try {
             Thread.sleep(additionalWaitTime);
          } catch (Exception e) {
-            Config.userInterface.printToConsole(StringTable.ERROR_RANDOM_EVENTS_SLEEP + e);
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_RANDOM_EVENTS_SLEEP + e);
          }
       }
    }

@@ -842,7 +842,7 @@ public final class Account {
       // check file existence
       if (!fileAccounts.isFile()) {
          // don't throw an exception, print a warning to advise user to reload accounts 
-         Config.userInterface.printToConsole(StringTable.WARN_FILE_MISSING + Config.filenameAccounts +
+         Config.userInterface.printErrorToConsole(StringTable.WARN_FILE_MISSING + Config.filenameAccounts +
             System.lineSeparator() + "To load accounts, replace " + Config.filenameAccounts +
             ", " + System.lineSeparator() + "then use the command \"reload accounts\"."
          );
@@ -870,7 +870,7 @@ public final class Account {
       try {
          fileReader = new Scanner(fileAccounts);
       } catch (FileNotFoundException e) {
-         Config.userInterface.printToConsole(StringTable.WARN_FILE_MISSED + Config.filenameAccounts);
+         Config.userInterface.printErrorToConsole(StringTable.WARN_FILE_MISSED + Config.filenameAccounts);
          e.printStackTrace();
 
          // allow other threads to adjust accounts' properties
@@ -903,7 +903,7 @@ public final class Account {
                accountCreationRecords.append(String.join(",", data) + '\n');
             } catch (Exception e) {
                String erroredAccount = String.join(",", data);
-               Config.userInterface.printToConsole(StringTable.WARN_ACCOUNT_CREATION + erroredAccount);
+               Config.userInterface.printErrorToConsole(StringTable.WARN_ACCOUNT_CREATION + erroredAccount);
 
                // store the line entry for later
                accountsErrored.append(erroredAccount);
@@ -922,7 +922,7 @@ public final class Account {
                   account = null;
                if (account == null) {
                   String erroredAccount = String.join(",", data);
-                  Config.userInterface.printToConsole(StringTable.WARN_ACCOUNT_NONEXISTENT + erroredAccount);
+                  Config.userInterface.printErrorToConsole(StringTable.WARN_ACCOUNT_NONEXISTENT + erroredAccount);
                   continue; // skip to the next entry
                }
 
@@ -930,7 +930,7 @@ public final class Account {
                playerID = UUID.fromString(data[1]);
                if (playerID == null) {
                   String erroredAccount = String.join(",", data);
-                  Config.userInterface.printToConsole(StringTable.WARN_ACCOUNT_UUID_DEFAULT + erroredAccount);
+                  Config.userInterface.printErrorToConsole(StringTable.WARN_ACCOUNT_UUID_DEFAULT + erroredAccount);
                   continue; // skip to the next entry
                }
 
@@ -942,7 +942,7 @@ public final class Account {
                defaultAccounts.put(playerID, account);
             } catch (Exception e) {
                String erroredAccount = String.join(",", data);
-               Config.userInterface.printToConsole(StringTable.WARN_ACCOUNT_DEFAULT + erroredAccount);
+               Config.userInterface.printErrorToConsole(StringTable.WARN_ACCOUNT_DEFAULT + erroredAccount);
 
                // store the line entry for later
                accountsErrored.append(erroredAccount);
@@ -959,7 +959,7 @@ public final class Account {
             try {
                money = Float.parseFloat(data[1]);
             } catch (Exception ef) {
-               Config.userInterface.printToConsole(StringTable.ERROR_ACCOUNT_PARSING + data[0]);
+               Config.userInterface.printErrorToConsole(StringTable.ERROR_ACCOUNT_PARSING + data[0]);
 
                // store the line entry for later
                accountsErrored.append(String.join(",", data));
@@ -976,7 +976,7 @@ public final class Account {
                try {
                   account = new Account(data[0], UUID.fromString(data[2]), money);
                } catch (Exception eo) {
-                  Config.userInterface.printToConsole("warning - could not parse account owner UUID " + data[2] + " for account " + data[0]);
+                  Config.userInterface.printErrorToConsole("warning - could not parse account owner UUID " + data[2] + " for account " + data[0]);
 
                   // store the line entry for later
                   accountsErrored.append(String.join(",", data));
@@ -991,13 +991,13 @@ public final class Account {
                      try {
                         account.accountUsers.add(UUID.fromString(data[i]));
                      } catch (Exception eu) {
-                        Config.userInterface.printToConsole("warning - could not parse account user UUID " + data[i] + " for account " + data[0]);
+                        Config.userInterface.printErrorToConsole("warning - could not parse account user UUID " + data[i] + " for account " + data[0]);
                      }
                   }
                }
             }
          } catch (Exception e) {
-            Config.userInterface.printToConsole(StringTable.ERROR_FILE_LOAD_ACCOUNTS);
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_LOAD_ACCOUNTS);
             e.printStackTrace();
          }
       }
@@ -1082,7 +1082,7 @@ public final class Account {
             fileAccounts.createNewFile();
          }
       } catch (IOException e) {
-         Config.userInterface.printToConsole(StringTable.ERROR_FILE_CREATE_SAVE_ACCOUNTS);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_CREATE_SAVE_ACCOUNTS);
          e.printStackTrace();
          return;
       }
@@ -1119,7 +1119,7 @@ public final class Account {
          if (accountsErrored.length() > 0)
             fileWriter.write(StringTable.WARN_FILE_WARES_INVALID + accountsErrored + '\n');
       } catch (IOException e) {
-         Config.userInterface.printToConsole(StringTable.ERROR_FILE_SAVE_ACCOUNTS);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_SAVE_ACCOUNTS);
          e.printStackTrace();
       }
 

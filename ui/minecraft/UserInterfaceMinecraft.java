@@ -389,7 +389,7 @@ public class UserInterfaceMinecraft implements UserInterface
          try {
             meta = Integer.parseInt(wareID.substring(ampersandPosition + 1, wareID.length()));
          } catch (NumberFormatException e) {
-            printToConsole(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
+            printErrorToConsole(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
             if (player != null) {
                TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
                errorMessage.getStyle().setColor(TextFormatting.RED);
@@ -428,7 +428,7 @@ public class UserInterfaceMinecraft implements UserInterface
          }
       } catch (Exception e) {
          // warn the server
-         printToConsole(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_ITEM_NOT_FOUND + wareID );
+         printErrorToConsole(PlatformStrings.ERROR_ADDING_ITEM + PlatformStrings.ERROR_ITEM_NOT_FOUND + wareID );
 
          // warn the player
          if (player != null) {
@@ -486,7 +486,7 @@ public class UserInterfaceMinecraft implements UserInterface
          try {
             meta = Integer.parseInt(wareID.substring(ampersandPosition + 1, wareID.length()));
          } catch (NumberFormatException e) {
-            printToConsole(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
+            printErrorToConsole(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
             if (player != null) {
                TextComponentString errorMessage = new TextComponentString(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_META_PARSING + wareID);
                errorMessage.getStyle().setColor(TextFormatting.RED);
@@ -505,7 +505,7 @@ public class UserInterfaceMinecraft implements UserInterface
 
          if (!OreDictionary.doesOreNameExist(oreName)) {
             // warn the console
-            printToConsole(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
+            printErrorToConsole(PlatformStrings.ERROR_REMOVING_ITEM + PlatformStrings.ERROR_NAME_NOT_FOUND + oreName);
 
             // warn the player
             if (player != null) {
@@ -1140,7 +1140,7 @@ public class UserInterfaceMinecraft implements UserInterface
          return itemstack.getMaxStackSize();
       } catch (Exception e) {
          // warn the console
-         printToConsole(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_ITEM_NOT_FOUND + wareID);
+         printErrorToConsole(PlatformStrings.ERROR_CHECKING_ITEM + PlatformStrings.ERROR_ITEM_NOT_FOUND + wareID);
       }
 
       return -1; // don't return 0 since it might cause a divide-by-error error
@@ -1342,15 +1342,27 @@ public class UserInterfaceMinecraft implements UserInterface
    }
 
    /**
-    * Handles the contents for an error message normal users shouldn't necessarily see.
+    * Handles a message that normal users shouldn't necessarily see.
     *
-    * @param message error encountered and possible details
+    * @param message a notification for server administrators and any related details
     */
    public void printToConsole(String message) {
       if (message == null || message.isEmpty())
          return;
 
       System.out.println(message); // tell the server console
+   }
+
+   /**
+    * Handles an error message that normal users shouldn't necessarily see.
+    *
+    * @param message error encountered and possible details
+    */
+   public void printErrorToConsole(String message) {
+      if (message == null || message.isEmpty())
+         return;
+
+      System.err.println(message); // tell the server console
    }
 
    /**

@@ -143,7 +143,7 @@ public final class Marketplace {
       // check file existence
       if (!fileWares.isFile()) {
          // don't throw an exception, print a warning to advise user to reload wares
-         Config.userInterface.printToConsole(StringTable.WARN_FILE_MISSING + Config.filenameWares +
+         Config.userInterface.printErrorToConsole(StringTable.WARN_FILE_MISSING + Config.filenameWares +
             System.lineSeparator() + "To load wares, replace " + Config.filenameWares + " or " + Config.filenameWaresSave +
             "," + System.lineSeparator() + "then use the command \"reload wares\"."
          );
@@ -196,7 +196,7 @@ public final class Marketplace {
          fileReader = new Scanner(fileWares);
       }
       catch (FileNotFoundException e) {
-         Config.userInterface.printToConsole(StringTable.WARN_FILE_MISSED + Config.filenameWares);
+         Config.userInterface.printErrorToConsole(StringTable.WARN_FILE_MISSED + Config.filenameWares);
          e.printStackTrace();
          releaseMutex();
          // signal threads to reload their wares when possible
@@ -232,7 +232,7 @@ public final class Marketplace {
             ware = Ware.fromJSON(line);
 
             if (ware == null) {
-               Config.userInterface.printToConsole(StringTable.ERROR_WARE_PARSING + line);
+               Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_PARSING + line);
                waresErrored.add(line);
                continue;
             }
@@ -242,7 +242,7 @@ public final class Marketplace {
 
             // if there was an uncorrectable error, report it
             if (!wareError.isEmpty()) {
-               Config.userInterface.printToConsole(StringTable.ERROR_WARE_ENTRY_INVALID + wareError + ": " + line);
+               Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_ENTRY_INVALID + wareError + ": " + line);
                waresErrored.add(line);
                continue;
             }
@@ -258,7 +258,7 @@ public final class Marketplace {
             if (!Config.userInterface.doesWareExist(wareID) &&
                 !(ware instanceof WareUntradeable)) {
                // warn the server
-               Config.userInterface.printToConsole(StringTable.WARN_WARE_NONEXISTENT + wareID);
+               Config.userInterface.printErrorToConsole(StringTable.WARN_WARE_NONEXISTENT + wareID);
 
                // store the line entry for later
                waresErrored.add(line);
@@ -274,7 +274,7 @@ public final class Marketplace {
             // deleting wares not in the marketplace.
             duplicateWare = wares.containsKey(wareID);
             if (duplicateWare)
-               Config.userInterface.printToConsole(StringTable.ERROR_WARE_MISSING + wareID);
+               Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_MISSING + wareID);
                // Note: If a new alias is assigned to this duplicate ware ID,
                // then until wares are saved and reloaded,
                // the ware ID will have two aliases: the old one and the new one.
@@ -308,7 +308,7 @@ public final class Marketplace {
 
                if (wareIDUsingAlias != null &&
                    !wareIDUsingAlias.equals(wareID)) {
-                  Config.userInterface.printToConsole(StringTable.WARN_WARE_ALIAS_USED
+                  Config.userInterface.printErrorToConsole(StringTable.WARN_WARE_ALIAS_USED
                      + alias
                      + System.lineSeparator() + "   is used by " + wareIDUsingAlias
                      + System.lineSeparator() + "   failed to assign to " + wareID);
@@ -329,7 +329,7 @@ public final class Marketplace {
                priceBaseAverage += ware.getBasePrice();
             }
          } catch (Exception e) {
-            Config.userInterface.printToConsole(StringTable.ERROR_WARE_PARSING_EXCEPT + line);
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_PARSING_EXCEPT + line);
             e.printStackTrace();
          }
       } // end while loop for parsing lines
@@ -357,9 +357,9 @@ public final class Marketplace {
             if (fileWares.isFile())
                loadWares(fileWares);
             else
-               Config.userInterface.printToConsole(StringTable.WARN_WARE_NONE_LOADED);
+               Config.userInterface.printErrorToConsole(StringTable.WARN_WARE_NONE_LOADED);
          } else {
-            Config.userInterface.printToConsole(StringTable.WARN_WARE_NONE_LOADED);
+            Config.userInterface.printErrorToConsole(StringTable.WARN_WARE_NONE_LOADED);
          }
       }
       else { // avoids division-by-zero
@@ -429,7 +429,7 @@ public final class Marketplace {
          // and at least one ware needs their starting quantity set,
          // something is very wrong
          if (startQuanBaseMedian <= 0.0f) {
-            Config.userInterface.printToConsole(StringTable.ERROR_STARTING_QUANTITIES + Float.toString(startQuanBaseMedian));
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_STARTING_QUANTITIES + Float.toString(startQuanBaseMedian));
 
             // record base prices to find median
             for (Ware wareCurrent : wares.values()) {
@@ -533,7 +533,7 @@ public final class Marketplace {
             // if the ware is valid, add it to the marketplace
             // if there are any wares using the given alias, handle it
             if (ware.getAlias() != null && wareAliasTranslations.containsKey(ware.getAlias())) {
-               Config.userInterface.printToConsole(StringTable.ERROR_WARE_ALIAS
+               Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_ALIAS
                   + wareID + ", AKA " + ware.getAlias());
                ware.setAlias(null);
             }
@@ -582,7 +582,7 @@ public final class Marketplace {
          wareID = ware.getWareID();
 
          // tell the console which ware could not be loaded
-         Config.userInterface.printToConsole(StringTable.ERROR_WARE_PARSING_ID + wareID + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_PARSING_ID + wareID + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
 
          // reload ware's components
          missingComponent = ware.reloadComponents();
@@ -592,14 +592,14 @@ public final class Marketplace {
          if (missingComponent.isEmpty()) {
             // if no component seems to be missing,
             // suggest considering adjusting the setting for maximum crafting depth
-            Config.userInterface.printToConsole(StringTable.WARN_CRAFTING_DEPTH);
+            Config.userInterface.printErrorToConsole(StringTable.WARN_CRAFTING_DEPTH);
 
             // Even though the ware could probably be loaded at this point, it is not since
             // it exceeds the maximum crafting depth and
             // to ease debugging in case this ware is a component of earlier wares.
          } else {
             // to ease debugging, print the first missing component
-            Config.userInterface.printToConsole(StringTable.WARN_COMPONENT_MISSING + missingComponent);
+            Config.userInterface.printErrorToConsole(StringTable.WARN_COMPONENT_MISSING + missingComponent);
          }
 
          // record ware entry
@@ -636,7 +636,7 @@ public final class Marketplace {
 
          // check if there is enough data to create an alias
          if (data.length < 3) {
-            Config.userInterface.printToConsole(StringTable.ERROR_ALT_ALIAS_ENTRY + "missing data: " + entry);
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_ALT_ALIAS_ENTRY + "missing data: " + entry);
             continue;
          }
 
@@ -644,20 +644,20 @@ public final class Marketplace {
             // double-check entry type
             type = Byte.parseByte(data[0]);
             if (type != 4) {
-               Config.userInterface.printToConsole(StringTable.ERROR_ALT_ALIAS_ENTRY + "invalid type: " + entry);
+               Config.userInterface.printErrorToConsole(StringTable.ERROR_ALT_ALIAS_ENTRY + "invalid type: " + entry);
                continue;
             }
 
             // double-check that an alias exists
             if (data[1] == null || data[1].isEmpty()) {
-               Config.userInterface.printToConsole(StringTable.ERROR_ALT_ALIAS_ENTRY + "missing alias: " + entry);
+               Config.userInterface.printErrorToConsole(StringTable.ERROR_ALT_ALIAS_ENTRY + "missing alias: " + entry);
                continue;
             }
             alias = data[1];
 
             // check whether it is a tag and whether that tag exists
             if (Config.wareTagsReportInvalid && alias.startsWith("#") && !Config.userInterface.doesOreDictionaryNameExist(alias.substring(1, alias.length()))) {
-               Config.userInterface.printToConsole(StringTable.WARN_ORE_NAME_NONEXISTENT + alias.substring(1, alias.length()));
+               Config.userInterface.printErrorToConsole(StringTable.WARN_ORE_NAME_NONEXISTENT + alias.substring(1, alias.length()));
                continue;
             }
 
@@ -683,7 +683,7 @@ public final class Marketplace {
 
             // check if any loaded ware was found
             if (wareID == null) {
-               Config.userInterface.printToConsole(StringTable.WARN_ALT_ALIAS_UNUSED + alias);
+               Config.userInterface.printErrorToConsole(StringTable.WARN_ALT_ALIAS_UNUSED + alias);
                continue;
             }
 
@@ -691,7 +691,7 @@ public final class Marketplace {
             wareIDUsingAlias = wareAliasTranslations.get(alias);
             if (wareIDUsingAlias != null &&
                 !wareIDUsingAlias.equals(wareID)) {
-               Config.userInterface.printToConsole(StringTable.WARN_WARE_ALIAS_USED
+               Config.userInterface.printErrorToConsole(StringTable.WARN_WARE_ALIAS_USED
                   + alias
                   + System.lineSeparator() + "   is now used by " + wareIDUsingAlias
                   + System.lineSeparator() + "   was assigned to " + wareID);
@@ -703,7 +703,7 @@ public final class Marketplace {
          // if parsing fails, report the error
          // but continue loading other aliases
          catch (Exception e) {
-            Config.userInterface.printToConsole(StringTable.ERROR_ALT_ALIAS_PARSING + entry);
+            Config.userInterface.printErrorToConsole(StringTable.ERROR_ALT_ALIAS_PARSING + entry);
             e.printStackTrace();
          }
       }
@@ -770,7 +770,7 @@ public final class Marketplace {
             fileWaresSave.createNewFile();
          }
       } catch (IOException e) {
-         Config.userInterface.printToConsole(StringTable.ERROR_FILE_CREATE_SAVE_WARES);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_CREATE_SAVE_WARES);
          e.printStackTrace();
          releaseMutex();
          return;
@@ -819,7 +819,7 @@ public final class Marketplace {
             fileWriter.write(alternateAliasEntries.toString());
          }
       } catch (IOException e) {
-         Config.userInterface.printToConsole(StringTable.ERROR_FILE_SAVE_WARES);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_SAVE_WARES);
          e.printStackTrace();
       }
 
@@ -880,7 +880,7 @@ public final class Marketplace {
             lineEntry.setLength(0);
          }
       } catch (IOException e) {
-         Config.userInterface.printToConsole(StringTable.ERROR_FILE_PRINT_MARKET);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_FILE_PRINT_MARKET);
          e.printStackTrace();
       }
 
@@ -1462,7 +1462,7 @@ public final class Marketplace {
       // if ware is invalid, stop
       if (Float.isNaN(ware.getBasePrice())) {
          Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_WARE_INVALID + wareID);
-         Config.userInterface.printToConsole(StringTable.ERROR_WARE_INVALID + ware.getWareID() + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_INVALID + ware.getWareID() + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
          waresErrored.add(ware.toJSON() + '\n');
          wares.remove(ware.getWareID());
          return;
@@ -1487,7 +1487,7 @@ public final class Marketplace {
       // check whether it is possible to give the ware to the player
       if (!Config.userInterface.doesWareExist(wareID)) {
          Config.userInterface.printErrorToUser(playerID, "error - " + wareID + " does not appear to exist outside of the marketplace");
-         Config.userInterface.printToConsole("commandeconomy - Marketplace.buy(), error - " + wareID + " does not appear to exist outside of the marketplace");
+         Config.userInterface.printErrorToConsole("commandeconomy - Marketplace.buy(), error - " + wareID + " does not appear to exist outside of the marketplace");
          return;
       }
 
@@ -1762,7 +1762,7 @@ public final class Marketplace {
       // if ware is invalid, stop
       if (Float.isNaN(ware.getBasePrice())) {
          Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_WARE_INVALID + wareID);
-         Config.userInterface.printToConsole(StringTable.ERROR_WARE_INVALID + translatedID + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_INVALID + translatedID + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
          waresErrored.add(ware.toJSON() + '\n');
          wares.remove(translatedID);
          return;
@@ -2096,7 +2096,7 @@ public final class Marketplace {
             if (quantity == quantitySold)
                break;
          } catch (Exception e) {
-            Config.userInterface.printToConsole(StringTable.MSG_SELLALL + stock.wareID);
+            Config.userInterface.printErrorToConsole(StringTable.MSG_SELLALL + stock.wareID);
             e.printStackTrace();
             // don't return, keep trying to sell wares and pay the player
          }
@@ -2124,7 +2124,7 @@ public final class Marketplace {
                // add quantity sold to the marketplace
                stock.ware.addQuantity(stock.quantity);
             } catch (Exception e) {
-               Config.userInterface.printToConsole(StringTable.MSG_SELLALL + stock.wareID);
+               Config.userInterface.printErrorToConsole(StringTable.MSG_SELLALL + stock.wareID);
                e.printStackTrace();
                // don't return, keep trying to sell wares and pay the player
             }
@@ -2176,7 +2176,7 @@ public final class Marketplace {
       // if ware is invalid, stop
       if (Float.isNaN(ware.getBasePrice())) {
          Config.userInterface.printErrorToUser(playerID, StringTable.ERROR_WARE_INVALID + wareID);
-         Config.userInterface.printToConsole(StringTable.ERROR_WARE_INVALID + wareID + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_WARE_INVALID + wareID + StringTable.WARN_FILE_WARE_INVALID + Config.filenameWaresSave);
          waresErrored.add(ware.toJSON() + '\n');
          wares.remove(wareID);
          return;

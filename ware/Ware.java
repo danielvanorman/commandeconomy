@@ -202,12 +202,12 @@ public abstract class Ware
     */
    boolean setComponents(String[] componentsIDs) {
       if (componentsIDs == null || componentsIDs.length == 0) {
-         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_IDS);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_IDS);
          return false;
       }
 
       if (yield <= 0) {
-         Config.userInterface.printToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_YIELD);
+         Config.userInterface.printErrorToConsole(StringTable.ERROR_COMPONENTS_SET + wareID + ": " + StringTable.ERROR_COMPONENT_YIELD);
          return false;
       }
 
