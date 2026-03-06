@@ -11906,78 +11906,16 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("research() - equilibrium: raw material");
-         wareLevel    = testWare2.getLevel();
-         wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
-         price        = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare2, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
-         price        = PriceFormatter.truncatePrice(price);
-         money        = 1000000.0f;
-         playerAccount.setMoney(money);
-
-         UserInterfaceTerminal.serviceRequest("/research test:material2");
-         UserInterfaceTerminal.serviceRequest("/research yes");
-
-         if (testWareFields(testWare2, WareMaterial.class, "", (byte) (wareLevel - 1), 27.6f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, money - price, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWare2, Config.startQuanBase[testWare2.getLevel()], null, 0);
 
          TEST_OUTPUT.println("research() - equilibrium: processed ware");
-         wareLevel    = testWareP1.getLevel();
-         wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
-         price        = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWareP1, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
-         price        = PriceFormatter.truncatePrice(price);
-         money        = 1000000.0f;
-         playerAccount.setMoney(money);
-
-         UserInterfaceTerminal.serviceRequest("/research test:processed1");
-         UserInterfaceTerminal.serviceRequest("/research yes");
-
-         if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, money - price, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWareP1, Config.startQuanBase[testWareP1.getLevel()], null, 0);
 
          TEST_OUTPUT.println("research() - understocked");
-         wareLevel    = testWare3.getLevel();
-         wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
-         testWare3.setQuantity(1); // set stock to be low
-         price        = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare3, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
-         price        = PriceFormatter.truncatePrice(price);
-         money        = 1000000.0f;
-         playerAccount.setMoney(money);
-
-         UserInterfaceTerminal.serviceRequest("/research test:material3");
-         UserInterfaceTerminal.serviceRequest("/research yes");
-
-         if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) (wareLevel - 1), 4.0f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, money - price, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWareP1, 1, null, 0);
 
          TEST_OUTPUT.println("research() - overstocked");
-         wareLevel    = testWare4.getLevel();
-         wareQuantity = Config.startQuanBase[testWare4.getLevel() - 1] + 10;
-         testWare4.setQuantity(wareQuantity); // set stock to be high
-         price        = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare4, 0, Marketplace.PriceType.CURRENT_BUY) * wareLevel * Config.researchCostPerHierarchyLevel;
-         price        = PriceFormatter.truncatePrice(price);
-         money        = 1000000.0f;
-         playerAccount.setMoney(money);
-
-         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
-         UserInterfaceTerminal.serviceRequest("/research yes");
-
-         if (testWareFields(testWare4, WareMaterial.class, "material4", (byte) (wareLevel - 1), 8.0f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, money - price, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWare4, Config.startQuanBase[testWare4.getLevel() - 1] + 10, null, 0);
          resetTestEnvironment();
 
          TEST_OUTPUT.println("research() - excessively overstocked");
@@ -12001,22 +11939,7 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("research() - non-personal account: generating proposal");
-         wareLevel    = testWareP1.getLevel();
-         wareQuantity = Config.startQuanBase[testWareP1.getLevel() - 1];
-         price        = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWareP1, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
-         price        = PriceFormatter.truncatePrice(price);
-         money        = 1000000.0f;
-         testAccount1.setMoney(money);
-
-         UserInterfaceTerminal.serviceRequest("/research test:processed1 testAccount1");
-         UserInterfaceTerminal.serviceRequest("/research yes");
-
-         if (testWareFields(testWareP1, WareProcessed.class, "", (byte) (wareLevel - 1), 1.1f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, money - price, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWareP1, Config.startQuanBase[testWareP1.getLevel() - 1], "testAccount1", 0);
 
          TEST_OUTPUT.println("research() - non-personal account: accepting proposal");
          wareLevel    = testWare3.getLevel();
@@ -12281,837 +12204,140 @@ public final class TestSuite
 
       try {
          TEST_OUTPUT.println("linked prices - lowering price at equilibrium");
-         priceMult          = 0.625f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 640;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 0.625f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1, 640, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 0.8125f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 56;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 0.8125f,
+            Config.quanEquilibrium[testWareC3.getLevel()] - 1, 56, 2);
 
          TEST_OUTPUT.println("linked prices - lowering price when above equilibrium");
-         priceMult          = 0.625f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
-         quantityComponent1 = 640;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 0.625f,
+            Config.quanEquilibrium[testWareP1.getLevel()] * 2 - 1, 640, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 0.8125f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
-         quantityComponent1 = 56;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 0.8125f,
+            Config.quanEquilibrium[testWareC3.getLevel()] * 2 - 1, 56, 2);
 
          TEST_OUTPUT.println("linked prices - lowering price when below equilibrium");
-         priceMult          = 0.625f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
-         quantityComponent1 = 640;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 0.625f,
+            (int) (Config.quanEquilibrium[testWareP1.getLevel()] * 0.75f) - 1, 640, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 0.8125f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
-         quantityComponent1 = 56;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 0.8125f,
+            (int) (Config.quanEquilibrium[testWareC3.getLevel()] * 0.75f) - 1, 56, 2);
 
          TEST_OUTPUT.println("linked prices - raising price at equilibrium");
-         priceMult          = 1.375f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 192;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 1.375f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1, 192, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 1.5625f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 20;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 1.5625f,
+            Config.quanEquilibrium[testWareC3.getLevel()] - 1, 20, 2);
 
          TEST_OUTPUT.println("linked prices - raising price when above equilibrium");
-         priceMult          = 1.375f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
-         quantityComponent1 = 192;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) ((price + 0.0001f) * 10000.0f)) / 10000.0f; // truncate and round to match getPrice()
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 1.375f,
+            Config.quanEquilibrium[testWareP1.getLevel()] * 2 - 1, 192, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 1.5625f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] * 2 - 1;
-         quantityComponent1 = 20;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 1.5625f,
+            Config.quanEquilibrium[testWareC3.getLevel()] * 2 - 1, 20, 2);
 
          TEST_OUTPUT.println("linked prices - raising price when below equilibrium");
-         priceMult          = 1.375f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
-         quantityComponent1 = 192;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 1.375f,
+            (int) (Config.quanEquilibrium[testWareP1.getLevel()] * 0.75f) - 1, 192, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 1.5625f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = (int) (Config.quanEquilibrium[testWare.getLevel()] * 0.75f) - 1;
-         quantityComponent1 = 20;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 1.5625f,
+            (int) (Config.quanEquilibrium[testWareC3.getLevel()] * 0.75f) - 1, 20, 2);
 
          TEST_OUTPUT.println("linked prices - free components");
-         priceMult          = 0.25f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 0.25f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1, 9999, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 0.25f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 0.25f,
+             Config.quanEquilibrium[testWareC3.getLevel()] - 1, 9999, 2);
 
          TEST_OUTPUT.println("linked prices - expensive components");
-         priceMult          = 1.75f;
-         testWare           = testWareP1;
-         testComponent1     = testWare1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 0;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
+         errorFound |= testerLinkedPrices(testWareP1, testWare1, 1.75f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1, 0, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-
-         priceMult          = 1.75f;
-         testWare           = testWareC3;
-         testComponent1     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 0;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC3, testWare4, 1.75f,
+             Config.quanEquilibrium[testWareC3.getLevel()] - 1, 0, 2);
 
          TEST_OUTPUT.println("linked prices - one free component");
-         priceMult          = 0.7692308f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 9999;
-         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 0.7692308f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 9999,
+            Config.quanEquilibrium[testWare4.getLevel()], 0, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 0.53846157f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()],
+            Config.quanEquilibrium[testWare3.getLevel()], 9999, 0, 2);
 
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 0.28712872f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 9999, 0, 0, 3);
 
-         priceMult          = 0.53846157f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         quantityComponent3 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
-
-         priceMult          = 0.28712872f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-
-         priceMult          = 0.9628713f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 9999;
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 0.9628713f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1,
+            9999, Config.quanEquilibrium[testWareC1.getLevel()], 0, 0, 4);
 
          TEST_OUTPUT.println("linked prices - one expensive component");
-         priceMult          = 1.2307692f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 0;
-         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 1.2307692f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 0,
+            Config.quanEquilibrium[testWare4.getLevel()], 0, 1);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 1.0576923f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1, 0,
+            Config.quanEquilibrium[testWare3.getLevel()],
+            Config.quanEquilibrium[testWare4.getLevel()], 0, 2);
 
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 1.7128713f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 0, 0, 0, 3);
 
-         priceMult          = 1.0576923f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 0;
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
-
-         priceMult          = 1.7128713f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 0;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-
-         priceMult          = 1.0371287f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 0;
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + "): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + "): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 1.0371287f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1, 0,
+            Config.quanEquilibrium[testWareC1.getLevel()], 0, 0, 4);
 
          TEST_OUTPUT.println("linked prices - equilibrium price smaller than base price");
          Config.priceMult = 0.5f; // lowers all prices
-         priceMult          = 0.7692308f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 9999;
-         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 0.7692308f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 9999,
+            Config.quanEquilibrium[testWare4.getLevel()], 0, 1);
 
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 0.53846157f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()],
+            Config.quanEquilibrium[testWare3.getLevel()], 9999, 0, 2);
 
-         priceMult          = 0.53846157f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         quantityComponent3 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 0.28712872f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 9999, 0, 0, 3);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
-
-         priceMult          = 0.28712872f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-
-         priceMult          = 0.9628713f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 9999;
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 0.9628713f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1, 9999,
+            Config.quanEquilibrium[testWareC1.getLevel()], 0, 0, 3);
 
          TEST_OUTPUT.println("linked prices - equilibrium price larger than base price");
          Config.priceMult = 2.0f; // raises all prices
-         priceMult          = 0.7692308f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 9999;
-         quantityComponent3 = Config.quanEquilibrium[testComponent3.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 0.7692308f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 9999,
+            Config.quanEquilibrium[testWare4.getLevel()], 0, 1);
 
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
+         errorFound |= testerLinkedPrices(testWareP2, testWare1, testWare3, testWare4, null, 0.53846157f,
+            Config.quanEquilibrium[testWareP1.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()],
+            Config.quanEquilibrium[testWare3.getLevel()], 9999, 0, 2);
 
-         priceMult          = 0.53846157f;
-         testWare           = testWareP2;
-         testComponent1     = testWare1;
-         testComponent2     = testWare3;
-         testComponent3     = testWare4;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         quantityComponent3 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-         testComponent3.setQuantity(quantityComponent3);
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 0.28712872f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1,
+            Config.quanEquilibrium[testWare1.getLevel()], 9999, 0, 0, 3);
 
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-         testComponent3.setQuantity(Config.quanEquilibrium[testComponent3.getLevel()]);
-
-         priceMult          = 0.28712872f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = Config.quanEquilibrium[testComponent1.getLevel()];
-         quantityComponent2 = 9999;
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #1): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #1): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
-
-         // prepare for next test
-         testWare.setQuantity(Config.quanEquilibrium[testWare.getLevel()]);
-         testComponent1.setQuantity(Config.quanEquilibrium[testComponent1.getLevel()]);
-         testComponent2.setQuantity(Config.quanEquilibrium[testComponent2.getLevel()]);
-
-         priceMult          = 0.9628713f;
-         testWare           = testWareC2;
-         testComponent1     = testWare1;
-         testComponent2     = testWareC1;
-         quantityWare       = Config.quanEquilibrium[testWare.getLevel()] - 1;
-         quantityComponent1 = 9999;
-         quantityComponent2 = Config.quanEquilibrium[testComponent2.getLevel()];
-         testWare.setQuantity(quantityWare);
-         price = priceMult * Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL);
-         price = ((int) (price * 10000.0f)) / 10000.0f; // truncate to match getPrice()'s truncation
-         testComponent1.setQuantity(quantityComponent1);
-         testComponent2.setQuantity(quantityComponent2);
-
-         if (testWare.getLinkedPriceMultiplier() != priceMult) {
-            TEST_OUTPUT.println("   unexpected linked price multiplier (" + testWare.getWareID() + ", #2): " + testWare.getLinkedPriceMultiplier() + ", should be " + priceMult);
-            errorFound = true;
-         }
-         if (Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) != price) {
-            TEST_OUTPUT.println("   unexpected price (" + testWare.getWareID() + ", #2): " + Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
-            errorFound = true;
-         }
+         errorFound |= testerLinkedPrices(testWareC2, testWare1, testWareC1, null, null, 0.9628713f,
+            Config.quanEquilibrium[testWareC2.getLevel()] - 1, 9999,
+            Config.quanEquilibrium[testWareC1.getLevel()], 0, 0, 3);
       }
       catch (Exception e) {
          TEST_OUTPUT.println("linked prices - fatal error: " + e);
@@ -17776,5 +17002,156 @@ public final class TestSuite
       }
 
       return !errorFound;
+   }
+
+   /**
+    * Evaluates whether a ware's availability and an account's funds change correctly
+    * based on successfully researching the ware.
+    * Prints errors, if found.
+    * <p>
+    * @param ware                  the ware to be researched
+    * @param quantityWare          how much of the ware should be available for sale
+    * @param accountName           which bank account should be charged a research fee
+    * @param testNumber            test number to use when printing errors
+    * @return true if an error was discovered
+    */
+   private static boolean testerResearch(Ware ware, final int quantityWare, String accountName, final int testNumber) {
+      String  testIdentifier;            // can be added to printed errors to differentiate between tests
+      boolean errorFound   = false; // assume innocence until proven guilty
+
+      if (testNumber != 0)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test
+      ware.setQuantity(quantityWare);
+      float   money                = 1000000.0f;
+      Account account;
+      String accountNameForCommand = "";
+      if (accountName == null) // default to using test player's account
+         account = playerAccount;
+      else {
+         account = Account.getAccount(accountName);
+         accountNameForCommand = " " + accountName;
+      }
+      account.setMoney(money);
+
+      // predict results
+      int   expectedWareLevel = ware.getLevel() - 1;
+      int   expectedQuantity  = Config.startQuanBase[expectedWareLevel];
+      if (quantityWare > expectedQuantity)
+         expectedQuantity = quantityWare;
+      float price             = Marketplace.getPrice(PLAYER_ID, ware, 0, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.researchCostPerHierarchyLevel;
+      price                   = PriceFormatter.truncatePrice(price);
+
+      // execute test
+      UserInterfaceTerminal.serviceRequest("/research " + ware.getWareID() + accountNameForCommand);
+      UserInterfaceTerminal.serviceRequest("/research yes");
+
+      // check results
+      if (ware.getLevel() != expectedWareLevel) {
+         TEST_OUTPUT.println("   unexpected hierarchy level" + testIdentifier + ": " + ware.getLevel() + ", should be " + expectedWareLevel);
+         errorFound = true;
+      }
+      if (ware.getQuantity() != expectedQuantity) {
+         TEST_OUTPUT.println("   unexpected quantity" + testIdentifier + ": " + ware.getQuantity() + ", should be " + expectedQuantity);
+         errorFound = true;
+      }
+      if (account.getMoney() != money - price) {
+         TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + (money - price));
+         errorFound = true;
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Evaluates whether a ware's price was adjusted correctly
+    * based on the prices of any wares required to create it.
+    * Prints errors, if found.
+    * <p>
+    * @param ware                  the ware to be purchased
+    * @param component             a ware used to make another ware whose availability should be changed
+    * @param priceMult             expected percentage to be applied to a ware's price to determine its final price
+    * @param quantityWare          how much of the ware should be available for sale
+    * @param quantityComponent     how much of the ware used to make the other ware should be available for sale
+    * @param testNumber            test number to use when printing errors
+    * @return true if an error was discovered
+    */
+   private static boolean testerLinkedPrices(Ware ware, Ware component,
+                                             final float priceMult, final int quantityWare, final int quantityComponent,
+                                             final int testNumber) {
+      return testerLinkedPrices(ware, component, null, null, null, priceMult,
+                                quantityWare, quantityComponent, 0, 0, 0, testNumber);
+   }
+
+   /**
+    * Evaluates whether a ware's price was adjusted correctly
+    * based on the prices of any wares required to create it.
+    * Prints errors, if found.
+    * <p>
+    * @param ware                  the ware to be purchased
+    * @param component1            a ware used to make another ware whose availability should be changed
+    * @param component2            a ware used to make another ware whose availability should be changed
+    * @param component3            a ware used to make another ware whose availability should be changed
+    * @param component4            a ware used to make another ware whose availability should be changed
+    * @param priceMult             expected percentage to be applied to a ware's price to determine its final price
+    * @param quantityWare          how much of the ware should be available for sale
+    * @param quantityComponent1    how much of the ware used to make the other ware should be available for sale
+    * @param quantityComponent2    how much of the ware used to make the other ware should be available for sale
+    * @param quantityComponent3    how much of the ware used to make the other ware should be available for sale
+    * @param quantityComponent4    how much of the ware used to make the other ware should be available for sale
+    * @param testNumber            test number to use when printing errors
+    * @return true if an error was discovered
+    */
+   private static boolean testerLinkedPrices(Ware ware, Ware component1, Ware component2, Ware component3, Ware component4,
+                                             final float priceMult, final int quantityWare,
+                                             final int quantityComponent1, final int quantityComponent2, final int quantityComponent3, final int quantityComponent4,
+                                             final int testNumber) {
+      String  testIdentifier;            // can be added to printed errors to differentiate between tests
+      boolean errorFound        = false; // assume innocence until proven guilty
+
+      if (testNumber != 0)
+         testIdentifier = " (#" + testNumber + ")";
+      else
+         testIdentifier = "";
+
+      // set up test and predict results
+      ware.setQuantity(quantityWare);
+      float price = priceMult * Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL);
+      price = PriceFormatter.truncatePrice(price);
+      if (component1 != null)
+         component1.setQuantity(quantityComponent1);
+      if (component2 != null)
+         component2.setQuantity(quantityComponent2);
+      if (component3 != null)
+         component3.setQuantity(quantityComponent3);
+      if (component4 != null)
+         component4.setQuantity(quantityComponent4);
+
+      // check results
+      if (ware.getLinkedPriceMultiplier() != priceMult) {
+         TEST_OUTPUT.println("   unexpected linked price multiplier (" + ware.getWareID() + ")" + testIdentifier + ": " + ware.getLinkedPriceMultiplier() + ", should be " + priceMult);
+         errorFound = true;
+      }
+      if (Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL) > price + FLOAT_COMPARE_PRECISION ||
+          Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL) < price - FLOAT_COMPARE_PRECISION) {
+         TEST_OUTPUT.println("   unexpected price (" + ware.getWareID() + ")" + testIdentifier + ": " + Marketplace.getPrice(PLAYER_ID, ware, 1, Marketplace.PriceType.CURRENT_SELL) + ", should be " + price);
+         errorFound = true;
+      }
+
+      // reset state to prepare for the next test
+      ware.setQuantity(Config.quanEquilibrium[ware.getLevel()]);
+      if (component1 != null)
+         component1.setQuantity(Config.quanEquilibrium[component1.getLevel()]);
+      if (component2 != null)
+         component2.setQuantity(Config.quanEquilibrium[component2.getLevel()]);
+      if (component3 != null)
+         component3.setQuantity(Config.quanEquilibrium[component3.getLevel()]);
+      if (component4 != null)
+         component4.setQuantity(Config.quanEquilibrium[component4.getLevel()]);
+
+      return errorFound;
    }
 }
