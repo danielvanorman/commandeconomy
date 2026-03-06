@@ -6484,45 +6484,26 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("translateWareID() - valid ware ID");
-         if (!Marketplace.translateWareID("test:material1").equals("test:material1")) {
-            errorFound = true;
-            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("test:material1") + ", should be test:material1");
-         }
-         if (!Marketplace.translateWareID("mat3").equals("test:material3")) {
-            errorFound = true;
-            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("mat3") + ", should be test:material3");
-         }
+         errorFound |= testerTranslateWareID("test:material1", "test:material1");
+
+         TEST_OUTPUT.println("translateWareID() - valid ware alias");
+         errorFound |= testerTranslateWareID("mat3", "test:material3");
 
          TEST_OUTPUT.println("translateWareID() - valid variant ware ID");
-         if (!Marketplace.translateWareID("test:material1&1").equals("test:material1&1")) {
-            errorFound = true;
-            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("test:material1&1") + ", should be test:material1&1");
-         }
+         errorFound |= testerTranslateWareID("test:material1&1", "test:material1&1");
 
          TEST_OUTPUT.println("translateWareID() - valid variant ware alias");
-         if (!Marketplace.translateWareID("notrade1&1").equals("test:untradeable1&1")) {
-            errorFound = true;
-            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("notrade1&1") + ", should be test:untradeable1&1");
-         }
+         errorFound |= testerTranslateWareID("notrade1&1", "test:untradeable1&1");
 
          TEST_OUTPUT.println("translateWareID() - unknown variant of valid ware ID");
-         if (!Marketplace.translateWareID("test:material1&2").equals("test:material1")) {
-            errorFound = true;
-            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("test:material1&2") + ", should be test:material1");
-         }
+         errorFound |= testerTranslateWareID("test:material1&2", "test:material1");
 
          TEST_OUTPUT.println("translateWareID() - unknown variant of valid ware alias");
-         if (!Marketplace.translateWareID("craft1&6").equals("test:crafted1")) {
-            errorFound = true;
-            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("craft1&6") + ", should be test:crafted1");
-         }
+         errorFound |= testerTranslateWareID("craft1&6", "test:crafted1");
 
          TEST_OUTPUT.println("translateWareID() - existing Forge OreDictionary Name");
          wareAliasTranslations.put("#testName", "test:material2");
-         if (!Marketplace.translateWareID("#testName").equals("test:material2")) {
-            errorFound = true;
-            TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID("#testName") + ", should be test:material2");
-         }
+         errorFound |= testerTranslateWareID("#testName", "test:material2");
 
          TEST_OUTPUT.println("translateWareID() - nonexistent Forge OreDictionary Name");
          if (!Marketplace.translateWareID("#invalidName").isEmpty()) {
@@ -10450,88 +10431,22 @@ public final class TestSuite
          }
 
          TEST_OUTPUT.println("changeStock() - zero quantity");
-         baosOut.reset(); // clear buffer holding console output
-         int quantity = testWare1.getQuantity();
-         UserInterfaceTerminal.serviceRequest("/changeStock test:material1 0");
-         if (!baosOut.toString().startsWith("test:material1's stock is now " + quantity)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (quantity != testWare1.getQuantity()) {
-            TEST_OUTPUT.println("   unexpected ware stock: " + testWare1.getQuantity() + ", should be " + quantity);
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerChangeStock(testWare1, testWare1.getQuantity(), "0");
 
          TEST_OUTPUT.println("changeStock() - negative quantity");
-         baosOut.reset(); // clear buffer holding console output
-         quantity = testWare3.getQuantity() - 10;
-         UserInterfaceTerminal.serviceRequest("/changeStock test:material3 -10");
-         if (!baosOut.toString().startsWith("test:material3's stock is now " + quantity)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (quantity != testWare3.getQuantity()) {
-            TEST_OUTPUT.println("   unexpected ware stock: " + testWare3.getQuantity() + ", should be " + quantity);
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerChangeStock(testWare3, testWare3.getQuantity() - 10, "-10");
 
          TEST_OUTPUT.println("changeStock() - positive quantity");
-         baosOut.reset(); // clear buffer holding console output
-         quantity = testWareP1.getQuantity() + 100;
-         UserInterfaceTerminal.serviceRequest("/changeStock test:processed1 100");
-         if (!baosOut.toString().startsWith("test:processed1's stock is now " + quantity)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (quantity != testWareP1.getQuantity()) {
-            TEST_OUTPUT.println("   unexpected ware stock: " + testWareP1.getQuantity() + ", should be " + quantity);
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerChangeStock(testWareP1, testWareP1.getQuantity() + 100, "100");
 
          TEST_OUTPUT.println("changeStock() - equilibrium");
-         baosOut.reset(); // clear buffer holding console output
-         quantity = Config.quanEquilibrium[testWare4.getLevel()];
-         UserInterfaceTerminal.serviceRequest("/changeStock minecraft:material4 equilibrium");
-         if (!baosOut.toString().startsWith("minecraft:material4's stock is now " + quantity)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (quantity != testWare4.getQuantity()) {
-            TEST_OUTPUT.println("   unexpected ware stock: " + testWare4.getQuantity() + ", should be " + quantity);
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerChangeStock(testWare4, Config.quanEquilibrium[testWare4.getLevel()], "equilibrium");
 
          TEST_OUTPUT.println("changeStock() - overstocked");
-         baosOut.reset(); // clear buffer holding console output
-         quantity = Config.quanExcessive[testWare1.getLevel()];
-         UserInterfaceTerminal.serviceRequest("/changeStock test:material1 overstocked");
-         if (!baosOut.toString().startsWith("test:material1's stock is now " + quantity)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (quantity != testWare1.getQuantity()) {
-            TEST_OUTPUT.println("   unexpected ware stock: " + testWare1.getQuantity() + ", should be " + quantity);
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerChangeStock(testWare1, Config.quanExcessive[testWare1.getLevel()], "overstocked");
 
          TEST_OUTPUT.println("changeStock() - understocked");
-         baosOut.reset(); // clear buffer holding console output
-         quantity = Config.quanDeficient[testWare3.getLevel()];
-         UserInterfaceTerminal.serviceRequest("/changeStock test:material3 understocked");
-         if (!baosOut.toString().startsWith("test:material3's stock is now " + quantity)) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (quantity != testWare3.getQuantity()) {
-            TEST_OUTPUT.println("   unexpected ware stock: " + testWare3.getQuantity() + ", should be " + quantity);
-            errorFound = true;
-            resetTestEnvironment();
-         }
+         errorFound |= testerChangeStock(testWare3, Config.quanDeficient[testWare3.getLevel()], "understocked");
       }
       catch (Exception e) {
          TEST_OUTPUT.println("changeStock() - fatal error: " + e);
@@ -17151,6 +17066,59 @@ public final class TestSuite
          component3.setQuantity(Config.quanEquilibrium[component3.getLevel()]);
       if (component4 != null)
          component4.setQuantity(Config.quanEquilibrium[component4.getLevel()]);
+
+      return errorFound;
+   }
+
+   /**
+    * Evaluates whether a ware's amount available for sale is adjusted correctly
+    * after using an administrator command to change it.
+    * Prints errors, if found.
+    * <p>
+    * @param ware             the ware whose amount available for sale should be changed
+    * @param quantityWare     how much of the ware should be available for sale after its adjustment
+    * @param changeInStock    what to type to specify how to change the amount available for sale
+    * @return true if an error was discovered
+    */
+   private static boolean testerChangeStock(Ware ware, final int quantityWare,
+                                            final String changeInStock) {
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      // set up test
+      baosOut.reset(); // clear buffer holding console output
+
+      // execute test
+      UserInterfaceTerminal.serviceRequest("/changeStock " + ware.getWareID() + " " + changeInStock);
+
+      // check results
+      if (!baosOut.toString().startsWith(ware.getWareID() + "'s stock is now " + quantityWare)) {
+         TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
+         errorFound = true;
+      }
+      if (quantityWare != ware.getQuantity()) {
+         TEST_OUTPUT.println("   unexpected ware stock: " + ware.getQuantity() + ", should be " + quantityWare);
+         errorFound = true;
+         resetTestEnvironment();
+      }
+
+      return errorFound;
+   }
+
+   /**
+    * Evaluates whether changing a ware's ID into a more common form is successful.
+    * Prints errors, if found.
+    * <p>
+    * @param untranslatedWareName   a ware ID or alias that should be changed into its more common form
+    * @param expectedWareID         the ware ID or alias's corresponding common form
+    * @return true if an error was discovered
+    */
+   private static boolean testerTranslateWareID(final String untranslatedWareName, final String expectedWareID) {
+      boolean errorFound = false; // assume innocence until proven guilty
+
+      if (!Marketplace.translateWareID(untranslatedWareName).equals(expectedWareID)) {
+         errorFound = true;
+         TEST_OUTPUT.println("   unexpected result: " + Marketplace.translateWareID(untranslatedWareName) + ", should be " + expectedWareID);
+      }
 
       return errorFound;
    }
