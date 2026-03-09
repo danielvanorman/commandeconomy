@@ -11806,95 +11806,31 @@ public final class TestSuite
          resetTestEnvironment();
 
          TEST_OUTPUT.println("research() - ware at lowest level");
-         wareLevel    = testWare1.getLevel();
-         wareQuantity = testWare1.getQuantity();
-
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequest("/research test:material1");
-
-         if (!baosOut.toString().equals("test:material1 is already as plentiful as possible" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (testWareFields(testWare1, WareMaterial.class, "", wareLevel, 1.0f, wareQuantity)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWare1, testWare1.getQuantity(), 0);
 
          TEST_OUTPUT.println("research() - equilibrium: raw material");
-         errorFound |= testerResearch(testWare2, Config.startQuanBase[testWare2.getLevel()], null, 0);
+         errorFound |= testerResearch(testWare2, Config.startQuanBase[testWare2.getLevel()], 0);
 
          TEST_OUTPUT.println("research() - equilibrium: processed ware");
-         errorFound |= testerResearch(testWareP1, Config.startQuanBase[testWareP1.getLevel()], null, 0);
+         errorFound |= testerResearch(testWareP1, Config.startQuanBase[testWareP1.getLevel()], 0);
 
          TEST_OUTPUT.println("research() - understocked");
-         errorFound |= testerResearch(testWareP1, 1, null, 0);
+         errorFound |= testerResearch(testWareP1, 1, 0);
 
          TEST_OUTPUT.println("research() - overstocked");
-         errorFound |= testerResearch(testWare4, Config.startQuanBase[testWare4.getLevel() - 1] + 10, null, 0);
-         resetTestEnvironment();
+         errorFound |= testerResearch(testWare4, Config.startQuanBase[testWare4.getLevel() - 1] + 10, 0);
 
          TEST_OUTPUT.println("research() - excessively overstocked");
-         wareLevel    = testWare4.getLevel();
-         wareQuantity = 999999999;
-         testWare4.setQuantity(wareQuantity); // set stock to be excessively high
-         money        = playerAccount.getMoney();
-
-         baosOut.reset(); // clear buffer holding console output
-         UserInterfaceTerminal.serviceRequest("/research minecraft:material4");
-
-         if (!baosOut.toString().equals("material4 is already plentiful" + System.lineSeparator())) {
-            TEST_OUTPUT.println("   unexpected console output: " + baosOut.toString());
-            errorFound = true;
-         }
-         if (testWareFields(testWare4, WareMaterial.class, "material4", wareLevel, 8.0f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(playerAccount, money, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWare4, 999999999, 0);
 
          TEST_OUTPUT.println("research() - non-personal account: generating proposal");
-         errorFound |= testerResearch(testWareP1, Config.startQuanBase[testWareP1.getLevel() - 1], "testAccount1", 0);
+         errorFound |= testerResearch(testWareP1, Config.startQuanBase[testWareP1.getLevel() - 1], "testAccount1", null, 0);
 
          TEST_OUTPUT.println("research() - non-personal account: accepting proposal");
-         wareLevel    = testWare3.getLevel();
-         wareQuantity = Config.startQuanBase[testWare3.getLevel() - 1];
-         price        = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare3, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
-         price        = PriceFormatter.truncatePrice(price);
-         money        = 1000000.0f;
-         testAccount1.setMoney(money);
-
-         UserInterfaceTerminal.serviceRequest("/research test:material3");
-         UserInterfaceTerminal.serviceRequest("/research yes testAccount1");
-
-         if (testWareFields(testWare3, WareMaterial.class, "mat3", (byte) (wareLevel - 1), 4.0f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, money - price, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWare3, Config.startQuanBase[testWare3.getLevel() - 1], null, "testAccount1", 0);
 
          TEST_OUTPUT.println("research() - non-personal account: generating and accepting proposal");
-         wareLevel    = testWare2.getLevel();
-         wareQuantity = Config.startQuanBase[testWare2.getLevel() - 1];
-         price        = Marketplace.getPrice(UserInterfaceTerminal.getPlayerIDStatic(UserInterfaceTerminal.playername), testWare2, 0, Marketplace.PriceType.CURRENT_SELL) * wareLevel * Config.researchCostPerHierarchyLevel;
-         price        = PriceFormatter.truncatePrice(price);
-         money        = 1000000.0f;
-         testAccount1.setMoney(money);
-         testAccount2.setMoney(money);
-
-         UserInterfaceTerminal.serviceRequest("/research test:material2 testAccount1");
-         UserInterfaceTerminal.serviceRequest("/research yes testAccount2");
-
-         if (testWareFields(testWare2, WareMaterial.class, "", (byte) (wareLevel - 1), 27.6f, wareQuantity)) {
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount1, money, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
-         if (testAccountFields(testAccount2, money - price, UserInterfaceTerminal.playername)) {
-            errorFound = true;
-         }
+         errorFound |= testerResearch(testWare2, Config.startQuanBase[testWare2.getLevel() - 1], "testAccount1", "testAccount2", 0);
 
          resetTestEnvironment();
 
@@ -16921,16 +16857,32 @@ public final class TestSuite
 
    /**
     * Evaluates whether a ware's availability and an account's funds change correctly
-    * based on successfully researching the ware.
+    * based on successfully researching the ware or not researching it if its availability is too high.
     * Prints errors, if found.
     * <p>
     * @param ware                  the ware to be researched
     * @param quantityWare          how much of the ware should be available for sale
-    * @param accountName           which bank account should be charged a research fee
     * @param testNumber            test number to use when printing errors
     * @return true if an error was discovered
     */
-   private static boolean testerResearch(Ware ware, final int quantityWare, String accountName, final int testNumber) {
+   private static boolean testerResearch(Ware ware, final int quantityWare, final int testNumber) {
+      return testerResearch(ware, quantityWare, null, null, testNumber);
+   }
+
+   /**
+    * Evaluates whether a ware's availability and an account's funds change correctly
+    * based on successfully researching the ware or not researching it if its availability is too high.
+    * Prints errors, if found.
+    * <p>
+    * @param ware                          the ware to be researched
+    * @param quantityWare                  how much of the ware should be available for sale
+    * @param accountNameGenerateProposal   a bank account to set to be charged when checking a research fee's amount
+    * @param accountNameAcceptProposal     a bank account to set to be charged when paying a research fee
+    * @param testNumber                    test number to use when printing errors
+    * @return true if an error was discovered
+    */
+   private static boolean testerResearch(Ware ware, final int quantityWare,
+      String accountNameGenerateProposal, String accountNameAcceptProposal, final int testNumber) {
       String  testIdentifier;            // can be added to printed errors to differentiate between tests
       boolean errorFound   = false; // assume innocence until proven guilty
 
@@ -16941,28 +16893,53 @@ public final class TestSuite
 
       // set up test
       ware.setQuantity(quantityWare);
-      float   money                = 1000000.0f;
-      Account account;
-      String accountNameForCommand = "";
-      if (accountName == null) // default to using test player's account
-         account = playerAccount;
-      else {
-         account = Account.getAccount(accountName);
-         accountNameForCommand = " " + accountName;
+      float   money                                 = 1000000.0f;
+      Account account                               = playerAccount; // default to using test player's account
+      String  accountNameForCommandGenerateProposal = "";
+      String  accountNameForCommandAcceptProposal   = "";
+      if (accountNameGenerateProposal != null) {
+         accountNameForCommandGenerateProposal = " " + accountNameGenerateProposal;
+
+         // The account provided when accepting the proposal should be used
+         // instead of the account provided when generating the proposal.
+         if (accountNameAcceptProposal == null)
+            account = Account.getAccount(accountNameGenerateProposal);
+      }
+      if (accountNameAcceptProposal != null) {
+         accountNameForCommandAcceptProposal = " " + accountNameAcceptProposal;
+         account = Account.getAccount(accountNameAcceptProposal);
       }
       account.setMoney(money);
+      baosOut.reset(); // clear buffer holding console output
 
       // predict results
-      int   expectedWareLevel = ware.getLevel() - 1;
-      int   expectedQuantity  = Config.startQuanBase[expectedWareLevel];
-      if (quantityWare > expectedQuantity)
-         expectedQuantity = quantityWare;
-      float price             = Marketplace.getPrice(PLAYER_ID, ware, 0, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.researchCostPerHierarchyLevel;
-      price                   = PriceFormatter.truncatePrice(price);
+      boolean shouldConfirmResearchOffer = true;
+      int     expectedWareLevel;
+      int     expectedQuantity;
+      float   price;
+
+      // if the ware is researchable, expect research to be successful
+      if (ware.getLevel() > 0 && quantityWare < Config.startQuanBase[ware.getLevel()]) {
+         expectedWareLevel = ware.getLevel() - 1;
+         expectedQuantity  = Config.startQuanBase[expectedWareLevel];
+         if (quantityWare > expectedQuantity)
+            expectedQuantity = quantityWare;
+         price             = Marketplace.getPrice(PLAYER_ID, ware, 0, Marketplace.PriceType.CURRENT_BUY) * ware.getLevel() * Config.researchCostPerHierarchyLevel;
+         price             = PriceFormatter.truncatePrice(price);
+      }
+
+      // ware is too common to be researched
+      else {
+         shouldConfirmResearchOffer = false;
+         expectedWareLevel          = ware.getLevel();
+         expectedQuantity           = ware.getQuantity();
+         price                      = 0.0f;
+      }
 
       // execute test
-      UserInterfaceTerminal.serviceRequest("/research " + ware.getWareID() + accountNameForCommand);
-      UserInterfaceTerminal.serviceRequest("/research yes");
+      UserInterfaceTerminal.serviceRequest("/research " + ware.getWareID() + accountNameForCommandGenerateProposal);
+      if (shouldConfirmResearchOffer)
+         UserInterfaceTerminal.serviceRequest("/research yes" + accountNameForCommandAcceptProposal);
 
       // check results
       if (ware.getLevel() != expectedWareLevel) {
@@ -16976,6 +16953,12 @@ public final class TestSuite
       if (account.getMoney() != money - price) {
          TEST_OUTPUT.println("   unexpected account money" + testIdentifier + ": " + account.getMoney() + ", should be " + (money - price));
          errorFound = true;
+      }
+      if (!shouldConfirmResearchOffer && ware.getLevel() == 0) {
+         if (!baosOut.toString().equals(ware.getWareID() + " is already as plentiful as possible" + System.lineSeparator())) {
+            TEST_OUTPUT.println("   unexpected console output" + testIdentifier + ": " + baosOut.toString());
+            errorFound = true;
+         }
       }
 
       return errorFound;
